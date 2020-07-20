@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Authors>Reactor2</Authors>
+    <Company>Reactor2</Company>
+    <Description>Implementation of Entity Framework Core on the RCommon application framework.</Description>
+    <Copyright>Copyright Reactor2 2020</Copyright>
+    <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
+    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+    <PackageTags>generic repository, .NET Core, Entity Framework Core Repository</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +19,13 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\..\OneDrive - NTeris\Businesses\NTeris\Graphics\reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
