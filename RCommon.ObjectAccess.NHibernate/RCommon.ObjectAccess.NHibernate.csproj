@@ -9,6 +9,7 @@
     <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageTags>NHibernate, Generic Repository, .NET Core</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
