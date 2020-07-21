@@ -44,7 +44,7 @@ namespace RCommon.Configuration
         /// </summary>
         private void InitializeDefaults()
         {
-            _containerAdapter.Register<IEnvironmentAccessor, EnvironmentAccessor>();
+            _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
         }
 
         /// <summary>

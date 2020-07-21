@@ -23,45 +23,39 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         
         public TestBase()
         {
-            this.SetupConfigurationFile();
-            
-            
+
+
+            this.InitializeRCommon();
         }
 
-        private void InitializeRCommon(IContainerAdapter containerAdapter)
+        private void InitializeRCommon()
         {
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            this.Configuration = config.Build();
+
             if (_autofacContainer == null)
             {
                 var builder = new ContainerBuilder();
+
+                _autofacContainer = builder.Build();
+
+                _serviceLocator = new AutofacServiceLocator(_autofacContainer);
+                ServiceLocator.SetLocatorProvider(() => _serviceLocator);
 
                 _containerAdapter = new AutofacContainerAdapter(builder);
                 ConfigureRCommon.Using(_containerAdapter) // By default we'll be using Theadlocal storage since we're not under web request
                 .WithStateStorage<DefaultStateStorageConfiguration>()
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
-                .WithObjectAccess<EFConfiguration>(x => x.WithObjectContext(() => new TestDbContext(this.Configuration)));
+                .WithObjectAccess<EFCoreConfiguration>();
 
-                _autofacContainer = builder.Build();
-
-
-                _serviceLocator = new AutofacServiceLocator(_autofacContainer);
-                ServiceLocator.SetLocatorProvider(() => _serviceLocator);
+                
 
             }
 
             
         }
 
-        private void SetupServiceLocator()
-        {
-
-        }
-
-        private void SetupConfigurationFile()
-        {
-            var builder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            this.Configuration = builder.Build();
-        }
 
         /// <summary>
         /// Creates a simple web request so that we can test RCommon in web environment

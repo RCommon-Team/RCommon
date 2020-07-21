@@ -1,12 +1,17 @@
 using System;
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
 using RCommon.Configuration;
 using RCommon.DependencyInjection;
+using System.Linq;
+using Autofac.Builder;
 
 namespace RCommon.DependencyInjection.Autofac
 {
     public class AutofacContainerAdapter : IContainerAdapter
     {
+        IServiceProvider _serviceProvider;
+        ServiceCollection _services;
         ContainerBuilder _builder;
 
         /// <summary>
@@ -17,6 +22,8 @@ namespace RCommon.DependencyInjection.Autofac
         public AutofacContainerAdapter(ContainerBuilder builder)
         {
             _builder = builder;
+
+            
         }
 
         /// <summary>
@@ -69,15 +76,6 @@ namespace RCommon.DependencyInjection.Autofac
             _builder.RegisterType(implementation).Named(named, service);
         }
 
-        ///<summary>
-        /// Registers a open generic implementation for a generic service type.
-        ///</summary>
-        ///<param name="service">The type representing the service for which the implementation type is registered.</param>
-        ///<param name="implementation">The type representing the implementation registered for the service.</param>
-        public void RegisterGeneric(Type service, Type implementation)
-        {
-            _builder.RegisterGeneric(implementation).As(service);
-        }
 
         ///<summary>
         /// Registers a named open generic implementation for a generic service type.
@@ -140,54 +138,86 @@ namespace RCommon.DependencyInjection.Autofac
             _builder.RegisterType(implementation).Named(named, service).SingleInstance();
         }
 
-        /// <summary>
-        /// Registers an instance as an implementation for a service type.
-        /// </summary>
-        /// <typeparam name="TService"><typeparamref name="TService"/>. The type representing
-        /// the service for which the instance is registered.</typeparam>
-        /// <param name="instance">An instance of type <typeparamref name="TService"/> that is
-        /// registered as an instance for <typeparamref name="TService"/>.</param>
-        public void RegisterInstance<TService>(TService instance) where TService : class
+       
+
+        public void AddGeneric(Type service, Type implementation)
         {
-            _builder.RegisterInstance(instance).As<TService>();
+            _builder.RegisterGeneric(implementation).As(service);
         }
 
-        /// <summary>
-        /// Registers an named instance as an implementation for a service type.
-        /// </summary>
-        /// <typeparam name="TService"><typeparamref name="TService"/>. The type representing
-        /// the service for which the instance is registered.</typeparam>
-        /// <param name="instance">An instance of type <typeparamref name="TService"/> that is
-        /// registered as an instance for <typeparamref name="TService"/>.</param>
-        /// <param name="named">string. The service name with which the implementation is registered.</param>
-        public void RegisterInstance<TService>(TService instance, string named) where TService : class
+        public void AddScoped(Type service, Func<IServiceProvider, object> implementationFactory)
         {
-            _builder.RegisterInstance(instance).Named<TService>(named);
+            // Not sure if this will work
+            _builder.Register<Func<IServiceProvider, object>>(component => provider => 
+            component.ResolveKeyed(implementationFactory.Invoke(provider), service))
+                .InstancePerLifetimeScope();
         }
 
-        /// <summary>
-        /// Registers an instance as an implementation for a service type.
-        /// </summary>
-        /// <param name="service"><see cref="Type"/>. The type representing
-        /// the service for which the instance is registered.</param>
-        /// <param name="instance">An instance of <paramref name="service"/> that is
-        /// registered as an instance for the service.</param>
-        public void RegisterInstance(Type service, object instance)
+        public void AddScoped(Type service, Type implementation)
         {
-            _builder.RegisterInstance(instance).As(service);
+            _builder.RegisterType(implementation).As(service).InstancePerLifetimeScope();
         }
 
-        /// <summary>
-        /// Registers a named instance as an implementation for a service type.
-        /// </summary>
-        /// <param name="service"><see cref="Type"/>. The type representing
-        /// the service for which the instance is registered.</param>
-        /// <param name="instance">An instance of <paramref name="service"/> that is
-        /// registered as an instance for the service.</param>
-        /// <param name="named">string. The service name with which the implementation is registered.</param>
-        public void RegisterInstance(Type service, object instance, string named)
+        public void AddScoped<TService, TImplementation>() where TImplementation : TService
         {
-            _builder.RegisterInstance(instance).Named(named, service);
+            _builder.RegisterType(typeof(TImplementation)).As(typeof(TService)).InstancePerLifetimeScope();
+        }
+
+        public void AddScoped<TService>(Func<IServiceProvider, TService> implementationFactory)
+        {
+            //_builder.Register<Func<IServiceProvider, TService>>(c => s => c.ResolveKeyed<IServiceProvider>(s)).InstancePerLifetimeScope();
+            // Not sure if this will work
+            _builder.Register<Func<IServiceProvider, TService>>(component => provider =>
+            component.ResolveKeyed<TService>(implementationFactory.Invoke(provider)))
+                .InstancePerLifetimeScope();
+        }
+
+        public void AddSingleton(Type service, Func<IServiceProvider, object> implementationFactory)
+        {
+            // Not sure if this will work
+            _builder.Register<Func<IServiceProvider, object>>(component => provider =>
+            component.ResolveKeyed(implementationFactory.Invoke(provider), service))
+                .SingleInstance();
+        }
+
+        public void AddSingleton(Type service, Type implementation)
+        {
+            _builder.RegisterType(implementation).As(service).SingleInstance();
+        }
+
+        public void AddSingleton<TService, TImplementation>() where TImplementation : TService
+        {
+            _builder.RegisterType(typeof(TImplementation)).As(typeof(TService)).SingleInstance();
+        }
+
+        public void AddSingleton<TService>(Func<IServiceProvider, TService> implementationFactory)
+        {
+            _builder.Register<Func<IServiceProvider, TService>>(component => provider =>
+            component.ResolveKeyed<TService>(implementationFactory.Invoke(provider)))
+                .SingleInstance();
+        }
+
+        public void AddTransient(Type service, Func<IServiceProvider, object> implementationFactory)
+        {
+            // Not sure if this will work
+            _builder.Register<Func<IServiceProvider, object>>(component => provider =>
+            component.ResolveKeyed(implementationFactory.Invoke(provider), service));
+        }
+
+        public void AddTransient(Type service, Type implementation)
+        {
+            _builder.RegisterType(implementation).As(service);
+        }
+
+        public void AddTransient<TService, TImplementation>() where TImplementation : TService
+        {
+            _builder.RegisterType(typeof(TImplementation)).As(typeof(TService));
+        }
+
+        public void AddTransient<TService>(Func<IServiceProvider, TService> implementationFactory)
+        {
+            _builder.Register<Func<IServiceProvider, TService>>(component => provider =>
+            component.ResolveKeyed<TService>(implementationFactory.Invoke(provider)));
         }
     }
 }

@@ -219,5 +219,70 @@ namespace RCommon.DependencyInjection.CastleWindsor
         {
             _container.Register(Component.For(service).Instance(instance).Named(named));
         }
+
+        public void AddGeneric(Type service, Type implementation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddScoped(Type service, Func<IServiceProvider, object> implementationFactory)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddScoped(Type service, Type implementation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddScoped<TService, TImplementation>() where TImplementation : TService
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddScoped<TService>(Func<IServiceProvider, TService> implementationFactory)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddSingleton(Type service, Func<IServiceProvider, object> implementationFactory)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddSingleton(Type service, Type implementation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddSingleton<TService, TImplementation>() where TImplementation : TService
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddSingleton<TService>(Func<IServiceProvider, TService> implementationFactory)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddTransient(Type service, Func<IServiceProvider, object> implementationFactory)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddTransient(Type service, Type implementation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddTransient<TService, TImplementation>() where TImplementation : TService
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddTransient<TService>(Func<IServiceProvider, TService> implementationFactory)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

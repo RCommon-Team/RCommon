@@ -89,30 +89,30 @@ namespace RCommon.Configuration
         public void Configure(IContainerAdapter containerAdapter)
         {
             if (_customSessionType != null)
-                containerAdapter.Register(typeof(ISessionState), _customSessionType);
+                containerAdapter.AddTransient(typeof(ISessionState), _customSessionType);
             else
             {
-                containerAdapter.Register<ISessionStateSelector, DefaultSessionStateSelector>();
-                containerAdapter.Register<ISessionState, SessionStateWrapper>();
+                containerAdapter.AddTransient<ISessionStateSelector, DefaultSessionStateSelector>();
+                containerAdapter.AddTransient<ISessionState, SessionStateWrapper>();
             }
 
             if (_customLocalStateType != null)
-                containerAdapter.Register(typeof(IContextState), _customLocalStateType);
+                containerAdapter.AddTransient(typeof(IContextState), _customLocalStateType);
             else
             {
-                containerAdapter.Register<IContextStateSelector, DefaultContextStateSelector>();
-                containerAdapter.Register<IContextState, ContextStateWrapper>();
+                containerAdapter.AddTransient<IContextStateSelector, DefaultContextStateSelector>();
+                containerAdapter.AddTransient<IContextState, ContextStateWrapper>();
             }
             if (_customCacheType != null)
-                containerAdapter.Register(typeof(ICacheState), _customCacheType);
+                containerAdapter.AddTransient(typeof(ICacheState), _customCacheType);
             else
-                containerAdapter.Register<ICacheState, HttpRuntimeCache>();
+                containerAdapter.AddTransient<ICacheState, HttpRuntimeCache>();
             if (_customApplicationStateType != null)
-                containerAdapter.RegisterSingleton(typeof(IApplicationState), _customApplicationStateType);
+                containerAdapter.AddSingleton(typeof(IApplicationState), _customApplicationStateType);
             else
-                containerAdapter.RegisterSingleton<IApplicationState, ApplicationState>();
+                containerAdapter.AddSingleton<IApplicationState, ApplicationState>();
 
-            containerAdapter.Register<IStateStorage, StateStorageWrapper>();
+            containerAdapter.AddTransient<IStateStorage, StateStorageWrapper>();
         }
     }
 }

@@ -29,7 +29,6 @@ namespace RCommon.ObjectAccess.NHibernate
     /// </summary>
     public class NHConfiguration : IObjectAccessConfiguration
     {
-        Type _defaultRepositoryType = typeof (NHRepository<,>);
         readonly NHUnitOfWorkFactory _factory = new NHUnitOfWorkFactory();
 
         /// <summary>
@@ -53,8 +52,8 @@ namespace RCommon.ObjectAccess.NHibernate
         /// registering components.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
-            containerAdapter.RegisterInstance<IUnitOfWorkFactory>(_factory);
-            containerAdapter.RegisterGeneric(typeof(IEagerFetchingRepository<,>), _defaultRepositoryType);
+            containerAdapter.AddTransient<IUnitOfWorkFactory, NHUnitOfWorkFactory>();
+            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<,>), typeof(NHRepository<,>));
         }
 
 

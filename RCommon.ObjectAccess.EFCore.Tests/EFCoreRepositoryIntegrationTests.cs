@@ -24,6 +24,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         [OneTimeSetUp]
         public void InitialSetup()
         {
+            
             //this.ContainerAdapter.Register<DbContext, TestDbContext>(typeof(TestDbContext).AssemblyQualifiedName);
             
         }
