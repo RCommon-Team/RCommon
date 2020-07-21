@@ -34,7 +34,6 @@
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
         private readonly Dictionary<Type, object> _objectSets;
-        private Type _type;
 
 
 
