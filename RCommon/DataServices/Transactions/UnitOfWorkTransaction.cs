@@ -13,6 +13,7 @@
 //See the License for the specific language governing permissions and 
 //limitations under the License. 
 #endregion
+// Substantial changes by for RCommon Project http://reactor2.com/rcommon
 
 using System;
 using System.Collections.Generic;

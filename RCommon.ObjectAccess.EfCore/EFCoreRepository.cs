@@ -19,8 +19,8 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    /// A concrete implementation of <see cref="RepositoryBase{TEntity}"/> and <see cref="IRepository{TEntity}"/> for Entity Framework Core version 3.x. This class
-    /// currently exposes much of the functionality of EF with the exception of change tracking and peristance models. We expose IQueryable to layers up stream
+    /// A concrete implementation for Entity Framework Core version 3.x. This class
+    /// currently exposes much of the functionality of EF with the exception of change tracking and peristance models. We expose IQueryable to layers down stream
     /// so that complex joins can be utilized and then managed at the domain level. This implementation makes special considerations for managing the lifetime of the
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
