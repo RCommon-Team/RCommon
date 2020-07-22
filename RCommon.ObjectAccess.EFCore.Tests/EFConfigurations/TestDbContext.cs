@@ -89,11 +89,17 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             modelBuilder.ApplyConfiguration(new SalesTerritoryConfiguration());
         }
 
-        public void CommitTransaction()
+        public void PersistChanges()
         {
             // This is leading up to a natively supported transaction rather than using transaction scope and
             // explicitly calling this.SaveChanges();
             this.SaveChanges();
+        }
+
+        public async Task PersistChangesAsync()
+        {
+            await this.SaveChangesAsync();
+
         }
 
         public DbContext DataContext => this;

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RCommon
 {
-    public abstract class DisposableResource : IDisposable
+    public abstract class DisposableResource : IDisposable, IAsyncDisposable
     {
         ~DisposableResource()
         {
@@ -20,8 +21,19 @@ namespace RCommon
             GC.SuppressFinalize(this);
         }
 
+        public async ValueTask DisposeAsync()
+        {
+            await this.DisposeAsync(true);
+        }
+
         protected virtual void Dispose(bool disposing)
         {
+        }
+
+        protected async virtual Task DisposeAsync(bool disposing)
+        {
+
+            await Task.CompletedTask;
         }
     }
 }

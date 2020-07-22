@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RCommon.DataServices.Transactions
 {
@@ -33,12 +34,31 @@ namespace RCommon.DataServices.Transactions
 
             foreach (var db in dbs)
             {
-                db.CommitTransaction();
+                db.PersistChanges();
             }
 
             foreach (var db in dbs) // Each datastore should automatically get disposed at the end of the lifetime scope but this gives us fine grained control
             {
                 db.Dispose();
+            }
+
+            _storage.Local.Clear();
+            //dbs.ForEach<KeyValuePair<string, DbContext>>(m => m.Value.SaveChanges());
+        }
+
+        public async Task FlushAsync()
+        {
+            Guard.Against<ObjectDisposedException>(this._disposed, "The current EFUnitOfWork instance has been disposed. Cannot get sessions from a disposed UnitOfWork instance.");
+            var dbs = this._serviceProvider.GetServices<IDataStore>();
+
+            foreach (var db in dbs)
+            {
+                await db.PersistChangesAsync();
+            }
+
+            foreach (var db in dbs) // Each datastore should automatically get disposed at the end of the lifetime scope but this gives us fine grained control
+            {
+                await db.DisposeAsync();
             }
 
             _storage.Local.Clear();
@@ -75,9 +95,23 @@ namespace RCommon.DataServices.Transactions
             {
                 if (disposing)
                 {
+
                 }
                 this._disposed = true;
             }
+        }
+
+        protected async override Task DisposeAsync(bool disposing)
+        {
+            if (!this._disposed)
+            {
+                if (disposing)
+                {
+
+                }
+                this._disposed = true;
+            }
+            await Task.CompletedTask;
         }
     }
 }
