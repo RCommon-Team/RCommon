@@ -15,7 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Domain\Application\" />
     <Folder Include="Domain\Entities\" />
   </ItemGroup>
 

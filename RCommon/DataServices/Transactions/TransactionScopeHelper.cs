@@ -47,5 +47,21 @@ namespace RCommon.DataServices.Transactions
             logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Required");
             return new TransactionScope(TransactionScopeOption.Required, new TransactionOptions { IsolationLevel = isolationLevel });
         }
+
+        public static TransactionScope CreateScopeAsync(ILogger<UnitOfWorkTransactionManager> logger, IsolationLevel isolationLevel, TransactionMode txMode)
+        {
+            if (txMode == TransactionMode.New)
+            {
+                logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.RequiresNew");
+                return new TransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = isolationLevel });
+            }
+            if (txMode == TransactionMode.Supress)
+            {
+                logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Supress");
+                return new TransactionScope(TransactionScopeOption.Suppress);
+            }
+            logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Required");
+            return new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+        }
     }
 }

@@ -29,6 +29,7 @@ using System;
 using System.Linq.Expressions;
 using System.IO;
 using System.Threading.Tasks;
+using RCommon.DataServices;
 
 namespace RCommon.ObjectAccess.NHibernate
 {
@@ -36,40 +37,38 @@ namespace RCommon.ObjectAccess.NHibernate
     /// Inherits from the <see cref="FullFeaturedRepositoryBase{TEntity}"/> class to provide an implementation of a
     /// repository that uses NHibernate.
     /// </summary>
-    public class NHRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity, TDataStore>
+    public class NHRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity, IDataStore<ISessionFactory>>
     {
         //int _batchSize = -1;
         //bool _enableCached;
         //string _cachedQueryName;
-         ISession _privateSession;
+         IDataStore<ISessionFactory> _dataStore;
+        private readonly IUnitOfWorkManager _unitOfWorkManager;
 
         /// <summary>
         /// Default Constructor.
         /// Creates a new instance of the <see cref="NHRepository{TEntity}"/> class.
         /// </summary>
-        public NHRepository () 
+        public NHRepository (IDataStore<ISessionFactory> dataStore, IUnitOfWorkManager unitOfWorkManager) 
         {
-            Initialize();           
+            _dataStore = dataStore;
+            this._unitOfWorkManager = unitOfWorkManager;
         }
-        
-         /// <summary>
-        /// Default Init.
-        /// </summary>
-        protected virtual void Initialize()
-        {
-            var sessions = ServiceLocatorWorker.GetAllInstances<ISession>();
-            if (sessions != null && sessions.Count() > 0)
-                _privateSession = sessions.FirstOrDefault();
-        }         
-
+      
         /// <summary>
         /// Gets the <see cref="ISession"/> instnace that is used by the repository.
         /// </summary>
-        private ISession Session
+        private ISessionFactory SessionFactory
         {
             get
             {
-                return _privateSession ?? UnitOfWork<NHUnitOfWork>().GetSession<TEntity>();
+                if (this._unitOfWorkManager.CurrentUnitOfWork != null)
+                {
+                    // Ensure that DbContext is registered with the Unit of Work so that we can properly save it (and not other DbContexts not part
+                    // of the Unit of Work)
+                    this._unitOfWorkManager.CurrentUnitOfWork.RegisterDataStoreType(this._dataStore);
+                }
+                return this._dataStore.DataContext;
             }
         }
 
@@ -87,7 +86,7 @@ namespace RCommon.ObjectAccess.NHibernate
             {
                 
 
-                return Session.Query<TEntity>();
+                return SessionFactory.GetCurrentSession().Query<TEntity>();
             }
         }
 
@@ -102,7 +101,7 @@ namespace RCommon.ObjectAccess.NHibernate
         /// </remarks>
         public override TEntity Add(TEntity entity)
         {
-            Session.SaveOrUpdate(entity);
+            SessionFactory.GetCurrentSession().SaveOrUpdate(entity);
             return entity;
         }
 
@@ -112,7 +111,7 @@ namespace RCommon.ObjectAccess.NHibernate
         /// <param name="entity">An instance of <typeparamref name="TEntity"/> that should be deleted.</param>
         public override void Delete(TEntity entity)
         {
-            Session.Delete(entity);
+            SessionFactory.GetCurrentSession().Delete(entity);
         }
 
 
@@ -123,7 +122,7 @@ namespace RCommon.ObjectAccess.NHibernate
         /// <param name="entity">The entity instance to attach back to the repository.</param>
         public override void Attach(TEntity entity)
         {
-            Session.Update(entity);
+            SessionFactory.GetCurrentSession().Update(entity);
         }
 
         protected override void ApplyFetchingStrategy(Action<EagerFetchingStrategy<TEntity>> strategyActions)
@@ -142,102 +141,102 @@ namespace RCommon.ObjectAccess.NHibernate
 
         public override void Update(TEntity entity)
         {
-            Session.Update(entity);
+            SessionFactory.GetCurrentSession().Update(entity);
         }
 
         public override ICollection<TEntity> Find(ISpecification<TEntity> specification)
         {
-            return Session.Query<TEntity>().Where(specification.Predicate).ToList();
+            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).ToList();
         }
 
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
-            return Session.Query<TEntity>().Where(specification.Predicate);
+            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate);
         }
 
         public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression)
         {
-            return Session.Query<TEntity>().Where(expression);
+            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression);
         }
 
         public override ICollection<TEntity> Find(Expression<Func<TEntity, bool>> expression)
         {
-            return Session.Query<TEntity>().Where(expression).ToList();
+            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).ToList();
         }
 
         public override TEntity Find(object primaryKey)
         {
-            return Session.Get<TEntity>(primaryKey);
+            return SessionFactory.GetCurrentSession().Get<TEntity>(primaryKey);
         }
 
         public override int GetCount(ISpecification<TEntity> selectSpec)
         {
-            return Session.Query<TEntity>().Where(selectSpec.Predicate).Count();
+            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(selectSpec.Predicate).Count();
         }
 
         public override int GetCount(Expression<Func<TEntity, bool>> expression)
         {
-            return Session.Query<TEntity>().Where(expression).Count();
+            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).Count();
         }
 
         public override TEntity FindSingleOrDefault(Expression<Func<TEntity, bool>> expression)
         {
-            return Session.Query<TEntity>().Where(expression).SingleOrDefault();
+            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).SingleOrDefault();
         }
 
         public override TEntity FindSingleOrDefault(ISpecification<TEntity> specification)
         {
-            return Session.Query<TEntity>().Where(specification.Predicate).SingleOrDefault();
+            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).SingleOrDefault();
         }
 
         public override async Task AddAsync(TEntity entity)
         {
-            await Session.SaveOrUpdateAsync(entity);
+            await SessionFactory.GetCurrentSession().SaveOrUpdateAsync(entity);
         }
 
         public override async Task DeleteAsync(TEntity entity)
         {
-            await Session.DeleteAsync(entity);
+            await SessionFactory.GetCurrentSession().DeleteAsync(entity);
         }
 
         public override async Task UpdateAsnyc(TEntity entity)
         {
-            await Session.UpdateAsync(entity);
+            await SessionFactory.GetCurrentSession().UpdateAsync(entity);
         }
 
         public override async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification)
         {
-            return await Session.Query<TEntity>().Where(specification.Predicate).ToListAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).ToListAsync();
         }
 
         public override async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await Session.Query<TEntity>().Where(expression).ToListAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).ToListAsync();
         }
 
         public override async Task<TEntity> FindAsync(object primaryKey)
         {
-            return await Session.GetAsync<TEntity>(primaryKey);
+            return await SessionFactory.GetCurrentSession().GetAsync<TEntity>(primaryKey);
         }
 
         public override async Task<int> GetCountAsync(ISpecification<TEntity> selectSpec)
         {
-            return await Session.Query<TEntity>().Where(selectSpec.Predicate).CountAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(selectSpec.Predicate).CountAsync();
         }
 
         public override async Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await Session.Query<TEntity>().Where(expression).CountAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).CountAsync();
         }
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await Session.Query<TEntity>().Where(expression).SingleOrDefaultAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).SingleOrDefaultAsync();
         }
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification)
         {
-            return await Session.Query<TEntity>().Where(specification.Predicate).SingleOrDefaultAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).SingleOrDefaultAsync();
         }
     }
 }

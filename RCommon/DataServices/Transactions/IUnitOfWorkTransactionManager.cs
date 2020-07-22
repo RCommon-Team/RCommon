@@ -15,6 +15,7 @@
 #endregion
 
 using System;
+using System.Transactions;
 
 namespace RCommon.DataServices.Transactions
 {
@@ -36,5 +37,14 @@ namespace RCommon.DataServices.Transactions
         /// <param name="mode">A <see cref="TransactionMode"/> enum specifying the transaciton
         /// mode of the unit of work.</param>
         void EnlistScope(IUnitOfWorkScope scope, TransactionMode mode);
+
+        /// <summary>
+        /// Enlists a <see cref="UnitOfWorkScope"/> instance with the transaction manager,
+        /// with the specified transaction mode. Ensures TransactionScope is using <see cref="TransactionScopeAsyncFlowOption"/>
+        /// </summary>
+        /// <param name="scope">The <see cref="IUnitOfWorkScope"/> to register.</param>
+        /// <param name="mode">A <see cref="TransactionMode"/> enum specifying the transaciton
+        /// mode of the unit of work.</param>
+        void EnlistScopeAsync(IUnitOfWorkScope scope, TransactionMode mode);
     }
 }

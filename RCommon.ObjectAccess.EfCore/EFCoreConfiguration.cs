@@ -37,9 +37,7 @@ namespace RCommon.ObjectAccess.EFCore
         /// registering components.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
-            containerAdapter.AddTransient<IUnitOfWorkFactory, EFUnitOfWorkFactory>();
             containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<,>), typeof(EFCoreRepository<,>));
-            containerAdapter.AddTransient<ObjectSourceLifetimeManager<DbContext>, EFObjectSourceLifetimeManager>();
         }
 
 

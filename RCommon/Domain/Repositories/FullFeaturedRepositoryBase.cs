@@ -14,6 +14,7 @@
 //limitations under the License. 
 #endregion
 
+using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using System;
 using System.Collections;
@@ -29,7 +30,8 @@ namespace RCommon.Domain.Repositories
     /// A base class for implementors of <see cref="IRepository{TEntity}"/>.
     ///</summary>
     ///<typeparam name="TEntity"></typeparam>
-    public abstract class FullFeaturedRepositoryBase<TEntity, TDataStore> : DisposableResource, IEagerFetchingRepository<TEntity, TDataStore>, ITransactionEnabled
+    public abstract class FullFeaturedRepositoryBase<TEntity, TDataStore> : DisposableResource, IEagerFetchingRepository<TEntity, TDataStore>
+        where TDataStore : IDataStore
     {
 
 
@@ -100,24 +102,6 @@ namespace RCommon.Domain.Repositories
             get { return RepositoryQuery.Provider; }
         }
 
-        /// <summary>
-        /// Gets the a <see cref="IUnitOfWork"/> of <typeparamref name="T"/> that
-        /// the repository will use to query the underlying store.
-        /// </summary>
-        /// <typeparam name="T">The type of <see cref="IUnitOfWork"/> implementation to retrieve.</typeparam>
-        /// <returns>The <see cref="IUnitOfWork"/> implementation.</returns>
-        public virtual T UnitOfWork<T>() where T : IUnitOfWork
-        {
-            var currentScope = UnitOfWorkManager.CurrentUnitOfWork;
-            Guard.Against<InvalidOperationException>(currentScope == null,
-                                                     "No compatible UnitOfWork was found. Please start a compatible UnitOfWorkScope before " +
-                                                     "using the repository.");
-
-            Guard.TypeOf<T>(currentScope,
-                                              "The current UnitOfWork instance is not compatible with the repository. " +
-                                              "Please start a compatible unit of work before using the repository.");
-            return ((T)currentScope);
-        }
 
         /// <summary>
         /// Adds a transient instance of <paramref name="entity"/> to be tracked

@@ -27,5 +27,7 @@ namespace RCommon.DataServices.Transactions
         /// Flushes the changes made in the unit of work to the data store.
         /// </summary>
         void Flush();
+
+        void RegisterDataStoreType(IDataStore dataStore);
     }
 }

@@ -14,7 +14,9 @@
 //limitations under the License. 
 #endregion
 
+using System;
 using System.Transactions;
+using Microsoft.Extensions.DependencyInjection;
 using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
 
@@ -37,6 +39,18 @@ namespace RCommon.Configuration
             containerAdapter.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
             UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
             UnitOfWorkSettings.DefaultIsolation = _defaultIsolation;
+
+            // Factory for Unit Of Work
+            containerAdapter.AddTransient<IUnitOfWork, UnitOfWork>();
+            containerAdapter.AddScoped<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
+            containerAdapter.AddScoped<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
+
+            // Factory for Unit Of Work Scope
+            containerAdapter.AddTransient<IUnitOfWorkScope, UnitOfWorkScope>();
+            containerAdapter.AddScoped<Func<IUnitOfWorkScope>>(x => () => x.GetService<IUnitOfWorkScope>());
+            containerAdapter.AddScoped<ICommonFactory<IUnitOfWorkScope>, CommonFactory<IUnitOfWorkScope>>();
+
+            
         }
 
         /// <summary>

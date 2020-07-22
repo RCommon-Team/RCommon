@@ -19,6 +19,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using RCommon.DataServices;
 using System;
 using System.Data;
 using System.Data.SqlTypes;
@@ -28,7 +29,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
-    public class TestDbContext : DbContext, ITestDbContext
+    public class TestDbContext : DbContext, ITestDbContext, IDataStore<DbContext>
     {
         private readonly IConfiguration _configuration;
 
@@ -54,6 +55,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public DbSet<Product> Products { get; set; } // Products
         public DbSet<SalesPerson> SalesPersons { get; set; } // SalesPerson
         public DbSet<SalesTerritory> SalesTerritories { get; set; } // SalesTerritory
+
+        
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -86,6 +89,14 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             modelBuilder.ApplyConfiguration(new SalesTerritoryConfiguration());
         }
 
+        public void CommitTransaction()
+        {
+            // This is leading up to a natively supported transaction rather than using transaction scope and
+            // explicitly calling this.SaveChanges();
+            this.SaveChanges();
+        }
+
+        public DbContext DataContext => this;
     }
 }
 // </auto-generated>

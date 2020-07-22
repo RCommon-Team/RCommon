@@ -1,7 +1,10 @@
 ﻿namespace RCommon.ObjectAccess.EFCore
 {
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using RCommon;
+    using RCommon.DataServices;
     using RCommon.DataServices.Transactions;
     using RCommon.Domain.Repositories;
     using RCommon.Expressions;
@@ -22,43 +25,38 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity, TDataStore> 
+    public class EFCoreRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity, IDataStore<DbContext>> 
         where TEntity : class
-        where TDataStore : DbContext
+        where TDataStore : IDataStore
     {
         private readonly List<string> _includes;
-        //private string _contextName;
-        private ObjectSourceLifetimeManager<DbContext> _objectContextLifetimeManager;
-        private DbContext _objectContext;
+        private readonly IDataStore<DbContext> _dataStore;
+        private readonly Dictionary<Type, object> _objectSets;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger _logger;
+        private readonly IUnitOfWorkManager _unitOfWorkManager;
         private DbSet<TEntity> _objectSet;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
-        private readonly Dictionary<Type, object> _objectSets;
 
 
 
-
-        public EFCoreRepository(ObjectSourceLifetimeManager<DbContext> objectSourceLifetimeManager)
+        /// <summary>
+        /// The default constructor for the repository. 
+        /// </summary>
+        /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
+        /// througout the HTTP request or the scope of the thread.</param>
+        /// <param name="logger">Logger used throughout the application.</param>
+        public EFCoreRepository(IDataStore<DbContext> dataStore, ILogger logger, IUnitOfWorkManager unitOfWorkManager)
         {
+            this._logger = logger;
+            this._unitOfWorkManager = unitOfWorkManager;
+            this._dataStore = dataStore;
             this._includes = new List<string>();
-            this._objectContext = null;
             this._objectSet = null;
             this._repositoryQuery = null;
             this._tracking = true;
             this._objectSets = new Dictionary<Type, object>();
-            this._objectContextLifetimeManager = objectSourceLifetimeManager;
-        }
-
-        public EFCoreRepository(string contextName, ObjectSourceLifetimeManager<DbContext> objectSourceLifetimeManager)
-        {
-            this._includes = new List<string>();
-            this._objectContext = null;
-            this._objectSet = null;
-            this._repositoryQuery = null;
-            this._tracking = true;
-            this._objectSets = new Dictionary<Type, object>();
-            //this._contextName = contextName;
-            this._objectContextLifetimeManager = objectSourceLifetimeManager;
         }
 
         public override TEntity Add(TEntity entity)
@@ -128,29 +126,13 @@
 
                 queryable = this.RepositoryQuery.Where<TEntity>(expression);
             }
-            catch (Exception exception)
+            catch (ApplicationException exception)
             {
+                this._logger.LogError(exception, "Error in Repository.FindCore: " + base.GetType().ToString() + " while executing a query on the Context.", expression);
                 throw new RepositoryException("Error in Repository: " + base.GetType().ToString() + " while executing a query on the Context.", exception.GetBaseException());
             }
             return queryable;
         }
-
-        /*private Task<IQueryable<TEntity>> FindCoreAsync(ISpecification<TEntity> specification)
-        {
-            IQueryable<TEntity> queryable;
-            try
-            {
-                Guard.Against<NullReferenceException>(this.RepositoryQuery == null, "RepositoryQuery is null");
-
-                queryable = this.RepositoryQuery.Where<TEntity>(specification.Predicate);
-                this.ObjectSet.FindAsync()
-            }
-            catch (Exception exception)
-            {
-                throw new RepositoryException("Error in Repository: " + base.GetType().ToString() + " while executing a query on the Context.", exception.GetBaseException());
-            }
-            return queryable;
-        }*/
 
 
 
@@ -208,12 +190,12 @@
 
         private int Save()
         {
-            int num = 0;
-            if (ReferenceEquals(UnitOfWorkManager.CurrentUnitOfWork, null))
+            int affected = 0;
+            if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
-                num = this.ObjectContext.SaveChanges(true);
+                affected = this.ObjectContext.SaveChanges(true);
             }
-            return num;
+            return affected;
         }
 
         public override void Update(TEntity entity)
@@ -244,12 +226,12 @@
 
         private async Task<int> SaveAsync()
         {
-            int num = 0;
-            if (ReferenceEquals(UnitOfWorkManager.CurrentUnitOfWork, null))
+            int affected = 0;
+            if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
-                num = await this.ObjectContext.SaveChangesAsync(true);
+                affected = await this.ObjectContext.SaveChangesAsync(true);
             }
-            return num;
+            return affected;
         }
 
         public override void Attach(TEntity entity)
@@ -305,30 +287,17 @@
             return await this.FindCore(specification.Predicate).SingleOrDefaultAsync();
         }
 
-        protected ObjectSourceLifetimeManager<DbContext> LifetimeObjectContextManager =>
-            this._objectContextLifetimeManager;
-
         protected internal DbContext ObjectContext
         {
             get
             {
-                if (!ReferenceEquals(this._objectContext, null))
+                if (this._unitOfWorkManager.CurrentUnitOfWork != null)
                 {
-                    Debug.WriteLine(this.GetType().ToString() + ": We're using an old ObjectContext now");
+                    // Ensure that DbContext is registered with the Unit of Work so that we can properly save it (and not other DbContexts not part
+                    // of the Unit of Work)
+                    this._unitOfWorkManager.CurrentUnitOfWork.RegisterDataStoreType(this._dataStore);
                 }
-                else
-                {
-                    Debug.WriteLine(this.GetType().ToString() + ": We're getting a new ObjectContext now");
-                    this._objectContext = this._objectContextLifetimeManager.GetObjectSource(typeof(TDataStore));
-                    //Guard.IsNotNull(this.ContextName, "ContextName");
-                    //Guard.IsNotNull(this._objectContext.Database.GetDbConnection(), "_ObjectContext.Connection");
-                    if (!this._objectContext.Database.CanConnect())
-                    {
-
-                        throw new RepositoryException("Cannot successfully connect to this DbContext. " + this._objectContext.GetType().ToString(), new ArgumentNullException());
-                    }
-                }
-                return this._objectContext;
+                return this._dataStore.DataContext;
             }
         }
 

@@ -15,81 +15,72 @@
 #endregion
 
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RCommon.DependencyInjection;
 using RCommon.StateStorage;
 
 namespace RCommon.DataServices.Transactions
 {
-    ///<summary>
-    /// Gets an instances of <see cref="IUnitOfWorkTransactionManager"/>.
-    ///</summary>
-    public class UnitOfWorkManager
-    {
-        static Func<IUnitOfWorkTransactionManager> _provider;
-        //static readonly ILogger<UnitOfWorkTransactionManager> Logger;
-        private const string LocalTransactionManagerKey = "UnitOfWorkManager.LocalTransactionManager";
-        static readonly Func<IUnitOfWorkTransactionManager> DefaultTransactionManager = () =>
-        {
-            //Logger.Debug(x => x("Using default UnitOfWorkManager provider to resolve current transaction manager."));
-            var state = ServiceLocatorWorker.GetInstance<IStateStorage>(); // TODO: Fix this so that we can inject the IStateStorage rather than use ServiceLocator
-            var transactionManager = state.Local.Get<IUnitOfWorkTransactionManager>(LocalTransactionManagerKey);
-            if (transactionManager == null)
-            {
-                //Logger.Debug(x => x("No valid ITransactionManager found in Local state. Creating a new TransactionManager."));
-                transactionManager = ServiceLocatorWorker.GetInstance<IUnitOfWorkTransactionManager>();// TODO: Fix this so that we can inject the IStateStorage rather than use ServiceLocator
-                state.Local.Put(LocalTransactionManagerKey, transactionManager);
-            }
-            return transactionManager;
-        };
 
-        /// <summary>
-        /// Default Constructor.
-        /// Creates a new instance of the <see cref="UnitOfWorkManager"/>.
-        /// </summary>
-        public UnitOfWorkManager(IUnitOfWorkTransactionManager transactionManager, IStateStorage state)
+    public class UnitOfWorkManager : IUnitOfWorkManager
+    {
+        private IStateStorage _stateStorage;
+        private IUnitOfWorkTransactionManager _currentTransactionManager;
+        private ILogger<UnitOfWorkManager> _logger;
+        private readonly IServiceProvider _serviceProvider;
+        private const string LocalTransactionManagerKey = "UnitOfWorkManager.LocalTransactionManager";
+
+
+        public UnitOfWorkManager(IStateStorage stateStorage, IUnitOfWorkTransactionManager transactionManager, ILogger<UnitOfWorkManager> logger,
+            IServiceProvider serviceProvider)
         {
-            _provider = DefaultTransactionManager;
+            _stateStorage = stateStorage;
+
+            _logger = logger;
+            _serviceProvider = serviceProvider;
+            this.SetTransactionManagerProvider(() => transactionManager);
         }
+
+
+
 
         ///<summary>
         /// Sets a <see cref="Func{T}"/> of <see cref="IUnitOfWorkTransactionManager"/> that the 
         /// <see cref="UnitOfWorkManager"/> uses to get an instance of <see cref="IUnitOfWorkTransactionManager"/>
         ///</summary>
         ///<param name="provider"></param>
-        public static void SetTransactionManagerProvider(ILogger<UnitOfWorkTransactionManager> logger, Func<IUnitOfWorkTransactionManager> provider)
+        public void SetTransactionManagerProvider(Func<IUnitOfWorkTransactionManager> transactionManager)
         {
-            if (provider == null)
-            {
-                logger.LogDebug("The transaction manager provide is being set to null. Using " +
-                                    " the transaction manager to the default transaction manager provider.");
-                _provider = DefaultTransactionManager;
-                return;
-            }
-            logger.LogDebug("The transaction manager provider is being overriden. Using supplied" +
+            Guard.Against<ArgumentNullException>(transactionManager == null, "transactionManager parameter cannot be null");
+            _logger.LogDebug("The transaction manager provider is being set or overriden. Using supplied" +
                                 " trasaction manager provider.");
-            _provider = provider;
+            _stateStorage.Local.Remove<IUnitOfWorkTransactionManager>(LocalTransactionManagerKey);
+            _stateStorage.Local.Put(LocalTransactionManagerKey, transactionManager);
+            _currentTransactionManager = transactionManager();
+
         }
 
         /// <summary>
         /// Gets the current <see cref="IUnitOfWorkTransactionManager"/>.
         /// </summary>
-        public static IUnitOfWorkTransactionManager CurrentTransactionManager
+        public IUnitOfWorkTransactionManager CurrentTransactionManager
         {
             get
             {
-                return _provider();
+
+                return _currentTransactionManager;
             }
         }
 
         /// <summary>
         /// Gets the current <see cref="IUnitOfWork"/> instance.
         /// </summary>
-        public static IUnitOfWork CurrentUnitOfWork
+        public IUnitOfWork CurrentUnitOfWork
         {
             get
             {
-                return _provider().CurrentUnitOfWork;
+                return _currentTransactionManager.CurrentUnitOfWork;
             }
         }
     }

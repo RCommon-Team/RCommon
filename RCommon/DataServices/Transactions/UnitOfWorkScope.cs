@@ -48,12 +48,7 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         public event Action<IUnitOfWorkScope> ScopeRollingback;
 
-        /// <summary>
-        /// Default Constuctor.
-        /// Creates a new <see cref="UnitOfWorkScope"/> with the <see cref="System.Data.IsolationLevel.Serializable"/> 
-        /// transaction isolation level.
-        /// </summary>
-        public UnitOfWorkScope() : this(TransactionMode.Default) { }
+
 
         /// <summary>
         /// Overloaded Constructor.
@@ -61,9 +56,9 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         /// <param name="mode">A <see cref="TransactionMode"/> enum specifying the transation mode
         /// of the unit of work.</param>
-        public UnitOfWorkScope(TransactionMode mode)
+        public UnitOfWorkScope()
         {
-            UnitOfWorkManager.CurrentTransactionManager.EnlistScope(this, mode);
+            //unitOfWorkManager.CurrentTransactionManager.EnlistScopeAsync(this, mode);
         }
 
         /// <summary>
@@ -75,24 +70,7 @@ namespace RCommon.DataServices.Transactions
             get { return _scopeId; }
         }
 
-        /// <summary>
-        /// Gets the current unit of work that the scope participates in.
-        /// </summary>
-        /// <typeparam name="T">The type of <see cref="IUnitOfWork"/> to retrieve.</typeparam>
-        /// <returns>A <see cref="IUnitOfWork"/> instance of type <typeparamref name="T"/> that
-        /// the scope participates in.</returns>
-        public T CurrentUnitOfWork<T>()
-        {
-            var currentUow = UnitOfWorkManager.CurrentUnitOfWork;
-            Guard.Against<InvalidOperationException>(currentUow == null,
-                                                     "No compatible UnitOfWork was found. Please start a compatible UnitOfWorkScope before " +
-                                                     "using the repository.");
-
-            Guard.TypeOf<T>(currentUow,
-                            "The current unit of work is not compatible with expected type" + typeof(T).FullName +
-                            ", instead the current unit of work is of type " + currentUow.GetType().FullName + ".");
-            return (T) currentUow;
-        }
+        
 
         ///<summary>
         /// Commits the current running transaction in the scope.
