@@ -25,8 +25,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             this.InitializeRCommon(services);
         }
-        //private EFCoreRepository<Customer, TestDbContext> _customerRepository;
-        private RCommonDbContext _context;
+        private TestDbContext _context;
 
         [OneTimeSetUp]
         public void InitialSetup()
@@ -40,7 +39,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         [SetUp]
         public void Setup()
         {
-            _context = this.ServiceProvider.GetService<RCommonDbContext>();
+            //_context = this.ServiceProvider.GetService<RCommonDbContext>();
 
             
         }
@@ -52,17 +51,20 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             _context.Database.ExecuteSqlInterpolated($"DELETE Products");
             _context.Database.ExecuteSqlInterpolated($"DELETE Orders");
             _context.Database.ExecuteSqlInterpolated($"DELETE Customers");
-            //_context.Dispose();
+            _context.Dispose();
         }
 
+        [Test]
         public void Can_Run_Tests_In_Web_Environment()
         {
             this.CreateWebRequest();
+            this.Can_perform_simple_query();
         }
 
         [Test]
         public void Can_perform_simple_query()
         {
+            _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
             var customer = testDataActions.CreateCustomer(x => x.FirstName = "Albus");
@@ -72,6 +74,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                     .Find(customer.CustomerId);
 
             Assert.IsNotNull(savedCustomer);
+            Assert.IsTrue(savedCustomer.CustomerId == customer.CustomerId);
+            Assert.IsTrue(savedCustomer.FirstName == "Albus");
         }
 
     }
