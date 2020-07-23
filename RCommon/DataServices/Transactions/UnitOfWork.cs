@@ -78,9 +78,10 @@ namespace RCommon.DataServices.Transactions
             }
 
             var typeAssemblyQualifiedName = typeof(TDataStoreType).AssemblyQualifiedName;
-            var potentialDataStore = registeredDataStores.First(x => x == typeAssemblyQualifiedName);
+            bool hasDataStore = registeredDataStores.Any(x => x == typeAssemblyQualifiedName);
             
-            if (potentialDataStore == null)
+
+            if (!hasDataStore)
             {
                 registeredDataStores.Add(typeAssemblyQualifiedName); // We really dont need the entire object stored 
             }

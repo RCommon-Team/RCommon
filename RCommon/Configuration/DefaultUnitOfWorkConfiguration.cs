@@ -36,22 +36,23 @@ namespace RCommon.Configuration
         /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
-            containerAdapter.AddTransient<IUnitOfWorkManager, UnitOfWorkManager>();
-            containerAdapter.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
+            containerAdapter.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
+            containerAdapter.AddScoped<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
             UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
             UnitOfWorkSettings.DefaultIsolation = _defaultIsolation;
 
             // Factory for Unit Of Work
             containerAdapter.AddTransient<IUnitOfWork, UnitOfWork>();
-            containerAdapter.AddScoped<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
-            containerAdapter.AddScoped<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
+            containerAdapter.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
+            containerAdapter.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>(); 
 
             // Factory for Unit Of Work Scope
             containerAdapter.AddTransient<IUnitOfWorkScope, UnitOfWorkScope>();
-            containerAdapter.AddScoped<Func<IUnitOfWorkScope>>(x => () => x.GetService<IUnitOfWorkScope>());
-            containerAdapter.AddScoped<ICommonFactory<IUnitOfWorkScope>, CommonFactory<IUnitOfWorkScope>>();
+            containerAdapter.AddTransient<Func<IUnitOfWorkScope>>(x => () => x.GetService<IUnitOfWorkScope>());
+            containerAdapter.AddTransient<ICommonFactory<IUnitOfWorkScope>, CommonFactory<IUnitOfWorkScope>>(); // Uses default TransactionMode
+            containerAdapter.AddTransient<ICommonFactory<TransactionMode, IUnitOfWorkScope>, CommonFactory<TransactionMode, IUnitOfWorkScope>>(); // Allow us to specify TransactionMode
 
-            
+
         }
 
         /// <summary>

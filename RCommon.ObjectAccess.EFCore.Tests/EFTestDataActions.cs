@@ -18,7 +18,25 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             
         }
 
-        
+
+        public Customer CreateCustomerStub()
+        {
+            var customer = new Faker<Customer>()
+                .RuleFor(x => x.City, f => f.Address.City())
+                .RuleFor(x => x.FirstName, f => f.Name.FirstName())
+                .RuleFor(x => x.LastName, f => f.Name.LastName())
+                .RuleFor(x => x.State, f => f.Address.State())
+                .RuleFor(x => x.StreetAddress1, f => f.Address.StreetAddress())
+                .RuleFor(x => x.StreetAddress2, f => f.Address.SecondaryAddress())
+                .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
+                .Generate();
+            return customer;
+        }
+
+        public Customer CreateCustomer()
+        {
+            return CreateCustomer(x => { });
+        }
 
         public Customer CreateCustomer(Action<Customer> customize)
         {
