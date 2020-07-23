@@ -29,23 +29,19 @@ using System.Threading.Tasks;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
-    public class TestDbContext : DbContext, ITestDbContext, IDataStore<DbContext>
+    public class TestDbContext : RCommonDbContext, ITestDbContext
     {
+
+
         private readonly IConfiguration _configuration;
 
-        public TestDbContext()
-        {
-        }
-
-        public TestDbContext(DbContextOptions<TestDbContext> options)
-            : base(options)
-        {
-        }
 
         public TestDbContext(IConfiguration configuration)
         {
             _configuration = configuration;
         }
+
+
 
         public DbSet<Customer> Customers { get; set; } // Customers
         public DbSet<Department> Departments { get; set; } // Departments
@@ -55,8 +51,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public DbSet<Product> Products { get; set; } // Products
         public DbSet<SalesPerson> SalesPersons { get; set; } // SalesPerson
         public DbSet<SalesTerritory> SalesTerritories { get; set; } // SalesTerritory
-
-        
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -89,20 +83,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             modelBuilder.ApplyConfiguration(new SalesTerritoryConfiguration());
         }
 
-        public void PersistChanges()
-        {
-            // This is leading up to a natively supported transaction rather than using transaction scope and
-            // explicitly calling this.SaveChanges();
-            this.SaveChanges();
-        }
 
-        public async Task PersistChangesAsync()
-        {
-            await this.SaveChangesAsync();
-
-        }
-
-        public DbContext DataContext => this;
     }
 }
 // </auto-generated>

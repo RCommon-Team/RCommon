@@ -29,7 +29,7 @@ namespace RCommon.Domain.Repositories
     /// </summary>
     /// <typeparam name="TEntity">The entity type for which this repository was created.</typeparam>
     /// <remarks>This class can be used in Unit tests to represent an in memory repository.</remarks>
-    public class InMemoryRepository<TEntity, TDataStore> : ICrudRepository<TEntity, TDataStore>, IQueryable<TEntity>
+    public class InMemoryRepository<TEntity, TDataStore> : ICrudRepository<TEntity>, IQueryable<TEntity>
     {
         readonly IList<TEntity> _internal;
 

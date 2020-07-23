@@ -5,12 +5,12 @@ using System.Text;
 
 namespace RCommon.Domain.Repositories
 {
-    public interface IEagerFetchingRepository<TEntity, TDataStore> : IAsyncCrudRepository<TEntity, TDataStore>
+    public interface IEagerFetchingRepository<TEntity> : IAsyncCrudRepository<TEntity>
     {
 
-        IEagerFetchingRepository<TEntity, TDataStore> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions);
+        IEagerFetchingRepository<TEntity> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions);
 
-        IEagerFetchingRepository<TEntity, TDataStore> EagerlyWith(Expression<Func<TEntity, object>> path);
+        IEagerFetchingRepository<TEntity> EagerlyWith(Expression<Func<TEntity, object>> path);
 
     }
 }

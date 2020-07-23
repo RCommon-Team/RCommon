@@ -23,19 +23,20 @@ namespace RCommon.ObjectAccess.NHibernate
     /// Inherits from the <see cref="FullFeaturedRepositoryBase{TEntity}"/> class to provide an implementation of a
     /// repository that uses NHibernate.
     /// </summary>
-    public class NHRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity, IDataStore<ISessionFactory>>
+    public class NHRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity>
+        where TEntity : class
     {
         //int _batchSize = -1;
         //bool _enableCached;
         //string _cachedQueryName;
-         IDataStore<ISessionFactory> _dataStore;
+         ISessionFactory _dataStore;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
         /// <summary>
         /// Default Constructor.
         /// Creates a new instance of the <see cref="NHRepository{TEntity}"/> class.
         /// </summary>
-        public NHRepository (IDataStore<ISessionFactory> dataStore, IUnitOfWorkManager unitOfWorkManager) 
+        public NHRepository (ISessionFactory dataStore, IUnitOfWorkManager unitOfWorkManager) 
         {
             _dataStore = dataStore;
             this._unitOfWorkManager = unitOfWorkManager;
@@ -52,9 +53,9 @@ namespace RCommon.ObjectAccess.NHibernate
                 {
                     // Ensure that DbContext is registered with the Unit of Work so that we can properly save it (and not other DbContexts not part
                     // of the Unit of Work)
-                    this._unitOfWorkManager.CurrentUnitOfWork.RegisterDataStoreType(this._dataStore);
+                    this._unitOfWorkManager.CurrentUnitOfWork.RegisterDataStoreType<RCommonSessionFactory>();
                 }
-                return this._dataStore.DataContext;
+                return this._dataStore;
             }
         }
 

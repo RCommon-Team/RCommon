@@ -40,7 +40,7 @@ namespace RCommon.ObjectAccess.EFCore
         ///     Initializes a new instance of the <see cref="DataStoreDbContextOptionsBuilder" /> class with no options set.
         /// </summary>
         public DataStoreDbContextOptionsBuilder()
-            : this(new DataStoreDbContextOptions<IDataStore<DbContext>>())
+            : this(new DataStoreDbContextOptions<RCommonDbContext>())
         {
         }
 

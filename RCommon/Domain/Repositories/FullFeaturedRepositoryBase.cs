@@ -30,8 +30,8 @@ namespace RCommon.Domain.Repositories
     /// A base class for implementors of <see cref="IRepository{TEntity}"/>.
     ///</summary>
     ///<typeparam name="TEntity"></typeparam>
-    public abstract class FullFeaturedRepositoryBase<TEntity, TDataStore> : DisposableResource, IEagerFetchingRepository<TEntity, TDataStore>
-        where TDataStore : IDataStore
+    public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IEagerFetchingRepository<TEntity>
+        where TEntity : class
     {
 
 
@@ -139,7 +139,7 @@ namespace RCommon.Domain.Repositories
 
         protected abstract void ApplyFetchingStrategy(Action<EagerFetchingStrategy<TEntity>> strategyActions);
 
-        public IEagerFetchingRepository<TEntity, TDataStore> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions)
+        public IEagerFetchingRepository<TEntity> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions)
         {
             EagerFetchingStrategy<TEntity> strategy = new EagerFetchingStrategy<TEntity>();
             strategyActions(strategy);
@@ -147,7 +147,7 @@ namespace RCommon.Domain.Repositories
             return this;
         }
 
-        public IEagerFetchingRepository<TEntity, TDataStore> EagerlyWith(Expression<Func<TEntity, object>> path)
+        public IEagerFetchingRepository<TEntity> EagerlyWith(Expression<Func<TEntity, object>> path)
         {
             this.EagerlyWith(x => x.Fetch<TEntity>(path));
             

@@ -32,11 +32,6 @@ namespace RCommon.StateStorage
         ISessionState Session { get; }
 
         /// <summary>
-        /// Gets the cache specific state.
-        /// </summary>
-        ICacheState Cache { get; }
-
-        /// <summary>
         /// Gets the thread local / request local specific state.
         /// </summary>
         IContextState Local { get; }

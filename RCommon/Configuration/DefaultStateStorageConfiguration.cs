@@ -27,7 +27,6 @@ namespace RCommon.Configuration
     /// </summary>
     public class DefaultStateStorageConfiguration : IStateStorageConfiguration
     {
-        Type _customCacheType;
         Type _customSessionType;
         Type _customLocalStateType;
         Type _customApplicationStateType;
@@ -37,16 +36,7 @@ namespace RCommon.Configuration
 
         }
 
-        /// <summary>
-        /// Instructs RCommon to use the custom <see cref="ICacheState"/> type as the cache storage.
-        /// </summary>
-        /// <typeparam name="T">A type that implements the <see cref="ICacheState"/> interface.</typeparam>
-        /// <returns>The <see cref="DefaultStateStorageConfiguration"/> instance.</returns>
-        public DefaultStateStorageConfiguration UseCustomCacheOf<T>() where T : ICacheState
-        {
-            _customCacheType = typeof (T);
-            return this;
-        }
+        
 
         /// <summary>
         /// Instructs RCommon to use a custom <see cref="ISessionState"/> type as the session state storage.
@@ -103,10 +93,7 @@ namespace RCommon.Configuration
                 containerAdapter.AddTransient<IContextStateSelector, DefaultContextStateSelector>();
                 containerAdapter.AddTransient<IContextState, ContextStateWrapper>();
             }
-            if (_customCacheType != null)
-                containerAdapter.AddTransient(typeof(ICacheState), _customCacheType);
-            else
-                containerAdapter.AddTransient<ICacheState, HttpRuntimeCache>();
+           
             if (_customApplicationStateType != null)
                 containerAdapter.AddSingleton(typeof(IApplicationState), _customApplicationStateType);
             else

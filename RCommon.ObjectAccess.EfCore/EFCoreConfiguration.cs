@@ -37,7 +37,7 @@ namespace RCommon.ObjectAccess.EFCore
         /// registering components.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
-            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<,>), typeof(EFCoreRepository<,>));
+            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<,>));
         }
 
 

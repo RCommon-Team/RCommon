@@ -1,55 +1,59 @@
-﻿using Autofac;
-using Autofac.Core;
-using Autofac.Extras.CommonServiceLocator;
+﻿
+
 using CommonServiceLocator;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using RCommon.Configuration;
+using RCommon.DataServices;
 using RCommon.DependencyInjection;
 using RCommon.DependencyInjection.Autofac;
+using RCommon.DependencyInjection.Microsoft;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
     public abstract class TestBase
     {
-        static IServiceLocator _serviceLocator;
-        
-        static object _configureLock = new object();
-        AutofacContainerAdapter _containerAdapter;
+        private ServiceProvider _serviceProvider;
 
-        private IContainer _autofacContainer;
+        static object _configureLock = new object();
         
         public TestBase()
         {
 
-
-            this.InitializeRCommon();
         }
 
-        private void InitializeRCommon()
+        protected void InitializeRCommon(IServiceCollection services)
         {
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             this.Configuration = config.Build();
 
-            if (_autofacContainer == null)
+            if (_serviceProvider == null)
             {
-                var builder = new ContainerBuilder();
+                services.AddSingleton<ILogger>(TestLogger.Create());
+                services.AddSingleton<IConfiguration>(this.Configuration);
+                services.AddLogging();
 
-                _autofacContainer = builder.Build();
-
-                _serviceLocator = new AutofacServiceLocator(_autofacContainer);
-                ServiceLocator.SetLocatorProvider(() => _serviceLocator);
-
-                _containerAdapter = new AutofacContainerAdapter(builder);
-                ConfigureRCommon.Using(_containerAdapter) // By default we'll be using Theadlocal storage since we're not under web request
+                ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services)) // By default we'll be using Theadlocal storage since we're not under web request
                 .WithStateStorage<DefaultStateStorageConfiguration>()
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
                 .WithObjectAccess<EFCoreConfiguration>();
 
-                
+                services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Scoped);
+
+                _serviceProvider = services.BuildServiceProvider();
+
+                Debug.WriteLine($"Total Services Registered: {services.Count}");
+                foreach (var service in services)
+                {
+                    Debug.WriteLine($"Service: {service.ServiceType.FullName}\n Lifetime: {service.Lifetime}\n Instance: {service.ImplementationType?.FullName}");
+                }
 
             }
 
@@ -76,7 +80,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         public IConfigurationRoot Configuration { get; private set; }
-        public AutofacContainerAdapter ContainerAdapter { get => _containerAdapter; set => _containerAdapter = value; }
-        public IContainer AutofacContainer { get => _autofacContainer; set => _autofacContainer = value; }
+        public ServiceProvider ServiceProvider { get => _serviceProvider;  }
     }
 }

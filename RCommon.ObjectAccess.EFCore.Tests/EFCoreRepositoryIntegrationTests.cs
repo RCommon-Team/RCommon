@@ -1,7 +1,10 @@
 ﻿using Autofac;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using RCommon.DataServices;
+using RCommon.Domain.Repositories;
 using RCommon.ObjectAccess.EFCore;
 using System;
 using System.Collections.Generic;
@@ -16,10 +19,14 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         public EFCoreRepositoryIntegrationTests() : base()
         {
+            var services = new ServiceCollection();
 
+            services.AddTransient<IEagerFetchingRepository<Customer>, EFCoreRepository<Customer, TestDbContext>>();
+
+            this.InitializeRCommon(services);
         }
         //private EFCoreRepository<Customer, TestDbContext> _customerRepository;
-        private TestDbContext _context;
+        private RCommonDbContext _context;
 
         [OneTimeSetUp]
         public void InitialSetup()
@@ -27,12 +34,15 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             
             //this.ContainerAdapter.Register<DbContext, TestDbContext>(typeof(TestDbContext).AssemblyQualifiedName);
             
+            
         }
 
         [SetUp]
         public void Setup()
         {
-            _context = new TestDbContext();
+            _context = this.ServiceProvider.GetService<RCommonDbContext>();
+
+            
         }
 
         [TearDown]
@@ -42,7 +52,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             _context.Database.ExecuteSqlInterpolated($"DELETE Products");
             _context.Database.ExecuteSqlInterpolated($"DELETE Orders");
             _context.Database.ExecuteSqlInterpolated($"DELETE Customers");
-            _context.Dispose();
+            //_context.Dispose();
         }
 
         public void Can_Run_Tests_In_Web_Environment()
@@ -55,9 +65,9 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         {
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
+            var customer = testDataActions.CreateCustomer(x => x.FirstName = "Albus");
 
-            var repo = (EFCoreRepository<Customer, TestDbContext>)this.AutofacContainer.Resolve(typeof(EFCoreRepository<,>));
+            var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
             var savedCustomer = repo
                     .Find(customer.CustomerId);
 

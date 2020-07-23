@@ -13,9 +13,4 @@ namespace RCommon.DataServices
         Task PersistChangesAsync();
     }
 
-    public interface IDataStore<TDataSourceType> : IDataStore, IDisposable
-        where TDataSourceType : class
-    {
-        TDataSourceType DataContext { get; }
-    }
 }

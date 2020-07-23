@@ -20,11 +20,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         
 
-        public Customer CreateCustomer()
-        {
-            return CreateCustomer(x => { });
-        }
-
         public Customer CreateCustomer(Action<Customer> customize)
         {
 
@@ -38,7 +33,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
                 .Generate();
             customize(customer);
-            customer = _generator.Context.Set<Customer>().Add(customer).Entity;
+            _generator.Context.Set<Customer>().Add(customer);
             _generator.Context.SaveChanges();
             return customer;
         }

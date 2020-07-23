@@ -25,14 +25,13 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity, IDataStore<DbContext>> 
+    public class EFCoreRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity>
         where TEntity : class
         where TDataStore : IDataStore
     {
         private readonly List<string> _includes;
-        private readonly IDataStore<DbContext> _dataStore;
+        private readonly RCommonDbContext _dataStore;
         private readonly Dictionary<Type, object> _objectSets;
-        private readonly IServiceProvider _serviceProvider;
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private DbSet<TEntity> _objectSet;
@@ -47,7 +46,7 @@
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(IDataStore<DbContext> dataStore, ILogger logger, IUnitOfWorkManager unitOfWorkManager)
+        public EFCoreRepository(RCommonDbContext dataStore, ILogger logger, IUnitOfWorkManager unitOfWorkManager)
         {
             this._logger = logger;
             this._unitOfWorkManager = unitOfWorkManager;
@@ -295,22 +294,11 @@
                 {
                     // Ensure that DbContext is registered with the Unit of Work so that we can properly save it (and not other DbContexts not part
                     // of the Unit of Work)
-                    this._unitOfWorkManager.CurrentUnitOfWork.RegisterDataStoreType(this._dataStore);
+                    this._unitOfWorkManager.CurrentUnitOfWork.RegisterDataStoreType<RCommonDbContext>(); 
                 }
-                return this._dataStore.DataContext;
+                return this._dataStore;
             }
         }
-
-        /*public override string ContextName
-        {
-            get =>
-                _contextName;
-            set
-            {
-                //throw new RepositoryException("This version of the EntityRepository does not have the ability to dynamically set the ContextName at runtime. Use the upgraded version.", new NotImplementedException());
-                _contextName = value;
-            }
-        }*/
 
 
 

@@ -11,13 +11,14 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon;
 using RCommon.DataServices;
 using RCommon.ObjectAccess.EFCore;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.Extensions.DependencyInjection
+namespace RCommon.ObjectAccess.EFCore
 {
     /// <summary>
     ///     Extension methods for setting up Entity Framework related services in an <see cref="IServiceCollection" />.
@@ -67,7 +68,7 @@ namespace Microsoft.Extensions.DependencyInjection
             [CanBeNull] Action<DataStoreDbContextOptionsBuilder> optionsAction = null,
             ServiceLifetime contextLifetime = ServiceLifetime.Scoped,
             ServiceLifetime optionsLifetime = ServiceLifetime.Scoped)
-            where TContext : IDataStore<DbContext>
+            where TContext : RCommonDbContext
             => AddDbContext<TContext, TContext>(serviceCollection, optionsAction, contextLifetime, optionsLifetime);
 
         /// <summary>
@@ -114,7 +115,7 @@ namespace Microsoft.Extensions.DependencyInjection
             [CanBeNull] Action<DataStoreDbContextOptionsBuilder> optionsAction = null,
             ServiceLifetime contextLifetime = ServiceLifetime.Scoped,
             ServiceLifetime optionsLifetime = ServiceLifetime.Scoped)
-            where TContextImplementation : IDataStore<DbContext>, TContextService
+            where TContextImplementation : RCommonDbContext, TContextService
             => AddDbContext<TContextService, TContextImplementation>(
                 serviceCollection,
                 optionsAction == null
@@ -152,7 +153,7 @@ namespace Microsoft.Extensions.DependencyInjection
             [NotNull] this IServiceCollection serviceCollection,
             ServiceLifetime contextLifetime,
             ServiceLifetime optionsLifetime = ServiceLifetime.Scoped)
-            where TContextImplementation : IDataStore<DbContext>, TContextService
+            where TContextImplementation : RCommonDbContext, TContextService
             where TContextService : class
             => AddDbContext<TContextService, TContextImplementation>(
                 serviceCollection,
@@ -217,7 +218,7 @@ namespace Microsoft.Extensions.DependencyInjection
             [CanBeNull] Action<IServiceProvider, DataStoreDbContextOptionsBuilder> optionsAction,
             ServiceLifetime contextLifetime = ServiceLifetime.Scoped,
             ServiceLifetime optionsLifetime = ServiceLifetime.Scoped)
-            where TContext : IDataStore<DbContext>
+            where TContext : RCommonDbContext
             => AddDbContext<TContext, TContext>(serviceCollection, optionsAction, contextLifetime, optionsLifetime);
 
         /// <summary>
@@ -278,7 +279,7 @@ namespace Microsoft.Extensions.DependencyInjection
             [CanBeNull] Action<IServiceProvider, DataStoreDbContextOptionsBuilder> optionsAction,
             ServiceLifetime contextLifetime = ServiceLifetime.Scoped,
             ServiceLifetime optionsLifetime = ServiceLifetime.Scoped)
-            where TContextImplementation : IDataStore<DbContext>, TContextService
+            where TContextImplementation : RCommonDbContext, TContextService
         {
             Guard.IsNotNull(serviceCollection, nameof(serviceCollection));
 
@@ -303,7 +304,7 @@ namespace Microsoft.Extensions.DependencyInjection
             IServiceCollection serviceCollection,
             Action<IServiceProvider, DataStoreDbContextOptionsBuilder> optionsAction,
             ServiceLifetime optionsLifetime)
-            where TContextImplementation : IDataStore<DbContext>
+            where TContextImplementation : RCommonDbContext
         {
             serviceCollection.TryAdd(
                 new ServiceDescriptor(
@@ -321,7 +322,7 @@ namespace Microsoft.Extensions.DependencyInjection
         private static DataStoreDbContextOptions<TContext> CreateDataStoreDbContextOptions<TContext>(
             [NotNull] IServiceProvider applicationServiceProvider,
             [CanBeNull] Action<IServiceProvider, DataStoreDbContextOptionsBuilder> optionsAction)
-            where TContext : IDataStore<DbContext>
+            where TContext : RCommonDbContext
         {
             var builder = new DataStoreDbContextOptionsBuilder<TContext>(
                 new DataStoreDbContextOptions<TContext>(new Dictionary<Type, IDbContextOptionsExtension>()));
@@ -334,7 +335,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         private static void CheckContextConstructors<TContext>()
-            where TContext : IDataStore<DbContext>
+            where TContext : RCommonDbContext
         {
             var declaredConstructors = typeof(TContext).GetTypeInfo().DeclaredConstructors.ToList();
             if (declaredConstructors.Count == 1

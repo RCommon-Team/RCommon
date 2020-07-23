@@ -24,7 +24,6 @@ namespace RCommon.StateStorage
         readonly IApplicationState _applicationState;
         readonly IContextState _localState;
         readonly ISessionState _sessionState;
-        readonly ICacheState _cacheState;
 
         /// <summary>
         /// Default Constructor.
@@ -36,18 +35,15 @@ namespace RCommon.StateStorage
         /// state data.</param>
         /// <param name="sessionState">An instance of <see cref="ISessionState"/> that is used to store session
         /// state data.</param>
-        /// <param name="cacheState">An instance of <see cref="ICacheState"/> that is used to store cache
-        /// state data.</param>
+        
         public StateStorageWrapper(
             IApplicationState applicationState, 
             IContextState localState, 
-            ISessionState sessionState, 
-            ICacheState cacheState)
+            ISessionState sessionState)
         {
             _applicationState = applicationState;
             _localState = localState;
             _sessionState = sessionState;
-            _cacheState = cacheState;
         }
 
         /// <summary>
@@ -72,14 +68,6 @@ namespace RCommon.StateStorage
         public ISessionState Session
         {
             get { return _sessionState; }
-        }
-
-        /// <summary>
-        /// Gets the cache specific state.
-        /// </summary>
-        public ICacheState Cache
-        {
-            get { return _cacheState; }
         }
     }
 }

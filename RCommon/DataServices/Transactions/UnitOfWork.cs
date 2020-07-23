@@ -2,6 +2,7 @@
 using RCommon.StateStorage;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -29,63 +30,67 @@ namespace RCommon.DataServices.Transactions
 
         public void Flush()
         {
-            Guard.Against<ObjectDisposedException>(this._disposed, "The current EFUnitOfWork instance has been disposed. Cannot get sessions from a disposed UnitOfWork instance.");
-            var dbs = this._serviceProvider.GetServices<IDataStore>();
+            Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
+            var registeredTypes = this.GetAllRegisteredDataStores();
 
-            foreach (var db in dbs)
+            foreach (var item in registeredTypes)
             {
-                db.PersistChanges();
-            }
-
-            foreach (var db in dbs) // Each datastore should automatically get disposed at the end of the lifetime scope but this gives us fine grained control
-            {
-                db.Dispose();
+                var actualType = Type.GetType(item); // item should be fully qualified assembly name per RegisterDataStoretype method
+                var dataStore = this._serviceProvider.GetService(actualType) as IDataStore; // actualType should be IDataStore per RegisterDataStoretype method 
+                dataStore.PersistChanges();
+                dataStore.Dispose();
             }
 
             _storage.Local.Clear();
-            //dbs.ForEach<KeyValuePair<string, DbContext>>(m => m.Value.SaveChanges());
         }
 
         public async Task FlushAsync()
         {
-            Guard.Against<ObjectDisposedException>(this._disposed, "The current EFUnitOfWork instance has been disposed. Cannot get sessions from a disposed UnitOfWork instance.");
-            var dbs = this._serviceProvider.GetServices<IDataStore>();
+            Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
+            var registeredTypes = this.GetAllRegisteredDataStores();
 
-            foreach (var db in dbs)
+            foreach (var item in registeredTypes)
             {
-                await db.PersistChangesAsync();
-            }
-
-            foreach (var db in dbs) // Each datastore should automatically get disposed at the end of the lifetime scope but this gives us fine grained control
-            {
-                await db.DisposeAsync();
+                var actualType = Type.GetType(item); // item should be fully qualified assembly name per RegisterDataStoretype method
+                var dataStore = this._serviceProvider.GetService(actualType) as IDataStore; // actualType should be IDataStore per RegisterDataStoretype method 
+                await dataStore.PersistChangesAsync();
+                await dataStore.DisposeAsync();
             }
 
             _storage.Local.Clear();
-            //dbs.ForEach<KeyValuePair<string, DbContext>>(m => m.Value.SaveChanges());
         }
 
-        public void RegisterDataStoreType(IDataStore dataStore)
+        public void RegisterDataStoreType<TDataStoreType>()
+            where TDataStoreType : IDataStore
         {
-            dataStore = null; // We don't really care about the stuff inside, just the type
-            var registeredDataStores = _storage.Local.Get<IDictionary<string, IDataStore>>(this.GetType().AssemblyQualifiedName);
+            
+            // Check the type to verify that it is registered is with DI container
+            var type = this._serviceProvider.GetService(typeof(TDataStoreType));
+            if (type == null)
+            {
+                throw new UnsupportedDataStoreException(typeof(TDataStoreType));
+            }
+            
+            var registeredDataStores = _storage.Local.Get<List<string>>(this.GetType().AssemblyQualifiedName);
             if (registeredDataStores == null)
             {
-                registeredDataStores = new Dictionary<string, IDataStore>();
+                registeredDataStores = new List<string>();
             }
+
+            var typeAssemblyQualifiedName = typeof(TDataStoreType).AssemblyQualifiedName;
+            var potentialDataStore = registeredDataStores.First(x => x == typeAssemblyQualifiedName);
             
-            var potentialDataStore = registeredDataStores.First(x => x.Key == dataStore.GetType().AssemblyQualifiedName).Value;
             if (potentialDataStore == null)
             {
-                registeredDataStores.Add(dataStore.GetType().AssemblyQualifiedName, dataStore); // We really dont need the entire object stored 
+                registeredDataStores.Add(typeAssemblyQualifiedName); // We really dont need the entire object stored 
             }
             
-            _storage.Local.Put<IDictionary<string, IDataStore>>(this.GetType().AssemblyQualifiedName, registeredDataStores);
+            _storage.Local.Put<List<string>>(this.GetType().AssemblyQualifiedName, registeredDataStores);
         }
 
-        private IDictionary<string, IDataStore> GetAllRegisteredDataStores()
+        private List<string> GetAllRegisteredDataStores()
         {
-            var registeredDataStores = _storage.Local.Get<IDictionary<string, IDataStore>>(this.GetType().AssemblyQualifiedName);
+            var registeredDataStores = _storage.Local.Get<List<string>>(this.GetType().AssemblyQualifiedName);
             return registeredDataStores;
         }
 

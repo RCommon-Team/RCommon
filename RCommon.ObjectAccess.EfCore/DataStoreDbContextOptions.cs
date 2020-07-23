@@ -19,7 +19,7 @@ namespace RCommon.ObjectAccess.EFCore
     /// </summary>
     /// <typeparam name="TContext"> The type of the context these options apply to. </typeparam>
     public class DataStoreDbContextOptions<TContext> : DataStoreDbContextOptions
-        where TContext : IDataStore<DbContext>
+        where TContext : RCommonDbContext
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="DbContextOptions{TContext}" /> class. You normally override

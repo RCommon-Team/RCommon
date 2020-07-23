@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RCommon.Domain.Repositories
 {
-    public interface ICrudRepository<TEntity, TDataStore>
+    public interface ICrudRepository<TEntity>
     {
 
         /// <summary>

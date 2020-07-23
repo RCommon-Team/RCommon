@@ -36,6 +36,7 @@ namespace RCommon.Configuration
         /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
+            containerAdapter.AddTransient<IUnitOfWorkManager, UnitOfWorkManager>();
             containerAdapter.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
             UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
             UnitOfWorkSettings.DefaultIsolation = _defaultIsolation;

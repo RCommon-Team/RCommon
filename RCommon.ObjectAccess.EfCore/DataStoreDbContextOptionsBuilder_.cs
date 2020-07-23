@@ -29,7 +29,7 @@ namespace RCommon.ObjectAccess.EFCore
     /// </summary>
     /// <typeparam name="TContext"> The type of context to be configured. </typeparam>
     public class DataStoreDbContextOptionsBuilder<TContext> : DataStoreDbContextOptionsBuilder
-        where TContext : IDataStore<DbContext>
+        where TContext : RCommonDbContext
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="DataStoreDbContextOptionsBuilder{TContext}" /> class with no options set.

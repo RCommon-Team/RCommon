@@ -32,10 +32,6 @@ namespace RCommon
         bool IsHttpWebApplication { get; }
         
 
-        /// <summary>
-        /// Returns the implemented <see cref="IHostEnvironment"/>
-        /// </summary>
-        IHostEnvironment HostEnvironment {get;}
 
         IHttpContextAccessor HttpContextAccessor { get; }
     }
