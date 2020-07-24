@@ -30,8 +30,8 @@
         where TDataStore : IDataStore
     {
         private readonly List<string> _includes;
-        private readonly RCommonDbContext _dataStore;
         private readonly Dictionary<Type, object> _objectSets;
+        private readonly IDataStoreProvider _dataStoreProvider;
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private DbSet<TEntity> _objectSet;
@@ -46,11 +46,11 @@
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(RCommonDbContext dataStore, ILogger logger, IUnitOfWorkManager unitOfWorkManager)
+        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILogger logger, IUnitOfWorkManager unitOfWorkManager)
         {
+            this._dataStoreProvider = dataStoreProvider;
             this._logger = logger;
             this._unitOfWorkManager = unitOfWorkManager;
-            this._dataStore = dataStore;
             this._includes = new List<string>();
             this._objectSet = null;
             this._repositoryQuery = null;
@@ -292,11 +292,11 @@
             {
                 if (this._unitOfWorkManager.CurrentUnitOfWork != null)
                 {
-                    // Ensure that DbContext is registered with the Unit of Work so that we can properly save it (and not other DbContexts not part
-                    // of the Unit of Work)
-                    this._unitOfWorkManager.CurrentUnitOfWork.RegisterDataStoreType<RCommonDbContext>(); 
+                    
+                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value);
+                    
                 }
-                return this._dataStore;
+                return this._dataStoreProvider.GetDataStore<RCommonDbContext>();
             }
         }
 

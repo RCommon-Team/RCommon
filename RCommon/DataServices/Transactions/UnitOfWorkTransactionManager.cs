@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using RCommon.DependencyInjection;
 using RCommon.Extensions;
@@ -75,7 +77,7 @@ namespace RCommon.DataServices.Transactions
         /// mode of the unit of work.</param>
         public void EnlistScope(IUnitOfWorkScope scope, TransactionMode mode)
         {
-            _logger.LogInformation("Enlisting scope {0} with transaction manager {1} with transaction mode {2}",
+            _logger.LogInformation("Enlisting scope {0} with transaction manager {1} with transaction mode {2} called from: " + new StackFrame(1).GetMethod().Name,
                                 scope.ScopeId,
                                 _transactionManagerId,
                                 mode);
@@ -125,6 +127,13 @@ namespace RCommon.DataServices.Transactions
             }
             CurrentTransaction.EnlistScope(scope);
         }
+
+        private void UnitOfWork_UnitOfWorkCreated(IUnitOfWork arg1, Guid arg2)
+        {
+            throw new NotImplementedException();
+        }
+
+        
 
         /// <summary>
         /// Handles a Dispose signal from a transaction.

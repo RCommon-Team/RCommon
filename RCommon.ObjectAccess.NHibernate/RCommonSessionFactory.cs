@@ -15,6 +15,8 @@ namespace RCommon.ObjectAccess.NHibernate
     {
         private readonly ISessionFactory _sessionFactory;
 
+       
+
         public void PersistChanges()
         {
             this.OpenSession().Flush();
@@ -46,9 +48,11 @@ namespace RCommon.ObjectAccess.NHibernate
 
 		public ISession OpenSession()
 		{
-            return this._sessionFactory.OpenSession();
+            return this.SessionFactory.OpenSession();
 		}
 
-        
+        public ISessionFactory SessionFactory => _sessionFactory;
+
+
     }
 }

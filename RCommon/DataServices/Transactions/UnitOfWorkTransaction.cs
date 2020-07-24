@@ -91,9 +91,14 @@ namespace RCommon.DataServices.Transactions
 
             _logger.LogInformation("Scope {1} enlisted with transaction {1}", scope.ScopeId, _transactionId);
             _attachedScopes.Add(scope);
+            this.UnitOfWork.TransactionId = _transactionId;
             scope.ScopeComitting += OnScopeCommitting;
             scope.ScopeRollingback += OnScopeRollingBack;
+
         }
+
+
+        
 
         /// <summary>
         /// Callback executed when an enlisted scope has comitted.

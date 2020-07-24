@@ -1,16 +1,13 @@
-﻿using Autofac;
+﻿
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Domain.Repositories;
-using RCommon.ObjectAccess.EFCore;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
@@ -19,36 +16,44 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
     {
 
+        private TestDbContext _context;
+        
+
         public EFCoreRepositoryIntegrationTests() : base()
         {
             var services = new ServiceCollection();
 
             services.AddTransient<IEagerFetchingRepository<Customer>, EFCoreRepository<Customer, TestDbContext>>();
+            services.AddTransient<IEagerFetchingRepository<Order>, EFCoreRepository<Order, TestDbContext>>();
 
             this.InitializeRCommon(services);
         }
-        private TestDbContext _context;
+        
 
         [OneTimeSetUp]
         public void InitialSetup()
         {
-            
+            this.Logger.LogInformation("Beginning Onetime setup", null);
             //this.ContainerAdapter.Register<DbContext, TestDbContext>(typeof(TestDbContext).AssemblyQualifiedName);
             
-            
+
+
+
         }
 
         [SetUp]
         public void Setup()
         {
             //_context = this.ServiceProvider.GetService<RCommonDbContext>();
+            this.Logger.LogInformation("Beginning New Test Setup", null);
 
-            
+
         }
 
         [TearDown]
         public void TearDown()
         {
+            this.Logger.LogInformation("Tearing down Test", null);
             _context.Database.ExecuteSqlInterpolated($"DELETE OrderItems");
             _context.Database.ExecuteSqlInterpolated($"DELETE Products");
             _context.Database.ExecuteSqlInterpolated($"DELETE Orders");
@@ -87,14 +92,14 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            Customer customer = testDataActions.CreateCustomerStub(); 
-            
+            Customer customer = testDataActions.CreateCustomerStub();
+
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
             // Start Test
-            using (var scope = unitOfWorkManager.Create())
+            using (var scope = scopeFactory.Create())
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.Add(customer);
@@ -114,27 +119,27 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
+            var testData = new EFTestData(_context);
+            Customer customer = null;
+            testData.Batch(action => customer = action.CreateCustomer());
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<TransactionMode, IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
             var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
 
-            using (var testData = new EFTestData(_context))
+            //repo.Add(customer);
+            using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                Customer customer = null;
-                testData.Batch(action => customer = action.CreateCustomer());
+                customer = repo.Find(customer.CustomerId);
+                customer.LastName = "Changed";
+                repo.Update(customer);
 
-                using (var scope = unitOfWorkManager.Create(TransactionMode.Default))
-                {
-                    var savedCustomer = repo.FindSingleOrDefault(x => x.CustomerId == customer.CustomerId);
-                    savedCustomer.LastName = "Changed";
-                } //Dispose here as scope is not comitted.
 
-                Customer oldCustomer = null;
-                
-                testData.Batch(action => oldCustomer = action.GetCustomerById(customer.CustomerId));
-                Assert.AreNotEqual("Changed", oldCustomer.LastName);
-            }
+            } //Dispose here as scope is not comitted.
+
+            Customer savedCustomer = null;
+            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
+            Assert.AreNotEqual(customer.LastName, savedCustomer.LastName);
         }
 
         [Test]
@@ -142,18 +147,21 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
+            var testData = new EFTestData(_context);
+            var testDataActions = new EFTestDataActions(testData);
+            var customer = testDataActions.CreateCustomerStub();
+            var order = testDataActions.CreateOrderStub();
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<TransactionMode, IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
-            var customer = new Customer { FirstName = "Joe", LastName = "Data" };
-            var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
-            using (var scope = unitOfWorkManager.Create(TransactionMode.Default))
+
+            using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.Add(customer);
                 //scope.Commit();
-                using (var scope2 = unitOfWorkManager.Create(TransactionMode.Default))
+                using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.Add(order);
@@ -162,61 +170,69 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 scope.Commit();
             }
 
-            using (var testData = new EFTestData(_context))
+            Customer savedCustomer = null;
+            Order savedOrder = null;
+            testData.Batch(actions =>
             {
-                Customer savedCustomer = null;
-                Order savedOrder = null;
-                testData.Batch(actions =>
-                {
-                    savedCustomer = actions.GetCustomerById(customer.CustomerId);
-                    savedOrder = actions.GetOrderById(order.OrderId);
-                });
+                savedCustomer = actions.GetCustomerById(customer.CustomerId);
+                savedOrder = actions.GetOrderById(order.OrderId);
+            });
 
-                Assert.IsNotNull(savedCustomer);
-                Assert.AreEqual(customer.CustomerId, savedCustomer.CustomerId);
-                Assert.IsNotNull(savedOrder);
-                Assert.AreEqual(order.OrderId, savedOrder.OrderId);
-            }
+            Assert.IsNotNull(savedCustomer);
+            Assert.AreEqual(customer.CustomerId, savedCustomer.CustomerId);
+            Assert.IsNotNull(savedOrder);
+            Assert.AreEqual(order.OrderId, savedOrder.OrderId);
         }
 
         [Test]
         public void nested_commit_with_seperate_transaction_commits_when_wrapping_scope_rollsback()
         {
             // Generate Test Data
+            this.Logger.LogInformation("Generating Test Data for: " + MethodBase.GetCurrentMethod(), null);
             _context = new TestDbContext(this.Configuration);
+            var testData = new EFTestData(_context);
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<TransactionMode, IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
-            var customer = new Customer { FirstName = "Joe", LastName = "Data" };
+            Customer customer = null;
+            testData.Batch(x => customer = x.CreateCustomerStub());
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
-            using (var scope = unitOfWorkManager.Create(TransactionMode.Default))
+
+            this.Logger.LogInformation("Starting initial UnitOfWorkScope from " + MethodBase.GetCurrentMethod(), null);
+            using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
+
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+                this.Logger.LogInformation("Adding New Customer from first UnitOfWorkScope ", customer);
                 repo.Add(customer);
 
-                using (var scope2 = unitOfWorkManager.Create(TransactionMode.New))
+                this.Logger.LogInformation("Starting new UnitOfWorkScope from " + MethodBase.GetCurrentMethod(), null);
+                using (var scope2 = scopeFactory.Create(TransactionMode.New))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
+                    this.Logger.LogInformation("Adding New Order from first UnitOfWorkScope ", order);
                     repo2.Add(order);
+
+                    this.Logger.LogInformation("Attempting to Commit second(new) UnitOfWorkScope ", scope2);
                     scope2.Commit();
                 }
             } //Rollback
 
-            using (var testData = new EFTestData(_context))
-            {
-                Customer savedCustomer = null;
-                Order savedOrder = null;
-                testData.Batch(actions =>
-                {
-                    savedCustomer = actions.GetCustomerById(customer.CustomerId);
-                    savedOrder = actions.GetOrderById(order.OrderId);
-                });
+            this.Logger.LogInformation("Attempting to Rollback back initial UnitofWorkScope ", null);
 
-                Assert.IsNotNull(savedCustomer);
-                Assert.IsNotNull(savedOrder);
-                Assert.AreEqual(order.OrderId, savedOrder.OrderId);
-            }
+            Customer savedCustomer = null;
+            Order savedOrder = null;
+            testData.Batch(actions =>
+            {
+                savedCustomer = actions.GetCustomerById(customer.CustomerId);
+                savedOrder = actions.GetOrderById(order.OrderId);
+            });
+
+            Assert.IsNull(savedCustomer);
+            Assert.IsNotNull(savedOrder);
+            Assert.IsTrue(customer.CustomerId == 0); // First transaction does not commit
+            Assert.AreEqual(order.OrderId, savedOrder.OrderId); // Second transaction does commit because it is marked "new"
         }
 
         [Test]
@@ -226,14 +242,14 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<TransactionMode, IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
-            using (var scope = unitOfWorkManager.Create(TransactionMode.Default))
+            using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.Add(customer);
 
-                using (var scope2 = unitOfWorkManager.Create(TransactionMode.Default))
+                using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.Add(order);
@@ -263,13 +279,13 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<TransactionMode, IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
-            using (var scope = unitOfWorkManager.Create(TransactionMode.Default))
+            using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.Add(customer);
-                using (var scope2 = unitOfWorkManager.Create(TransactionMode.Default))
+                using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.Add(order);
@@ -295,9 +311,9 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<TransactionMode, IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
-            using (var scope = unitOfWorkManager.Create(TransactionMode.Default))
+            using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.Add(customer);
@@ -328,9 +344,9 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<TransactionMode, IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
-            using (var scope = unitOfWorkManager.Create(TransactionMode.Default))
+            using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.Add(customer);
@@ -358,15 +374,15 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
 
             // Setup required services
-            var unitOfWorkManager = this.ServiceProvider.GetService<ICommonFactory<TransactionMode, IUnitOfWorkScope>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
 
-            using (var scope = unitOfWorkManager.Create(TransactionMode.Default))
+            using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.Add(customer);
 
-                using (var scope2 = unitOfWorkManager.Create(TransactionMode.Supress))
+                using (var scope2 = scopeFactory.Create(TransactionMode.Supress))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.Add(order);

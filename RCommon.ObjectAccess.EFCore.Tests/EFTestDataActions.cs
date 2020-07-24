@@ -81,6 +81,15 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             return order;
         }
 
+        public Order CreateOrderStub()
+        {
+            var order = new Faker<Order>()
+                .RuleFor(x => x.OrderDate, f => f.Date.Past(2))
+                .RuleFor(x => x.ShipDate, f => f.Date.Past(2))
+                .Generate();
+            return order;
+        }
+
         public OrderItem CreateOrderItem(Action<OrderItem> customize)
         {
             

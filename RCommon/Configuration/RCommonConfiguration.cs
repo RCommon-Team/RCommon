@@ -16,6 +16,7 @@
 
 using System;
 using RCommon;
+using RCommon.DataServices;
 using RCommon.DependencyInjection;
 
 namespace RCommon.Configuration
@@ -45,6 +46,7 @@ namespace RCommon.Configuration
         private void InitializeDefaults()
         {
             _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
+            _containerAdapter.AddScoped<IDataStoreProvider, DataStoreProvider>();
         }
 
         /// <summary>

@@ -14,7 +14,8 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         void Flush();
 
-        void RegisterDataStoreType<TDataStoreType>()
-            where TDataStoreType : IDataStore;
+        Nullable<Guid> TransactionId { get; set; }
+
+
     }
 }

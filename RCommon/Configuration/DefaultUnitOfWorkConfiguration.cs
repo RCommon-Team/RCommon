@@ -15,6 +15,7 @@
 #endregion
 
 using System;
+using System.ComponentModel;
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.DataServices.Transactions;
@@ -37,20 +38,20 @@ namespace RCommon.Configuration
         public void Configure(IContainerAdapter containerAdapter)
         {
             containerAdapter.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
-            containerAdapter.AddScoped<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
+            containerAdapter.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
             UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
             UnitOfWorkSettings.DefaultIsolation = _defaultIsolation;
 
             // Factory for Unit Of Work
             containerAdapter.AddTransient<IUnitOfWork, UnitOfWork>();
             containerAdapter.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
-            containerAdapter.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>(); 
+            containerAdapter.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
 
             // Factory for Unit Of Work Scope
+            //containerAdapter.AddTransient<TransactionMode, TransactionMode>();
             containerAdapter.AddTransient<IUnitOfWorkScope, UnitOfWorkScope>();
-            containerAdapter.AddTransient<Func<IUnitOfWorkScope>>(x => () => x.GetService<IUnitOfWorkScope>());
-            containerAdapter.AddTransient<ICommonFactory<IUnitOfWorkScope>, CommonFactory<IUnitOfWorkScope>>(); // Uses default TransactionMode
-            containerAdapter.AddTransient<ICommonFactory<TransactionMode, IUnitOfWorkScope>, CommonFactory<TransactionMode, IUnitOfWorkScope>>(); // Allow us to specify TransactionMode
+            containerAdapter.AddTransient<IUnitOfWorkScopeFactory, UnitOfWorkScopeFactory>();
+
 
 
         }

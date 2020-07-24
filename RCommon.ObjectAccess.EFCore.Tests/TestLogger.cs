@@ -30,6 +30,9 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
                 Func<TState, Exception, string> formatter) => output(formatter(state, exception));
 
+            public void Log(LogLevel logLevel, EventId eventId, Exception exception,
+                Func<Exception, string> formatter) => output(formatter(exception));
+
             public bool IsEnabled(LogLevel logLevel) => true;
 
             public IDisposable BeginScope<TState>(TState state) => this;

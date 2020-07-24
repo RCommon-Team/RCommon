@@ -56,10 +56,16 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         /// <param name="mode">A <see cref="TransactionMode"/> enum specifying the transation mode
         /// of the unit of work.</param>
-        public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager)
+        /*public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager)
         {
             unitOfWorkManager.CurrentTransactionManager.EnlistScopeAsync(this, TransactionMode.Default);
             TransactionMode = TransactionMode.Default;
+        }*/
+
+        public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager)
+        {
+            // EnlistScopeAsync should only get called from Factory
+            //unitOfWorkManager.CurrentTransactionManager.EnlistScopeAsync(this, mode);
         }
 
         /// <summary>
@@ -71,7 +77,7 @@ namespace RCommon.DataServices.Transactions
             get { return _scopeId; }
         }
 
-        public TransactionMode TransactionMode { get; set; }
+        public TransactionMode TransactionMode { get; }
 
 
 

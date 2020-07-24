@@ -14,12 +14,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.Extensions.Logging.Console;
+using System.Transactions;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
     public abstract class TestBase
     {
         private ServiceProvider _serviceProvider;
+        private ILogger _logger;
 
         static object _configureLock = new object();
         
@@ -30,6 +33,9 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         protected void InitializeRCommon(IServiceCollection services)
         {
+           
+
+
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             this.Configuration = config.Build();
@@ -38,14 +44,15 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
                 services.AddSingleton<ILogger>(TestLogger.Create());
                 services.AddSingleton<IConfiguration>(this.Configuration);
-                services.AddLogging();
+                services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
+                //Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
                 ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services)) // By default we'll be using Theadlocal storage since we're not under web request
                 .WithStateStorage<DefaultStateStorageConfiguration>()
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
                 .WithObjectAccess<EFCoreConfiguration>();
 
-                services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Scoped);
+                services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Transient);
 
                 _serviceProvider = services.BuildServiceProvider();
 
@@ -54,11 +61,12 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 {
                     Debug.WriteLine($"Service: {service.ServiceType.FullName}\n Lifetime: {service.Lifetime}\n Instance: {service.ImplementationType?.FullName}");
                 }
-
+                _logger = this.ServiceProvider.GetService<ILogger>();
             }
 
             
         }
+
 
 
         /// <summary>
@@ -81,5 +89,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         public IConfigurationRoot Configuration { get; private set; }
         public ServiceProvider ServiceProvider { get => _serviceProvider;  }
+        public ILogger Logger { get => _logger; set => _logger = value; }
     }
 }

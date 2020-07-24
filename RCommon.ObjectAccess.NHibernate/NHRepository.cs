@@ -31,14 +31,15 @@ namespace RCommon.ObjectAccess.NHibernate
         //string _cachedQueryName;
          ISessionFactory _dataStore;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
+        private readonly IDataStoreProvider _dataStoreProvider;
 
         /// <summary>
         /// Default Constructor.
         /// Creates a new instance of the <see cref="NHRepository{TEntity}"/> class.
         /// </summary>
-        public NHRepository (ISessionFactory dataStore, IUnitOfWorkManager unitOfWorkManager) 
+        public NHRepository (IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager) 
         {
-            _dataStore = dataStore;
+            this._dataStoreProvider = dataStoreProvider;
             this._unitOfWorkManager = unitOfWorkManager;
         }
       
@@ -51,11 +52,12 @@ namespace RCommon.ObjectAccess.NHibernate
             {
                 if (this._unitOfWorkManager.CurrentUnitOfWork != null)
                 {
-                    // Ensure that DbContext is registered with the Unit of Work so that we can properly save it (and not other DbContexts not part
-                    // of the Unit of Work)
-                    this._unitOfWorkManager.CurrentUnitOfWork.RegisterDataStoreType<RCommonSessionFactory>();
+
+                    return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value).SessionFactory;
+
                 }
-                return this._dataStore;
+
+                return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>().SessionFactory;
             }
         }
 

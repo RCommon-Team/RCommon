@@ -52,11 +52,36 @@ namespace RCommon
 
     }
 
-    public class Test
+    public class CommonFactory<T, T2, TResult> : ICommonFactory<T, T2, TResult>
+    {
+        private readonly Func<T, T2, TResult> _initFunc;
+
+        public CommonFactory(Func<T, T2, TResult> initFunc)
+        {
+            _initFunc = initFunc;
+        }
+
+        public TResult Create(T arg, T2 arg2)
+        {
+            return _initFunc(arg, arg2);
+        }
+
+        public TResult Create(T arg, T2 arg2, Action<TResult> customize)
+        {
+            var concreteObject = _initFunc(arg, arg2);
+            customize(concreteObject);
+            return concreteObject;
+        }
+
+
+    }
+
+    /*public class Test
     {
         public Test()
         {
-            var factory = new CommonFactory<TransactionMode, IUnitOfWorkScope>(x => new UnitOfWorkScope(null)).Create(TransactionMode.Default);
+            var factory = new CommonFactory<IUnitOfWorkManager, TransactionMode, IUnitOfWorkScope>
+                (x => new UnitOfWorkManager(null, null, null, null) y=> new UnitOfWorkScope(x)).Create(y, TransactionMode.Default);
         }
-    }
+    }*/
 }

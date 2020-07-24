@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,13 +18,14 @@ namespace RCommon.DataServices.Transactions
     public class UnitOfWork : DisposableResource, IUnitOfWork
     {
         private bool _disposed;
-        private readonly IStateStorage _storage;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IDataStoreProvider _dataStoreProvider;
+        private readonly IUnitOfWorkManager unitOfWorkManager;
 
-        public UnitOfWork(IServiceProvider serviceProvider, IStateStorage stateStorage)
+        
+
+        public UnitOfWork(IDataStoreProvider dataStoreProvider)
         {
-            _serviceProvider = serviceProvider;
-            _storage = stateStorage;
+            this._dataStoreProvider = dataStoreProvider;
         }
 
         
@@ -31,69 +33,35 @@ namespace RCommon.DataServices.Transactions
         public void Flush()
         {
             Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
-            var registeredTypes = this.GetAllRegisteredDataStores();
+            var registeredTypes = this._dataStoreProvider.GetRegisteredDataStores(x => x.TransactionId == this.TransactionId);
 
             foreach (var item in registeredTypes)
             {
-                var actualType = Type.GetType(item); // item should be fully qualified assembly name per RegisterDataStoretype method
-                var dataStore = this._serviceProvider.GetService(actualType) as IDataStore; // actualType should be IDataStore per RegisterDataStoretype method 
-                dataStore.PersistChanges();
-                dataStore.Dispose();
+
+                item.DataStore.PersistChanges();
+                item.DataStore.Dispose();
             }
 
-            _storage.Local.Clear();
+            this._dataStoreProvider.RemoveRegisterdDataStores(this.TransactionId.Value);
         }
 
         public async Task FlushAsync()
         {
             Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
-            var registeredTypes = this.GetAllRegisteredDataStores();
+            var registeredTypes = this._dataStoreProvider.GetRegisteredDataStores(x => x.TransactionId == this.TransactionId);
 
             foreach (var item in registeredTypes)
             {
-                var actualType = Type.GetType(item); // item should be fully qualified assembly name per RegisterDataStoretype method
-                var dataStore = this._serviceProvider.GetService(actualType) as IDataStore; // actualType should be IDataStore per RegisterDataStoretype method 
-                await dataStore.PersistChangesAsync();
-                await dataStore.DisposeAsync();
+                
+                await item.DataStore.PersistChangesAsync();
+                await item.DataStore.DisposeAsync();
             }
 
-            _storage.Local.Clear();
+            this._dataStoreProvider.RemoveRegisterdDataStores(this.TransactionId.Value);
         }
 
-        public void RegisterDataStoreType<TDataStoreType>()
-            where TDataStoreType : IDataStore
-        {
-            
-            // Check the type to verify that it is registered is with DI container
-            var type = this._serviceProvider.GetService(typeof(TDataStoreType));
-            if (type == null)
-            {
-                throw new UnsupportedDataStoreException(typeof(TDataStoreType));
-            }
-            
-            var registeredDataStores = _storage.Local.Get<List<string>>(this.GetType().AssemblyQualifiedName);
-            if (registeredDataStores == null)
-            {
-                registeredDataStores = new List<string>();
-            }
 
-            var typeAssemblyQualifiedName = typeof(TDataStoreType).AssemblyQualifiedName;
-            bool hasDataStore = registeredDataStores.Any(x => x == typeAssemblyQualifiedName);
-            
-
-            if (!hasDataStore)
-            {
-                registeredDataStores.Add(typeAssemblyQualifiedName); // We really dont need the entire object stored 
-            }
-            
-            _storage.Local.Put<List<string>>(this.GetType().AssemblyQualifiedName, registeredDataStores);
-        }
-
-        private List<string> GetAllRegisteredDataStores()
-        {
-            var registeredDataStores = _storage.Local.Get<List<string>>(this.GetType().AssemblyQualifiedName);
-            return registeredDataStores;
-        }
+        public Nullable<Guid> TransactionId { get; set; }
 
         protected override void Dispose(bool disposing)
         {
@@ -118,6 +86,11 @@ namespace RCommon.DataServices.Transactions
                 this._disposed = true;
             }
             await Task.CompletedTask;
+        }
+
+        public void RegisterDataStoreType<TDataStoreType>() where TDataStoreType : IDataStore
+        {
+            throw new NotImplementedException();
         }
     }
 }

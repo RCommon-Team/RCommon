@@ -16,4 +16,10 @@ namespace RCommon
         TResult Create(T arg, Action<TResult> customize);
     }
 
+    public interface ICommonFactory<T, T2, TResult>
+    {
+        TResult Create(T arg, T2 arg2);
+        TResult Create(T arg, T2 arg2, Action<TResult> customize);
+    }
+
 }
