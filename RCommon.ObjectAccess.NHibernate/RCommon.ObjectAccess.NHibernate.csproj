@@ -10,6 +10,7 @@
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageTags>NHibernate, Generic Repository, .NET Core</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryType>GitHub</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,10 +2,26 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Authors>Reactor2</Authors>
+    <Description>Dependency injection abstractions for RCommon application framework.</Description>
+    <Copyright>Copyright Reactor2 2020</Copyright>
+    <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
+    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+    <PackageTags>RCommon, dependency injection, DI container, DI abstractions</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryType>GitHub</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommonServiceLocator" Version="2.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\..\OneDrive - NTeris\Businesses\NTeris\Graphics\reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

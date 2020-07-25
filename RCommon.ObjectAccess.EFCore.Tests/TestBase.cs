@@ -77,7 +77,9 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             string response = "my test response"; 
             TestWebRequest.RegisterPrefix("test", new TestWebRequestCreate()); 
             TestWebRequest request = TestWebRequestCreate.CreateTestRequest(response); 
+#pragma warning disable CS0219 // The variable 'url' is assigned but its value is never used
             string url = "http://localhost://test"; 
+#pragma warning restore CS0219 // The variable 'url' is assigned but its value is never used
             //ObjectUnderTest myObject = new ObjectUnderTest(); 
             //myObject.Url = url; 
             

@@ -10,7 +10,7 @@
     <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
-    <PackageTags>generic repository, .NET Core, exception management, logging, domain services, application framework</PackageTags>
+    <PackageTags>Rcommon, generic repository, .NET Core, exception management, logging, domain services, application framework</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
