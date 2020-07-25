@@ -8,6 +8,9 @@
     <Copyright>Copyright Reactor2 2020</Copyright>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <Authors>Reactor2</Authors>
+    <Description>An implementation of the Autofac dependency injection container implemented by Autofac on the .NET Core 3.1 framework.</Description>
+    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+    <PackageTags>rcommon, dependency injection, autofac</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

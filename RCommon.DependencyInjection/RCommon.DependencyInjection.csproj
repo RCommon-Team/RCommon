@@ -8,7 +8,7 @@
     <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageTags>RCommon, dependency injection, DI container, DI abstractions</PackageTags>
+    <PackageTags>rcommon, dependency injection, di container, di abstraction</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
   </PropertyGroup>

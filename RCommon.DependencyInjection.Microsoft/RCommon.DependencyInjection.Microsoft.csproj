@@ -10,6 +10,7 @@
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, Dependency Injection, Microsoft</PackageTags>
     <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
+    <Description>An implementation of the native dependency injection container implemented by Microsoft on the .NET Core 3.1 framework.</Description>
   </PropertyGroup>
 
   <ItemGroup>
