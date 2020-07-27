@@ -51,6 +51,22 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .WithStateStorage<DefaultStateStorageConfiguration>()
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
                 .WithObjectAccess<EFCoreConfiguration>();
+                /*.WithExceptionHandling<DefaultExceptionHandlingConfiguration>(exHandling =>
+                {
+                    exHandling.WithExceptionPolicy<CatchAllExceptionPolicy>("BasePolicy", policy => // This should be our catchall policy
+                    {
+
+                        policy.EnlistPublisher<LoggingPublisher>(publisher =>
+                        {
+                            publisher.UseFormatter<ExceptionToTextFormatter>();
+                        });
+                        policy.EnlistException<Exception>();
+                        policy.UseHandler<ExceptionRethrowHandler>();
+
+                    });
+                    //var businessWrapPolicy = x.WithExceptionPolicy<BusinessExceptionWrapPolicy>("BusinessWrapPolicy");
+                    
+                });*/
 
                 services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Transient);
 
