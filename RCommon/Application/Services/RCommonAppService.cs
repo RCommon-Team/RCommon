@@ -5,16 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.Domain.DomainServices
+namespace RCommon.Application.Services
 {
-    public abstract class RCommonDomainService<TService> : RCommonService<TService>
+    public class RCommonAppService<TService> : RCommonService<TService>
     {
 
 
-        public RCommonDomainService(ILogger<TService> logger, IExceptionManager exceptionManager)
+        public RCommonAppService(ILogger<TService> logger, IExceptionManager exceptionManager, IUnitOfWorkScopeFactory<IUnitOfWorkScope> unitOfWorkScopeFactory)
             : base(logger)
         {
             ExceptionManager = exceptionManager;
+            UnitOfWorkScopeFactory = unitOfWorkScopeFactory;
+
+
+
         }
 
         public IExceptionManager ExceptionManager { get; }

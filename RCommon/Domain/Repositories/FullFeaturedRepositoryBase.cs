@@ -166,7 +166,7 @@ namespace RCommon.Domain.Repositories
         public abstract TEntity FindSingleOrDefault(ISpecification<TEntity> specification);
         public abstract Task AddAsync(TEntity entity);
         public abstract Task DeleteAsync(TEntity entity);
-        public abstract Task UpdateAsnyc(TEntity entity);
+        public abstract Task UpdateAsync(TEntity entity);
         public abstract Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification);
         public abstract Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression);
         public abstract Task<TEntity> FindAsync(object primaryKey);
@@ -174,5 +174,7 @@ namespace RCommon.Domain.Repositories
         public abstract Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression);
         public abstract Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression);
         public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification);
+        public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression);
+        public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification);
     }
 }

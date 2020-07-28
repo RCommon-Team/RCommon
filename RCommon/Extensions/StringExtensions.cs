@@ -5,6 +5,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Collections.Generic;
+using RCommon.Util;
+using System.Linq.Expressions;
 
 namespace RCommon.Extensions
 {
@@ -383,6 +385,77 @@ namespace RCommon.Extensions
 				return target.Contains(value); // It would be silly to use this method in this case, but we account for silliness.
 			}
 		}
+
+        /// <summary>
+        /// Substring with elipses but OK if shorter, will take 3 characters off character count if necessary
+        /// </summary>
+        public static string LimitWithElipses(this string str, int characterCount)
+        {
+            if (!string.IsNullOrEmpty(str))
+            {
+                if (characterCount < 5) return str.Limit(characterCount);       // Can’t do much with such a short limit
+                if (str.Length <= characterCount - 3) return str;
+                else return str.Substring(0, characterCount - 3) + "...";
+
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Substring but OK if shorter
+        /// </summary>
+        public static string Limit(this string str, int characterCount)
+        {
+            if (str.Length <= characterCount) return str;
+            else return str.Substring(0, characterCount).TrimEnd(' ');
+        }
+
+        public static bool IsTheSameAs(this string target, string stringToCompare)
+        {
+            return IsTheSameAs(target, stringToCompare, true);
+        }
+
+        public static bool IsTheSameAs(this string target, string stringToCompare, bool ignoreCase)
+        {
+            return string.Compare(target, stringToCompare, ignoreCase) == 0;
+        }
+
+        /// <summary>
+        /// Transforms the string into a URL-friendly slug
+        /// </summary>
+        /// <param name="name">The original string</param>
+        /// <returns>A string containing a url-friendly slug</returns>
+        public static string ToSlug(this string name)
+        {
+            var sb = new StringBuilder();
+            string lower = string.IsNullOrEmpty(name) ? "" : name.ToLower();
+            foreach (char c in lower)
+            {
+                if (c == ' ' || c == '.' || c == '=' || c == '-')
+                    sb.Append('-');
+                else if ((c <= 'z' && c >= 'a') || (c <= '9' && c >= '0'))
+                    sb.Append(c);
+            }
+
+            return sb.ToString().Trim('-');
+        }
+
+        public static string Pluralize(this string target)
+        {
+            return Inflector.Pluralize(target);
+        }
+
+        public static string PluralizeIf(this string target, Expression<Func<bool>> expression)
+        {
+            if (expression.Invoke())
+            {
+                return Inflector.Pluralize(target);
+            }
+            else
+            {
+                return target;
+            }
+        }
 
     }
 }

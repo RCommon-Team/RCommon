@@ -45,7 +45,7 @@ namespace RCommon.Configuration
             // Factory for Unit Of Work
             containerAdapter.AddTransient<IUnitOfWork, UnitOfWork>();
             containerAdapter.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
-            containerAdapter.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
+            containerAdapter.AddTransient<IUnitOfWorkScopeFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
 
             // Factory for Unit Of Work Scope
             //containerAdapter.AddTransient<TransactionMode, TransactionMode>();

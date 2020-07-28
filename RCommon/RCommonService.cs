@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RCommon
 {
-    public class RCommonService<TService>
+    public abstract class RCommonService<TService>
     {
 
         public RCommonService(ILogger<TService> logger)

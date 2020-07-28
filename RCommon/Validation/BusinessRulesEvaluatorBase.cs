@@ -62,7 +62,7 @@ namespace RCommon.Validation
         /// </summary>
         /// <param name="entity">The <typeparamref name="TEntity"/> instance against which all 
         /// registered business rules are evauluated.</param>
-        public virtual void Evauluate(TEntity entity)
+        public virtual void Evaluate(TEntity entity)
         {
             Guard.Against<ArgumentNullException>(entity == null,
                                                  "Cannot evaluate rules against a null reference. Expected a valid non-null entity instance.");

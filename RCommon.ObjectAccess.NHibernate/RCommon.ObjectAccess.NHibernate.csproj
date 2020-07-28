@@ -13,6 +13,7 @@
     <RepositoryType>GitHub</RepositoryType>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Version>1.0.0.8</Version>
   </PropertyGroup>
 
   <ItemGroup>

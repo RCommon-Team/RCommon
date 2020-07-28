@@ -27,6 +27,6 @@ namespace RCommon.Validation
         /// </summary>
         /// <param name="entity">A <typeparamref name="TEntity"/> instance against which the business
         /// rules are evaluated.</param>
-        void Evauluate(TEntity entity);
+        void Evaluate(TEntity entity);
     }
 }

@@ -23,13 +23,11 @@ namespace RCommon.ObjectAccess.NHibernate
     /// Inherits from the <see cref="FullFeaturedRepositoryBase{TEntity}"/> class to provide an implementation of a
     /// repository that uses NHibernate.
     /// </summary>
-    public class NHRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity>
-        where TEntity : class
+    public class NHRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity>, INHRepository<TEntity> where TEntity : class
     {
         //int _batchSize = -1;
         //bool _enableCached;
         //string _cachedQueryName;
-         ISessionFactory _dataStore;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private readonly IDataStoreProvider _dataStoreProvider;
 
@@ -37,12 +35,12 @@ namespace RCommon.ObjectAccess.NHibernate
         /// Default Constructor.
         /// Creates a new instance of the <see cref="NHRepository{TEntity}"/> class.
         /// </summary>
-        public NHRepository (IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager) 
+        public NHRepository(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager)
         {
             this._dataStoreProvider = dataStoreProvider;
             this._unitOfWorkManager = unitOfWorkManager;
         }
-      
+
         /// <summary>
         /// Gets the <see cref="ISession"/> instnace that is used by the repository.
         /// </summary>
@@ -73,7 +71,7 @@ namespace RCommon.ObjectAccess.NHibernate
         {
             get
             {
-                
+
 
                 return SessionFactory.GetCurrentSession().Query<TEntity>();
             }
@@ -122,7 +120,7 @@ namespace RCommon.ObjectAccess.NHibernate
 
             foreach (var item in strategy.Paths)
             {
-                var exp = (Expression < Func<TEntity, object> > ) item;
+                var exp = (Expression<Func<TEntity, object>>)item;
                 this.RepositoryQuery.Fetch(exp);
             }
 
@@ -188,7 +186,7 @@ namespace RCommon.ObjectAccess.NHibernate
             await SessionFactory.GetCurrentSession().DeleteAsync(entity);
         }
 
-        public override async Task UpdateAsnyc(TEntity entity)
+        public override async Task UpdateAsync(TEntity entity)
         {
             await SessionFactory.GetCurrentSession().UpdateAsync(entity);
         }
@@ -226,6 +224,16 @@ namespace RCommon.ObjectAccess.NHibernate
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification)
         {
             return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).SingleOrDefaultAsync();
+        }
+
+        public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression)
+        {
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().AnyAsync(expression);
+        }
+
+        public async override Task<bool> AnyAsync(ISpecification<TEntity> specification)
+        {
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().AnyAsync(specification.Predicate);
         }
     }
 }

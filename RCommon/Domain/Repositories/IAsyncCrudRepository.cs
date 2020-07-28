@@ -27,7 +27,7 @@ namespace RCommon.Domain.Repositories
         /// <remarks>Implementors of this method must handle the Delete scneario. </remarks>
         Task DeleteAsync(TEntity entity);
 
-        Task UpdateAsnyc(TEntity entity);
+        Task UpdateAsync(TEntity entity);
 
         Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification);
         Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression);
@@ -40,6 +40,10 @@ namespace RCommon.Domain.Repositories
         Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression);
 
         Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification);
+
+        Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression);
+
+        Task<bool> AnyAsync(ISpecification<TEntity> specification);
 
 
     }

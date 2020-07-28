@@ -33,13 +33,13 @@ namespace RCommon.DataServices.Transactions
         readonly Guid _transactionManagerId = Guid.NewGuid();
         readonly ILogger<UnitOfWorkTransactionManager> _logger;
         readonly LinkedList<UnitOfWorkTransaction> _transactions = new LinkedList<UnitOfWorkTransaction>();
-        readonly ICommonFactory<IUnitOfWork> _unitOfWorkFactory;
+        readonly IUnitOfWorkScopeFactory<IUnitOfWork> _unitOfWorkFactory;
 
         /// <summary>
         /// Default Constructor.
         /// Creates a new instance of the <see cref="UnitOfWorkTransactionManager"/> class.
         /// </summary>
-        public UnitOfWorkTransactionManager(ILogger<UnitOfWorkTransactionManager> logger, ICommonFactory<IUnitOfWork> unitOfWorkFactory)
+        public UnitOfWorkTransactionManager(ILogger<UnitOfWorkTransactionManager> logger, IUnitOfWorkScopeFactory<IUnitOfWork> unitOfWorkFactory)
         {
             _logger = logger;
             _unitOfWorkFactory = unitOfWorkFactory;

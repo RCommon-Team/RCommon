@@ -15,8 +15,10 @@
 #endregion
 
 using System;
+using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using RCommon.Configuration;
+using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
 using RCommon.Domain.Repositories;
@@ -29,6 +31,7 @@ namespace RCommon.ObjectAccess.EFCore
     /// </summary>
     public class EFCoreConfiguration : IObjectAccessConfiguration
     {
+        private IContainerAdapter _containerAdapter;
 
         /// <summary>
         /// Called by RCommon <see cref="Configure"/> to configure data providers.
@@ -37,10 +40,20 @@ namespace RCommon.ObjectAccess.EFCore
         /// registering components.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
+
+            containerAdapter.AddGeneric(typeof(IEFCoreRepository<>), typeof(EFCoreRepository<,>));
             containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<,>));
+            _containerAdapter = containerAdapter;
         }
 
 
-       
+        public IObjectAccessConfiguration UsingDbContext<TDbContext>()
+            where TDbContext : RCommonDbContext
+        {
+            _containerAdapter.AddTransient<RCommonDbContext, TDbContext>();
+            //var dbContext = Activator.CreateInstance<TDbContext>();
+
+            return this;
+        }
     }
 }

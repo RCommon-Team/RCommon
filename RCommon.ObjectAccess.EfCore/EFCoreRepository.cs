@@ -25,8 +25,7 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity>
-        where TEntity : class
+    public class EFCoreRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity> where TEntity : class
         where TDataStore : IDataStore
     {
         private readonly List<string> _includes;
@@ -75,7 +74,8 @@
             Guard.Against<ArgumentNullException>((paths == null) || (paths.Length == 0), "Expected a non-null and non-empty array of Expression instances representing the paths to eagerly load.");
 
             string currentPath = string.Empty;
-            paths.ForEach<Expression>(delegate (Expression path) {
+            paths.ForEach<Expression>(delegate (Expression path)
+            {
                 MemberAccessPathVisitor visitor = new MemberAccessPathVisitor();
                 visitor.Visit(path);
                 currentPath = !string.IsNullOrEmpty(currentPath) ? (currentPath + "." + visitor.Path) : visitor.Path;
@@ -265,7 +265,7 @@
             return Task.CompletedTask;
         }
 
-        public override Task UpdateAsnyc(TEntity entity)
+        public override Task UpdateAsync(TEntity entity)
         {
             this.ObjectSet.Update(entity);
             return Task.CompletedTask;
@@ -286,15 +286,25 @@
             return await this.FindCore(specification.Predicate).SingleOrDefaultAsync();
         }
 
+        public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression)
+        {
+            return await this.FindCore(expression).AnyAsync();
+        }
+
+        public async override Task<bool> AnyAsync(ISpecification<TEntity> specification)
+        {
+            return await this.FindCore(specification.Predicate).AnyAsync();
+        }
+
         protected internal DbContext ObjectContext
         {
             get
             {
                 if (this._unitOfWorkManager.CurrentUnitOfWork != null)
                 {
-                    
+
                     return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value);
-                    
+
                 }
                 return this._dataStoreProvider.GetDataStore<RCommonDbContext>();
             }
@@ -337,7 +347,8 @@
                     {
                         if (action == null)
                         {
-                            action = delegate (string m) {
+                            action = delegate (string m)
+                            {
                                 query = query.Include(m);
                             };
                         }
@@ -374,7 +385,8 @@
         }*/
 
         protected string EntitySetName =>
-            this.ObjectContext.GetType().GetProperties().Single<PropertyInfo>(delegate (PropertyInfo p) {
+            this.ObjectContext.GetType().GetProperties().Single<PropertyInfo>(delegate (PropertyInfo p)
+            {
                 bool flag1;
                 if (!p.PropertyType.IsGenericType)
                 {

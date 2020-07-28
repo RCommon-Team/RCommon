@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RCommon
 {
-    public class CommonFactory<T> : ICommonFactory<T>
+    public class CommonFactory<T> : IUnitOfWorkScopeFactory<T>
     {
         private readonly Func<T> _initFunc;
 
