@@ -138,7 +138,7 @@ namespace RCommon.Configuration
             return this;
         }
 
-        /*/// <summary>
+        /// <summary>
         /// Configures RCommon unit of work settings.
         /// </summary>
         /// <typeparam name="T">A <see cref="IUnitOfWorkConfiguration"/> type that can be used to configure
@@ -165,7 +165,7 @@ namespace RCommon.Configuration
             actions(exHandling);
             exHandling.Configure(_containerAdapter);
             return this;
-        }*/
+        }
 
         public IRCommonConfiguration And<T>() where T : IServiceConfiguration, new()
         {

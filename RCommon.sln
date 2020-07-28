@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.EFCore
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.NHibernate", "RCommon.ObjectAccess.NHibernate\RCommon.ObjectAccess.NHibernate.csproj", "{8D53A0C7-0700-4862-91C6-926C1382CC6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DepenencyInjection.Autofac", "RCommon.DepenencyInjection.Autofac\RCommon.DepenencyInjection.Autofac.csproj", "{5FE75456-0764-4946-A5A3-9F893745FDD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection.Autofac", "RCommon.DepenencyInjection.Autofac\RCommon.DependencyInjection.Autofac.csproj", "{5FE75456-0764-4946-A5A3-9F893745FDD4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection.CastleWindsor", "RCommon.DependencyInjection.CastleWindsor\RCommon.DependencyInjection.CastleWindsor.csproj", "{A92D9860-39F1-4D27-89DF-0FA40FFED1A9}"
 EndProject

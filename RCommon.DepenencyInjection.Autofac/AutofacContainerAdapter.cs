@@ -10,8 +10,7 @@ namespace RCommon.DependencyInjection.Autofac
 {
     public class AutofacContainerAdapter : IContainerAdapter
     {
-        IServiceProvider _serviceProvider;
-        ServiceCollection _services;
+       
         ContainerBuilder _builder;
 
         /// <summary>

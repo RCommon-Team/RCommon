@@ -11,6 +11,11 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
 {
     public class EntLibExceptionManager : IExceptionManager
     {
+        public EntLibExceptionManager()
+        {
+
+        }
+
         public void HandleException(Exception ex, string policy)
         {
             Boolean rethrow = false;

@@ -79,9 +79,9 @@ namespace RCommon.Configuration
         ///<returns><see cref="IRCommonConfiguration"/></returns>
         IRCommonConfiguration WithUnitOfWork<T>(Action<T> actions) where T : IUnitOfWorkConfiguration, new();
 
-       /* IRCommonConfiguration WithExceptionHandling<T>() where T : IExceptionHandlingConfiguration, new();
+        IRCommonConfiguration WithExceptionHandling<T>() where T : IExceptionHandlingConfiguration, new();
 
-        IRCommonConfiguration WithExceptionHandling<T>(Action<T> actions) where T : IExceptionHandlingConfiguration, new();*/
+        IRCommonConfiguration WithExceptionHandling<T>(Action<T> actions) where T : IExceptionHandlingConfiguration, new();
 
         IRCommonConfiguration And<T>() where T : IServiceConfiguration, new();
 

@@ -15,6 +15,8 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using RCommon.Configuration;
@@ -31,7 +33,7 @@ namespace RCommon.ObjectAccess.EFCore
     /// </summary>
     public class EFCoreConfiguration : IObjectAccessConfiguration
     {
-        private IContainerAdapter _containerAdapter;
+        private List<string> _dbContextTypes = new List<string>();
 
         /// <summary>
         /// Called by RCommon <see cref="Configure"/> to configure data providers.
@@ -43,15 +45,23 @@ namespace RCommon.ObjectAccess.EFCore
 
             containerAdapter.AddGeneric(typeof(IEFCoreRepository<>), typeof(EFCoreRepository<,>));
             containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<,>));
-            _containerAdapter = containerAdapter;
+
+            foreach (var dbContext in _dbContextTypes)
+            {
+                containerAdapter.AddTransient(typeof(RCommonDbContext), Type.GetType(dbContext));
+            }
+            
+            
         }
 
 
         public IObjectAccessConfiguration UsingDbContext<TDbContext>()
             where TDbContext : RCommonDbContext
         {
-            _containerAdapter.AddTransient<RCommonDbContext, TDbContext>();
-            //var dbContext = Activator.CreateInstance<TDbContext>();
+            var dbContext = typeof(TDbContext).AssemblyQualifiedName;
+            _dbContextTypes.Add(dbContext);
+
+            //_dbContextType = Activator.CreateInstance(typeof(TDbContext));
 
             return this;
         }

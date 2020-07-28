@@ -25,6 +25,9 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             services.AddTransient<IEagerFetchingRepository<Customer>, EFCoreRepository<Customer, TestDbContext>>();
             services.AddTransient<IEagerFetchingRepository<Order>, EFCoreRepository<Order, TestDbContext>>();
+            
+            //services.AddTransient<IEFCoreRepository<Customer>, EFCoreRepository<Customer, TestDbContext>>();
+            //services.AddTransient<IEFCoreRepository<Order>, EFCoreRepository<Order, TestDbContext>>();
 
             this.InitializeRCommon(services);
         }
@@ -77,6 +80,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var customer = testDataActions.CreateCustomer(x => x.FirstName = "Albus");
 
             var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+            //var repo = this.ServiceProvider.GetService<IEFCoreRepository<Customer>>();
             var savedCustomer = repo
                     .Find(customer.CustomerId);
 

@@ -22,7 +22,6 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
-    <ProjectReference Include="..\RCommon.DepenencyInjection.Autofac\RCommon.DepenencyInjection.Autofac.csproj" />
     <ProjectReference Include="..\RCommon.ObjectAccess.EfCore\RCommon.ObjectAccess.EFCore.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>

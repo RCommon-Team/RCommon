@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using RCommon.Configuration;
 using RCommon.DataServices;
 using RCommon.DependencyInjection;
-using RCommon.DependencyInjection.Autofac;
 using RCommon.DependencyInjection.Microsoft;
 using System;
 using System.Collections.Generic;
@@ -47,10 +46,16 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
                 //Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-                ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services)) // By default we'll be using Theadlocal storage since we're not under web request
+                /*ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services)) // By default we'll be using Theadlocal storage since we're not under web request
                 .WithStateStorage<DefaultStateStorageConfiguration>()
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
-                .WithObjectAccess<EFCoreConfiguration>();
+                .WithObjectAccess<EFCoreConfiguration>();*/
+
+                ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
+                .WithStateStorage<DefaultStateStorageConfiguration>()
+                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
+                .WithObjectAccess<EFCoreConfiguration>(
+                    x => x.UsingDbContext<TestDbContext>());
                 /*.WithExceptionHandling<DefaultExceptionHandlingConfiguration>(exHandling =>
                 {
                     exHandling.WithExceptionPolicy<CatchAllExceptionPolicy>("BasePolicy", policy => // This should be our catchall policy
@@ -68,7 +73,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                     
                 });*/
 
-                services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Transient);
+                //services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Transient);
 
                 _serviceProvider = services.BuildServiceProvider();
 
