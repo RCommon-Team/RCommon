@@ -124,6 +124,8 @@ namespace RCommon.Domain.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public string DataStoreName { get; set; }
     }
 
 }

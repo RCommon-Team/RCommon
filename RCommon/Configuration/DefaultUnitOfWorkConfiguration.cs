@@ -37,6 +37,7 @@ namespace RCommon.Configuration
         /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
+            // Transaction Management
             containerAdapter.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
             containerAdapter.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
             UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
@@ -45,7 +46,7 @@ namespace RCommon.Configuration
             // Factory for Unit Of Work
             containerAdapter.AddTransient<IUnitOfWork, UnitOfWork>();
             containerAdapter.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
-            containerAdapter.AddTransient<IUnitOfWorkScopeFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
+            containerAdapter.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
 
             // Factory for Unit Of Work Scope
             //containerAdapter.AddTransient<TransactionMode, TransactionMode>();

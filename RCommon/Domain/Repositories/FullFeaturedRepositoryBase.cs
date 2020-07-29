@@ -102,6 +102,8 @@ namespace RCommon.Domain.Repositories
             get { return RepositoryQuery.Provider; }
         }
 
+        public string DataStoreName { get; set; }
+
 
         /// <summary>
         /// Adds a transient instance of <paramref name="entity"/> to be tracked

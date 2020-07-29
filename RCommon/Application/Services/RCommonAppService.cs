@@ -11,7 +11,7 @@ namespace RCommon.Application.Services
     {
 
 
-        public RCommonAppService(ILogger<TService> logger, IExceptionManager exceptionManager, IUnitOfWorkScopeFactory<IUnitOfWorkScope> unitOfWorkScopeFactory)
+        public RCommonAppService(ILogger<TService> logger, IExceptionManager exceptionManager, IUnitOfWorkScopeFactory unitOfWorkScopeFactory)
             : base(logger)
         {
             ExceptionManager = exceptionManager;
@@ -23,6 +23,6 @@ namespace RCommon.Application.Services
 
         public IExceptionManager ExceptionManager { get; }
 
-        protected IUnitOfWorkScopeFactory<IUnitOfWorkScope> UnitOfWorkScopeFactory { get; }
+        protected IUnitOfWorkScopeFactory UnitOfWorkScopeFactory { get; }
     }
 }

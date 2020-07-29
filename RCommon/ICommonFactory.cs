@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RCommon
 {
-    public interface IUnitOfWorkScopeFactory<T>
+    public interface ICommonFactory<T>
     {
         T Create();
         T Create(Action<T> customize);

@@ -23,7 +23,7 @@ namespace RCommon.ObjectAccess.NHibernate
     /// Inherits from the <see cref="FullFeaturedRepositoryBase{TEntity}"/> class to provide an implementation of a
     /// repository that uses NHibernate.
     /// </summary>
-    public class NHRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity>, INHRepository<TEntity> where TEntity : class
+    public class NHRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, INHRepository<TEntity> where TEntity : class
     {
         //int _batchSize = -1;
         //bool _enableCached;
@@ -51,11 +51,11 @@ namespace RCommon.ObjectAccess.NHibernate
                 if (this._unitOfWorkManager.CurrentUnitOfWork != null)
                 {
 
-                    return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value).SessionFactory;
+                    return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName).SessionFactory;
 
                 }
 
-                return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>().SessionFactory;
+                return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this.DataStoreName).SessionFactory;
             }
         }
 

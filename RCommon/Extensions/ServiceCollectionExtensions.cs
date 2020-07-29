@@ -13,7 +13,7 @@ namespace RCommon.Configuration
         {
             services.AddTransient<TService, TImplementation>();
             services.AddScoped<Func<TService>>(x => () => x.GetService<TService>());
-            services.AddScoped<IUnitOfWorkScopeFactory<TService>, CommonFactory<TService>>();
+            services.AddScoped<ICommonFactory<TService>, CommonFactory<TService>>();
         }
     }
 }

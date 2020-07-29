@@ -51,6 +51,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
                 .WithObjectAccess<EFCoreConfiguration>();*/
 
+                services.AddDbContext<RCommonDbContext, TestDbContext>();
+
                 ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithStateStorage<DefaultStateStorageConfiguration>()
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()

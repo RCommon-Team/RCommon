@@ -19,6 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using RCommon.Configuration;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
@@ -43,12 +44,13 @@ namespace RCommon.ObjectAccess.EFCore
         public void Configure(IContainerAdapter containerAdapter)
         {
 
-            containerAdapter.AddGeneric(typeof(IEFCoreRepository<>), typeof(EFCoreRepository<,>));
-            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<,>));
+            // EF Core Repository
+            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
 
+            // Registered DbContexts
             foreach (var dbContext in _dbContextTypes)
             {
-                containerAdapter.AddTransient(typeof(RCommonDbContext), Type.GetType(dbContext));
+                containerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
             }
             
             

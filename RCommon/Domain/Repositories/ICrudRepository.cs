@@ -46,6 +46,8 @@ namespace RCommon.Domain.Repositories
 
         TEntity FindSingleOrDefault(ISpecification<TEntity> specification);
 
+        string DataStoreName { get; set; }
+
 
     }
 }

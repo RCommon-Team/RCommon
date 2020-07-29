@@ -39,7 +39,7 @@ namespace RCommon.ObjectAccess.NHibernate
         /// registering components.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
-            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(NHRepository<,>));
+            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(NHRepository<>));
         }
 
 

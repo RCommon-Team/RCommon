@@ -25,8 +25,7 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity, TDataStore> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity> where TEntity : class
-        where TDataStore : IDataStore
+    public class EFCoreRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity> where TEntity : class
     {
         private readonly List<string> _includes;
         private readonly Dictionary<Type, object> _objectSets;
@@ -79,7 +78,7 @@
                 MemberAccessPathVisitor visitor = new MemberAccessPathVisitor();
                 visitor.Visit(path);
                 currentPath = !string.IsNullOrEmpty(currentPath) ? (currentPath + "." + visitor.Path) : visitor.Path;
-                ((EFCoreRepository<TEntity, TDataStore>)this)._includes.Add(currentPath);
+                ((EFCoreRepository<TEntity>)this)._includes.Add(currentPath);
             });
         }
 
@@ -300,13 +299,14 @@
         {
             get
             {
+
                 if (this._unitOfWorkManager.CurrentUnitOfWork != null)
                 {
 
-                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value);
+                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName);
 
                 }
-                return this._dataStoreProvider.GetDataStore<RCommonDbContext>();
+                return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this.DataStoreName);
             }
         }
 
