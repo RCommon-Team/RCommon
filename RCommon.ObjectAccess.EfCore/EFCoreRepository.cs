@@ -341,22 +341,33 @@
         {
             get
             {
+                IQueryable<TEntity> query;
                 if (ReferenceEquals(this._repositoryQuery, null))
                 {
-                    Action<string> action = null;
-                    var query = this.CreateQuery();
-                    if (this._includes.Count > 0)
-                    {
-                        if (action == null)
-                        {
-                            action = delegate (string m) {
-                                query = query.Include(m);
-                            };
-                        }
-                        this._includes.ForEach(action);
-                    }
-                    this._repositoryQuery = query;
+                    query = this.CreateQuery();
                 }
+                else
+                {
+                    query = _repositoryQuery;
+                }
+
+                // Start Eagerloading
+                
+                
+                if (this._includes.Count > 0)
+                {
+                    Action<string> action = null;
+                    if (action == null)
+                    {
+                        action = delegate (string m) {
+                            query = query.Include(m);
+                        };
+                    }
+                    this._includes.ForEach(action); // Build the eagerloaded query
+                    this._includes.Clear(); // clear the eagerloading paths so we don't duplicate efforts if another repository method is called
+                }
+                this._repositoryQuery = query;
+
                 return this._repositoryQuery;
             }
         }
