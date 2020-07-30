@@ -112,18 +112,15 @@ namespace RCommon.ObjectAccess.NHibernate
             SessionFactory.GetCurrentSession().Update(entity);
         }
 
-        protected override void ApplyFetchingStrategy(Action<EagerFetchingStrategy<TEntity>> strategyActions)
+        protected override void ApplyFetchingStrategy(Expression[] paths)
         {
-            EagerFetchingStrategy<TEntity> strategy = new EagerFetchingStrategy<TEntity>();
-            strategyActions(strategy);
-            var paths = strategy.Paths;
+            Guard.Against<ArgumentNullException>((paths == null) || (paths.Length == 0), "Expected a non-null and non-empty array of Expression instances representing the paths to eagerly load.");
 
-            foreach (var item in strategy.Paths)
+            foreach (var item in paths)
             {
                 var exp = (Expression<Func<TEntity, object>>)item;
                 this.RepositoryQuery.Fetch(exp);
             }
-
         }
 
         public override void Update(TEntity entity)

@@ -44,10 +44,10 @@
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILogger logger, IUnitOfWorkManager unitOfWorkManager)
+        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager)
         {
             this._dataStoreProvider = dataStoreProvider;
-            this._logger = logger;
+            this._logger = logger.CreateLogger(this.GetType().Name);
             this._unitOfWorkManager = unitOfWorkManager;
             this._includes = new List<string>();
             this._objectSet = null;
@@ -64,17 +64,11 @@
         }
 
 
-        protected override void ApplyFetchingStrategy(Action<EagerFetchingStrategy<TEntity>> strategyActions)
+        protected override void ApplyFetchingStrategy(Expression[] paths)
         {
-            EagerFetchingStrategy<TEntity> strategy = new EagerFetchingStrategy<TEntity>();
-            strategyActions(strategy);
-            var paths = strategy.Paths.ToArray<Expression>();
-
             Guard.Against<ArgumentNullException>((paths == null) || (paths.Length == 0), "Expected a non-null and non-empty array of Expression instances representing the paths to eagerly load.");
-
             string currentPath = string.Empty;
-            paths.ForEach<Expression>(delegate (Expression path)
-            {
+            paths.ForEach<System.Linq.Expressions.Expression>(delegate (System.Linq.Expressions.Expression path) {
                 MemberAccessPathVisitor visitor = new MemberAccessPathVisitor();
                 visitor.Visit(path);
                 currentPath = !string.IsNullOrEmpty(currentPath) ? (currentPath + "." + visitor.Path) : visitor.Path;
@@ -240,7 +234,8 @@
 
         public override TEntity Find(object primaryKey)
         {
-            return this.ObjectContext.Find<TEntity>(primaryKey);
+            
+            return this.ObjectSet.Find(primaryKey);
         }
 
         public override TEntity FindSingleOrDefault(Expression<Func<TEntity, bool>> expression)
@@ -318,8 +313,15 @@
             {
                 if (ReferenceEquals(this._objectSet, null))
                 {
-                    this._objectSet = this.GetObjectSet<TEntity>();
+                    
+                    var objectSet = this.GetObjectSet<TEntity>();
+                    
+                    
+                    this._objectSet = objectSet;
                 }
+                
+                
+
                 return this._objectSet;
             }
         }
@@ -342,13 +344,12 @@
                 if (ReferenceEquals(this._repositoryQuery, null))
                 {
                     Action<string> action = null;
-                    IQueryable<TEntity> query = this.CreateQuery();
+                    var query = this.CreateQuery();
                     if (this._includes.Count > 0)
                     {
                         if (action == null)
                         {
-                            action = delegate (string m)
-                            {
+                            action = delegate (string m) {
                                 query = query.Include(m);
                             };
                         }
@@ -359,30 +360,6 @@
                 return this._repositoryQuery;
             }
         }
-
-        /*protected override IQueryable<TEntity> RepositoryQuery2
-        {
-            get
-            {
-                if (ReferenceEquals(this._repositoryQuery, null))
-                {
-                    Action<string> action = null;
-                    //IQueryable<TEntity> query = this.CreateQuery();
-                    if (this._includes.Count > 0)
-                    {
-                        if (action == null)
-                        {
-                            action = delegate (string m) {
-                                this.ObjectSet.Include(m);
-                            };
-                        }
-                        this._includes.ForEach(action);
-                    }
-                    this._repositoryQuery = this.ObjectSet.AsQueryable();
-                }
-                return this._repositoryQuery;
-            }
-        }*/
 
         protected string EntitySetName =>
             this.ObjectContext.GetType().GetProperties().Single<PropertyInfo>(delegate (PropertyInfo p)

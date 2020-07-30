@@ -410,5 +410,30 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             }
         }
 
+        [Test]
+        public void Can_eager_load_repository_and_query()
+        {
+            _context = new TestDbContext(this.Configuration);
+            var testData = new EFTestData(_context);
+            var testDataActions = new EFTestDataActions(testData);
+            var customer = testDataActions.CreateCustomer();
+            for (int i = 0; i < 10; i++)
+            {
+                testDataActions.CreateOrderForCustomer(customer);
+            }
+
+            var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+            repo.EagerlyWith(x => x.Orders);
+            repo.DataStoreName = "TestDbContext";
+            //var repo = this.ServiceProvider.GetService<IEFCoreRepository<Customer>>();
+            var savedCustomer = repo
+                    .FindSingleOrDefault(x=>x.CustomerId == customer.CustomerId);
+
+            Assert.IsNotNull(savedCustomer);
+            Assert.IsTrue(savedCustomer.CustomerId == customer.CustomerId);
+            Assert.IsTrue(savedCustomer.Orders != null);
+            Assert.IsTrue(savedCustomer.Orders.Count == 10);
+        }
+
     }
 }

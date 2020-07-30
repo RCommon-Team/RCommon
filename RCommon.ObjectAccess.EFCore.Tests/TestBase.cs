@@ -41,6 +41,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             if (_serviceProvider == null)
             {
+                
                 services.AddSingleton<ILogger>(TestLogger.Create());
                 services.AddSingleton<IConfiguration>(this.Configuration);
                 services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));

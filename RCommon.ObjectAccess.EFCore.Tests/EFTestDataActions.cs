@@ -64,7 +64,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public Order CreateOrderForCustomer(Customer customer)
         {
             var order = CreateOrder(x => x.Customer = customer);
-            customer.Orders.Add(order);
             return order;
         }
 
@@ -77,6 +76,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.ShipDate, f => f.Date.Past(2))
                 .Generate();
             customize(order);
+            _generator.Context.Set<Order>().Add(order);
+            _generator.Context.SaveChanges();
 
             return order;
         }

@@ -139,21 +139,22 @@ namespace RCommon.Domain.Repositories
             return RepositoryQuery.Where(specification.Predicate).AsQueryable();
         }
 
-        protected abstract void ApplyFetchingStrategy(Action<EagerFetchingStrategy<TEntity>> strategyActions);
+        protected abstract void ApplyFetchingStrategy(Expression[] paths);
 
         public IEagerFetchingRepository<TEntity> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions)
         {
             EagerFetchingStrategy<TEntity> strategy = new EagerFetchingStrategy<TEntity>();
             strategyActions(strategy);
-            this.ApplyFetchingStrategy(strategyActions);
+            this.ApplyFetchingStrategy(strategy.Paths.ToArray<Expression>());
             return this;
         }
 
         public IEagerFetchingRepository<TEntity> EagerlyWith(Expression<Func<TEntity, object>> path)
         {
-            this.EagerlyWith(x => x.Fetch<TEntity>(path));
-            
+            Expression<Func<TEntity, object>>[] expressionArray = new Expression<Func<TEntity, object>>[] { path };
+            this.ApplyFetchingStrategy((Expression[])expressionArray);
             return this;
+
         }
 
         public abstract void Update(TEntity entity);
