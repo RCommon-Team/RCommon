@@ -16,4 +16,8 @@
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ExceptionHandling\" />
+  </ItemGroup>
+
 </Project>

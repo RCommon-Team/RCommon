@@ -19,6 +19,5 @@ namespace RCommon.Domain.DomainServices
 
         public IExceptionManager ExceptionManager { get; }
 
-        protected IUnitOfWorkScopeFactory UnitOfWorkScopeFactory { get; }
     }
 }

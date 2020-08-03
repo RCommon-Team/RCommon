@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase
 {
     // <summary>A web request creator for unit testing.</summary> 
     public class TestWebRequestCreate : IWebRequestCreate
@@ -25,47 +25,47 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         /// <summary>Utility method for creating a TestWebRequest and setting it to be the next WebRequest to use.</summary> 
         /// <param name="response">The response the TestWebRequest will return.</param>   
-        public static TestWebRequest CreateTestRequest(string response) 
-        { 
-            TestWebRequest request = new TestWebRequest(response); 
-            NextRequest = request; 
-            return request; 
+        public static TestWebRequest CreateTestRequest(string response)
+        {
+            TestWebRequest request = new TestWebRequest(response);
+            NextRequest = request;
+            return request;
         }
     }
 
 
     public class TestWebRequest : WebRequest
     {
-        MemoryStream requestStream = new MemoryStream(); MemoryStream responseStream; 
-        
+        MemoryStream requestStream = new MemoryStream(); MemoryStream responseStream;
+
         public override string Method { get; set; }
         public override string ContentType { get; set; }
         public override long ContentLength { get; set; }
 
         /// <summary>Initializes a new instance of <see cref="TestWebRequest"/>    
         /// with the response to return.</summary>    
-        public TestWebRequest(string response) 
-        { 
-            responseStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(response)); 
+        public TestWebRequest(string response)
+        {
+            responseStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(response));
         }
 
         /// <summary>Returns the request contents as a string.</summary>    
-        public string ContentAsString() 
-        { 
-            return System.Text.Encoding.UTF8.GetString(requestStream.ToArray()); 
+        public string ContentAsString()
+        {
+            return System.Text.Encoding.UTF8.GetString(requestStream.ToArray());
         }
 
 
         /// <summary>See <see cref="WebRequest.GetRequestStream"/>.</summary>    
-        public override Stream GetRequestStream() 
-        { 
-            return requestStream; 
+        public override Stream GetRequestStream()
+        {
+            return requestStream;
         }
 
         /// <summary>See <see cref="WebRequest.GetResponse"/>.</summary>   
-        public override WebResponse GetResponse() 
-        { 
-            return new TestWebReponse(responseStream); 
+        public override WebResponse GetResponse()
+        {
+            return new TestWebReponse(responseStream);
         }
     }
 
@@ -75,16 +75,16 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         /// <summary>Initializes a new instance of <see cref="TestWebReponse"/>    
         /// with the response stream to return.</summary>    
-        public TestWebReponse(Stream responseStream) 
-        { 
-            this.responseStream = responseStream; 
+        public TestWebReponse(Stream responseStream)
+        {
+            this.responseStream = responseStream;
         }
 
 
         /// <summary>See <see cref="WebResponse.GetResponseStream"/>.</summary>    
-        public override Stream GetResponseStream() 
-        { 
-            return responseStream; 
+        public override Stream GetResponseStream()
+        {
+            return responseStream;
         }
     }
 }

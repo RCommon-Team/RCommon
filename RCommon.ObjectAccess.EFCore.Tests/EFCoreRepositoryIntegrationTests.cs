@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
     [TestFixture()]
-    public class EFCoreRepositoryIntegrationTests : TestBase
+    public class EFCoreRepositoryIntegrationTests : EFCoreTestBase
 
     {
 
@@ -39,9 +39,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         {
             this.Logger.LogInformation("Beginning Onetime setup", null);
             //this.ContainerAdapter.Register<DbContext, TestDbContext>(typeof(TestDbContext).AssemblyQualifiedName);
-            
-
-
 
         }
 
@@ -108,6 +105,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             using (var scope = scopeFactory.Create())
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+                repo.DataStoreName = "TestDbContext";
                 repo.Add(customer);
                 scope.Commit();
             }
@@ -132,6 +130,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
             var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+            repo.DataStoreName = "TestDbContext";
 
             //repo.Add(customer);
             using (var scope = scopeFactory.Create(TransactionMode.Default))
@@ -165,11 +164,13 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+                repo.DataStoreName = "TestDbContext";
                 repo.Add(customer);
                 //scope.Commit();
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
+                    repo2.DataStoreName = "TestDbContext";
                     repo2.Add(order);
                     scope2.Commit();
                 }
@@ -210,6 +211,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
 
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+                repo.DataStoreName = "TestDbContext";
                 this.Logger.LogInformation("Adding New Customer from first UnitOfWorkScope ", customer);
                 repo.Add(customer);
 
@@ -217,6 +219,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 using (var scope2 = scopeFactory.Create(TransactionMode.New))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
+                    repo2.DataStoreName = "TestDbContext";
                     this.Logger.LogInformation("Adding New Order from first UnitOfWorkScope ", order);
                     repo2.Add(order);
 
@@ -253,11 +256,13 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+                repo.DataStoreName = "TestDbContext";
                 repo.Add(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
+                    repo2.DataStoreName = "TestDbContext";
                     repo2.Add(order);
                     scope2.Commit();
                 }
@@ -290,10 +295,12 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+                repo.DataStoreName = "TestDbContext";
                 repo.Add(customer);
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
+                    repo2.DataStoreName = "TestDbContext";
                     repo2.Add(order);
                 } //child scope rollback.
 

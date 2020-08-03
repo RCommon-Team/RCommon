@@ -128,9 +128,9 @@ namespace RCommon.DataServices
                 else
                 {
                     // Use the named DataStoreType. This is the least likely to cause issues unless they are configuration related issues.
-                    this.GetDataStore<TDataStore>(dataStoreName);
+                    newDataStore = this.GetDataStore<TDataStore>(dataStoreName);
                 }
-                    newDataStore = this._serviceProvider.GetService<TDataStore>();
+                    //newDataStore = this._serviceProvider.GetService<TDataStore>();
                 Guard.Against<UnsupportedDataStoreException>(newDataStore == null, "The IDataStore of type: " + typeof(TDataStore).AssemblyQualifiedName + " was not registered with the dependency injection container."
                 + " You can manually handle the dependency registration i.e. IServiceCollection.AddTransient<RCommonDbContext, MyDbContext>(); or RCommon allows you to"
                 + " handle the registration through the fluent configuration interface. See: http://reactor2.com/rcommon/configuration");
