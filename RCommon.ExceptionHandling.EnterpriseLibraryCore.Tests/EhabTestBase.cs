@@ -23,7 +23,8 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
             base.InitializeRCommon(services);
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
-                .WithExceptionHandling<EhabExceptionHandlingConfiguration>();
+                .WithExceptionHandling<EhabExceptionHandlingConfiguration>(x=>
+                x.UsingDefaultExceptionPolicies());
 
 
 

@@ -193,7 +193,11 @@ namespace RCommon.ExceptionHandling
 
             try
             {
-                windowsIdentity = Thread.CurrentPrincipal.Identity.Name;
+                if (Thread.CurrentPrincipal != null)
+                {
+                    windowsIdentity = Thread.CurrentPrincipal.Identity.Name;
+                }
+                
             }
             catch (SecurityException)
             {

@@ -5,10 +5,10 @@ using System.Text;
 
 namespace RCommon
 {
-    public abstract class RCommonService<TService>
+    public abstract class RCommonService
     {
 
-        public RCommonService(ILogger<TService> logger)
+        public RCommonService(ILogger logger)
         {
             Logger = logger;
 
@@ -16,7 +16,7 @@ namespace RCommon
 
         }
 
-        public ILogger<TService> Logger { get; }
+        public ILogger Logger { get; }
 
 
     }

@@ -11,14 +11,13 @@ using System.Threading.Tasks;
 
 namespace RCommon.Application.Services
 {
-    public abstract class CrudAppService<TDataTransferObject, TEntity, TDomainService, TAppService> : RCommonAppService<TAppService>
-        where TDomainService : CrudDomainService<TEntity, TAppService>
+    public class CrudAppService<TDataTransferObject, TEntity> : RCommonAppService, ICrudAppService<TDataTransferObject>
         where TEntity : class
     {
-        private readonly CrudDomainService<TEntity, TDomainService> _crudDomainService;
+        private readonly ICrudDomainService<TEntity> _crudDomainService;
         private readonly IMapper _objectMapper;
 
-        public CrudAppService(CrudDomainService<TEntity, TDomainService> crudDomainService, IMapper objectMapper, ILogger<TAppService> logger, IExceptionManager exceptionManager, 
+        public CrudAppService(ICrudDomainService<TEntity> crudDomainService, IMapper objectMapper, ILogger logger, IExceptionManager exceptionManager,
             IUnitOfWorkScopeFactory unitOfWorkScopeFactory)
             : base(logger, exceptionManager, unitOfWorkScopeFactory)
         {
@@ -54,21 +53,21 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.ApplicationReplacePolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
             catch (AutoMapperMappingException ex) // Mapping Exception
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.ApplicationWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
 
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.ApplicationWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
-            
+
         }
     }
 }

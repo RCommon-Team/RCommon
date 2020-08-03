@@ -16,6 +16,7 @@ using System.Text;
 using Microsoft.Extensions.Logging.Console;
 using System.Transactions;
 using RCommon.TestBase;
+using RCommon.ExceptionHandling.EnterpriseLibraryCore;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
@@ -37,10 +38,13 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithStateStorage<DefaultStateStorageConfiguration>()
+                .WithExceptionHandling<EhabExceptionHandlingConfiguration>(x=>
+                    x.UsingDefaultExceptionPolicies())
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
                 .WithObjectAccess<EFCoreConfiguration>(
-                    x => x.UsingDbContext<TestDbContext>());
+                    x => x.UsingDbContext<TestDbContext>())
+                .And<CommonApplicationServicesConfiguration>();
 
             
 

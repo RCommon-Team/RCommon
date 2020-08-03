@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RCommon.ExceptionHandling
 {
-    public class ExceptionPolicies
+    public class DefaultExceptionPolicies
     {
 		/// <summary>
 		/// This policy publishes the exception and then rethrows the same exception.

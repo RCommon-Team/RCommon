@@ -7,11 +7,11 @@ using System.Text;
 
 namespace RCommon.Application.Services
 {
-    public class RCommonAppService<TService> : RCommonService<TService>
+    public class RCommonAppService : RCommonService
     {
 
 
-        public RCommonAppService(ILogger<TService> logger, IExceptionManager exceptionManager, IUnitOfWorkScopeFactory unitOfWorkScopeFactory)
+        public RCommonAppService(ILogger logger, IExceptionManager exceptionManager, IUnitOfWorkScopeFactory unitOfWorkScopeFactory)
             : base(logger)
         {
             ExceptionManager = exceptionManager;

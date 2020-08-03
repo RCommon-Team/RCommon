@@ -67,7 +67,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
         {
             var manager = this.ServiceProvider.GetService<IExceptionManager>();
             Assert.Throws<GeneralException>(() => 
-                manager.HandleException(this.ThrowTestException<ApplicationException>(), ExceptionPolicies.BasePolicy)
+                manager.HandleException(this.ThrowTestException<ApplicationException>(), DefaultExceptionPolicies.BasePolicy)
             );
            
         }
@@ -77,7 +77,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
         {
             var manager = this.ServiceProvider.GetService<IExceptionManager>();
             Assert.Throws<BusinessException>(() =>
-                manager.HandleException(this.ThrowTestException<ApplicationException>(), ExceptionPolicies.BusinessWrapPolicy)
+                manager.HandleException(this.ThrowTestException<ApplicationException>(), DefaultExceptionPolicies.BusinessWrapPolicy)
             );
 
         }
@@ -87,7 +87,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
         {
             var manager = this.ServiceProvider.GetService<IExceptionManager>();
             Assert.Throws<FriendlyBusinessException>(() =>
-                manager.HandleException(this.ThrowTestException<BusinessException>(), ExceptionPolicies.BusinessReplacePolicy)
+                manager.HandleException(this.ThrowTestException<BusinessException>(), DefaultExceptionPolicies.BusinessReplacePolicy)
             );
 
         }
@@ -97,7 +97,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
         {
             var manager = this.ServiceProvider.GetService<IExceptionManager>();
             Assert.Throws<ApplicationTierException>(() =>
-                manager.HandleException(this.ThrowTestException<ApplicationException>(), ExceptionPolicies.ApplicationWrapPolicy)
+                manager.HandleException(this.ThrowTestException<ApplicationException>(), DefaultExceptionPolicies.ApplicationWrapPolicy)
             );
 
         }
@@ -107,7 +107,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
         {
             var manager = this.ServiceProvider.GetService<IExceptionManager>();
             Assert.Throws<FriendlyApplicationException>(() =>
-                manager.HandleException(this.ThrowTestException<ApplicationTierException>(), ExceptionPolicies.ApplicationReplacePolicy)
+                manager.HandleException(this.ThrowTestException<ApplicationTierException>(), DefaultExceptionPolicies.ApplicationReplacePolicy)
             );
 
         }
@@ -117,7 +117,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
         {
             var manager = this.ServiceProvider.GetService<IExceptionManager>();
             Assert.Throws<FriendlySecurityException>(() =>
-                manager.HandleException(this.ThrowTestException<SecurityException>(), ExceptionPolicies.SecurityReplacePolicy)
+                manager.HandleException(this.ThrowTestException<SecurityException>(), DefaultExceptionPolicies.SecurityReplacePolicy)
             );
 
         }
@@ -127,7 +127,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
         {
             var manager = this.ServiceProvider.GetService<IExceptionManager>();
             Assert.DoesNotThrow(() =>
-                manager.HandleException(this.ThrowTestException<FriendlyApplicationException>(), ExceptionPolicies.PresentationReplacePolicy)
+                manager.HandleException(this.ThrowTestException<FriendlyApplicationException>(), DefaultExceptionPolicies.PresentationReplacePolicy)
             );
 
         }

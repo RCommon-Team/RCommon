@@ -13,14 +13,15 @@ using System.Threading.Tasks;
 
 namespace Reactor2.CMS.DomainServices
 {
-    public abstract class CrudDomainService<TEntity, TService> : RCommonDomainService<TService> where TEntity : class
+    public  class CrudDomainService<TEntity> : RCommonDomainService, ICrudDomainService<TEntity>
+        where TEntity : class
     {
         private IEntityValidator<TEntity> _entityValidator;
         private IBusinessRulesEvaluator<TEntity> _businessRulesEvaluator;
         private readonly IUnitOfWorkScopeFactory _unitOfWorkScopeFactory;
         private readonly IEagerFetchingRepository<TEntity> _repository;
 
-        public CrudDomainService(IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IEagerFetchingRepository<TEntity> repository, ILogger<TService> logger, IExceptionManager exceptionManager)
+        public CrudDomainService(IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IEagerFetchingRepository<TEntity> repository, ILogger logger, IExceptionManager exceptionManager)
             : base(logger, exceptionManager)
         {
             this._unitOfWorkScopeFactory = unitOfWorkScopeFactory;
@@ -77,7 +78,7 @@ namespace Reactor2.CMS.DomainServices
             }
             catch (ApplicationException ex)
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.BusinessWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
         }
@@ -103,7 +104,7 @@ namespace Reactor2.CMS.DomainServices
             }
             catch (ApplicationException ex)
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.BusinessWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
         }
@@ -130,7 +131,7 @@ namespace Reactor2.CMS.DomainServices
             }
             catch (ApplicationException ex)
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.BusinessWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
         }
@@ -157,7 +158,7 @@ namespace Reactor2.CMS.DomainServices
             }
             catch (ApplicationException ex)
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.BusinessWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
         }
@@ -184,7 +185,7 @@ namespace Reactor2.CMS.DomainServices
             }
             catch (ApplicationException ex)
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.BusinessWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
         }
@@ -211,7 +212,7 @@ namespace Reactor2.CMS.DomainServices
             }
             catch (ApplicationException ex)
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.BusinessWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
         }
@@ -239,7 +240,7 @@ namespace Reactor2.CMS.DomainServices
             }
             catch (ApplicationException ex)
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.BusinessWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
         }
@@ -267,7 +268,7 @@ namespace Reactor2.CMS.DomainServices
             }
             catch (ApplicationException ex)
             {
-                this.ExceptionManager.HandleException(ex, ExceptionPolicies.BusinessWrapPolicy);
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
         }
