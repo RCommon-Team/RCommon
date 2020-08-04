@@ -19,7 +19,10 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using RCommon.DataServices;
+using RCommon.TestBase;
 using System;
 using System.Data;
 using System.Data.SqlTypes;
@@ -52,11 +55,17 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public DbSet<SalesPerson> SalesPersons { get; set; } // SalesPerson
         public DbSet<SalesTerritory> SalesTerritories { get; set; } // SalesTerritory
 
+        public static readonly ILoggerFactory EFUnitTestLoggingFactory
+                = LoggerFactory.Create(builder => { builder.AddConsole(); });
+
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured && _configuration != null)
             {
                 optionsBuilder.UseSqlServer(_configuration.GetConnectionString(@"TestDbContext"));
+                optionsBuilder.UseLoggerFactory(EFUnitTestLoggingFactory)
+                    .EnableSensitiveDataLogging();
             }
         }
 

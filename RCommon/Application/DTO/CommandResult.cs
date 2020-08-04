@@ -19,7 +19,7 @@ namespace RCommon.Application.DTO
 
         public CommandResult()
         {
-
+            this.ValidationResult = new ValidationResult();
         }
         public CommandResult(TResult result, ValidationResult validationResult)
         {

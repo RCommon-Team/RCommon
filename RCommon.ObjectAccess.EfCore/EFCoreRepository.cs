@@ -251,17 +251,20 @@
         public override async Task AddAsync(TEntity entity)
         {
             await this.ObjectSet.AddAsync(entity);
+            await this.SaveAsync();
         }
 
         public override Task DeleteAsync(TEntity entity)
         {
             this.ObjectSet.Remove(entity);
+            this.Save();
             return Task.CompletedTask;
         }
 
         public override Task UpdateAsync(TEntity entity)
         {
             this.ObjectSet.Update(entity);
+            this.Save();
             return Task.CompletedTask;
         }
 
