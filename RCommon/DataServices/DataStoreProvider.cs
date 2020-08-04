@@ -68,8 +68,8 @@ namespace RCommon.DataServices
                             // We found the type we are looking for, so instantiate it
                             var type = Type.GetType(dataStoreType.TypeName);
 
-                            Guard.Against<UnsupportedDataStoreException>(type == null, "We found the DataStoreType Name of: " + dataStoreType.TypeName + " but could not"
-                                + " find the type associated of: " + type.AssemblyQualifiedName + ". Please double check the namespace, and version number.");
+                            Guard.Against<UnsupportedDataStoreException>(type == null, "We found the DataStore Name of: " + dataStoreType.Name + " but could not"
+                                + " find the type associated of: " + dataStoreType.TypeName + ". Please double check the namespace, and version number.");
                             return (TDataStore)this._serviceProvider.GetService(type);
                         }
                     }
