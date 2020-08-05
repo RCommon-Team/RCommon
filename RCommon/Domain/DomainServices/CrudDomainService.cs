@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Reactor2.CMS.DomainServices
+namespace RCommon.Domain.DomainServices
 {
     public  class CrudDomainService<TEntity> : RCommonDomainService, ICrudDomainService<TEntity>
         where TEntity : class

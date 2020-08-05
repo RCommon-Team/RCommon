@@ -1,7 +1,7 @@
 ﻿using RCommon.Application.DTO;
 using System.Threading.Tasks;
 
-namespace Reactor2.CMS.DomainServices
+namespace RCommon.Domain.DomainServices
 {
     public interface ICrudDomainService<TEntity> 
         where TEntity : class

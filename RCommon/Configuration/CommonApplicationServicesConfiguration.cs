@@ -1,6 +1,6 @@
 ﻿using RCommon.Application.Services;
 using RCommon.DependencyInjection;
-using Reactor2.CMS.DomainServices;
+using RCommon.Domain.DomainServices;
 using System;
 using System.Collections.Generic;
 using System.Text;
