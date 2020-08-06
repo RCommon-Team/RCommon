@@ -19,7 +19,6 @@ namespace RCommon.DataServices.Transactions
     {
         private bool _disposed;
         private readonly IDataStoreProvider _dataStoreProvider;
-        private readonly IUnitOfWorkManager unitOfWorkManager;
 
         
 
@@ -88,9 +87,5 @@ namespace RCommon.DataServices.Transactions
             await Task.CompletedTask;
         }
 
-        public void RegisterDataStoreType<TDataStoreType>() where TDataStoreType : IDataStore
-        {
-            throw new NotImplementedException();
-        }
     }
 }

@@ -32,7 +32,7 @@
         private readonly IDataStoreProvider _dataStoreProvider;
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
-        private DbSet<TEntity> _objectSet;
+        //private DbSet<TEntity> _objectSet;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
 
@@ -50,7 +50,7 @@
             this._logger = logger.CreateLogger(this.GetType().Name);
             this._unitOfWorkManager = unitOfWorkManager;
             this._includes = new List<string>();
-            this._objectSet = null;
+            //this._objectSet = null;
             this._repositoryQuery = null;
             this._tracking = true;
             this._objectSets = new Dictionary<Type, object>();
@@ -154,7 +154,7 @@
             return new EntityKey(this.ObjectContext.DefaultContainerName + "." + this.ObjectSet.EntitySet.Name, entityKeyValues);
         }*/
 
-        private DbSet<T> GetObjectSet<T>() where T : class
+        /*private DbSet<T> GetObjectSet<T>() where T : class
         {
             object obj2 = null;
             if (!this._objectSets.TryGetValue(typeof(T), out obj2))
@@ -163,7 +163,7 @@
                 this._objectSets.Add(typeof(T), obj2);
             }
             return (DbSet<T>)obj2;
-        }
+        }*/
 
         /*private ObjectStateEntry GetObjectStateEntry(TEntity entity)
         {
@@ -314,18 +314,16 @@
         {
             get
             {
-                if (ReferenceEquals(this._objectSet, null))
+                /*if (ReferenceEquals(this._objectSet, null))
                 {
                     
                     var objectSet = this.GetObjectSet<TEntity>();
                     
                     
                     this._objectSet = objectSet;
-                }
-                
-                
-
-                return this._objectSet;
+                }*/
+                return this.ObjectContext.Set<TEntity>();
+                //return this._objectSet;
             }
         }
 

@@ -78,6 +78,7 @@ namespace RCommon.Domain.DomainServices
             }
             catch (ApplicationException ex)
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
@@ -104,6 +105,7 @@ namespace RCommon.Domain.DomainServices
             }
             catch (ApplicationException ex)
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
@@ -131,6 +133,7 @@ namespace RCommon.Domain.DomainServices
             }
             catch (ApplicationException ex)
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
@@ -158,6 +161,7 @@ namespace RCommon.Domain.DomainServices
             }
             catch (ApplicationException ex)
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
@@ -185,6 +189,7 @@ namespace RCommon.Domain.DomainServices
             }
             catch (ApplicationException ex)
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
@@ -212,6 +217,7 @@ namespace RCommon.Domain.DomainServices
             }
             catch (ApplicationException ex)
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
@@ -240,6 +246,7 @@ namespace RCommon.Domain.DomainServices
             }
             catch (ApplicationException ex)
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }
@@ -268,6 +275,7 @@ namespace RCommon.Domain.DomainServices
             }
             catch (ApplicationException ex)
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
                 throw ex;
             }

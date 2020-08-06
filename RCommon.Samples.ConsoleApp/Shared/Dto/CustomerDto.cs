@@ -16,13 +16,12 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
-using RCommon.ObjectAccess.EFCore.Tests;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.Tests.Application.DTO
+namespace RCommon.Samples.ConsoleApp.Shared.Dto
 {
     // Customers
     public partial class CustomerDto

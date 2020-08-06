@@ -1,4 +1,5 @@
-﻿using RCommon.Application.DTO;
+﻿using AutoMapper;
+using RCommon.Application.DTO;
 using System.Threading.Tasks;
 
 namespace RCommon.Application.Services
@@ -13,5 +14,7 @@ namespace RCommon.Application.Services
         Task<CommandResult<TDataTransferObject>> GetByIdAsync(object primaryKey);
         CommandResult<bool> Update(TDataTransferObject dto);
         Task<CommandResult<bool>> UpdateAsync(TDataTransferObject dto);
+
+        IMapper ObjectMapper { get; set; }
     }
 }

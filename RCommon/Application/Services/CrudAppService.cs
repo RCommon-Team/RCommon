@@ -15,7 +15,7 @@ namespace RCommon.Application.Services
     public class CrudAppService<TDataTransferObject, TEntity> : RCommonAppService, ICrudAppService<TDataTransferObject> where TEntity : class
     {
         private readonly ICrudDomainService<TEntity> _crudDomainService;
-        private readonly IMapper _objectMapper;
+        private IMapper _objectMapper;
 
         public CrudAppService(ICrudDomainService<TEntity> crudDomainService, IMapper objectMapper, ILogger logger, IExceptionManager exceptionManager,
             IUnitOfWorkScopeFactory unitOfWorkScopeFactory)
@@ -31,7 +31,7 @@ namespace RCommon.Application.Services
 
             try
             {
-                var entity = _objectMapper.Map<TEntity>(dto); // Map the entity to a DTO
+                var entity = this._objectMapper.Map<TEntity>(dto); // Map the entity to a DTO
 
                 using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
                 {
@@ -54,6 +54,7 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
@@ -64,7 +65,7 @@ namespace RCommon.Application.Services
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
-
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
@@ -100,6 +101,7 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
@@ -110,7 +112,7 @@ namespace RCommon.Application.Services
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
-
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
@@ -123,7 +125,7 @@ namespace RCommon.Application.Services
 
             try
             {
-                var entity = _objectMapper.Map<TEntity>(dto); // Map the entity to a DTO
+                var entity = this.ObjectMapper.Map<TEntity>(dto); // Map the entity to a DTO
 
                 using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
                 {
@@ -146,6 +148,7 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
@@ -156,7 +159,7 @@ namespace RCommon.Application.Services
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
-
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
@@ -191,6 +194,7 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
@@ -201,7 +205,7 @@ namespace RCommon.Application.Services
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
-
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
@@ -237,6 +241,7 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
@@ -247,7 +252,7 @@ namespace RCommon.Application.Services
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
-
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
@@ -282,6 +287,7 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
@@ -292,7 +298,7 @@ namespace RCommon.Application.Services
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
-
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
@@ -322,6 +328,7 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
@@ -332,7 +339,7 @@ namespace RCommon.Application.Services
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
-
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
@@ -361,6 +368,7 @@ namespace RCommon.Application.Services
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
             {
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
                 throw ex;
             }
@@ -371,11 +379,14 @@ namespace RCommon.Application.Services
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
-
+                result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
                 throw ex;
             }
 
         }
+
+
+        public IMapper ObjectMapper { get => _objectMapper; set => _objectMapper = value; }
     }
 }
