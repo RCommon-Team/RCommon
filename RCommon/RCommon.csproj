@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Version>1.0.0.20</Version>
+    <Version>1.0.0.21</Version>
     <Authors>Reactor2</Authors>
     <Company>Reactor2</Company>
     <Description>A lightweight application framework used for building applications with data access requirements for one or many data stores and data store types. Simplified unit of work pattern, domain services, application services, and base UI classes.</Description>

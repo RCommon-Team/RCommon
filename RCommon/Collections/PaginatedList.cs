@@ -22,6 +22,26 @@ namespace RCommon.Collections
             this.AddRange(source.Skip((PageIndex - 1) * PageSize).Take(PageSize));
         }
 
+        public PaginatedList(IList<T> source, int? pageIndex, int pageSize)
+        {
+            PageIndex = pageIndex ?? 1;
+            PageSize = pageSize;
+            TotalCount = source.Count();
+            TotalPages = ((TotalCount - 1) / PageSize) + 1;
+
+            this.AddRange(source.Skip((PageIndex - 1) * PageSize).Take(PageSize));
+        }
+
+        public PaginatedList(ICollection<T> source, int? pageIndex, int pageSize)
+        {
+            PageIndex = pageIndex ?? 1;
+            PageSize = pageSize;
+            TotalCount = source.Count();
+            TotalPages = ((TotalCount - 1) / PageSize) + 1;
+
+            this.AddRange(source.Skip((PageIndex - 1) * PageSize).Take(PageSize));
+        }
+
         public bool HasPreviousPage
         {
             get

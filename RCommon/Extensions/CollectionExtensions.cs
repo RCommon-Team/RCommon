@@ -7,6 +7,7 @@ using System.Data;
 using System.Collections;
 using System.Text;
 using System.Linq;
+using RCommon.Collections;
 
 namespace RCommon.Extensions
 {
@@ -403,6 +404,18 @@ namespace RCommon.Extensions
                 return source;
         }
 
-        
+        public static PaginatedList<T> ToPaginaetdList<T>(this ICollection<T> query, int pageSize)
+        {
+            Guard.IsNotNegativeOrZero(pageSize, "pageSize");
+
+            return new PaginatedList<T>(query, 0, pageSize);
+        }
+
+        public static PaginatedList<T> ToPaginaetdList<T>(this IList<T> query, int pageSize)
+        {
+            Guard.IsNotNegativeOrZero(pageSize, "pageSize");
+
+            return new PaginatedList<T>(query, 0, pageSize);
+        }
     }
 }
