@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RCommon.Collections
 {
-    public interface IPaginatedList
+    public interface IPaginatedList<T> : IList<T>
     {
         bool HasNextPage { get; }
         bool HasPreviousPage { get; }

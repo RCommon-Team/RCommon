@@ -404,18 +404,18 @@ namespace RCommon.Extensions
                 return source;
         }
 
-        public static PaginatedList<T> ToPaginaetdList<T>(this ICollection<T> query, int pageSize)
+        public static IPaginatedList<T> ToPaginaetdList<T>(this ICollection<T> query, int? pageIndex, int pageSize)
         {
             Guard.IsNotNegativeOrZero(pageSize, "pageSize");
 
-            return new PaginatedList<T>(query, 0, pageSize);
+            return new PaginatedList<T>(query, pageIndex, pageSize);
         }
 
-        public static PaginatedList<T> ToPaginaetdList<T>(this IList<T> query, int pageSize)
+        public static IPaginatedList<T> ToPaginaetdList<T>(this IList<T> query, int? pageIndex, int pageSize)
         {
             Guard.IsNotNegativeOrZero(pageSize, "pageSize");
 
-            return new PaginatedList<T>(query, 0, pageSize);
+            return new PaginatedList<T>(query, pageIndex, pageSize);
         }
     }
 }

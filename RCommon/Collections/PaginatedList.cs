@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RCommon.Collections
 {
-    public class PaginatedList<T> : List<T>, IPaginatedList
+    public class PaginatedList<T> : List<T>, IPaginatedList<T>
     {
         public int PageIndex { get; private set; }
         public int PageSize { get; private set; }

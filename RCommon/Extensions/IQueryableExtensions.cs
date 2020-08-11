@@ -104,11 +104,11 @@ namespace RCommon.Extensions
             return new ExpandableQuery<T>(query);
         }
 
-        public static PaginatedList<T> ToPaginatedList<T>(this IQueryable<T> source, int pageSize)
+        public static IPaginatedList<T> ToPaginatedList<T>(this IQueryable<T> source, int? pageIndex, int pageSize)
         {
             Guard.IsNotNegativeOrZero(pageSize, "pageSize");
 
-            return new PaginatedList<T>(source, 0, pageSize);
+            return new PaginatedList<T>(source, pageIndex, pageSize);
         }
 
     }
