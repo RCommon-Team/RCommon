@@ -10,7 +10,7 @@ using System.Text;
 
 namespace RCommon.Samples.ConsoleApp
 {
-    public class AppConfiguration : IServiceConfiguration
+    public class SampleAppConfiguration : IServiceConfiguration
     {
         public void Configure(IContainerAdapter containerAdapter)
         {

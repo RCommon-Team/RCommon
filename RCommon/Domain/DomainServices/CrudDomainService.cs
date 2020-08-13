@@ -71,7 +71,7 @@ namespace RCommon.Domain.DomainServices
                 }
                 else
                 {
-                    this.Logger.LogWarning("Validator of type {0} was not able to validate entity of type {1).", this._entityValidator, entity);
+                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
                 return result;
@@ -99,7 +99,7 @@ namespace RCommon.Domain.DomainServices
                 }
                 else
                 {
-                    this.Logger.LogWarning("Validator of type {0} was not able to validate entity of type {1).", this._entityValidator, entity);
+                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                 }
                 return result;
             }
@@ -126,7 +126,7 @@ namespace RCommon.Domain.DomainServices
                 }
                 else
                 {
-                    this.Logger.LogWarning("Validator of type {0} was not able to validate entity of type {1).", this._entityValidator, entity);
+                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
                 return result;
@@ -154,7 +154,7 @@ namespace RCommon.Domain.DomainServices
                 }
                 else
                 {
-                    this.Logger.LogDebug("Validator of type {0} was not able to validate entity of type {1).", this._entityValidator, entity);
+                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
                 return result;
@@ -182,7 +182,7 @@ namespace RCommon.Domain.DomainServices
                 }
                 else
                 {
-                    this.Logger.LogDebug("Validator of type {0} was not able to validate entity of type {1).", this._entityValidator, entity);
+                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
                 return result;
@@ -210,7 +210,7 @@ namespace RCommon.Domain.DomainServices
                 }
                 else
                 {
-                    this.Logger.LogDebug("Validator of type {0} was not able to validate entity of type {1).", this._entityValidator, entity);
+                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
                 return result;

@@ -11,7 +11,7 @@ namespace RCommon.Samples.ConsoleApp.Domain.Validators
     {
         public CustomerValidator()
         {
-            this.AddValidation("", new ValidationRule<Customer>(
+            this.AddValidation("ZipCode Rule", new ValidationRule<Customer>(
                 new Specification<Customer>(x => x.ZipCode != "30062"), "We don't like people from that zip code!", "ZipCode"));
         }
     }

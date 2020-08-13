@@ -49,7 +49,8 @@ namespace RCommon.Samples.ConsoleApp
                 })
                 .WithExceptionHandling<EhabExceptionHandlingConfiguration>(x =>
                     x.UsingDefaultExceptionPolicies())
-                .And<CommonApplicationServicesConfiguration>();
+                .And<CommonApplicationServicesConfiguration>()
+                .And<SampleAppConfiguration>();
 
             // Mapping Profiles
             services.AddAutoMapper(x =>
@@ -104,7 +105,7 @@ namespace RCommon.Samples.ConsoleApp
                 ZipCode = "30062"
             };
 
-            var cmd2 = appService.NewCustomerSignupPromotion(newCustomer);
+            var cmd2 = appService.NewCustomerSignupPromotion(newCustomer2);
 
             if (cmd2.Result.DataResult)
             {

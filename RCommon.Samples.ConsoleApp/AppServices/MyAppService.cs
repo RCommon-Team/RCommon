@@ -50,6 +50,7 @@ namespace RCommon.Samples.ConsoleApp.AppServices
                         var order = new Order() { };
 
                         await _orderService.CreateOrderAsync(order);
+                        result.DataResult = true;
                     }
                     else
                     {
