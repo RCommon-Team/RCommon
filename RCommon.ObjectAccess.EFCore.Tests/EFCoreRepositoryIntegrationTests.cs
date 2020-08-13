@@ -89,7 +89,31 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void Can_commit()
+        public void Can_Add_Entity()
+        {
+            // Generate Test Data
+            _context = new TestDbContext(this.Configuration);
+            var testData = new EFTestData(_context);
+            var testDataActions = new EFTestDataActions(testData);
+            Customer customer = testDataActions.CreateCustomerStub();
+
+
+            // Start Test
+            var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+            repo.DataStoreName = "TestDbContext";
+            repo.Add(customer);
+
+            Customer savedCustomer = null;
+            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
+
+            Assert.IsNotNull(savedCustomer);
+            Assert.AreEqual(savedCustomer.CustomerId, customer.CustomerId);
+
+        }
+
+
+        [Test]
+        public void UnitOfWork_Can_commit()
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
@@ -119,7 +143,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void can_rollback()
+        public void UnitOfWork_can_rollback()
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
@@ -148,7 +172,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void nested_commit_works()
+        public void UnitOfWork_nested_commit_works()
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
@@ -192,7 +216,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void nested_commit_with_seperate_transaction_commits_when_wrapping_scope_rollsback()
+        public void UnitOfWork_nested_commit_with_seperate_transaction_commits_when_wrapping_scope_rollsback()
         {
             // Generate Test Data
             this.Logger.LogInformation("Generating Test Data for: " + MethodBase.GetCurrentMethod(), null);
@@ -245,7 +269,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void nested_rollback_works()
+        public void UnitOfWork_nested_rollback_works()
         {
             var customer = new Customer { FirstName = "Joe", LastName = "Data" };
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
@@ -284,7 +308,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void commit_throws_when_child_scope_rollsback()
+        public void UnitOfWork_commit_throws_when_child_scope_rollsback()
         {
             var customer = new Customer { FirstName = "Joe", LastName = "Data" };
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
@@ -318,7 +342,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void can_commit_multiple_db_operations()
+        public void UnitOfWork_can_commit_multiple_db_operations()
         {
             var customer = new Customer { FirstName = "John", LastName = "Doe" };
             var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
@@ -351,7 +375,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void can_rollback_multipe_db_operations()
+        public void UnitOfWork_can_rollback_multipe_db_operations()
         {
             var customer = new Customer { FirstName = "John", LastName = "Doe" };
             var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
@@ -381,7 +405,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void rollback_does_not_rollback_supressed_scope()
+        public void UnitOfWork_rollback_does_not_rollback_supressed_scope()
         {
             var customer = new Customer { FirstName = "Joe", LastName = "Data" };
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };

@@ -25,7 +25,7 @@ namespace RCommon.DataServices
         }
 
 
-        public void RegisterDataSource<TDataStore>(Guid transactionId, TDataStore dataStore)
+        public void RegisterDataStore<TDataStore>(Guid transactionId, TDataStore dataStore)
             where TDataStore : IDataStore
         {
             var newType = typeof(TDataStore).AssemblyQualifiedName;
@@ -42,67 +42,13 @@ namespace RCommon.DataServices
 
             if (!bFound)
             {
+                Debug.WriteLine("Creating New DataStore for type: " + newType);
                 this._registeredDataStores.Add(new StoredDataSource(transactionId, dataStore));
             }
 
         }
 
-        public TDataStore GetDataStore<TDataStore>(string dataStoreName = null)
-            where TDataStore : IDataStore
-        {
-            TDataStore dataStore;
-            if (!string.IsNullOrEmpty(dataStoreName))
-            {
-                Debug.WriteLine("Looking for DataStoreType with name: " + dataStoreName + " and type: " + typeof(TDataStore).AssemblyQualifiedName);
-                // Start with finding out if there is a configuration file
-                var dataStoreConfig = new DataStoreConfiguration();
-                _configuration.GetSection("RCommonDataStoreTypes").Bind(dataStoreConfig);
-
-                // If there is a configuration file, then enumerate all of the DataStoreTypes there
-                if (dataStoreConfig != null)
-                {
-                    foreach (var dataStoreType in dataStoreConfig.DataStoreTypes)
-                    {
-                        if (dataStoreType.Name == dataStoreName)
-                        {
-                            // We found the type we are looking for, so instantiate it
-                            var type = Type.GetType(dataStoreType.TypeName);
-
-                            Guard.Against<UnsupportedDataStoreException>(type == null, "We found the DataStore Name of: " + dataStoreType.Name + " but could not"
-                                + " find the type associated of: " + dataStoreType.TypeName + ". Please double check the namespace, and version number.");
-                            return (TDataStore)this._serviceProvider.GetService(type);
-                        }
-                    }
-                }
-                else
-                {
-                    throw new UnsupportedDataStoreException("RCommon was not able to deserialize the appsettings.json file (IConfiguration) object to create the"
-                        + " DataStoreTypes required. See: http://reactor2.com/rcommon/configuration to determine the appropriate json structure.");
-                }
-            }
-
-            // If no named resource then it is assumed we are trying to use a default
-            dataStore = this._serviceProvider.GetService<TDataStore>();
-
-            Guard.Against<UnsupportedDataStoreException>(dataStore == null, "The IDataStore of type: " + typeof(TDataStore).AssemblyQualifiedName + " was not registered with the dependency injection container."
-                + " You can manually handle the dependency registration i.e. IServiceCollection.AddTransient<RCommonDbContext, MyDbContext>(); or RCommon allows you to"
-                + " handle the registration through the fluent configuration interface. See: http://reactor2.com/rcommon/configuration");
-
-            return dataStore;
-        }
-
-        public TDataStore GetDataStore<TDataStore>()
-            where TDataStore : IDataStore
-        {
-            return this.GetDataStore<TDataStore>(null);
-        }
-
-        public TDataStore GetDataStore<TDataStore>(Guid transactionId)
-            where TDataStore : IDataStore
-        {
-            return this.GetDataStore<TDataStore>(transactionId, null);
-
-        }
+        
 
         public TDataStore GetDataStore<TDataStore>(Guid transactionId, string dataStoreName = null)
             where TDataStore : IDataStore
@@ -114,6 +60,7 @@ namespace RCommon.DataServices
                 if (item.DataStore.GetType().AssemblyQualifiedName == newType && item.TransactionId == transactionId)
                 {
                     bFound = true;
+                    Debug.WriteLine("Re-using DataStore for type: " + newType);
                     return (TDataStore)item.DataStore; // 
                 }
 
@@ -126,23 +73,86 @@ namespace RCommon.DataServices
                 {
                     // No DataStore Name is used, so use the default that is registed with the application. Note that if multiple types
                     // are registered, then we use the first one, which may cause issues. Should we throw exception instead?
-                    newDataStore = this.GetDataStore<TDataStore>();
+                    newDataStore = this._serviceProvider.GetService<TDataStore>(); // This gets check for null downstream
                 }
                 else
                 {
                     // Use the named DataStoreType. This is the least likely to cause issues unless they are configuration related issues.
-                    newDataStore = this.GetDataStore<TDataStore>(dataStoreName);
+                    Debug.WriteLine("Looking for DataStore with name: " + dataStoreName + " and type: " + typeof(TDataStore).AssemblyQualifiedName);
+                    // Start with finding out if there is a configuration file
+                    var dataStoreConfig = new DataStoreConfiguration();
+                    _configuration.GetSection("RCommonDataStoreTypes").Bind(dataStoreConfig);
+
+                    // If there is a configuration file, then enumerate all of the DataStoreTypes there
+                    if (dataStoreConfig != null)
+                    {
+                        bool bConfigFound = false;
+                        Type type = typeof(string);
+                        foreach (var dataStoreType in dataStoreConfig.DataStoreTypes)
+                        {
+                            if (dataStoreType.Name == dataStoreName)
+                            {
+                                // We found the type we are looking for, so instantiate it
+                                type = Type.GetType(dataStoreType.TypeName);
+
+                                Guard.Against<UnsupportedDataStoreException>(type == null, "We found the DataStore Name of: " + dataStoreType.Name + " but could not"
+                                    + " find the type associated of: " + dataStoreType.TypeName + ". Please double check the namespace, and version number.");
+                                
+                                bConfigFound = true;
+                                break;
+                            }
+                        }
+
+                        if (bConfigFound)
+                        {
+                            newDataStore = (TDataStore)this._serviceProvider.GetService(type);
+                        }
+                        else
+                        {
+                            throw new ApplicationException("This is odd. We should have either found an existing IDataStore or created a new one. Get a developer on this!");
+                        }
+                        //newDataStore = this.GetDataStore<TDataStore>(dataStoreName);
+                        
+                    }
+                    else
+                    {
+                        throw new UnsupportedDataStoreException("RCommon was not able to deserialize the appsettings.json file (IConfiguration) object to create the"
+                            + " DataStoreTypes required. See: http://reactor2.com/rcommon/configuration to determine the appropriate json structure.");
+                    }
+
+                    
                 }
                     //newDataStore = this._serviceProvider.GetService<TDataStore>();
                 Guard.Against<UnsupportedDataStoreException>(newDataStore == null, "The IDataStore of type: " + typeof(TDataStore).AssemblyQualifiedName + " was not registered with the dependency injection container."
                 + " You can manually handle the dependency registration i.e. IServiceCollection.AddTransient<RCommonDbContext, MyDbContext>(); or RCommon allows you to"
                 + " handle the registration through the fluent configuration interface. See: http://reactor2.com/rcommon/configuration");
 
-                this._registeredDataStores.Add(new StoredDataSource(transactionId, newDataStore));
+                //this._registeredDataStores.Add(new StoredDataSource(transactionId, newDataStore));
+                this.RegisterDataStore(transactionId, newDataStore);
                 return newDataStore;
             }
 
             throw new ApplicationException("This is odd. We should have either found an existing IDataStore or created a new one. Get a developer on this!");
+
+        }
+
+        public TDataStore GetDataStore<TDataStore>(string dataStoreName = null)
+            where TDataStore : IDataStore
+        {
+            // We use an empty transaction id to signify that this is not a unit of work
+            return this.GetDataStore<TDataStore>(Guid.Empty, dataStoreName);
+        }
+
+        public TDataStore GetDataStore<TDataStore>()
+            where TDataStore : IDataStore
+        {
+            return this.GetDataStore<TDataStore>(null);
+        }
+
+        public TDataStore GetDataStore<TDataStore>(Guid transactionId)
+            where TDataStore : IDataStore
+        {
+            return this.GetDataStore<TDataStore>(transactionId, null);
 
         }
 
