@@ -104,10 +104,33 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             repo.Add(customer);
 
             Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
+            savedCustomer = testDataActions.GetCustomerById(customer.CustomerId);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.CustomerId, customer.CustomerId);
+
+        }
+
+        [Test]
+        public void Can_Add_Async()
+        {
+            // Generate Test Data
+            _context = new TestDbContext(this.Configuration);
+            var testData = new EFTestData(_context);
+            var testDataActions = new EFTestDataActions(testData);
+            Customer customer = testDataActions.CreateCustomerStub(x=>x.FirstName = "Severnus");
+
+
+            // Start Test
+            var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
+            repo.DataStoreName = "TestDbContext";
+            repo.AddAsync(customer);
+
+            Customer savedCustomer = null;
+            savedCustomer = testDataActions.GetFirstCustomer(x=>x.FirstName == "Severnus");
+
+            Assert.IsNotNull(savedCustomer);
+            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
 
         }
 
@@ -135,7 +158,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             }
 
             Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
+            savedCustomer = testDataActions.GetCustomerById(customer.CustomerId);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.CustomerId, customer.CustomerId);
@@ -148,6 +171,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
+            var testDataActions = new EFTestDataActions(testData);
             Customer customer = null;
             testData.Batch(action => customer = action.CreateCustomer());
 
@@ -167,7 +191,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             } //Dispose here as scope is not comitted.
 
             Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
+            savedCustomer = testDataActions.GetCustomerById(customer.CustomerId);
             Assert.AreNotEqual(customer.LastName, savedCustomer.LastName);
         }
 
@@ -203,11 +227,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             Customer savedCustomer = null;
             Order savedOrder = null;
-            testData.Batch(actions =>
-            {
-                savedCustomer = actions.GetCustomerById(customer.CustomerId);
-                savedOrder = actions.GetOrderById(order.OrderId);
-            });
+            savedCustomer = testDataActions.GetCustomerById(customer.CustomerId);
+            savedOrder = testDataActions.GetOrderById(order.OrderId);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(customer.CustomerId, savedCustomer.CustomerId);
@@ -222,6 +243,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             this.Logger.LogInformation("Generating Test Data for: " + MethodBase.GetCurrentMethod(), null);
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
+            var testDataActions = new EFTestDataActions(testData);
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
@@ -256,11 +278,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             Customer savedCustomer = null;
             Order savedOrder = null;
-            testData.Batch(actions =>
-            {
-                savedCustomer = actions.GetCustomerById(customer.CustomerId);
-                savedOrder = actions.GetOrderById(order.OrderId);
-            });
+            savedCustomer = testDataActions.GetCustomerById(customer.CustomerId);
+            savedOrder = testDataActions.GetOrderById(order.OrderId);
 
             Assert.IsNull(savedCustomer);
             Assert.IsNotNull(savedOrder);
