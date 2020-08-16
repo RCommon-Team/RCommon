@@ -86,6 +86,7 @@
         public override void Delete(TEntity entity)
         {
             this.ObjectSet.Remove(entity);
+            this.Save();
         }
 
 
@@ -254,18 +255,16 @@
             await this.SaveAsync();
         }
 
-        public override Task DeleteAsync(TEntity entity)
+        public async override Task DeleteAsync(TEntity entity)
         {
             this.ObjectSet.Remove(entity);
-            this.Save();
-            return Task.CompletedTask;
+            await this.SaveAsync();
         }
 
-        public override Task UpdateAsync(TEntity entity)
+        public async override Task UpdateAsync(TEntity entity)
         {
             this.ObjectSet.Update(entity);
-            this.Save();
-            return Task.CompletedTask;
+            await this.SaveAsync();
         }
 
         public override async Task<TEntity> FindAsync(object primaryKey)
