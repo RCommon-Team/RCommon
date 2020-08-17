@@ -8,7 +8,7 @@ namespace RCommon.Application.Services
     {
         event EventHandler<EventArgs> EmailSent;
 
-        void SendEmail(MailMessage message);
-        Task SendEmailAsync(MailMessage message);
+        void SendEmail(MailMessage message, string mailUserName, string mailPassword, int port, bool enableSsl);
+        Task SendEmailAsync(MailMessage message, string mailUserName, string mailPassword, int port, bool enableSsl);
     }
 }

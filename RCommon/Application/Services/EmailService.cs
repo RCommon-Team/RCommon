@@ -6,6 +6,7 @@ using System.Threading;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace RCommon.Application.Services
 {
@@ -22,7 +23,7 @@ namespace RCommon.Application.Services
         /// <summary>
         /// Sends a MailMessage object using the SMTP settings.
         /// </summary>
-        public void SendEmail(MailMessage message)
+        public void SendEmail(MailMessage message, string mailUserName, string mailPassword, int port, bool enableSsl)
         {
             if (message == null)
                 throw new ArgumentNullException("message");
@@ -31,9 +32,9 @@ namespace RCommon.Application.Services
             {
                 message.BodyEncoding = Encoding.UTF8;
                 SmtpClient smtp = new SmtpClient();
-                //smtp.Credentials = new System.Net.NetworkCredential(ConfigurationSectionManager.GetAppSetting("MailUserName"), ConfigurationSectionManager.GetAppSetting("MailPassword"));
-                //smtp.Port = int.Parse(ConfigurationSectionManager.GetAppSetting("MailPort"));
-                //smtp.EnableSsl = false;
+                smtp.Credentials = new NetworkCredential(mailUserName, mailPassword);
+                smtp.Port = port;
+                smtp.EnableSsl = enableSsl;
                 smtp.Send(message);
                 OnEmailSent(message);
             }
@@ -49,11 +50,10 @@ namespace RCommon.Application.Services
         /// Sends the mail message asynchronously in another thread.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        public Task SendEmailAsync(MailMessage message)
+        public async Task SendEmailAsync(MailMessage message, string mailUserName, string mailPassword, int port, bool enableSsl)
         {
             
-            Task.Run(() => SendEmail(message));
-            return Task.CompletedTask;
+            await Task.Run(() => SendEmail(message, mailUserName, mailPassword, port, enableSsl));
         }
 
         /// <summary>
