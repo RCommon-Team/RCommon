@@ -23,7 +23,7 @@ namespace RCommon.Application.Services
         /// <summary>
         /// Sends a MailMessage object using the SMTP settings.
         /// </summary>
-        public void SendEmail(MailMessage message, string mailUserName, string mailPassword, int port, bool enableSsl)
+        public void SendEmail(MailMessage message, EmailSettings settings)
         {
             if (message == null)
                 throw new ArgumentNullException("message");
@@ -31,11 +31,14 @@ namespace RCommon.Application.Services
             try
             {
                 message.BodyEncoding = Encoding.UTF8;
-                SmtpClient smtp = new SmtpClient();
-                smtp.Credentials = new NetworkCredential(mailUserName, mailPassword);
-                smtp.Port = port;
-                smtp.EnableSsl = enableSsl;
-                smtp.Send(message);
+                using (var smtp = new SmtpClient())
+                {
+                    smtp.Credentials = new NetworkCredential(settings.UserName, settings.Password);
+                    smtp.Host = settings.Host;
+                    smtp.Port = settings.Port;
+                    smtp.EnableSsl = settings.EnableSsl;
+                    smtp.Send(message);
+                }
                 OnEmailSent(message);
             }
             finally
@@ -50,10 +53,10 @@ namespace RCommon.Application.Services
         /// Sends the mail message asynchronously in another thread.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        public async Task SendEmailAsync(MailMessage message, string mailUserName, string mailPassword, int port, bool enableSsl)
+        public async Task SendEmailAsync(MailMessage message, EmailSettings settings)
         {
             
-            await Task.Run(() => SendEmail(message, mailUserName, mailPassword, port, enableSsl));
+            await Task.Run(() => SendEmail(message, settings));
         }
 
         /// <summary>

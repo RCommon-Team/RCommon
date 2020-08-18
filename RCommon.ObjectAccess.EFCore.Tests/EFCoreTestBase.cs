@@ -28,10 +28,10 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         }
 
-        protected override void InitializeRCommon(IServiceCollection services)
+        protected void InitializeRCommon(IServiceCollection services)
         {
 
-            base.InitializeRCommon(services);
+            base.InitializeBootstrapper(services);
 
             //services.AddDbContext<RCommonDbContext, TestDbContext>();
             //services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Transient);

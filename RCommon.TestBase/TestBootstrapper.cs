@@ -26,7 +26,7 @@ namespace RCommon.TestBase
 
         }
 
-        protected virtual void InitializeRCommon(IServiceCollection services)
+        protected virtual void InitializeBootstrapper(IServiceCollection services)
         {
 
 
