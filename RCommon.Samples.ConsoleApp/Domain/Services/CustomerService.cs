@@ -31,9 +31,9 @@ namespace RCommon.Samples.ConsoleApp.Domain.Services
 
         private void AddRulesAndValidators()
         {
-            this.AddEntityValidator(new CustomerValidator()); // This will get called before execution against repository
+            this.SetEntityValidator(new CustomerValidator()); // This will get called before execution against repository
 
-            this.AddBusinessRulesEvaluator(new CustomerBusinessRulesEvaluator()); // These rules will be evaluated before execution against repository
+            this.SetBusinessRulesEvaluator(new CustomerBusinessRulesEvaluator()); // These rules will be evaluated before execution against repository
         }
 
 

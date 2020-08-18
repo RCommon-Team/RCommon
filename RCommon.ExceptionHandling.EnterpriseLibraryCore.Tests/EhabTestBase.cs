@@ -17,10 +17,10 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
 
         }
 
-        protected override void InitializeRCommon(IServiceCollection services)
+        protected void InitializeRCommon(IServiceCollection services)
         {
 
-            base.InitializeRCommon(services);
+            base.InitializeBootstrapper(services);
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithExceptionHandling<EhabExceptionHandlingConfiguration>(x=>

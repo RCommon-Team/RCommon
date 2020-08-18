@@ -28,12 +28,12 @@ namespace RCommon.Domain.DomainServices
             this._repository = repository;
         }
 
-        protected virtual void AddBusinessRulesEvaluator(IBusinessRulesEvaluator<TEntity> businessRulesEvaluator)
+        protected virtual void SetBusinessRulesEvaluator(IBusinessRulesEvaluator<TEntity> businessRulesEvaluator)
         {
             this._businessRulesEvaluator = businessRulesEvaluator;
         }
 
-        protected virtual void AddEntityValidator(IEntityValidator<TEntity> entityValidator)
+        protected virtual void SetEntityValidator(IEntityValidator<TEntity> entityValidator)
         {
             this._entityValidator = entityValidator;
         }
