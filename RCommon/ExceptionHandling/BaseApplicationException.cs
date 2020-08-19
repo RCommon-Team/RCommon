@@ -24,7 +24,7 @@ namespace RCommon.ExceptionHandling
         private string windowsIdentity;
         private DateTime createdDateTime = DateTime.Now;
 
-        private static ResourceManager resourceManager = new ResourceManager(typeof(BaseApplicationException).Namespace + ".ManagerText", Assembly.GetAssembly(typeof(BaseApplicationException)));
+        //private static ResourceManager resourceManager = new ResourceManager(typeof(BaseApplicationException).Namespace + ".ManagerText", Assembly.GetAssembly(typeof(BaseApplicationException)));
 
         // Collection provided to store any extra information associated with the exception.
         private NameValueCollection additionalInformation = new NameValueCollection();
@@ -167,12 +167,12 @@ namespace RCommon.ExceptionHandling
             }
             catch (SecurityException)
             {
-                machineName = resourceManager.GetString("RES_EXCEPTIONMANAGEMENT_PERMISSION_DENIED");
+                machineName = "Permission Denied";
 
             }
             catch
             {
-                machineName = resourceManager.GetString("RES_EXCEPTIONMANAGEMENT_INFOACCESS_EXCEPTION");
+                machineName = "Permission Denied";
             }
 
             try
@@ -184,24 +184,28 @@ namespace RCommon.ExceptionHandling
             }
             catch (SecurityException)
             {
-                threadIdentity = resourceManager.GetString("RES_EXCEPTIONMANAGEMENT_PERMISSION_DENIED");
+                threadIdentity = "Permission Denied";
             }
             catch
             {
-                threadIdentity = resourceManager.GetString("RES_EXCEPTIONMANAGEMENT_INFOACCESS_EXCEPTION");
+                threadIdentity = "Permission Denied";
             }
 
             try
             {
-                windowsIdentity = Thread.CurrentPrincipal.Identity.Name;
+                if (Thread.CurrentPrincipal != null)
+                {
+                    windowsIdentity = Thread.CurrentPrincipal.Identity.Name;
+                }
+                
             }
             catch (SecurityException)
             {
-                windowsIdentity = resourceManager.GetString("RES_EXCEPTIONMANAGEMENT_PERMISSION_DENIED");
+                windowsIdentity = "Permission Denied";
             }
             catch
             {
-                windowsIdentity = resourceManager.GetString("RES_EXCEPTIONMANAGEMENT_INFOACCESS_EXCEPTION");
+                windowsIdentity = "Permission Denied";
             }
 
             try
@@ -210,11 +214,11 @@ namespace RCommon.ExceptionHandling
             }
             catch (SecurityException)
             {
-                appDomainName = resourceManager.GetString("RES_EXCEPTIONMANAGEMENT_PERMISSION_DENIED");
+                appDomainName = "Permission Denied";
             }
             catch
             {
-                appDomainName = resourceManager.GetString("RES_EXCEPTIONMANAGEMENT_INFOACCESS_EXCEPTION");
+                appDomainName = "Permission Denied";
             }
         }
 

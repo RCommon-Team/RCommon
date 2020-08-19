@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RCommon.Collections
 {
-    public class PaginatedList<T> : List<T>, IPaginatedList
+    public class PaginatedList<T> : List<T>, IPaginatedList<T>
     {
         public int PageIndex { get; private set; }
         public int PageSize { get; private set; }
@@ -13,6 +13,26 @@ namespace RCommon.Collections
         public int TotalPages { get; private set; }
 
         public PaginatedList(IQueryable<T> source, int? pageIndex, int pageSize)
+        {
+            PageIndex = pageIndex ?? 1;
+            PageSize = pageSize;
+            TotalCount = source.Count();
+            TotalPages = ((TotalCount - 1) / PageSize) + 1;
+
+            this.AddRange(source.Skip((PageIndex - 1) * PageSize).Take(PageSize));
+        }
+
+        public PaginatedList(IList<T> source, int? pageIndex, int pageSize)
+        {
+            PageIndex = pageIndex ?? 1;
+            PageSize = pageSize;
+            TotalCount = source.Count();
+            TotalPages = ((TotalCount - 1) / PageSize) + 1;
+
+            this.AddRange(source.Skip((PageIndex - 1) * PageSize).Take(PageSize));
+        }
+
+        public PaginatedList(ICollection<T> source, int? pageIndex, int pageSize)
         {
             PageIndex = pageIndex ?? 1;
             PageSize = pageSize;

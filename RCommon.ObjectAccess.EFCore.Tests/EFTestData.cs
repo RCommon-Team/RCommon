@@ -10,10 +10,10 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 {
     public class EFTestData : IDisposable
     {
-        readonly RCommonDbContext _context;
+        readonly DbContext _context;
         readonly IList<Action<DbContext>> _entityDeleteActions;
 
-        public EFTestData(RCommonDbContext context)
+        public EFTestData(DbContext context)
         {
             _context = context;
             _entityDeleteActions = new List<Action<DbContext>>();
@@ -22,12 +22,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public DbContext Context
         {
             get { return _context; }
-        }
-
-        public T Get<T>(Func<T, bool> predicate) where T : class
-        {
-            //return _context.CreateObjectSet<T>().Where(predicate).FirstOrDefault();
-			return _context.Set<T>().Where(predicate).FirstOrDefault();
         }
 
         public IList<Action<DbContext>> EntityDeleteActions

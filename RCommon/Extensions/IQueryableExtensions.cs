@@ -5,6 +5,7 @@ using System.Text;
 using System.Linq.Expressions;
 using System.Reflection;
 using RCommon.Linq;
+using RCommon.Collections;
 
 namespace RCommon.Extensions
 {
@@ -103,7 +104,12 @@ namespace RCommon.Extensions
             return new ExpandableQuery<T>(query);
         }
 
-        
+        public static IPaginatedList<T> ToPaginatedList<T>(this IQueryable<T> source, int? pageIndex, int pageSize)
+        {
+            Guard.IsNotNegativeOrZero(pageSize, "pageSize");
+
+            return new PaginatedList<T>(source, pageIndex, pageSize);
+        }
 
     }
 }

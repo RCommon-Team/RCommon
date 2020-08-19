@@ -7,11 +7,11 @@ using System.Text;
 
 namespace RCommon.Domain.DomainServices
 {
-    public abstract class RCommonDomainService<TService> : RCommonService<TService>
+    public abstract class RCommonDomainService : RCommonService
     {
 
 
-        public RCommonDomainService(ILogger<TService> logger, IExceptionManager exceptionManager)
+        public RCommonDomainService(ILogger logger, IExceptionManager exceptionManager)
             : base(logger)
         {
             ExceptionManager = exceptionManager;
@@ -19,6 +19,5 @@ namespace RCommon.Domain.DomainServices
 
         public IExceptionManager ExceptionManager { get; }
 
-        protected IUnitOfWorkScopeFactory UnitOfWorkScopeFactory { get; }
     }
 }

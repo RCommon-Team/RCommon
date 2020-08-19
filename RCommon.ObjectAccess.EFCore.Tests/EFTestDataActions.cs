@@ -19,7 +19,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
 
-        public Customer CreateCustomerStub()
+        public Customer CreateCustomerStub(Action<Customer> customize)
         {
             var customer = new Faker<Customer>()
                 .RuleFor(x => x.City, f => f.Address.City())
@@ -30,7 +30,13 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.StreetAddress2, f => f.Address.SecondaryAddress())
                 .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
                 .Generate();
+           customize(customer);
             return customer;
+        }
+
+        public Customer CreateCustomerStub()
+        {
+            return CreateCustomerStub(x => { });
         }
 
         public Customer CreateCustomer()
@@ -118,6 +124,17 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             
             var customer = _generator.Context.Set<Customer>()
                 .Where(x => x.CustomerId == customerId)
+                .FirstOrDefault();
+            if (customer != null)
+                _generator.EntityDeleteActions.Add(x => x.Set<Customer>().Remove(customer));
+            return customer;
+        }
+
+        public Customer GetFirstCustomer(Func<Customer, bool> spec)
+        {
+
+            var customer = _generator.Context.Set<Customer>()
+                .Where(spec)
                 .FirstOrDefault();
             if (customer != null)
                 _generator.EntityDeleteActions.Add(x => x.Set<Customer>().Remove(customer));

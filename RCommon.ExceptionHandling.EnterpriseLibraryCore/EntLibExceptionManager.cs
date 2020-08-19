@@ -6,6 +6,10 @@ using Microsoft.Practices.EnterpriseLibrary.ExceptionHandling;
 using Microsoft.Practices.EnterpriseLibrary.Common.Configuration;
 using System.Diagnostics;
 using RCommon.ExceptionHandling;
+using Microsoft.Practices.EnterpriseLibrary.ExceptionHandling.Configuration;
+using AutoMapper.Configuration;
+using RCommon.ExceptionHandling.EnterpriseLibraryCore.Handlers;
+using System.Security;
 
 namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
 {
@@ -23,7 +27,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
             /*try
             {
 
-                
+
             }
             catch (Exception innerException)
             {
@@ -31,11 +35,13 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
                     + Environment.NewLine + innerException.ToString();
                 throw ex; 
             }*/
+
+            
             rethrow = ExceptionPolicy.HandleException(ex, policy);
-            if (rethrow) 
-            { 
+            if (rethrow)
+            {
                 // NOTE: This will truncate the stack of the exception 
-                throw ex; 
+                throw ex;
             }
 
         }

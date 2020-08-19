@@ -32,7 +32,7 @@
         private readonly IDataStoreProvider _dataStoreProvider;
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
-        private DbSet<TEntity> _objectSet;
+        //private DbSet<TEntity> _objectSet;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
 
@@ -50,7 +50,7 @@
             this._logger = logger.CreateLogger(this.GetType().Name);
             this._unitOfWorkManager = unitOfWorkManager;
             this._includes = new List<string>();
-            this._objectSet = null;
+            //this._objectSet = null;
             this._repositoryQuery = null;
             this._tracking = true;
             this._objectSets = new Dictionary<Type, object>();
@@ -86,6 +86,7 @@
         public override void Delete(TEntity entity)
         {
             this.ObjectSet.Remove(entity);
+            this.Save();
         }
 
 
@@ -154,7 +155,7 @@
             return new EntityKey(this.ObjectContext.DefaultContainerName + "." + this.ObjectSet.EntitySet.Name, entityKeyValues);
         }*/
 
-        private DbSet<T> GetObjectSet<T>() where T : class
+        /*private DbSet<T> GetObjectSet<T>() where T : class
         {
             object obj2 = null;
             if (!this._objectSets.TryGetValue(typeof(T), out obj2))
@@ -163,7 +164,7 @@
                 this._objectSets.Add(typeof(T), obj2);
             }
             return (DbSet<T>)obj2;
-        }
+        }*/
 
         /*private ObjectStateEntry GetObjectStateEntry(TEntity entity)
         {
@@ -251,18 +252,19 @@
         public override async Task AddAsync(TEntity entity)
         {
             await this.ObjectSet.AddAsync(entity);
+            await this.SaveAsync();
         }
 
-        public override Task DeleteAsync(TEntity entity)
+        public async override Task DeleteAsync(TEntity entity)
         {
             this.ObjectSet.Remove(entity);
-            return Task.CompletedTask;
+            await this.SaveAsync();
         }
 
-        public override Task UpdateAsync(TEntity entity)
+        public async override Task UpdateAsync(TEntity entity)
         {
             this.ObjectSet.Update(entity);
-            return Task.CompletedTask;
+            await this.SaveAsync();
         }
 
         public override async Task<TEntity> FindAsync(object primaryKey)
@@ -311,18 +313,16 @@
         {
             get
             {
-                if (ReferenceEquals(this._objectSet, null))
+                /*if (ReferenceEquals(this._objectSet, null))
                 {
                     
                     var objectSet = this.GetObjectSet<TEntity>();
                     
                     
                     this._objectSet = objectSet;
-                }
-                
-                
-
-                return this._objectSet;
+                }*/
+                return this.ObjectContext.Set<TEntity>();
+                //return this._objectSet;
             }
         }
 

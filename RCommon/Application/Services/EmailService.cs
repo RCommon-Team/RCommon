@@ -6,6 +6,7 @@ using System.Threading;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace RCommon.Application.Services
 {
@@ -22,7 +23,7 @@ namespace RCommon.Application.Services
         /// <summary>
         /// Sends a MailMessage object using the SMTP settings.
         /// </summary>
-        public void SendEmail(MailMessage message)
+        public void SendEmail(MailMessage message, EmailSettings settings)
         {
             if (message == null)
                 throw new ArgumentNullException("message");
@@ -30,11 +31,14 @@ namespace RCommon.Application.Services
             try
             {
                 message.BodyEncoding = Encoding.UTF8;
-                SmtpClient smtp = new SmtpClient();
-                //smtp.Credentials = new System.Net.NetworkCredential(ConfigurationSectionManager.GetAppSetting("MailUserName"), ConfigurationSectionManager.GetAppSetting("MailPassword"));
-                //smtp.Port = int.Parse(ConfigurationSectionManager.GetAppSetting("MailPort"));
-                //smtp.EnableSsl = false;
-                smtp.Send(message);
+                using (var smtp = new SmtpClient())
+                {
+                    smtp.Credentials = new NetworkCredential(settings.UserName, settings.Password);
+                    smtp.Host = settings.Host;
+                    smtp.Port = settings.Port;
+                    smtp.EnableSsl = settings.EnableSsl;
+                    smtp.Send(message);
+                }
                 OnEmailSent(message);
             }
             finally
@@ -49,11 +53,10 @@ namespace RCommon.Application.Services
         /// Sends the mail message asynchronously in another thread.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        public Task SendEmailAsync(MailMessage message)
+        public async Task SendEmailAsync(MailMessage message, EmailSettings settings)
         {
             
-            Task.Run(() => SendEmail(message));
-            return Task.CompletedTask;
+            await Task.Run(() => SendEmail(message, settings));
         }
 
         /// <summary>

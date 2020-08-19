@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.Samples.ConsoleApp
 {
-    public static class TestLogger
+    public class TestLogger
     {
         public static ILogger<T> Create<T>()
         {
@@ -15,7 +15,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         public static ILogger Create()
         {
-            var logger = new NUnitLogger<TestBase>();
+            var logger = new NUnitLogger<TestLogger>();
             return logger;
         }
 
@@ -38,6 +38,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             public IDisposable BeginScope<TState>(TState state) => this;
         }
 
-       
+
     }
 }
