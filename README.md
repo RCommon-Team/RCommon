@@ -1,7 +1,7 @@
 # RCommon Application Framework
 
 ## Overview
-RCommon was born from the (now abandoned) NCommon project but was resurrected out of the need to generate a productive, yet a relatively sound (architecturally speaking) application. Architectural patterns are used to implement some of the most commonly used tools in the .NET Core (and soon .NET 5) stack. The primary goals of this framework are:
+RCommon was born from the (now abandoned) [NCommon](https://github.com/riteshrao/ncommon "NCommon") project but was resurrected out of the need to generate a productive, yet a relatively sound (architecturally speaking) application. Architectural patterns are used to implement some of the most commonly used tools in the .NET Core (and soon .NET 5) stack. The primary goals of this framework are:
 1. Future proofing applications against changing architectural needs whether changes are required from lower level code (e.g. .NET Framework), or in response to changing technology conditions (e.g. using EFCore instead of Linq2Sql, NLog for Logger.NET, StructureMap vs. Autofac, etc.)
 2. Solve common problems under the presentation layer. Presentation frameworks are something else entirely. We try to keep everything nice under the hood. Cross cutting concerns, data access strategies, transaction management, validation, business rules, exception management, and logging is where we want to shine.
 3. Code testability. We try to limit the "magic" used. Things like dependency injection are used but in a very straightforward manner. Unit tests, and integration tests should be implemented to the highest degree possible. Afterall, we want the applications you build on top of this to work :) 
@@ -32,4 +32,4 @@ A set of application service bases classes are included to simplify the mapping 
 ## Presentation Layer
 A set of base classes designed for MVC Controllers, Web API Controllers, and Razor Pages. The base classes encapsulate responses from the application layer or Http API services and simplify model/view model validation and interactions with the application layer.
 
-[NCommon](https://github.com/riteshrao/ncommon "NCommon")
+
