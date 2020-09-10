@@ -1,4 +1,5 @@
 ﻿using RCommon.Application.DTO;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace RCommon.Domain.DomainServices
@@ -14,5 +15,9 @@ namespace RCommon.Domain.DomainServices
         Task<CommandResult<TEntity>> GetByIdAsync(object primaryKey);
         CommandResult<bool> Update(TEntity entity);
         Task<CommandResult<bool>> UpdateAsync(TEntity entity);
+
+        CommandResult<ICollection<TEntity>> GetAll();
+
+        Task<CommandResult<ICollection<TEntity>>> GetAllAsync();
     }
 }

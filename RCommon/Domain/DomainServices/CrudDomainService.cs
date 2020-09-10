@@ -280,5 +280,43 @@ namespace RCommon.Domain.DomainServices
                 throw ex;
             }
         }
+
+        public virtual async Task<CommandResult<ICollection<TEntity>>> GetAllAsync()
+        {
+            var result = new CommandResult<ICollection<TEntity>>();
+            try
+            {
+
+                result.DataResult = await _repository.FindAsync(x=>true);
+                this.Logger.LogDebug("Getting all entities of type {0}.", typeof(TEntity));
+                
+                return result;
+            }
+            catch (ApplicationException ex)
+            {
+                result.Exception = ex;
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
+                throw ex;
+            }
+        }
+
+        public virtual CommandResult<ICollection<TEntity>> GetAll()
+        {
+            var result = new CommandResult<ICollection<TEntity>>();
+            try
+            {
+
+                result.DataResult = _repository.Find(x => true);
+                this.Logger.LogDebug("Getting all entities of type {0}.", typeof(TEntity));
+
+                return result;
+            }
+            catch (ApplicationException ex)
+            {
+                result.Exception = ex;
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
+                throw ex;
+            }
+        }
     }
 }
