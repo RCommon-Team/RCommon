@@ -386,6 +386,86 @@ namespace RCommon.Application.Services
 
         }
 
+        public async virtual Task<CommandResult<ICollection<TDataTransferObject>>> GetAllAsync()
+        {
+            var result = new CommandResult<ICollection<TDataTransferObject>>(); // We only return serializable Data transfer objects (DTO) from this layer
+
+            try
+            {
+
+                var domainData = await _crudDomainService.GetAllAsync(); // Perform the work
+
+                if (domainData.HasException)
+                {
+
+                    throw domainData.Exception; // This generally doesn't happen since we allow domain exceptions to bubble up to the application layer
+                }
+                else
+                {
+                    result.DataResult = _objectMapper.Map<ICollection<TDataTransferObject>>(domainData.DataResult); // Map the entity to a DTO
+                }
+                return result;
+            }
+            catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
+            {
+                result.Exception = ex;
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
+                throw ex;
+            }
+            catch (AutoMapperMappingException ex) // Mapping Exception
+            {
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
+                throw ex;
+            }
+            catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
+            {
+                result.Exception = ex;
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
+                throw ex;
+            }
+
+        }
+
+        public virtual CommandResult<ICollection<TDataTransferObject>> GetAll()
+        {
+            var result = new CommandResult<ICollection<TDataTransferObject>>(); // We only return serializable Data transfer objects (DTO) from this layer
+
+            try
+            {
+
+                var domainData = _crudDomainService.GetAll(); // Perform the work
+
+                if (domainData.HasException)
+                {
+
+                    throw domainData.Exception; // This generally doesn't happen since we allow domain exceptions to bubble up to the application layer
+                }
+                else
+                {
+                    result.DataResult = _objectMapper.Map<ICollection<TDataTransferObject>>(domainData.DataResult); // Map the entity to a DTO
+                }
+                return result;
+            }
+            catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
+            {
+                result.Exception = ex;
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
+                throw ex;
+            }
+            catch (AutoMapperMappingException ex) // Mapping Exception
+            {
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
+                throw ex;
+            }
+            catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
+            {
+                result.Exception = ex;
+                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
+                throw ex;
+            }
+
+        }
+
 
         public IMapper ObjectMapper { get => _objectMapper; set => _objectMapper = value; }
     }
