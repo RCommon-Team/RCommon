@@ -61,7 +61,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data Tier", "Data Tier", "{
 	ProjectSection(SolutionItems) = preProject
 		..\..\..\..\Downloads\Dives\Samples.Data.sql = ..\..\..\..\Downloads\Dives\Samples.Data.sql
 		..\..\..\..\Downloads\Dives\Samples.Schema.sql = ..\..\..\..\Downloads\Dives\Samples.Schema.sql
-		..\..\..\..\Downloads\Dives\Spiegal.jpg = ..\..\..\..\Downloads\Dives\Spiegal.jpg
 	EndProjectSection
 EndProject
 Global
