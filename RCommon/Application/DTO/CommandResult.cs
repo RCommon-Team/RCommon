@@ -20,6 +20,7 @@ namespace RCommon.Application.DTO
         public CommandResult()
         {
             this.ValidationResult = new ValidationResult();
+            this.Message = string.Empty;
         }
         public CommandResult(TResult result, ValidationResult validationResult)
         {
@@ -45,5 +46,7 @@ namespace RCommon.Application.DTO
             }
         }
         public bool HasException { get => _hasException; set { _hasException = value; } }
+        public string Message { get; set; }
     }
+
 }

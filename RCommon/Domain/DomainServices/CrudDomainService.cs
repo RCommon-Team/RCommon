@@ -74,14 +74,14 @@ namespace RCommon.Domain.DomainServices
                     this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
             }
+            return result;
         }
 
         public virtual CommandResult<TEntity> Create(TEntity entity)
@@ -101,14 +101,14 @@ namespace RCommon.Domain.DomainServices
                 {
                     this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                 }
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
             }
+            return result;
         }
 
         public virtual CommandResult<bool> Update(TEntity entity)
@@ -129,14 +129,15 @@ namespace RCommon.Domain.DomainServices
                     this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
+                
             }
+            return result;
         }
 
         public virtual async Task<CommandResult<bool>> UpdateAsync(TEntity entity)
@@ -157,14 +158,15 @@ namespace RCommon.Domain.DomainServices
                     this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
+                
             }
+            return result;
         }
 
         public virtual CommandResult<bool> Delete(TEntity entity)
@@ -185,14 +187,15 @@ namespace RCommon.Domain.DomainServices
                     this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
+                
             }
+            return result;
         }
 
         public virtual async Task<CommandResult<bool>> DeleteAsync(TEntity entity)
@@ -213,14 +216,15 @@ namespace RCommon.Domain.DomainServices
                     this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
                 }
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
+                
             }
+            return result;
         }
 
         public virtual CommandResult<TEntity> GetById(object primaryKey)
@@ -242,14 +246,15 @@ namespace RCommon.Domain.DomainServices
                 {
                     this.Logger.LogWarning("Input was not validated for GetByIdAsync method - primaryKey of {0}", primaryKey);
                 }
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
+                
             }
+            return result;
         }
 
         public virtual async Task<CommandResult<TEntity>> GetByIdAsync(object primaryKey)
@@ -271,14 +276,16 @@ namespace RCommon.Domain.DomainServices
                 {
                     this.Logger.LogWarning("Input was not validated for GetByIdAsync method - primaryKey of {0}", primaryKey);
                 }
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
+                
             }
+
+            return result;
         }
 
         public virtual async Task<CommandResult<ICollection<TEntity>>> GetAllAsync()
@@ -290,14 +297,15 @@ namespace RCommon.Domain.DomainServices
                 result.DataResult = await _repository.FindAsync(x=>true);
                 this.Logger.LogDebug("Getting all entities of type {0}.", typeof(TEntity));
                 
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
+                
             }
+            return result;
         }
 
         public virtual CommandResult<ICollection<TEntity>> GetAll()
@@ -309,14 +317,15 @@ namespace RCommon.Domain.DomainServices
                 result.DataResult = _repository.Find(x => true);
                 this.Logger.LogDebug("Getting all entities of type {0}.", typeof(TEntity));
 
-                return result;
+                
             }
             catch (ApplicationException ex)
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                throw ex;
+                
             }
+            return result;
         }
     }
 }

@@ -404,7 +404,7 @@ namespace RCommon.Extensions
                 return source;
         }
 
-        public static IPaginatedList<T> ToPaginaetdList<T>(this ICollection<T> query, int? pageIndex, int pageSize)
+        public static IPaginatedList<T> ToPaginatedList<T>(this ICollection<T> query, int? pageIndex, int pageSize)
         {
             Guard.IsNotNegativeOrZero(pageSize, "pageSize");
 
