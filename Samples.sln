@@ -58,6 +58,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business Tier", "Business Tier", "{3596506B-3DA8-404B-9B7C-2E1B6BA1CD4D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data Tier", "Data Tier", "{ABB3BFF7-432E-4615-8BEA-03A79BC52A69}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\..\Downloads\Dives\Samples.Data.sql = ..\..\..\..\Downloads\Dives\Samples.Data.sql
+		..\..\..\..\Downloads\Dives\Samples.Schema.sql = ..\..\..\..\Downloads\Dives\Samples.Schema.sql
+		..\..\..\..\Downloads\Dives\Spiegal.jpg = ..\..\..\..\Downloads\Dives\Spiegal.jpg
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
