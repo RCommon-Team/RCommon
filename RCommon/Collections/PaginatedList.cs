@@ -7,6 +7,11 @@ namespace RCommon.Collections
 {
     public class PaginatedList<T> : List<T>, IPaginatedList<T>
     {
+        public PaginatedList()
+        {
+
+        }
+
         public int PageIndex { get; private set; }
         public int PageSize { get; private set; }
         public int TotalCount { get; private set; }
@@ -37,6 +42,7 @@ namespace RCommon.Collections
             PageIndex = pageIndex ?? 1;
             PageSize = pageSize;
             TotalCount = source.Count();
+
             TotalPages = ((TotalCount - 1) / PageSize) + 1;
 
             this.AddRange(source.Skip((PageIndex - 1) * PageSize).Take(PageSize));
