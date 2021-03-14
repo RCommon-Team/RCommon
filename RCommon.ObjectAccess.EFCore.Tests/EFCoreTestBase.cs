@@ -41,7 +41,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .WithExceptionHandling<EhabExceptionHandlingConfiguration>(x=>
                     x.UsingDefaultExceptionPolicies())
                 .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
-                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
                 .WithObjectAccess<EFCoreConfiguration>(
                     x => x.UsingDbContext<TestDbContext>())
                 .And<CommonApplicationServicesConfiguration>();

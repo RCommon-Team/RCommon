@@ -19,6 +19,7 @@ namespace Samples.Domain
             // Register all of the domain services with the Dependency Injection Container. 
             containerAdapter.AddTransient<IDiveLocationService, DiveLocationService>();
             containerAdapter.AddTransient<IDiveTypeService, DiveTypeService>();
+            containerAdapter.AddTransient<IUserService, UserService>();
         }
     }
 }
