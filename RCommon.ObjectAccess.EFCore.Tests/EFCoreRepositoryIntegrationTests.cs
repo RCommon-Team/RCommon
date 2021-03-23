@@ -69,20 +69,19 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             this.CreateWebRequest();
             
             await this.Can_Add_Async();
-            this.Can_Add_Entity();
+            await this.Can_Add_Entity();
             await this.Can_Delete_Async();
-            this.Can_Delete_Entity();
-            this.Can_eager_load_repository_and_query();
+            await this.Can_eager_load_repository_and_query();
             await this.Can_eager_load_repository_and_query_async();
-            this.Can_perform_simple_query();
+            await this.Can_perform_simple_query();
             await this.Can_Update_Async();
-            this.Can_Update_Entity();
-            this.UnitOfWork_Can_commit();
-            this.UnitOfWork_can_commit_multiple_db_operations();
+            await this.Can_Update_Entity();
+            await this.UnitOfWork_Can_commit();
+            await this.UnitOfWork_can_commit_multiple_db_operations();
         }
 
         [Test]
-        public void Can_perform_simple_query()
+        public async Task Can_perform_simple_query()
         {
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
@@ -92,8 +91,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
             repo.DataStoreName = "TestDbContext";
             //var repo = this.ServiceProvider.GetService<IEFCoreRepository<Customer>>();
-            var savedCustomer = repo
-                    .Find(customer.CustomerId);
+            var savedCustomer = await repo
+                    .FindAsync(customer.CustomerId);
 
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.CustomerId == customer.CustomerId);
@@ -101,7 +100,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void Can_Add_Entity()
+        public async Task Can_Add_Entity()
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
@@ -113,7 +112,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             // Start Test
             var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
             repo.DataStoreName = "TestDbContext";
-            repo.Add(customer);
+            await repo.AddAsync(customer);
 
             Customer savedCustomer = null;
             savedCustomer = testDataActions.GetCustomerById(customer.CustomerId);
@@ -147,7 +146,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void Can_Update_Entity()
+        public async Task Can_Update_Entity()
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
@@ -160,7 +159,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             repo.DataStoreName = "TestDbContext";
             customer.FirstName = "Darth";
             customer.LastName = "Vader";
-            repo.Update(customer);
+            await repo.UpdateAsync(customer);
 
             Customer savedCustomer = null;
             savedCustomer = testDataActions.GetCustomerById(customer.CustomerId);
@@ -197,27 +196,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void Can_Delete_Entity()
-        {
-            // Generate Test Data
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            Customer customer = testDataActions.CreateCustomer();
-
-            // Start Test
-            var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
-            repo.Delete(customer);
-
-            Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetCustomerById(customer.CustomerId);
-
-            Assert.IsNull(savedCustomer);
-
-        }
-
-        [Test]
         public async Task Can_Delete_Async()
         {
             // Generate Test Data
@@ -240,7 +218,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
 
         [Test]
-        public void UnitOfWork_Can_commit()
+        public async Task UnitOfWork_Can_commit()
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
@@ -257,7 +235,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
-                repo.Add(customer);
+                await repo.AddAsync(customer);
                 scope.Commit();
             }
 
@@ -270,7 +248,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void UnitOfWork_can_rollback()
+        public async Task UnitOfWork_can_rollback()
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
@@ -284,12 +262,12 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
             repo.DataStoreName = "TestDbContext";
 
-            //repo.Add(customer);
+            //await repo.AddAsync(customer);
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                customer = repo.Find(customer.CustomerId);
+                customer = await repo.FindAsync(customer.CustomerId);
                 customer.LastName = "Changed";
-                repo.Update(customer);
+                await repo.UpdateAsync(customer);
 
 
             } //Dispose here as scope is not comitted.
@@ -300,7 +278,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void UnitOfWork_nested_commit_works()
+        public async Task UnitOfWork_nested_commit_works()
         {
             // Generate Test Data
             _context = new TestDbContext(this.Configuration);
@@ -317,13 +295,13 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
-                repo.Add(customer);
+                await repo.AddAsync(customer);
                 //scope.Commit();
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.DataStoreName = "TestDbContext";
-                    repo2.Add(order);
+                    repo2.AddAsync(order);
                     scope2.Commit();
                 }
                 scope.Commit();
@@ -341,7 +319,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void UnitOfWork_nested_commit_with_seperate_transaction_commits_when_wrapping_scope_rollsback()
+        public async Task UnitOfWork_nested_commit_with_seperate_transaction_commits_when_wrapping_scope_rollsback()
         {
             // Generate Test Data
             this.Logger.LogInformation("Generating Test Data for: " + MethodBase.GetCurrentMethod(), null);
@@ -363,7 +341,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
                 this.Logger.LogInformation("Adding New Customer from first UnitOfWorkScope ", customer);
-                repo.Add(customer);
+                await repo.AddAsync(customer);
 
                 this.Logger.LogInformation("Starting new UnitOfWorkScope from " + MethodBase.GetCurrentMethod(), null);
                 using (var scope2 = scopeFactory.Create(TransactionMode.New))
@@ -371,7 +349,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.DataStoreName = "TestDbContext";
                     this.Logger.LogInformation("Adding New Order from first UnitOfWorkScope ", order);
-                    repo2.Add(order);
+                    await repo2.AddAsync(order);
 
                     this.Logger.LogInformation("Attempting to Commit second(new) UnitOfWorkScope ", scope2);
                     scope2.Commit();
@@ -392,7 +370,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void UnitOfWork_nested_rollback_works()
+        public async Task UnitOfWork_nested_rollback_works()
         {
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
@@ -407,13 +385,13 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
-                repo.Add(customer);
+                await repo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.DataStoreName = "TestDbContext";
-                    repo2.Add(order);
+                    await repo2.AddAsync(order);
                     scope2.Commit();
                 }
             } //Rollback.
@@ -431,7 +409,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void UnitOfWork_commit_throws_when_child_scope_rollsback()
+        public async Task UnitOfWork_commit_throws_when_child_scope_rollsback()
         {
             var customer = new Customer { FirstName = "Joe", LastName = "Data" };
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
@@ -443,12 +421,12 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
-                repo.Add(customer);
+                await repo.AddAsync(customer);
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.DataStoreName = "TestDbContext";
-                    repo2.Add(order);
+                    await repo2.AddAsync(order);
                 } //child scope rollback.
 
                 //Assert.Throws<InvalidOperationException>(scope.Commit);
@@ -465,7 +443,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void UnitOfWork_can_commit_multiple_db_operations()
+        public async Task UnitOfWork_can_commit_multiple_db_operations()
         {
             var customer = new Customer { FirstName = "John", LastName = "Doe" };
             var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
@@ -477,10 +455,10 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
-                repo.Add(customer);
+                await repo.AddAsync(customer);
                 var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<SalesPerson>>();
                 repo2.DataStoreName = "TestDbContext";
-                repo2.Add(salesPerson);
+                await repo2.AddAsync(salesPerson);
                 scope.Commit();
             }
 
@@ -500,7 +478,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void UnitOfWork_can_rollback_multipe_db_operations()
+        public async Task UnitOfWork_can_rollback_multipe_db_operations()
         {
             var customer = new Customer { FirstName = "John", LastName = "Doe" };
             var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
@@ -512,10 +490,10 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
-                repo.Add(customer);
+                await repo.AddAsync(customer);
                 var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<SalesPerson>>();
                 repo2.DataStoreName = "TestDbContext";
-                repo2.Add(salesPerson);
+                await repo2.AddAsync(salesPerson);
             }// Rolllback
 
             using (var ordersTestData = new EFTestData(_context))
@@ -532,7 +510,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void UnitOfWork_rollback_does_not_rollback_supressed_scope()
+        public async Task UnitOfWork_rollback_does_not_rollback_supressed_scope()
         {
             var customer = new Customer { FirstName = "Joe", LastName = "Data" };
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
@@ -545,13 +523,13 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             {
                 var repo = this.ServiceProvider.GetService<IEagerFetchingRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
-                repo.Add(customer);
+                await repo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Supress))
                 {
                     var repo2 = this.ServiceProvider.GetService<IEagerFetchingRepository<Order>>();
                     repo2.DataStoreName = "TestDbContext";
-                    repo2.Add(order);
+                    await repo2.AddAsync(order);
                     scope2.Commit();
                 }
             } //Rollback.
@@ -572,7 +550,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public void Can_eager_load_repository_and_query()
+        public async Task Can_eager_load_repository_and_query()
         {
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
@@ -587,8 +565,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             repo.EagerlyWith(x => x.Orders);
             repo.DataStoreName = "TestDbContext";
             //var repo = this.ServiceProvider.GetService<IEFCoreRepository<Customer>>();
-            var savedCustomer = repo
-                    .FindSingleOrDefault(x=>x.CustomerId == customer.CustomerId);
+            var savedCustomer = await repo
+                    .FindSingleOrDefaultAsync(x=>x.CustomerId == customer.CustomerId);
 
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.CustomerId == customer.CustomerId);

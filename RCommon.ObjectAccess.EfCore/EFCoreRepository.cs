@@ -56,13 +56,6 @@
             this._objectSets = new Dictionary<Type, object>();
         }
 
-        public override TEntity Add(TEntity entity)
-        {
-            var updatedEntity = this.ObjectSet.Add(entity).Entity;
-            this.Save();
-            return updatedEntity;
-        }
-
 
         protected override void ApplyFetchingStrategy(Expression[] paths)
         {
@@ -83,22 +76,7 @@
             return this.ObjectSet.AsQueryable<TEntity>();
         }
 
-        public override void Delete(TEntity entity)
-        {
-            this.ObjectSet.Remove(entity);
-            this.Save();
-        }
-
-
-        public override ICollection<TEntity> Find(ISpecification<TEntity> specification)
-        {
-            return this.FindCore(specification.Predicate).ToList();
-        }
-
-        public override ICollection<TEntity> Find(Expression<Func<TEntity, bool>> expression)
-        {
-            return this.FindCore(expression).ToList();
-        }
+        
 
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
@@ -126,15 +104,6 @@
             }
             return queryable;
         }
-
-
-
-
-        public override int GetCount(ISpecification<TEntity> selectSpec) =>
-            this.Find(selectSpec).Count<TEntity>();
-
-        public override int GetCount(Expression<Func<TEntity, bool>> expression) =>
-            this.Find(expression).Count<TEntity>();
 
         /*private EntityKey GetEntityKey(TEntity entity)
         {
@@ -180,23 +149,7 @@
             return entry;
         }*/
 
-
-        private int Save()
-        {
-            int affected = 0;
-            if (this._unitOfWorkManager.CurrentUnitOfWork == null)
-            {
-                affected = this.ObjectContext.SaveChanges(true);
-            }
-            return affected;
-        }
-
-        public override void Update(TEntity entity)
-        {
-            this.ObjectSet.Update(entity);
-            this.Save();
-        }
-
+        
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification)
         {
             return await this.FindCore(specification.Predicate).ToListAsync();
@@ -227,26 +180,10 @@
             return affected;
         }
 
-        public override void Attach(TEntity entity)
+        public override async Task AttachAsync(TEntity entity)
         {
             this.ObjectContext.Attach<TEntity>(entity);
-            this.Save();
-        }
-
-        public override TEntity Find(object primaryKey)
-        {
-            
-            return this.ObjectSet.Find(primaryKey);
-        }
-
-        public override TEntity FindSingleOrDefault(Expression<Func<TEntity, bool>> expression)
-        {
-            return this.FindCore(expression).SingleOrDefault();
-        }
-
-        public override TEntity FindSingleOrDefault(ISpecification<TEntity> specification)
-        {
-            return this.FindCore(specification.Predicate).SingleOrDefault();
+            await this.SaveAsync();
         }
 
         public override async Task AddAsync(TEntity entity)

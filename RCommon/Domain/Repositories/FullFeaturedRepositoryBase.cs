@@ -105,25 +105,14 @@ namespace RCommon.Domain.Repositories
         public string DataStoreName { get; set; }
 
 
-        /// <summary>
-        /// Adds a transient instance of <paramref name="entity"/> to be tracked
-        /// and persisted by the repository.
-        /// </summary>
-        /// <param name="entity">An instance of <typeparamref name="TEntity"/> that should be added.</param>
-        public abstract TEntity Add(TEntity entity);
-
-        /// <summary>
-        /// Marks the entity instance to be deleted from the store.
-        /// </summary>
-        /// <param name="entity">An instance of <paramref name="entity"/> that should be deleted.</param>
-        public abstract void Delete(TEntity entity);
+        
 
 
         /// <summary>
         /// Attaches a detached entity, previously detached via the <see cref="IRepository{TEntity}.Detach"/> method.
         /// </summary>
         /// <param name="entity">The entity instance to attach back to the repository.</param>
-        public abstract void Attach(TEntity entity);
+        public abstract Task AttachAsync(TEntity entity);
 
 
         /// <summary>
@@ -157,16 +146,8 @@ namespace RCommon.Domain.Repositories
 
         }
 
-        public abstract void Update(TEntity entity);
-        public abstract ICollection<TEntity> Find(ISpecification<TEntity> specification);
         public abstract IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
-        public abstract ICollection<TEntity> Find(Expression<Func<TEntity, bool>> expression);
-        public abstract TEntity Find(object primaryKey);
-        public abstract int GetCount(ISpecification<TEntity> selectSpec);
-        public abstract int GetCount(Expression<Func<TEntity, bool>> expression);
-        public abstract TEntity FindSingleOrDefault(Expression<Func<TEntity, bool>> expression);
-        public abstract TEntity FindSingleOrDefault(ISpecification<TEntity> specification);
         public abstract Task AddAsync(TEntity entity);
         public abstract Task DeleteAsync(TEntity entity);
         public abstract Task UpdateAsync(TEntity entity);

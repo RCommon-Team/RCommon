@@ -84,62 +84,6 @@ namespace RCommon.Domain.DomainServices
             return result;
         }
 
-        public virtual CommandResult<TEntity> Create(TEntity entity)
-        {
-
-            var result = new CommandResult<TEntity>();
-            try
-            {
-                result.ValidationResult = this.ValidateEntity(entity);
-                if (result.ValidationResult.IsValid)
-                {
-                    this.EvaluateBusinessRules(entity);
-                    result.DataResult = _repository.Add(entity);
-                    this.Logger.LogDebug("Creating entity of type {0}.", entity);
-                }
-                else
-                {
-                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
-                }
-                
-            }
-            catch (ApplicationException ex)
-            {
-                result.Exception = ex;
-                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-            }
-            return result;
-        }
-
-        public virtual CommandResult<bool> Update(TEntity entity)
-        {
-            var result = new CommandResult<bool>();
-            try
-            {
-                result.ValidationResult = this.ValidateEntity(entity);
-                if (result.ValidationResult.IsValid)
-                {
-                    this.EvaluateBusinessRules(entity);
-                    _repository.Update(entity);
-                    result.DataResult = true;
-                    this.Logger.LogDebug("Updating entity of type {0}.", entity);
-                }
-                else
-                {
-                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
-                    result.DataResult = false;
-                }
-                
-            }
-            catch (ApplicationException ex)
-            {
-                result.Exception = ex;
-                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                
-            }
-            return result;
-        }
-
         public virtual async Task<CommandResult<bool>> UpdateAsync(TEntity entity)
         {
             var result = new CommandResult<bool>();
@@ -152,35 +96,6 @@ namespace RCommon.Domain.DomainServices
                     await _repository.UpdateAsync(entity);
                     this.Logger.LogInformation("Updating entity of type {0}.", entity);
                     result.DataResult = true;
-                }
-                else
-                {
-                    this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
-                    result.DataResult = false;
-                }
-                
-            }
-            catch (ApplicationException ex)
-            {
-                result.Exception = ex;
-                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                
-            }
-            return result;
-        }
-
-        public virtual CommandResult<bool> Delete(TEntity entity)
-        {
-            var result = new CommandResult<bool>();
-            try
-            {
-                result.ValidationResult = this.ValidateEntity(entity);
-                if (result.ValidationResult.IsValid)
-                {
-                    this.EvaluateBusinessRules(entity);
-                    _repository.Delete(entity);
-                    result.DataResult = true;
-                    this.Logger.LogInformation("Deleting entity of type {0}.", entity);
                 }
                 else
                 {
@@ -215,36 +130,6 @@ namespace RCommon.Domain.DomainServices
                 {
                     this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
                     result.DataResult = false;
-                }
-                
-            }
-            catch (ApplicationException ex)
-            {
-                result.Exception = ex;
-                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                
-            }
-            return result;
-        }
-
-        public virtual CommandResult<TEntity> GetById(object primaryKey)
-        {
-            var result = new CommandResult<TEntity>();
-            try
-            {
-                if (primaryKey == null)
-                {
-                    result.ValidationResult.AddError(new ValidationError("Primary Key cannot be null", "primaryKey"));
-                }
-
-                if (result.ValidationResult.IsValid)
-                {
-                    result.DataResult = _repository.Find(primaryKey);
-                    this.Logger.LogDebug("Getting entity of type {0} by Id: {1}.", typeof(TEntity), primaryKey);
-                }
-                else
-                {
-                    this.Logger.LogWarning("Input was not validated for GetByIdAsync method - primaryKey of {0}", primaryKey);
                 }
                 
             }
@@ -297,26 +182,6 @@ namespace RCommon.Domain.DomainServices
                 result.DataResult = await _repository.FindAsync(x=>true);
                 this.Logger.LogDebug("Getting all entities of type {0}.", typeof(TEntity));
                 
-                
-            }
-            catch (ApplicationException ex)
-            {
-                result.Exception = ex;
-                this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-                
-            }
-            return result;
-        }
-
-        public virtual CommandResult<ICollection<TEntity>> GetAll()
-        {
-            var result = new CommandResult<ICollection<TEntity>>();
-            try
-            {
-
-                result.DataResult = _repository.Find(x => true);
-                this.Logger.LogDebug("Getting all entities of type {0}.", typeof(TEntity));
-
                 
             }
             catch (ApplicationException ex)

@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ExceptionHandling.E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase", "RCommon.TestBase\RCommon.TestBase.csproj", "{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ObjectAccess.Dapper", "RCommon.ObjectAccess.Dapper\RCommon.ObjectAccess.Dapper.csproj", "{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,10 @@ Global
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

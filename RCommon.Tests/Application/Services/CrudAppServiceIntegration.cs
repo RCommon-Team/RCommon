@@ -104,27 +104,7 @@ namespace RCommon.Tests.Application.Services
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
         }
 
-        [Test]
-        public void Can_Create()
-        {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomerStub(x => x.FirstName = "Severus");
-
-            var service = this.ServiceProvider.GetService<ITestAppService>();
-            var mapper = this.ServiceProvider.GetService<IMapper>();
-
-            var customerDto = mapper.Map<CustomerDto>(customer);
-            var result = service.Create(customerDto);
-
-            Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetFirstCustomer(x => x.FirstName == "Severus"));
-
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.AreEqual(result.DataResult.FirstName, customer.FirstName);
-        }
+       
 
         [Test]
         public void Can_Update_Async()
@@ -153,32 +133,7 @@ namespace RCommon.Tests.Application.Services
             Assert.AreEqual(savedCustomer.FirstName, firstName);
         }
 
-        [Test]
-        public void Can_Update()
-        {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
-
-            var service = this.ServiceProvider.GetService<ITestAppService>();
-            var mapper = this.ServiceProvider.GetService<IMapper>();
-
-            var customerDto = mapper.Map<CustomerDto>(customer);
-            var firstName = new Faker().Name.FirstName();
-            customerDto.FirstName = firstName;
-            var result = service.Update(customerDto);
-
-            _context.Dispose(); // Refresh the cache
-            _context = new TestDbContext(this.Configuration);
-            testData = new EFTestData(_context);
-
-            Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
-
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, firstName);
-        }
+        
 
         [Test]
         public void Can_Delete_Async()
@@ -200,25 +155,7 @@ namespace RCommon.Tests.Application.Services
             Assert.IsNull(savedCustomer);
         }
 
-        [Test]
-        public void Can_Delete()
-        {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
-
-            var service = this.ServiceProvider.GetService<ITestAppService>();
-            var mapper = this.ServiceProvider.GetService<IMapper>();
-
-            var customerDto = mapper.Map<CustomerDto>(customer);
-            var result = service.Delete(customerDto);
-
-            Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
-
-            Assert.IsNull(savedCustomer);
-        }
+       
 
         [Test]
         public void Can_GetById_Async()
@@ -236,20 +173,6 @@ namespace RCommon.Tests.Application.Services
             Assert.IsTrue(customer.FirstName == result.DataResult.FirstName);
         }
 
-        [Test]
-        public void Can_GetById()
-        {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
-
-            var service = this.ServiceProvider.GetService<ITestAppService>();
-
-            var result = service.GetById(customer.CustomerId);
-
-            Assert.IsNotNull(result.DataResult);
-            Assert.IsTrue(customer.FirstName == result.DataResult.FirstName);
-        }
+        
     }
 }

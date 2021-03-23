@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Domain.Repositories
 {
-    public interface IAsyncCrudRepository<TEntity> : ICrudRepository<TEntity>, IQueryable<TEntity>
+    public interface IAsyncCrudRepository<TEntity> : IQueryable<TEntity>
     {
         IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
         IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
@@ -44,6 +44,8 @@ namespace RCommon.Domain.Repositories
         Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression);
 
         Task<bool> AnyAsync(ISpecification<TEntity> specification);
+
+        public string DataStoreName { get; set; }
 
 
     }
