@@ -18,6 +18,7 @@ namespace Samples.Application
         {
             // Register all of our application services. 
             containerAdapter.AddTransient<IDiveService, DiveService>();
+            containerAdapter.AddTransient<IApplicationUserService, ApplicationUserService>();
         }
     }
 }

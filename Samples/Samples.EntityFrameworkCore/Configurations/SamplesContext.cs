@@ -93,6 +93,8 @@ namespace Samples.ObjectAccess.EFCore
 
         public DbSet<DiveType> DiveTypes { get; set; } // DiveTypes
 
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+
 
 
 
@@ -151,6 +153,8 @@ namespace Samples.ObjectAccess.EFCore
 
 
             modelBuilder.ApplyConfiguration(new DiveTypeConfiguration());
+
+            modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
 
 
         }

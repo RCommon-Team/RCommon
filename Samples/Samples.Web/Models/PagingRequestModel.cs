@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Samples.Web
+namespace Samples.Web.Models
 {
-    public class PresentationDefaults
+    public class PagingRequestModel
     {
-        public const int PagedDataSize = 100;
+        public int PageIndex { get; set; }
+
     }
 }

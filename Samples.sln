@@ -49,7 +49,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Domain", "Samples\S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.EntityFrameworkCore", "Samples\Samples.EntityFrameworkCore\Samples.EntityFrameworkCore.csproj", "{E556EA1D-AAB5-4A8B-8B33-A547F3F3EE6A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3Tier Architecture", "3Tier Architecture", "{A76795F1-527B-4FA9-90B9-B810E20EBC0F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NTier Architecture", "NTier Architecture", "{A76795F1-527B-4FA9-90B9-B810E20EBC0F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation Tier", "Presentation Tier", "{BCAD9CC6-45D5-4FEA-8BF8-934EABDE082A}"
 EndProject

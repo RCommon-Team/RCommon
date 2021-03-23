@@ -29,13 +29,10 @@ namespace Samples.Application
             .ForMember(x => x.DiveDesc, m => m.MapFrom(f => f.DiveDesc))
             .ForMember(x => x.DiveTypeId, m => m.MapFrom(f => f.DiveTypeId));
 
-
             CreateMap<ICollection<DiveLocation>, ICollection<DiveLocationDto>>();
-
-
-
             CreateMap<DiveType, DiveTypeDto>();
             CreateMap<ICollection<DiveType>, ICollection<DiveTypeDto>>();
+            CreateMap<ApplicationUser, ApplicationUserDto> ();
         }
 
         

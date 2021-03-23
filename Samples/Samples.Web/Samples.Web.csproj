@@ -28,10 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Pages\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="bundleconfig.json" />
     <None Include="wwwroot\css\font-awesome\5.13.0\js\all.js" />
     <None Include="wwwroot\css\font-awesome\5.13.0\js\all.min.js" />
@@ -1699,6 +1695,10 @@
     <ProjectReference Include="..\Samples.Application\Samples.Application.csproj" />
     <ProjectReference Include="..\Samples.Domain\Samples.Domain.csproj" />
     <ProjectReference Include="..\Samples.EntityFrameworkCore\Samples.EntityFrameworkCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Pages\" />
   </ItemGroup>
 
 </Project>
