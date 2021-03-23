@@ -25,21 +25,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.EFCore
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.NHibernate.Tests", "RCommon.ObjectAccess.NHibernate.Tests\RCommon.ObjectAccess.NHibernate.Tests.csproj", "{97A6138B-5602-4247-A4BD-555846FB6702}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{3234C3BB-1632-4684-838E-9D6D382D4D4D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Samples.AspNetCore3WebApp", "RCommon.Samples.AspNetCore3WebApp\RCommon.Samples.AspNetCore3WebApp.csproj", "{955ECE41-E324-4026-A278-124DB0F30BC6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Samples.ConsoleApp", "RCommon.Samples.ConsoleApp\RCommon.Samples.ConsoleApp.csproj", "{2BB86FBD-3E92-4FBD-A701-363136D12517}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Samples.MultiThreadedConsoleApp", "RCommon.Samples.MultiThreadedConsoleApp\RCommon.Samples.MultiThreadedConsoleApp.csproj", "{71576510-3D9B-42F9-943A-0843FE2808B8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection.Microsoft", "RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj", "{6FB45C2A-F38A-4865-BFB7-1CFC9197A837}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ExceptionHandling.EnterpriseLibraryCore", "RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj", "{55FB91BD-E1FA-4F3F-8CC6-62AB92D668F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests", "RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests\RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests.csproj", "{FB6002E5-0E17-403F-9DFB-482AB7A4E525}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests", "RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests\RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests.csproj", "{FB6002E5-0E17-403F-9DFB-482AB7A4E525}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.TestBase", "RCommon.TestBase\RCommon.TestBase.csproj", "{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase", "RCommon.TestBase\RCommon.TestBase.csproj", "{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,18 +75,6 @@ Global
 		{97A6138B-5602-4247-A4BD-555846FB6702}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97A6138B-5602-4247-A4BD-555846FB6702}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97A6138B-5602-4247-A4BD-555846FB6702}.Release|Any CPU.Build.0 = Release|Any CPU
-		{955ECE41-E324-4026-A278-124DB0F30BC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{955ECE41-E324-4026-A278-124DB0F30BC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{955ECE41-E324-4026-A278-124DB0F30BC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{955ECE41-E324-4026-A278-124DB0F30BC6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2BB86FBD-3E92-4FBD-A701-363136D12517}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2BB86FBD-3E92-4FBD-A701-363136D12517}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2BB86FBD-3E92-4FBD-A701-363136D12517}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2BB86FBD-3E92-4FBD-A701-363136D12517}.Release|Any CPU.Build.0 = Release|Any CPU
-		{71576510-3D9B-42F9-943A-0843FE2808B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{71576510-3D9B-42F9-943A-0843FE2808B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{71576510-3D9B-42F9-943A-0843FE2808B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{71576510-3D9B-42F9-943A-0843FE2808B8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6FB45C2A-F38A-4865-BFB7-1CFC9197A837}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6FB45C2A-F38A-4865-BFB7-1CFC9197A837}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FB45C2A-F38A-4865-BFB7-1CFC9197A837}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -122,9 +102,6 @@ Global
 		{68ED8F88-64A7-4F54-8A05-DDBB6894F10B} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{31DF0037-CA8E-4979-946B-F7554BFF48C4} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{97A6138B-5602-4247-A4BD-555846FB6702} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
-		{955ECE41-E324-4026-A278-124DB0F30BC6} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
-		{2BB86FBD-3E92-4FBD-A701-363136D12517} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
-		{71576510-3D9B-42F9-943A-0843FE2808B8} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
 		{6FB45C2A-F38A-4865-BFB7-1CFC9197A837} = {FF409757-E986-43E2-B465-B64D246AF63B}
 		{FB6002E5-0E17-403F-9DFB-482AB7A4E525} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
