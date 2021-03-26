@@ -12,6 +12,7 @@ namespace RCommon.ObjectAccess.EFCore
 
         
         Task AttachAsync(TEntity entity);
+        Task DetachAsync(TEntity entity);
         IQueryable<TEntity> CreateQuery();
         Task DeleteAsync(TEntity entity);
         Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression);

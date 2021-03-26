@@ -186,11 +186,18 @@
             await this.SaveAsync();
         }
 
+        public override async Task DetachAsync(TEntity entity)
+        {
+            this.ObjectContext.Entry<TEntity>(entity).State = EntityState.Detached;
+            await this.SaveAsync();
+        }
+
         public override async Task AddAsync(TEntity entity)
         {
             await this.ObjectSet.AddAsync(entity);
             await this.SaveAsync();
         }
+
 
         public async override Task DeleteAsync(TEntity entity)
         {
@@ -263,7 +270,7 @@
             }
         }
 
-        public bool Tracking
+        public override bool Tracking
         {
             get =>
                 this._tracking;

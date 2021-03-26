@@ -19,11 +19,6 @@ namespace RCommon.ObjectAccess.EFCore
 
         
 
-        public void PersistChanges()
-        {
-            this.SaveChanges();
-        }
-
         public async Task PersistChangesAsync()
         {
             await this.SaveChangesAsync();

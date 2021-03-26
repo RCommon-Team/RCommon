@@ -1,38 +1,17 @@
-﻿#region license
-//Copyright 2010 Ritesh Rao 
-
-//Licensed under the Apache License, Version 2.0 (the "License"); 
-//you may not use this file except in compliance with the License. 
-//You may obtain a copy of the License at 
-
-//http://www.apache.org/licenses/LICENSE-2.0 
-
-//Unless required by applicable law or agreed to in writing, software 
-//distributed under the License is distributed on an "AS IS" BASIS, 
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-//See the License for the specific language governing permissions and 
-//limitations under the License. 
-#endregion
-
-using RCommon.DataServices;
-using RCommon.DataServices.Transactions;
-using System;
+﻿using RCommon.DataServices;
 using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace RCommon.Domain.Repositories
 {
-    ///<summary>
-    /// A base class for implementors of <see cref="IRepository{TEntity}"/>.
-    ///</summary>
-    ///<typeparam name="TEntity"></typeparam>
-    public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IEagerFetchingRepository<TEntity>, IGraphRepository<TEntity>, INamedDataSource
+    public abstract class SqlMapperRepositoryBase<TEntity> : DisposableResource, IAsyncCrudRepository<TEntity>, INamedDataSource
         where TEntity : class
     {
-
 
         /// <summary>
         /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="FullFeaturedRepositoryBase{TEntity}"/> 
@@ -103,19 +82,6 @@ namespace RCommon.Domain.Repositories
 
         public string DataStoreName { get; set; }
 
-
-        
-
-
-        /// <summary>
-        /// Attaches a detached entity, previously detached via the <see cref="IRepository{TEntity}.Detach"/> method.
-        /// </summary>
-        /// <param name="entity">The entity instance to attach back to the repository.</param>
-        public abstract Task AttachAsync(TEntity entity);
-
-        public abstract Task DetachAsync(TEntity entity);
-
-
         /// <summary>
         /// Querries the repository based on the provided specification and returns results that
         /// are only satisfied by the specification.
@@ -127,24 +93,6 @@ namespace RCommon.Domain.Repositories
         public IEnumerable<TEntity> Query(ISpecification<TEntity> specification)
         {
             return RepositoryQuery.Where(specification.Predicate).AsQueryable();
-        }
-
-        protected abstract void ApplyFetchingStrategy(Expression[] paths);
-
-        public IEagerFetchingRepository<TEntity> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions)
-        {
-            EagerFetchingStrategy<TEntity> strategy = new EagerFetchingStrategy<TEntity>();
-            strategyActions(strategy);
-            this.ApplyFetchingStrategy(strategy.Paths.ToArray<Expression>());
-            return this;
-        }
-
-        public IEagerFetchingRepository<TEntity> EagerlyWith(Expression<Func<TEntity, object>> path)
-        {
-            Expression<Func<TEntity, object>>[] expressionArray = new Expression<Func<TEntity, object>>[] { path };
-            this.ApplyFetchingStrategy((Expression[])expressionArray);
-            return this;
-
         }
 
         public abstract IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
@@ -162,6 +110,6 @@ namespace RCommon.Domain.Repositories
         public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression);
         public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification);
 
-        public abstract bool Tracking { get; set; }
     }
+
 }
