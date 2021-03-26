@@ -26,39 +26,19 @@ namespace RCommon.DataServices.Transactions
     public static class TransactionScopeHelper
     {
 
-        ///<summary>
-        ///</summary>
-        ///<param name="isolationLevel"></param>
-        ///<param name="txMode"></param>
-        ///<returns></returns>
-        ///<exception cref="NotImplementedException"></exception>
+        
+
         public static TransactionScope CreateScope(ILogger<UnitOfWorkTransactionManager> logger, IsolationLevel isolationLevel, TransactionMode txMode)
         {
             if (txMode == TransactionMode.New)
             {
                 logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.RequiresNew");
-                return new TransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = isolationLevel });
+                return new TransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = isolationLevel }, TransactionScopeAsyncFlowOption.Enabled);
             }
             if (txMode == TransactionMode.Supress)
             {
                 logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Supress");
-                return new TransactionScope(TransactionScopeOption.Suppress);
-            }
-            logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Required");
-            return new TransactionScope(TransactionScopeOption.Required, new TransactionOptions { IsolationLevel = isolationLevel });
-        }
-
-        public static TransactionScope CreateScopeAsync(ILogger<UnitOfWorkTransactionManager> logger, IsolationLevel isolationLevel, TransactionMode txMode)
-        {
-            if (txMode == TransactionMode.New)
-            {
-                logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.RequiresNew");
-                return new TransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = isolationLevel });
-            }
-            if (txMode == TransactionMode.Supress)
-            {
-                logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Supress");
-                return new TransactionScope(TransactionScopeOption.Suppress);
+                return new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
             }
             logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Required");
             return new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);

@@ -68,6 +68,7 @@ namespace RCommon.DataServices.Transactions
             }
         }
 
+
         /// <summary>
         /// Enlists a <see cref="UnitOfWorkScope"/> instance with the transaction manager,
         /// with the specified transaction mode.
@@ -76,36 +77,6 @@ namespace RCommon.DataServices.Transactions
         /// <param name="mode">A <see cref="TransactionMode"/> enum specifying the transaciton
         /// mode of the unit of work.</param>
         public void EnlistScope(IUnitOfWorkScope scope, TransactionMode mode)
-        {
-            _logger.LogInformation("Enlisting scope {0} with transaction manager {1} with transaction mode {2} called from: " + new StackFrame(1).GetMethod().Name,
-                                scope.ScopeId,
-                                _transactionManagerId,
-                                mode);
-
-            if (_transactions.Count == 0 || 
-                mode == TransactionMode.New ||
-                mode == TransactionMode.Supress)
-            {
-                _logger.LogDebug("Enlisting scope {0} with mode {1} requires a new TransactionScope to be created.", scope.ScopeId, mode);
-                var txScope = TransactionScopeHelper.CreateScope(_logger, UnitOfWorkSettings.DefaultIsolation, mode);
-                var unitOfWork = _unitOfWorkFactory.Create();
-                var transaction = new UnitOfWorkTransaction(_logger, unitOfWork, txScope);
-                transaction.TransactionDisposing += OnTransactionDisposing;
-                transaction.EnlistScope(scope);
-                _transactions.AddFirst(transaction);
-                return;
-            }
-            CurrentTransaction.EnlistScope(scope);
-        }
-
-        /// <summary>
-        /// Enlists a <see cref="UnitOfWorkScope"/> instance with the transaction manager,
-        /// with the specified transaction mode.
-        /// </summary>
-        /// <param name="scope">The <see cref="IUnitOfWorkScope"/> to register.</param>
-        /// <param name="mode">A <see cref="TransactionMode"/> enum specifying the transaciton
-        /// mode of the unit of work.</param>
-        public void EnlistScopeAsync(IUnitOfWorkScope scope, TransactionMode mode)
         {
             _logger.LogInformation("Enlisting scope {0} with transaction manager {1} with transaction mode {2}",
                                 scope.ScopeId,
@@ -117,7 +88,7 @@ namespace RCommon.DataServices.Transactions
                 mode == TransactionMode.Supress)
             {
                 _logger.LogDebug("Enlisting scope {0} with mode {1} requires a new TransactionScope to be created.", scope.ScopeId, mode);
-                var txScope = TransactionScopeHelper.CreateScopeAsync(_logger, UnitOfWorkSettings.DefaultIsolation, mode);
+                var txScope = TransactionScopeHelper.CreateScope(_logger, UnitOfWorkSettings.DefaultIsolation, mode);
                 var unitOfWork = _unitOfWorkFactory.Create();
                 var transaction = new UnitOfWorkTransaction(_logger, unitOfWork, txScope);
                 transaction.TransactionDisposing += OnTransactionDisposing;

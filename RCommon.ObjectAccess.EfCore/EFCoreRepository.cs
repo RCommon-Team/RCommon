@@ -257,16 +257,8 @@
         {
             get
             {
-                /*if (ReferenceEquals(this._objectSet, null))
-                {
-                    
-                    var objectSet = this.GetObjectSet<TEntity>();
-                    
-                    
-                    this._objectSet = objectSet;
-                }*/
+                
                 return this.ObjectContext.Set<TEntity>();
-                //return this._objectSet;
             }
         }
 

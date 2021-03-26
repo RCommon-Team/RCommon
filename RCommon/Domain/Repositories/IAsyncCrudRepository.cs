@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Domain.Repositories
 {
-    public interface IAsyncCrudRepository<TEntity> : IQueryable<TEntity>, IAsyncReadOnlyRepository<TEntity>, IAsyncWriteOnlyRepository<TEntity>
+    public interface IAsyncCrudRepository<TEntity> : IAsyncReadOnlyRepository<TEntity>, IAsyncWriteOnlyRepository<TEntity>
     {
 
     }

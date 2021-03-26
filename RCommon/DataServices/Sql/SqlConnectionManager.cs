@@ -8,23 +8,15 @@ using System.Threading.Tasks;
 
 namespace RCommon.DataServices.Sql
 {
-    public class SqlConnectionManager : IDataStore
+    public class SqlConnectionManager : DisposableResource, ISqlConnectionManager
     {
 
         public SqlConnectionManager()
         {
-            
+
         }
 
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            throw new NotImplementedException();
-        }
+        
 
         public IDbConnection GetSqlDbConnection(string providerInvariantName, string connectionString)
         {

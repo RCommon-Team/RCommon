@@ -29,7 +29,7 @@ namespace RCommon.Domain.Repositories
     /// A base class for implementors of <see cref="IRepository{TEntity}"/>.
     ///</summary>
     ///<typeparam name="TEntity"></typeparam>
-    public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IEagerFetchingRepository<TEntity>, IGraphRepository<TEntity>, INamedDataSource
+    public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IEagerFetchingRepository<TEntity>, IGraphRepository<TEntity>, IQueryable<TEntity>, INamedDataSource
         where TEntity : class
     {
 

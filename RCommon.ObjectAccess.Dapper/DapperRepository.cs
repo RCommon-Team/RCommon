@@ -10,6 +10,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
+using System.Reflection;
+using System.ComponentModel;
 
 namespace RCommon.ObjectAccess.Dapper
 {
@@ -28,11 +31,54 @@ namespace RCommon.ObjectAccess.Dapper
         }
 
 
-        protected override IQueryable<TEntity> RepositoryQuery => throw new NotImplementedException();
+        
 
-        public override Task AddAsync(TEntity entity)
+        protected string EntitySetName =>
+            this.ObjectContext.GetType().GetProperties().Single<PropertyInfo>(delegate (PropertyInfo p)
+            {
+                bool flag1;
+                if (!p.PropertyType.IsGenericType)
+                {
+                    flag1 = false;
+                }
+                else
+                {
+                    Type[] typeArguments = new Type[] { typeof(TEntity) };
+                    flag1 = typeof(IQueryable<>).MakeGenericType(typeArguments).IsAssignableFrom(p.PropertyType);
+                }
+                return flag1;
+            }).Name;
+
+        public async override Task AddAsync(TEntity entity)
         {
-            throw new NotImplementedException();
+            var insertQuery = this.GenerateInsertQuery();
+
+            using (var connection = this.SqlConnectionManager.GetSqlDbConnection("providerName", "connSTring"))
+            {
+                await connection.ExecuteAsync(insertQuery, entity);
+            }
+        }
+
+        private string GenerateInsertQuery()
+        {
+            var insertQuery = new StringBuilder($"INSERT INTO {_tableName} ");
+
+            insertQuery.Append("(");
+
+            var properties = GenerateListOfProperties(GetProperties);
+            properties.ForEach(prop => { insertQuery.Append($"[{prop}],"); });
+
+            insertQuery
+                .Remove(insertQuery.Length - 1, 1)
+                .Append(") VALUES (");
+
+            properties.ForEach(prop => { insertQuery.Append($"@{prop},"); });
+
+            insertQuery
+                .Remove(insertQuery.Length - 1, 1)
+                .Append(")");
+
+            return insertQuery.ToString();
         }
 
         public override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression)
@@ -97,27 +143,30 @@ namespace RCommon.ObjectAccess.Dapper
 
         public override Task UpdateAsync(TEntity entity)
         {
-            throw new NotImplementedException();
+            //var cmd = this.SqlConnectionManager.GetSqlDbConnection("providerName", "connSTring").CreateCommand();
+            //cmd.
         }
 
-        private IQueryable<TEntity> FindCore(Expression<Func<TEntity, bool>> expression)
+        private string GenerateUpdateQuery()
         {
-            IQueryable<TEntity> queryable;
-            try
-            {
-                Guard.Against<NullReferenceException>(this.RepositoryQuery == null, "RepositoryQuery is null");
+            var updateQuery = new StringBuilder($"UPDATE {_tableName} SET ");
+            var properties = GenerateListOfProperties(GetProperties);
 
-                queryable = this.RepositoryQuery.Where<TEntity>(expression);
-            }
-            catch (ApplicationException exception)
+            properties.ForEach(property =>
             {
-                this._logger.LogError(exception, "Error in Repository.FindCore: " + base.GetType().ToString() + " while executing a query on the DataStore.", expression);
-                throw new RepositoryException("Error in Repository: " + base.GetType().ToString() + " while executing a query on the DataStore.", exception.GetBaseException());
-            }
-            return queryable;
+                if (!property.Equals("Id"))
+                {
+                    updateQuery.Append($"{property}=@{property},");
+                }
+            });
+
+            updateQuery.Remove(updateQuery.Length - 1, 1); //remove last comma
+            updateQuery.Append(" WHERE Id=@Id");
+
+            return updateQuery.ToString();
         }
 
-        protected internal IDbConnection DbConnection
+        protected internal ISqlConnectionManager SqlConnectionManager
         {
             get
             {
@@ -125,11 +174,23 @@ namespace RCommon.ObjectAccess.Dapper
                 if (this._unitOfWorkManager.CurrentUnitOfWork != null)
                 {
 
-                    return this._dataStoreProvider.GetDataStore<IDbConnection>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName);
+                    return this._dataStoreProvider.GetDataStore<ISqlConnectionManager>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName);
 
                 }
-                return this._dataStoreProvider.GetDataStore<IDbConnection>(this.DataStoreName);
+                return this._dataStoreProvider.GetDataStore<ISqlConnectionManager>(this.DataStoreName);
             }
         }
+
+        private static List<string> GenerateListOfProperties(IEnumerable<PropertyInfo> listOfProperties)
+        {
+            return (from prop in listOfProperties
+                    let attributes = prop.GetCustomAttributes(typeof(DescriptionAttribute), false)
+                    where attributes.Length <= 0 || (attributes[0] as DescriptionAttribute)?.Description != "ignore"
+                    select prop.Name).ToList();
+        }
+
+        private IEnumerable<PropertyInfo> GetProperties => typeof(TEntity).GetProperties();
+
+
     }
 }
