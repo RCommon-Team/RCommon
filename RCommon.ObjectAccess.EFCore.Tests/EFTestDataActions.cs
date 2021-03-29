@@ -123,7 +123,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         {
             
             var customer = _generator.Context.Set<Customer>()
-                .Where(x => x.CustomerId == customerId)
+                .Where(x => x.Id == customerId)
                 .FirstOrDefault();
             if (customer != null)
                 _generator.EntityDeleteActions.Add(x => x.Set<Customer>().Remove(customer));

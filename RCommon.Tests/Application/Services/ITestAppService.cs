@@ -1,4 +1,5 @@
-﻿using RCommon.Application.Services;
+﻿
+using RCommon.ApplicationServices;
 using RCommon.ObjectAccess.EFCore.Tests;
 using RCommon.Tests.Application.DTO;
 using System;

@@ -16,6 +16,7 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
+using RCommon.BusinessEntities;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -24,7 +25,7 @@ using System.Threading.Tasks;
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
     // Orders
-    public partial class Order
+    public partial class Order : IBusinessEntity
     {
         public int OrderId { get; set; } // OrderID (Primary key)
         public DateTime? OrderDate { get; set; } // OrderDate
@@ -52,6 +53,11 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         partial void InitializePartial();
+
+        public object[] GetKeys()
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

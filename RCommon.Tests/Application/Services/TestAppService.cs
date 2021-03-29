@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using Castle.Core.Logging;
 using Microsoft.Extensions.Logging;
-using RCommon.Application.DTO;
-using RCommon.Application.Services;
+using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
 using RCommon.ExceptionHandling;
 using RCommon.ObjectAccess.EFCore.Tests;

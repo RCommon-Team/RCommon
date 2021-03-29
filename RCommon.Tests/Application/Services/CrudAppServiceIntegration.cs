@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.Domain.Repositories;
+using RCommon.ObjectAccess;
 using RCommon.ObjectAccess.EFCore;
 using RCommon.ObjectAccess.EFCore.Tests;
 using RCommon.TestBase;
@@ -13,7 +13,6 @@ using RCommon.Tests.Application.DTO;
 using RCommon.Tests.Domain.Services;
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace RCommon.Tests.Application.Services
@@ -28,8 +27,8 @@ namespace RCommon.Tests.Application.Services
         {
             var services = new ServiceCollection();
 
-            services.AddTransient<IEagerFetchingRepository<Customer>, EFCoreRepository<Customer>>();
-            services.AddTransient<IEagerFetchingRepository<Order>, EFCoreRepository<Order>>();
+            services.AddTransient<IFullFeaturedRepository<Customer>, EFCoreRepository<Customer>>();
+            services.AddTransient<IFullFeaturedRepository<Order>, EFCoreRepository<Order>>();
 
             services.AddTransient<ITestDomainService, TestDomainService>();
             services.AddTransient<ITestAppService, TestAppService>();
@@ -127,7 +126,7 @@ namespace RCommon.Tests.Application.Services
             testData = new EFTestData(_context);
 
             Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
+            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.Id));
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, firstName);
@@ -150,7 +149,7 @@ namespace RCommon.Tests.Application.Services
             var result = service.DeleteAsync(customerDto);
 
             Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.CustomerId));
+            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.Id));
 
             Assert.IsNull(savedCustomer);
         }
@@ -158,7 +157,7 @@ namespace RCommon.Tests.Application.Services
        
 
         [Test]
-        public void Can_GetById_Async()
+        public async void Can_GetById_Async()
         {
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
@@ -167,7 +166,7 @@ namespace RCommon.Tests.Application.Services
 
             var service = this.ServiceProvider.GetService<ITestAppService>();
 
-            var result = service.GetByIdAsync(customer.CustomerId).Result;
+            var result = await service.GetByIdAsync(customer.Id);
 
             Assert.IsNotNull(result.DataResult);
             Assert.IsTrue(customer.FirstName == result.DataResult.FirstName);

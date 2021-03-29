@@ -1,6 +1,7 @@
 
 
 using System;
+using System.Threading.Tasks;
 
 namespace RCommon.DataServices.Transactions
 {
@@ -12,7 +13,7 @@ namespace RCommon.DataServices.Transactions
         /// <summary>
         /// Flushes the changes made in the unit of work to the data store.
         /// </summary>
-        void Flush();
+        Task FlushAsync();
 
         Nullable<Guid> TransactionId { get; set; }
 

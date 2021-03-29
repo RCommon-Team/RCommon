@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RCommon.BusinessEntities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.ObjectAccess.EFCore
 {
-    public interface IEFCoreRepository<TEntity> where TEntity : class
+    public interface IEFCoreRepository<TEntity> where TEntity : IBusinessEntity
     {
         bool Tracking { get; set; }
 

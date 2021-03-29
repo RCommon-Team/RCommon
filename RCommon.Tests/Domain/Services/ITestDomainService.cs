@@ -1,5 +1,4 @@
-﻿using RCommon.Application.Services;
-using RCommon.Domain.DomainServices;
+﻿using RCommon.BusinessServices;
 using RCommon.ObjectAccess.EFCore.Tests;
 using RCommon.Tests.Application.DTO;
 using System;
@@ -8,7 +7,7 @@ using System.Text;
 
 namespace RCommon.Tests.Domain.Services
 {
-    public interface ITestDomainService : ICrudDomainService<Customer>
+    public interface ITestDomainService : ICrudBusinessService<Customer>
     {
     }
 }

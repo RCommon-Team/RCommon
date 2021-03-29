@@ -4,9 +4,9 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using RCommon;
+    using RCommon.BusinessEntities;
     using RCommon.DataServices;
     using RCommon.DataServices.Transactions;
-    using RCommon.Domain.Repositories;
     using RCommon.Expressions;
     using RCommon.Extensions;
     using System;
@@ -25,7 +25,8 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity> where TEntity : class
+    public class EFCoreRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity>
+        where TEntity : class, IBusinessEntity
     {
         private readonly List<string> _includes;
         private readonly Dictionary<Type, object> _objectSets;

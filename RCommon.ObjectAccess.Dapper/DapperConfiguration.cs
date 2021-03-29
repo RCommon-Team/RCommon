@@ -1,6 +1,6 @@
 ﻿using RCommon.Configuration;
+using RCommon.DataServices.Sql;
 using RCommon.DependencyInjection;
-using RCommon.Domain.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +22,7 @@ namespace RCommon.ObjectAccess.Dapper
         {
 
             // EF Core Repository
-            containerAdapter.AddGeneric(typeof(IAsyncCrudRepository<>), typeof(DapperRepository<>));
+            containerAdapter.AddGeneric(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
 
             // Registered DbContexts
             foreach (var dbContext in _dbContextTypes)
@@ -34,13 +34,11 @@ namespace RCommon.ObjectAccess.Dapper
         }
 
 
-        public IObjectAccessConfiguration UsingDbContext<TDbContext>()
-            where TDbContext : RCommonDbContext
+        public IObjectAccessConfiguration UsingSqlConnectionManager<TDbContext>()
+            where TDbContext : ISqlConnectionManager
         {
             var dbContext = typeof(TDbContext).AssemblyQualifiedName;
             _dbContextTypes.Add(dbContext);
-
-            //_dbContextType = Activator.CreateInstance(typeof(TDbContext));
 
             return this;
         }

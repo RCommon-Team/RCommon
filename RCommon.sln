@@ -35,8 +35,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase", "RCommon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ObjectAccess.Dapper", "RCommon.ObjectAccess.Dapper\RCommon.ObjectAccess.Dapper.csproj", "{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.DataServices.Sql.SqlServer", "RCommon.DataServices.Sql.SqlServer\RCommon.DataServices.Sql.SqlServer.csproj", "{C4F2E130-4632-4F81-8A69-2F73CCFC4F6F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,10 +97,6 @@ Global
 		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C4F2E130-4632-4F81-8A69-2F73CCFC4F6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C4F2E130-4632-4F81-8A69-2F73CCFC4F6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C4F2E130-4632-4F81-8A69-2F73CCFC4F6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C4F2E130-4632-4F81-8A69-2F73CCFC4F6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -20,7 +20,6 @@ using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
 using RCommon.ObjectAccess;
 using NHibernate;
-using RCommon.Domain.Repositories;
 
 namespace RCommon.ObjectAccess.NHibernate
 {
@@ -39,7 +38,7 @@ namespace RCommon.ObjectAccess.NHibernate
         /// registering components.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
-            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(NHRepository<>));
+            containerAdapter.AddGeneric(typeof(IFullFeaturedRepository<>), typeof(NHRepository<>));
         }
 
 

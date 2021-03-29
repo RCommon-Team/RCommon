@@ -8,7 +8,6 @@ using RCommon.ObjectAccess;
 using NHibernate;
 using NHibernate.Linq;
 using NHibernate.Transform;
-using RCommon.Domain.Repositories;
 using RCommon.DataServices.Transactions;
 using RCommon.Expressions;
 using System;
@@ -16,6 +15,7 @@ using System.Linq.Expressions;
 using System.IO;
 using System.Threading.Tasks;
 using RCommon.DataServices;
+using RCommon.BusinessEntities;
 
 namespace RCommon.ObjectAccess.NHibernate
 {
@@ -23,7 +23,8 @@ namespace RCommon.ObjectAccess.NHibernate
     /// Inherits from the <see cref="FullFeaturedRepositoryBase{TEntity}"/> class to provide an implementation of a
     /// repository that uses NHibernate.
     /// </summary>
-    public class NHRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, INHRepository<TEntity> where TEntity : class
+    public class NHRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, INHRepository<TEntity> 
+        where TEntity : class, IBusinessEntity
     {
         //int _batchSize = -1;
         //bool _enableCached;
@@ -77,7 +78,9 @@ namespace RCommon.ObjectAccess.NHibernate
             }
         }
 
-       
+        public override bool Tracking { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+
         /// <summary>
         /// Attaches a detached entity, previously detached via the <see cref="IRepository{TEntity}.Detach"/> method.
         /// </summary>
@@ -167,6 +170,11 @@ namespace RCommon.ObjectAccess.NHibernate
         public async override Task<bool> AnyAsync(ISpecification<TEntity> specification)
         {
             return await SessionFactory.GetCurrentSession().Query<TEntity>().AnyAsync(specification.Predicate);
+        }
+
+        public override Task DetachAsync(TEntity entity)
+        {
+            throw new NotImplementedException();
         }
     }
 }

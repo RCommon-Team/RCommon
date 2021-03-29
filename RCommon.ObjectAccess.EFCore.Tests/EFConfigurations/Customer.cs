@@ -16,6 +16,7 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
+using RCommon.BusinessEntities;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -24,9 +25,8 @@ using System.Threading.Tasks;
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
     // Customers
-    public partial class Customer
+    public partial class Customer : IBusinessEntity<int>
     {
-        public int CustomerId { get; set; } // CustomerID (Primary key)
         public string StreetAddress1 { get; set; } // StreetAddress1 (length: 255)
         public string StreetAddress2 { get; set; } // StreetAddress2 (length: 255)
         public string City { get; set; } // City (length: 255)
@@ -42,6 +42,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         /// </summary>
         public virtual ICollection<Order> Orders { get; set; } // Orders.FK_Customer_Orders
 
+        public int Id { get; set; }
+
         public Customer()
         {
             Orders = new List<Order>();
@@ -49,6 +51,11 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         partial void InitializePartial();
+
+        public object[] GetKeys()
+        {
+            return new object[] { Id };
+        }
     }
 
 }
