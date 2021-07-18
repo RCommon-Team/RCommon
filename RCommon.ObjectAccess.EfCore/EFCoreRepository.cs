@@ -36,6 +36,7 @@
         //private DbSet<TEntity> _objectSet;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
+        private DbContext _objectContext;
 
 
 
@@ -241,14 +242,20 @@
         {
             get
             {
-
-                if (this._unitOfWorkManager.CurrentUnitOfWork != null)
+                if (_objectContext == null)
                 {
+                    var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                    if (uow != null)
+                    {
+                        _objectContext = (RCommonDbContext)this._dataStoreProvider.GetDataStore(uow.TransactionId.Value, this.DataStoreName);
 
-                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName);
-
+                    }
+                    else
+                    {
+                        _objectContext = (RCommonDbContext)this._dataStoreProvider.GetDataStore(this.DataStoreName);
+                    }
                 }
-                return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this.DataStoreName);
+                return _objectContext;
             }
         }
 

@@ -8,6 +8,7 @@ using NHibernate.Cfg;
 using NHibernate.Dialect;
 using NHibernate.Driver;
 using NHibernate.Mapping.ByCode;
+using System.Data;
 
 namespace RCommon.ObjectAccess.NHibernate
 {
@@ -50,6 +51,11 @@ namespace RCommon.ObjectAccess.NHibernate
 		{
             return this.SessionFactory.OpenSession();
 		}
+
+        public IDbConnection GetDbConnection()
+        {
+            return this.OpenSession().Connection;
+        }
 
         public ISessionFactory SessionFactory => _sessionFactory;
 

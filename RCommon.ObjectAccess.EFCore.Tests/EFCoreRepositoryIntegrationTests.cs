@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using System;
 using System.Diagnostics;
@@ -17,7 +18,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
     {
 
-        private TestDbContext _context;
+        private RCommonDbContext _context;
+        private EFTestDataActions _testDataActions;
         
 
         public EFCoreRepositoryIntegrationTests() : base()
@@ -26,6 +28,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             services.AddTransient<IFullFeaturedRepository<Customer>, EFCoreRepository<Customer>>();
             services.AddTransient<IFullFeaturedRepository<Order>, EFCoreRepository<Order>>();
+            
             
             //services.AddTransient<IEFCoreRepository<Customer>, EFCoreRepository<Customer, TestDbContext>>();
             //services.AddTransient<IEFCoreRepository<Order>, EFCoreRepository<Order, TestDbContext>>();
@@ -48,18 +51,22 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             //_context = this.ServiceProvider.GetService<RCommonDbContext>();
             this.Logger.LogInformation("Beginning New Test Setup", null);
 
-
+            // Setup the context
+            var dataStoreProvider = this.ServiceProvider.GetService<IDataStoreProvider>();
+            _context = (RCommonDbContext)dataStoreProvider.GetDataStore("TestDbContext");
+            var testData = new EFTestData(_context);
+            _testDataActions = new EFTestDataActions(testData);
         }
 
         [TearDown]
-        public void TearDown()
+        public async Task TearDown()
         {
             this.Logger.LogInformation("Tearing down Test", null);
-            _context.Database.ExecuteSqlInterpolated($"DELETE OrderItems");
-            _context.Database.ExecuteSqlInterpolated($"DELETE Products");
-            _context.Database.ExecuteSqlInterpolated($"DELETE Orders");
-            _context.Database.ExecuteSqlInterpolated($"DELETE Customers");
-            _context.Dispose();
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE OrderItems");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Products");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Orders");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Customers");
+            await _context.DisposeAsync();
         }
 
         [Test]
@@ -85,7 +92,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer(x => x.FirstName = "Albus");
+            var customer = await testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
 
             var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
             repo.DataStoreName = "TestDbContext";
@@ -125,10 +132,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public async Task Can_Add_Async()
         {
             // Generate Test Data
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            Customer customer = testDataActions.CreateCustomerStub(x=>x.FirstName = "Severnus");
+            Customer customer = _testDataActions.CreateCustomerStub(x=>x.FirstName = "Severnus");
 
 
             // Start Test
@@ -137,7 +141,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             await repo.AddAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetFirstCustomer(x=>x.FirstName == "Severnus");
+            savedCustomer = _testDataActions.GetFirstCustomer(x=>x.FirstName == "Severnus");
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
@@ -151,7 +155,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            Customer customer = testDataActions.CreateCustomer();
+            Customer customer = await testDataActions.CreateCustomerAsync();
 
             // Start Test
             var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
@@ -176,7 +180,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            Customer customer = testDataActions.CreateCustomer();
+            Customer customer = await testDataActions.CreateCustomerAsync();
 
             // Start Test
             var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
@@ -198,10 +202,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public async Task Can_Delete_Async()
         {
             // Generate Test Data
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            Customer customer = testDataActions.CreateCustomer();
+            Customer customer = await _testDataActions.CreateCustomerAsync();
 
             // Start Test
             var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
@@ -209,7 +210,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             await repo.DeleteAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetCustomerById(customer.Id);
+            savedCustomer = _testDataActions.GetCustomerById(customer.Id);
 
             Assert.IsNull(savedCustomer);
 
@@ -218,28 +219,25 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         [Test]
         public async Task UnitOfWork_Can_commit()
-        {
-            // Generate Test Data
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            Customer customer = testDataActions.CreateCustomerStub();
+        { 
+            Customer customer = _testDataActions.CreateCustomerStub();
 
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
 
             // Start Test
             using (var scope = scopeFactory.Create())
             {
-                var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                
                 repo.DataStoreName = "TestDbContext";
                 await repo.AddAsync(customer);
                 scope.Commit();
             }
 
-            Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetCustomerById(customer.Id);
+            Customer savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.Id == customer.Id);
+            //savedCustomer = _testDataActions.GetCustomerById(customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.Id, customer.Id);
@@ -250,11 +248,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public async Task UnitOfWork_can_rollback()
         {
             // Generate Test Data
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            Customer customer = null;
-            testData.Batch(action => customer = action.CreateCustomer());
+            
+            Customer customer = await _testDataActions.CreateCustomerAsync();
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
@@ -268,11 +263,11 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 customer.LastName = "Changed";
                 await repo.UpdateAsync(customer);
 
-
+                
             } //Dispose here as scope is not comitted.
 
             Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetCustomerById(customer.Id);
+            savedCustomer = _testDataActions.GetCustomerById(customer.Id);
             Assert.AreNotEqual(customer.LastName, savedCustomer.LastName);
         }
 
@@ -554,7 +549,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
+            var customer = await testDataActions.CreateCustomerAsync();
             for (int i = 0; i < 10; i++)
             {
                 testDataActions.CreateOrderForCustomer(customer);
@@ -576,13 +571,10 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         [Test]
         public async Task Can_eager_load_repository_and_query_async()
         {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
+            var customer = await _testDataActions.CreateCustomerAsync();
             for (int i = 0; i < 10; i++)
             {
-                testDataActions.CreateOrderForCustomer(customer);
+                _testDataActions.CreateOrderForCustomer(customer);
             }
 
             var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();

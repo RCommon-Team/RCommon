@@ -34,10 +34,10 @@ namespace RCommon.ObjectAccess.Dapper
         }
 
 
-        public IObjectAccessConfiguration UsingSqlConnectionManager<TDbContext>()
-            where TDbContext : ISqlConnectionManager
+        public IObjectAccessConfiguration UsingDbConnectionManager<TDbConnection>()
+            where TDbConnection : IRDbConnection
         {
-            var dbContext = typeof(TDbContext).AssemblyQualifiedName;
+            var dbContext = typeof(TDbConnection).AssemblyQualifiedName;
             _dbContextTypes.Add(dbContext);
 
             return this;

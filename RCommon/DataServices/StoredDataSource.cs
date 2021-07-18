@@ -7,13 +7,16 @@ namespace RCommon.DataServices
 {
     public class StoredDataSource : IStoredDataSource
     {
-        public StoredDataSource(Guid transactionId, IDataStore dataStore)
+        public StoredDataSource(Guid transactionId, Type dataStore, string dataStoreName)
         {
             TransactionId = transactionId;
-            DataStore = dataStore;
+            Type = dataStore;
+            DataStoreName = dataStoreName;
         }
 
         public Guid TransactionId { get; }
-        public IDataStore DataStore { get; }
+        public Type Type { get; }
+
+        public string DataStoreName { get; set; }
     }
 }

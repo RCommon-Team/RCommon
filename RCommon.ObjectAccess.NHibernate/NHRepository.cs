@@ -49,14 +49,17 @@ namespace RCommon.ObjectAccess.NHibernate
         {
             get
             {
-                if (this._unitOfWorkManager.CurrentUnitOfWork != null)
+                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                RCommonSessionFactory factory;
+                if (uow != null)
                 {
-
-                    return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName).SessionFactory;
+                    factory = (RCommonSessionFactory)this._dataStoreProvider.GetDataStore(uow.TransactionId.Value, this.DataStoreName);
+                    return factory.SessionFactory;
 
                 }
 
-                return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this.DataStoreName).SessionFactory;
+                factory = (RCommonSessionFactory)this._dataStoreProvider.GetDataStore(this.DataStoreName);
+                return factory.SessionFactory;
             }
         }
 

@@ -5,17 +5,10 @@ namespace RCommon.DataServices
 {
     public interface IDataStoreProvider
     {
-        TDataStore GetDataStore<TDataStore>() where TDataStore : IDataStore;
-        TDataStore GetDataStore<TDataStore>(Guid transactionId, string dataStoreName = null) where TDataStore : IDataStore;
-
-        TDataStore GetDataStore<TDataStore>(string dataStoreName = null)
-            where TDataStore : IDataStore;
-
-       void RegisterDataStore<TDataStore>(Guid transactionId, TDataStore dataStore) where TDataStore : IDataStore;
-
-
+        IDataStore GetDataStore(Guid transactionId, string dataStoreName);
+        IDataStore GetDataStore(string dataStoreName);
         IEnumerable<StoredDataSource> GetRegisteredDataStores(Func<StoredDataSource, bool> criteria);
-
+        void RegisterDataStore(Guid transactionId, Type dataStore, string dataStoreName);
         void RemoveRegisterdDataStores(Guid transactionId);
     }
 }

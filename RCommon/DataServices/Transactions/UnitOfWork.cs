@@ -19,12 +19,12 @@ namespace RCommon.DataServices.Transactions
     {
         private bool _disposed;
         private readonly IDataStoreProvider _dataStoreProvider;
+        private readonly IServiceProvider _serviceProvider;
 
-        
-
-        public UnitOfWork(IDataStoreProvider dataStoreProvider)
+        public UnitOfWork(IDataStoreProvider dataStoreProvider, IServiceProvider serviceProvider)
         {
             this._dataStoreProvider = dataStoreProvider;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task FlushAsync()
@@ -34,9 +34,9 @@ namespace RCommon.DataServices.Transactions
 
             foreach (var item in registeredTypes)
             {
-                
-                await item.DataStore.PersistChangesAsync();
-                await item.DataStore.DisposeAsync();
+                var dataStore = (IDataStore)this._serviceProvider.GetService(item.Type);
+                await dataStore.PersistChangesAsync();
+                //await dataStore.DisposeAsync();
             }
 
             this._dataStoreProvider.RemoveRegisterdDataStores(this.TransactionId.Value);

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
@@ -39,12 +40,12 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             return CreateCustomerStub(x => { });
         }
 
-        public Customer CreateCustomer()
+        public async Task<Customer> CreateCustomerAsync()
         {
-            return CreateCustomer(x => { });
+            return await CreateCustomerAsync(x => { });
         }
 
-        public Customer CreateCustomer(Action<Customer> customize)
+        public async Task<Customer> CreateCustomerAsync(Action<Customer> customize)
         {
 
             var customer = new Faker<Customer>()
@@ -57,8 +58,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
                 .Generate();
             customize(customer);
-            _generator.Context.Set<Customer>().Add(customer);
-            _generator.Context.SaveChanges();
+            await _generator.Context.Set<Customer>().AddAsync(customer);
+            await _generator.Context.SaveChangesAsync();
             return customer;
         }
 
@@ -82,8 +83,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.ShipDate, f => f.Date.Past(2))
                 .Generate();
             customize(order);
-            _generator.Context.Set<Order>().Add(order);
-            _generator.Context.SaveChanges();
+            _generator.Context.Set<Order>().AddAsync(order);
+            _generator.Context.SaveChangesAsync();
 
             return order;
         }
@@ -115,7 +116,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                     .RuleFor(x => x.Description, f => f.Commerce.ProductMaterial())
                     .RuleFor(x => x.Name, f => f.Commerce.ProductName())
                     .Generate();
-            _generator.Context.Set<Product>().Add(product);
+            _generator.Context.Set<Product>().AddAsync(product);
+            _generator.Context.SaveChangesAsync();
             return product;
         }
 

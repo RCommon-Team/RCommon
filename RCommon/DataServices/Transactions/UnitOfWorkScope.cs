@@ -48,20 +48,6 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         public event Action<IUnitOfWorkScope> ScopeRollingback;
 
-
-
-        /// <summary>
-        /// Overloaded Constructor.
-        /// Creates a new instance of the <see cref="UnitOfWorkScope"/> class.
-        /// </summary>
-        /// <param name="mode">A <see cref="TransactionMode"/> enum specifying the transation mode
-        /// of the unit of work.</param>
-        /*public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager)
-        {
-            unitOfWorkManager.CurrentTransactionManager.EnlistScopeAsync(this, TransactionMode.Default);
-            TransactionMode = TransactionMode.Default;
-        }*/
-
         public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager)
         {
             // EnlistScopeAsync should only get called from Factory

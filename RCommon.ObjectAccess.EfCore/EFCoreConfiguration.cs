@@ -44,7 +44,7 @@ namespace RCommon.ObjectAccess.EFCore
         {
 
             // EF Core Repository
-            containerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
+            containerAdapter.AddGeneric(typeof(IFullFeaturedRepository<>), typeof(EFCoreRepository<>));
 
             // Registered DbContexts
             foreach (var dbContext in _dbContextTypes)
