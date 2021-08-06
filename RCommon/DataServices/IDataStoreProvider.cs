@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RCommon.DataServices
 {
     public interface IDataStoreProvider
     {
-        IDataStore GetDataStore(Guid transactionId, string dataStoreName);
-        IDataStore GetDataStore(string dataStoreName);
+        TDataStore GetDataStore<TDataStore>() where TDataStore : IDataStore;
+        TDataStore GetDataStore<TDataStore>(Guid transactionId, string dataStoreName = null) where TDataStore : IDataStore;
+
+        TDataStore GetDataStore<TDataStore>(string dataStoreName = null)
+            where TDataStore : IDataStore;
+
+        void RegisterDataStore<TDataStore>(Guid transactionId, TDataStore dataStore) where TDataStore : IDataStore;
+
+
         IEnumerable<StoredDataSource> GetRegisteredDataStores(Func<StoredDataSource, bool> criteria);
-        void RegisterDataStore(Guid transactionId, Type dataStore, string dataStoreName);
-        void RemoveRegisterdDataStores(Guid transactionId);
+
+        Task RemoveRegisterdDataStoresAsync(Guid transactionId);
     }
 }

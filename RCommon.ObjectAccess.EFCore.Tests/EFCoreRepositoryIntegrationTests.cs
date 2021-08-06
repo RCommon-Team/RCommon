@@ -53,7 +53,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             // Setup the context
             var dataStoreProvider = this.ServiceProvider.GetService<IDataStoreProvider>();
-            _context = (RCommonDbContext)dataStoreProvider.GetDataStore("TestDbContext");
+            _context = dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
             var testData = new EFTestData(_context);
             _testDataActions = new EFTestDataActions(testData);
         }
@@ -145,6 +145,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
+            Assert.IsTrue(savedCustomer.Id > 0);
 
         }
 
@@ -221,6 +222,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public async Task UnitOfWork_Can_commit()
         { 
             Customer customer = _testDataActions.CreateCustomerStub();
+
 
 
             // Setup required services

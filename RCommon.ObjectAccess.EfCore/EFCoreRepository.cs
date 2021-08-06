@@ -36,7 +36,6 @@
         //private DbSet<TEntity> _objectSet;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
-        private DbContext _objectContext;
 
 
 
@@ -78,7 +77,7 @@
             return this.ObjectSet.AsQueryable<TEntity>();
         }
 
-        
+
 
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
@@ -151,7 +150,7 @@
             return entry;
         }*/
 
-        
+
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification)
         {
             return await this.FindCore(specification.Predicate).ToListAsync();
@@ -242,20 +241,14 @@
         {
             get
             {
-                if (_objectContext == null)
-                {
-                    var uow = this._unitOfWorkManager.CurrentUnitOfWork;
-                    if (uow != null)
-                    {
-                        _objectContext = (RCommonDbContext)this._dataStoreProvider.GetDataStore(uow.TransactionId.Value, this.DataStoreName);
 
-                    }
-                    else
-                    {
-                        _objectContext = (RCommonDbContext)this._dataStoreProvider.GetDataStore(this.DataStoreName);
-                    }
+                if (this._unitOfWorkManager.CurrentUnitOfWork != null)
+                {
+
+                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName);
+
                 }
-                return _objectContext;
+                return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this.DataStoreName);
             }
         }
 
@@ -265,7 +258,7 @@
         {
             get
             {
-                
+
                 return this.ObjectContext.Set<TEntity>();
             }
         }
@@ -296,8 +289,8 @@
                 }
 
                 // Start Eagerloading
-                
-                
+
+
                 if (this._includes.Count > 0)
                 {
                     Action<string> action = null;

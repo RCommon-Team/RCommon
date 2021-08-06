@@ -49,7 +49,7 @@ namespace RCommon.ObjectAccess.NHibernate
         {
             get
             {
-                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                /*var uow = this._unitOfWorkManager.CurrentUnitOfWork;
                 RCommonSessionFactory factory;
                 if (uow != null)
                 {
@@ -59,7 +59,8 @@ namespace RCommon.ObjectAccess.NHibernate
                 }
 
                 factory = (RCommonSessionFactory)this._dataStoreProvider.GetDataStore(this.DataStoreName);
-                return factory.SessionFactory;
+                return factory.SessionFactory;*/
+                return null;
             }
         }
 

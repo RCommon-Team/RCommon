@@ -34,12 +34,12 @@ namespace RCommon.DataServices.Transactions
 
             foreach (var item in registeredTypes)
             {
-                var dataStore = (IDataStore)this._serviceProvider.GetService(item.Type);
-                await dataStore.PersistChangesAsync();
-                //await dataStore.DisposeAsync();
+                await item.DataStore.PersistChangesAsync();
+                //await dataStore.PersistChangesAsync();
+                await item.DataStore.DisposeAsync();
             }
 
-            this._dataStoreProvider.RemoveRegisterdDataStores(this.TransactionId.Value);
+           await _dataStoreProvider.RemoveRegisterdDataStoresAsync(this.TransactionId.Value);
         }
 
 

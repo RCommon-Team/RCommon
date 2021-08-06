@@ -43,13 +43,14 @@ namespace RCommon.ObjectAccess
         {
             get
             {
-                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                /*var uow = this._unitOfWorkManager.CurrentUnitOfWork;
                 if (uow != null)
                 {
                     return this._dataStoreProvider.GetDataStore(uow.TransactionId.Value, this.DataStoreName).GetDbConnection();
 
                 }
-                return this._dataStoreProvider.GetDataStore(this.DataStoreName).GetDbConnection();
+                return this._dataStoreProvider.GetDataStore(this.DataStoreName).GetDbConnection();*/
+                return null;
             }
         }
     }

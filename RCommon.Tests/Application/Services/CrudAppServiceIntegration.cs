@@ -14,6 +14,7 @@ using RCommon.Tests.Domain.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RCommon.Tests.Application.Services
 {
@@ -106,12 +107,12 @@ namespace RCommon.Tests.Application.Services
        
 
         [Test]
-        public void Can_Update_Async()
+        public async Task Can_Update_Async()
         {
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
+            var customer = await testDataActions.CreateCustomerAsync();
 
             var service = this.ServiceProvider.GetService<ITestAppService>();
             var mapper = this.ServiceProvider.GetService<IMapper>();
@@ -135,12 +136,12 @@ namespace RCommon.Tests.Application.Services
         
 
         [Test]
-        public void Can_Delete_Async()
+        public async Task Can_Delete_Async()
         {
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
+            var customer = await testDataActions.CreateCustomerAsync();
 
             var service = this.ServiceProvider.GetService<ITestAppService>();
             var mapper = this.ServiceProvider.GetService<IMapper>();
@@ -157,12 +158,12 @@ namespace RCommon.Tests.Application.Services
        
 
         [Test]
-        public async void Can_GetById_Async()
+        public async Task Can_GetById_Async()
         {
             _context = new TestDbContext(this.Configuration);
             var testData = new EFTestData(_context);
             var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomer();
+            var customer = await testDataActions.CreateCustomerAsync();
 
             var service = this.ServiceProvider.GetService<ITestAppService>();
 
