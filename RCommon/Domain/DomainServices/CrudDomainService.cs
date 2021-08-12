@@ -64,8 +64,9 @@ namespace RCommon.Domain.DomainServices
                 result.ValidationResult = this.ValidateEntity(entity);
                 if (result.ValidationResult.IsValid)
                 {
-                    this.EvaluateBusinessRules(entity);
+                    
                     await _repository.AddAsync(entity);
+                    this.EvaluateBusinessRules(entity);
                     this.Logger.LogDebug("Creating entity of type {0}.", entity);
                     result.DataResult = true;
                 }
@@ -93,8 +94,9 @@ namespace RCommon.Domain.DomainServices
                 result.ValidationResult = this.ValidateEntity(entity);
                 if (result.ValidationResult.IsValid)
                 {
-                    this.EvaluateBusinessRules(entity);
+                    
                     result.DataResult = _repository.Add(entity);
+                    this.EvaluateBusinessRules(entity);
                     this.Logger.LogDebug("Creating entity of type {0}.", entity);
                 }
                 else
@@ -119,8 +121,9 @@ namespace RCommon.Domain.DomainServices
                 result.ValidationResult = this.ValidateEntity(entity);
                 if (result.ValidationResult.IsValid)
                 {
-                    this.EvaluateBusinessRules(entity);
+                    
                     _repository.Update(entity);
+                    this.EvaluateBusinessRules(entity);
                     result.DataResult = true;
                     this.Logger.LogDebug("Updating entity of type {0}.", entity);
                 }
@@ -148,8 +151,9 @@ namespace RCommon.Domain.DomainServices
                 result.ValidationResult = this.ValidateEntity(entity);
                 if (result.ValidationResult.IsValid)
                 {
-                    this.EvaluateBusinessRules(entity);
+                    
                     await _repository.UpdateAsync(entity);
+                    this.EvaluateBusinessRules(entity);
                     this.Logger.LogInformation("Updating entity of type {0}.", entity);
                     result.DataResult = true;
                 }
@@ -177,8 +181,9 @@ namespace RCommon.Domain.DomainServices
                 result.ValidationResult = this.ValidateEntity(entity);
                 if (result.ValidationResult.IsValid)
                 {
-                    this.EvaluateBusinessRules(entity);
+                    
                     _repository.Delete(entity);
+                    this.EvaluateBusinessRules(entity);
                     result.DataResult = true;
                     this.Logger.LogInformation("Deleting entity of type {0}.", entity);
                 }
@@ -206,8 +211,8 @@ namespace RCommon.Domain.DomainServices
                 result.ValidationResult = this.ValidateEntity(entity);
                 if (result.ValidationResult.IsValid)
                 {
-                    this.EvaluateBusinessRules(entity);
                     await _repository.DeleteAsync(entity);
+                    this.EvaluateBusinessRules(entity);
                     this.Logger.LogInformation("Deleting entity of type {0}.", entity);
                     result.DataResult = true;
                 }
