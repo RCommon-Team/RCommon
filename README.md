@@ -1,13 +1,13 @@
 # RCommon Application Framework
 
 ## Overview
-RCommon was originally born as the (now abandoned) [NCommon](https://github.com/riteshrao/ncommon "NCommon") project but was resurrected out of the need to generate a productive, yet a relatively sound (architecturally speaking) application. Architectural patterns are used to implement some of the most commonly used tools in the .NET Core (and soon .NET 5) stack. The primary goals of this framework are:
+RCommon was originally born as the (now abandoned) [NCommon](https://github.com/riteshrao/ncommon "NCommon") project but was resurrected out of the need to generate a productive, yet a relatively sound (architecturally speaking) application. Architectural patterns are used to implement some of the most commonly used tools in the .NET 5 stack. The primary goals of this framework are:
 1. Future proofing applications against changing architectural needs whether changes are required from lower level code (e.g. .NET Framework), or in response to changing technology conditions (e.g. using EFCore instead of Linq2Sql, NLog for Logger.NET, StructureMap vs. Autofac, etc.)
 2. Solve common problems under the presentation layer. Presentation frameworks are something else entirely. We try to keep everything nice under the hood. Cross cutting concerns, data access strategies, transaction management, validation, business rules, exception management, and logging is where we want to shine.
 3. Code testability. We try to limit the "magic" used. Things like dependency injection are used but in a very straightforward manner. Unit tests, and integration tests should be implemented to the highest degree possible. Afterall, we want the applications you build on top of this to work :) 
 4. Last but not least - open source forever. 
 
-Documentation, and tutorials can be found on main [Reactor2 website](http://reactor2.com/rcommon "Reactor2 website"). We track bugs, enhancement requests, new feature requests, and general issues on [GitHub Issues](https://github.com/Reactor2Team/RCommon/issues "GitHub Issues") and are very responsive. General "how to" and community support should be managed on [Stack Overflow](https://stackoverflow.com/questions/tagged/rcommon "Stack Overflow"). 
+We track bugs, enhancement requests, new feature requests, and general issues on [GitHub Issues](https://github.com/Reactor2Team/RCommon/issues "GitHub Issues") and are very responsive. General "how to" and community support should be managed on [Stack Overflow](https://stackoverflow.com/questions/tagged/rcommon "Stack Overflow"). 
 
 ## Repository Pattern & Object Persistence
 RCommon provides a common abstraction and underlying strategies/implementations for a variety of repositories including SQL via Dapper (soon), Entity Framework Core, Nhibernate, and MongoDB (soon) making RCommon one of the most versatile Object Access Repositories available. Each implementation is unit tested (soon) and integration tested in web, single threaded, and multithreaded hosting environments. "Full featured" object access strategies such as EFCore and NHibernate come packaged with the ability to eager load additionally entities into the IQueryable expression map.
@@ -22,7 +22,7 @@ if (includeDetails)
 
 
 ## Unit of Work & Transaction Management
-The unit of work (UoW) pattern is loosely coupled from all object access strategies but provides granular control over transactions using ACID properties. Transactions are currently implemented through the UnitOfWork and the UnitOfWorkManager which provides a wrapper for TransactionScope. Natively supported transaction providers (via Nhibernate, and EF Core) are coming soon.
+The unit of work (UoW) pattern is loosely coupled from all object access strategies but provides granular control over transactions using ACID properties. Transactions are currently implemented through the UnitOfWork and the UnitOfWorkManager which provides a wrapper for TransactionScope. 
 ```csharp
 using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
 {
@@ -168,8 +168,8 @@ public virtual async Task<CommandResult<bool>> CreateAsync(TEntity entity)
         result.ValidationResult = this.ValidateEntity(entity);
         if (result.ValidationResult.IsValid)
         {
-            this.EvaluateBusinessRules(entity);
             await _repository.AddAsync(entity);
+            this.EvaluateBusinessRules(entity);
             this.Logger.LogDebug("Creating entity of type {0}.", entity);
             result.DataResult = true;
         }
