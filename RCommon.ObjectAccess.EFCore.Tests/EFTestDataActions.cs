@@ -63,18 +63,18 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             return customer;
         }
 
-        public Order CreateOrder()
+        public async Task<Order> CreateOrder()
         {
-            return CreateOrder(x => { });
+            return await CreateOrder(x => { });
         }
 
-        public Order CreateOrderForCustomer(Customer customer)
+        public async Task<Order> CreateOrderForCustomer(Customer customer)
         {
-            var order = CreateOrder(x => x.Customer = customer);
+            var order = await CreateOrder(x => x.Customer = customer);
             return order;
         }
 
-        public Order CreateOrder(Action<Order> customize)
+        public async Task<Order> CreateOrder(Action<Order> customize)
         {
             
 
@@ -83,8 +83,8 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.ShipDate, f => f.Date.Past(2))
                 .Generate();
             customize(order);
-            _generator.Context.Set<Order>().AddAsync(order);
-            _generator.Context.SaveChangesAsync();
+            await _generator.Context.Set<Order>().AddAsync(order);
+            await _generator.Context.SaveChangesAsync();
 
             return order;
         }

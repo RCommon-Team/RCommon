@@ -112,7 +112,7 @@ namespace RCommon.DataServices.Transactions
             _logger.LogInformation("Commit signalled by scope {0} on transaction {1}.", scope.ScopeId, _transactionId);
            if (!_attachedScopes.Contains(scope))
            {
-               Dispose();
+               await DisposeAsync();
                throw new InvalidOperationException("The scope being comitted is not attached to the current transaction.");
            }
             scope.ScopeComitting -= OnScopeCommitting;
@@ -129,7 +129,7 @@ namespace RCommon.DataServices.Transactions
                 }
                 finally
                 {
-                    Dispose(); //Dispose the transaction after comitting.
+                    await DisposeAsync(); //Dispose the transaction after comitting.
                 }
             }
         }
@@ -190,7 +190,7 @@ namespace RCommon.DataServices.Transactions
         protected override async Task DisposeAsync(bool disposing)
         {
             if (_disposed)
-                await Task.CompletedTask;
+                await Task.Yield();
 
             if (disposing)
             {
@@ -220,7 +220,7 @@ namespace RCommon.DataServices.Transactions
             _transaction = null;
             _attachedScopes = null;
             _disposed = true;
-            await Task.CompletedTask;
+            await Task.Yield();
         }
 
 

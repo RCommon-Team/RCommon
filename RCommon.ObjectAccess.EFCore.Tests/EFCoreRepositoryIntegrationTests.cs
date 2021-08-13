@@ -66,7 +66,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Products");
             await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Orders");
             await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Customers");
-            await _context.DisposeAsync();
+            //await _context.DisposeAsync();
         }
 
         [Test]
@@ -76,7 +76,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             
             await this.Can_Add_Async();
             await this.Can_Delete_Async();
-            await this.Can_eager_load_repository_and_query();
             await this.Can_eager_load_repository_and_query_async();
             await this.Can_perform_simple_query();
             await this.Can_Update_Async();
@@ -182,7 +181,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
 
             // Start Test
-            using (var scope = scopeFactory.Create())
+            await using (var scope = scopeFactory.Create())
             {
                 
                 repo.DataStoreName = "TestDbContext";
@@ -467,7 +466,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
                 var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
                 repo.DataStoreName = "TestDbContext";
@@ -482,7 +481,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 }
             } //Rollback.
 
-            using (var testData = new EFTestData(_context))
+            await using (var testData = new EFTestData(_context))
             {
                 Customer savedCustomer = null;
                 Order savedOrder = null;
@@ -498,37 +497,12 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         }
 
         [Test]
-        public async Task Can_eager_load_repository_and_query()
-        {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = await testDataActions.CreateCustomerAsync();
-            for (int i = 0; i < 10; i++)
-            {
-                testDataActions.CreateOrderForCustomer(customer);
-            }
-
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.EagerlyWith(x => x.Orders);
-            repo.DataStoreName = "TestDbContext";
-            //var repo = this.ServiceProvider.GetService<IEFCoreRepository<Customer>>();
-            var savedCustomer = await repo
-                    .FindSingleOrDefaultAsync(x=>x.Id == customer.Id);
-
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.Orders != null);
-            Assert.IsTrue(savedCustomer.Orders.Count == 10);
-        }
-
-        [Test]
         public async Task Can_eager_load_repository_and_query_async()
         {
             var customer = await _testDataActions.CreateCustomerAsync();
             for (int i = 0; i < 10; i++)
             {
-                _testDataActions.CreateOrderForCustomer(customer);
+                await _testDataActions.CreateOrderForCustomer(customer);
             }
 
             var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();

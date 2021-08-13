@@ -211,6 +211,19 @@ namespace RCommon.Extensions
         }
 
         /// <summary>
+        /// ForEachAsync extension that enumerates over all items in an <see cref="LinkedList{T}"/> and executes 
+        /// an action. Each action is executed on an awaited Task.Run method.
+        /// </summary>
+        /// <typeparam name="T">The type that this extension is applicable for.</typeparam>
+        /// <param name="linkedList">The enumerator instance that this extension operates on.</param>
+        /// <param name="action">The action executed for each iten in the enumerable.</param>
+        public static async Task ForEachAsync<T>(this LinkedList<T> linkedList, Action<T> action)
+        {
+            foreach (var item in linkedList)
+                await Task.Run(() => { action(item); }).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// For Each extension that enumerates over a enumerable collection and attempts to execute 
         /// the provided action delegate and it the action throws an exception, continues enumerating.
         /// </summary>

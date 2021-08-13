@@ -35,8 +35,7 @@ namespace RCommon.DataServices.Transactions
             foreach (var item in registeredTypes)
             {
                 await item.DataStore.PersistChangesAsync();
-                //await dataStore.PersistChangesAsync();
-                //await item.DataStore.DisposeAsync();
+                //await item.DataStore.DisposeAsync(); // This should be managed through the lifetime of the DI container.
             }
 
            await _dataStoreProvider.RemoveRegisterdDataStoresAsync(this.TransactionId.Value);
@@ -45,30 +44,7 @@ namespace RCommon.DataServices.Transactions
 
         public Nullable<Guid> TransactionId { get; set; }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (!this._disposed)
-            {
-                if (disposing)
-                {
-
-                }
-                this._disposed = true;
-            }
-        }
-
-        protected async override Task DisposeAsync(bool disposing)
-        {
-            if (!this._disposed)
-            {
-                if (disposing)
-                {
-
-                }
-                this._disposed = true;
-            }
-            await Task.CompletedTask;
-        }
+        
 
     }
 }

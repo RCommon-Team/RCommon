@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RCommon.DependencyInjection;
 using RCommon.Extensions;
@@ -144,6 +145,29 @@ namespace RCommon.DataServices.Transactions
                 }
             }
             _disposed = true;
+        }
+
+        protected override async Task DisposeAsync(bool disposing)
+        {
+            if (_disposed)
+                await Task.Yield();
+
+            if (disposing)
+            {
+                _logger.LogInformation("Disposing off transction manager {0}", _transactionManagerId);
+                if (_transactions != null && _transactions.Count > 0)
+                {
+                    await _transactions.ForEachAsync(async tx =>  
+                    {
+                        tx.TransactionDisposing -= OnTransactionDisposing;
+                        await tx.DisposeAsync();
+                    });
+
+                    _transactions.Clear();
+                }
+            }
+            _disposed = true;
+            await Task.Yield();
         }
     }
 }

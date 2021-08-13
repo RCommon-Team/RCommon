@@ -145,7 +145,7 @@ namespace RCommon.DataServices.Transactions
         protected override async Task DisposeAsync(bool disposing)
         {
             if (_disposed)
-                await Task.CompletedTask;
+                await Task.Yield();
 
             if (disposing)
             {
@@ -172,7 +172,7 @@ namespace RCommon.DataServices.Transactions
                     ScopeComitting = null;
                     ScopeRollingback = null;
                     _disposed = true;
-                    await Task.CompletedTask;
+                    await Task.Yield();
                 }
             }
         }
