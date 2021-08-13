@@ -27,7 +27,7 @@ namespace RCommon.DataServices.Transactions
     /// <summary>
     /// Encapsulates a unit of work transaction.
     /// </summary>
-    public class UnitOfWorkTransaction : DisposableResource, IDisposable
+    public class UnitOfWorkTransaction : DisposableResource
     {
         bool _disposed;
         TransactionScope _transaction;
@@ -186,5 +186,44 @@ namespace RCommon.DataServices.Transactions
             _attachedScopes = null;
             _disposed = true;
         }
+
+        protected override async Task DisposeAsync(bool disposing)
+        {
+            if (_disposed)
+                await Task.CompletedTask;
+
+            if (disposing)
+            {
+                _logger.LogInformation("Disposing off transction {0}", _transactionId);
+                if (_unitOfWork != null)
+                    await _unitOfWork.DisposeAsync();
+
+                if (_transaction != null)
+                    _transaction.Dispose();
+
+                if (TransactionDisposing != null)
+                    TransactionDisposing(this);
+
+                if (_attachedScopes != null && _attachedScopes.Count > 0)
+                {
+                    _attachedScopes.ForEach(scope =>
+                    {
+                        scope.ScopeComitting -= OnScopeCommitting;
+                        scope.ScopeRollingback -= OnScopeRollingBack;
+                        scope.Complete();
+                    });
+                    _attachedScopes.Clear();
+                }
+            }
+            TransactionDisposing = null;
+            _unitOfWork = null;
+            _transaction = null;
+            _attachedScopes = null;
+            _disposed = true;
+            await Task.CompletedTask;
+        }
+
+
+
     }
 }

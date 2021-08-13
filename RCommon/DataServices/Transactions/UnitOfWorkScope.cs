@@ -17,21 +17,12 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Transactions;
 
 namespace RCommon.DataServices.Transactions
 {
-    /// <summary>
-    /// Helper class that allows starting and using a unit of work like:
-    /// <![CDATA[
-    ///     using (UnitOfWorkScope scope = new UnitOfWorkScope()) {
-    ///         //Do some stuff here.
-    ///         scope.Commit();
-    ///     }
-    /// 
-    /// ]]>
-    /// </summary>
-    public class UnitOfWorkScope : IUnitOfWorkScope
+    public class UnitOfWorkScope : DisposableResource, IUnitOfWorkScope
     {
         bool _disposed;
         bool _commitAttempted;
@@ -50,8 +41,7 @@ namespace RCommon.DataServices.Transactions
 
         public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager)
         {
-            // EnlistScopeAsync should only get called from Factory
-            //unitOfWorkManager.CurrentTransactionManager.EnlistScopeAsync(this, mode);
+            
         }
 
         /// <summary>
@@ -115,19 +105,10 @@ namespace RCommon.DataServices.Transactions
         }
 
         /// <summary>
-        /// Disposes off the <see cref="UnitOfWorkScope"/> insance.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
         /// Disposes off the managed and un-managed resources used.
         /// </summary>
         /// <param name="disposing"></param>
-        void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (_disposed)
                 return;
@@ -146,7 +127,7 @@ namespace RCommon.DataServices.Transactions
                     if (!_commitAttempted && UnitOfWorkSettings.AutoCompleteScope)
                         //Scope did not try to commit before, and auto complete is switched on. Trying to commit.
                         //If an exception occurs here, the finally block will clean things up for us.
-                        OnCommit(); 
+                        OnCommit();
                     else
                         //Scope either tried a commit before or auto complete is turned off. Trying to rollback.
                         //If an exception occurs here, the finally block will clean things up for us.
@@ -160,5 +141,41 @@ namespace RCommon.DataServices.Transactions
                 }
             }
         }
+
+        protected override async Task DisposeAsync(bool disposing)
+        {
+            if (_disposed)
+                await Task.CompletedTask;
+
+            if (disposing)
+            {
+                try
+                {
+                    if (_completed)
+                    {
+                        //Scope is marked as completed. Nothing to do here...
+                        _disposed = true;
+                        return;
+                    }
+
+                    if (!_commitAttempted && UnitOfWorkSettings.AutoCompleteScope)
+                        //Scope did not try to commit before, and auto complete is switched on. Trying to commit.
+                        //If an exception occurs here, the finally block will clean things up for us.
+                        OnCommit();
+                    else
+                        //Scope either tried a commit before or auto complete is turned off. Trying to rollback.
+                        //If an exception occurs here, the finally block will clean things up for us.
+                        OnRollback();
+                }
+                finally
+                {
+                    ScopeComitting = null;
+                    ScopeRollingback = null;
+                    _disposed = true;
+                    await Task.CompletedTask;
+                }
+            }
+        }
+
     }
 }

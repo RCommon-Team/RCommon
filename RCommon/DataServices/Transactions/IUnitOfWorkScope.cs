@@ -20,7 +20,7 @@ namespace RCommon.DataServices.Transactions
 {
     ///<summary>
     ///</summary>
-    public interface IUnitOfWorkScope : IDisposable
+    public interface IUnitOfWorkScope : IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Event fired when the scope is comitting.

@@ -75,13 +75,11 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             this.CreateWebRequest();
             
             await this.Can_Add_Async();
-            await this.Can_Add_Entity();
             await this.Can_Delete_Async();
             await this.Can_eager_load_repository_and_query();
             await this.Can_eager_load_repository_and_query_async();
             await this.Can_perform_simple_query();
             await this.Can_Update_Async();
-            await this.Can_Update_Entity();
             await this.UnitOfWork_Can_commit();
             await this.UnitOfWork_can_commit_multiple_db_operations();
         }
@@ -105,28 +103,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             Assert.IsTrue(savedCustomer.FirstName == "Albus");
         }
 
-        [Test]
-        public async Task Can_Add_Entity()
-        {
-            // Generate Test Data
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            Customer customer = testDataActions.CreateCustomerStub();
-
-
-            // Start Test
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
-            await repo.AddAsync(customer);
-
-            Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetCustomerById(customer.Id);
-
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.Id, customer.Id);
-
-        }
+       
 
         [Test]
         public async Task Can_Add_Async()
@@ -146,31 +123,6 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
             Assert.IsTrue(savedCustomer.Id > 0);
-
-        }
-
-        [Test]
-        public async Task Can_Update_Entity()
-        {
-            // Generate Test Data
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            Customer customer = await testDataActions.CreateCustomerAsync();
-
-            // Start Test
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
-            customer.FirstName = "Darth";
-            customer.LastName = "Vader";
-            await repo.UpdateAsync(customer);
-
-            Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetCustomerById(customer.Id);
-
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.AreEqual(savedCustomer.LastName, customer.LastName);
 
         }
 

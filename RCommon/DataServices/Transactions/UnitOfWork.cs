@@ -36,7 +36,7 @@ namespace RCommon.DataServices.Transactions
             {
                 await item.DataStore.PersistChangesAsync();
                 //await dataStore.PersistChangesAsync();
-                await item.DataStore.DisposeAsync();
+                //await item.DataStore.DisposeAsync();
             }
 
            await _dataStoreProvider.RemoveRegisterdDataStoresAsync(this.TransactionId.Value);

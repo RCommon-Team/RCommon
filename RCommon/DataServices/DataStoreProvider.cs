@@ -141,10 +141,6 @@ namespace RCommon.DataServices
 
                 if (bConfigFound)
                 {
-                    /*newDataStore = (IDataStore)this._serviceProvider.GetService(type);
-                    Guard.Against<UnsupportedDataStoreException>(newDataStore == null, "The IDataStore of type: " + typeof(TDataStore).AssemblyQualifiedName + " was not registered with the dependency injection container."
-                        + " RCommon allows you to handle the registration through the fluent configuration interface or via configuration file. See: http://reactor2.com/rcommon/configuration for details.");
-                    */
                     return true;
                 }
                 else
@@ -198,11 +194,6 @@ namespace RCommon.DataServices
                     _registeredDataStores.Remove(item);
                 }
             }*/
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
         }
 
 
