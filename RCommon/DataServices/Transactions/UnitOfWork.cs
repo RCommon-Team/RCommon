@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using RCommon.Extensions;
 
 namespace RCommon.DataServices.Transactions
 {
@@ -32,11 +33,13 @@ namespace RCommon.DataServices.Transactions
             Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
             var registeredTypes = this._dataStoreProvider.GetRegisteredDataStores(x => x.TransactionId == this.TransactionId);
 
-            foreach (var item in registeredTypes)
+            /*await foreach (var item in registeredTypes)
             {
                 await item.DataStore.PersistChangesAsync();
                 //await item.DataStore.DisposeAsync(); // This should be managed through the lifetime of the DI container.
-            }
+            }*/
+
+            await registeredTypes.ForEachAsync(item => item.DataStore.PersistChangesAsync());
 
            await _dataStoreProvider.RemoveRegisterdDataStoresAsync(this.TransactionId.Value);
         }
@@ -44,7 +47,17 @@ namespace RCommon.DataServices.Transactions
 
         public Nullable<Guid> TransactionId { get; set; }
 
-        
+        protected override Task DisposeAsync(bool disposing)
+        {
+            _disposed = true;
+            return base.DisposeAsync(disposing);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _disposed = true;
+            base.Dispose(disposing);
+        }
 
     }
 }

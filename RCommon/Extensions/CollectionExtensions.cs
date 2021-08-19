@@ -198,13 +198,26 @@ namespace RCommon.Extensions
         }
 
         /// <summary>
-        /// ForEachAsync extension that enumerates over all items in an <see cref="IEnumerator{T}"/> and executes 
+        /// ForEachAsync extension that enumerates over all items in an <see cref="IList{T}"/> and executes 
         /// an action. Each action is executed on an awaited Task.Run method.
         /// </summary>
         /// <typeparam name="T">The type that this extension is applicable for.</typeparam>
         /// <param name="enumerable">The enumerator instance that this extension operates on.</param>
         /// <param name="action">The action executed for each iten in the enumerable.</param>
         public static async Task ForEachAsync<T>(this List<T> enumerable, Action<T> action)
+        {
+            foreach (var item in enumerable)
+                await Task.Run(() => { action(item); }).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// ForEachAsync extension that enumerates over all items in an <see cref="IEnumberable{T}"/> and executes 
+        /// an action. Each action is executed on an awaited Task.Run method.
+        /// </summary>
+        /// <typeparam name="T">The type that this extension is applicable for.</typeparam>
+        /// <param name="enumerable">The enumerator instance that this extension operates on.</param>
+        /// <param name="action">The action executed for each iten in the enumerable.</param>
+        public static async Task ForEachAsync<T>(this IEnumerable<T> enumerable, Action<T> action)
         {
             foreach (var item in enumerable)
                 await Task.Run(() => { action(item); }).ConfigureAwait(false);
