@@ -21,21 +21,25 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase.Entities
 {
-    // MonthlySalesSummary
-    public partial class MonthlySalesSummary
+    // SalesTerritory
+    public partial class SalesTerritory
     {
-        public int Year { get; set; } // Year (Primary key)
-        public int Month { get; set; } // Month (Primary key)
-        public int SalesPersonId { get; set; } // SalesPersonId (Primary key)
-        public decimal? Amount { get; set; } // Amount
-        public string Currency { get; set; } // Currency (length: 255)
-        public string SalesPersonFirstName { get; set; } // SalesPersonFirstName (length: 255)
-        public string SalesPersonLastName { get; set; } // SalesPersonLastName (length: 255)
+        public int Id { get; set; } // Id (Primary key)
+        public string Name { get; set; } // Name (length: 255)
+        public string Description { get; set; } // Description (length: 255)
 
-        public MonthlySalesSummary()
+        // Reverse navigation
+
+        /// <summary>
+        /// Child SalesPersons where [SalesPerson].[TerritoryId] point to this entity (FK74214A90B23DB0A3)
+        /// </summary>
+        public virtual ICollection<SalesPerson> SalesPersons { get; set; } // SalesPerson.FK74214A90B23DB0A3
+
+        public SalesTerritory()
         {
+            SalesPersons = new List<SalesPerson>();
             InitializePartial();
         }
 

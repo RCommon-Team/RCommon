@@ -5,10 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using RCommon.DataServices;
 using RCommon.ObjectAccess;
 using RCommon.ObjectAccess.EFCore;
 using RCommon.ObjectAccess.EFCore.Tests;
 using RCommon.TestBase;
+using RCommon.TestBase.Entities;
 using RCommon.Tests.Application.DTO;
 using RCommon.Tests.Domain.Services;
 using System;
@@ -21,8 +23,9 @@ namespace RCommon.Tests.Application.Services
     [TestFixture]
     public class CrudAppServiceIntegration : EFCoreTestBase
     {
-        private TestDbContext _context;
-        //private MapperConfiguration _mapperConfiguration;
+        private EFTestData _testData;
+        private EFTestDataActions _testDataActions;
+        private IDataStoreProvider _dataStoreProvider;
 
         public CrudAppServiceIntegration() :base()
         {
@@ -49,6 +52,8 @@ namespace RCommon.Tests.Application.Services
 
         }
 
+
+
         [OneTimeSetUp]
         public void InitialSetup()
         {
@@ -60,36 +65,31 @@ namespace RCommon.Tests.Application.Services
         [SetUp]
         public void Setup()
         {
-            this.CreateWebRequest();
-
             //_context = this.ServiceProvider.GetService<RCommonDbContext>();
             this.Logger.LogInformation("Beginning New Test Setup", null);
 
-
+            // Setup the context
+            _dataStoreProvider = this.ServiceProvider.GetService<IDataStoreProvider>();
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            _testData = new EFTestData(context);
+            _testDataActions = new EFTestDataActions(_testData);
         }
 
         [TearDown]
-        public void TearDown()
+        public async Task TearDown()
         {
             this.Logger.LogInformation("Tearing down Test", null);
 
-            if (_context != null)
-            {
-                _context.Database.ExecuteSqlInterpolated($"DELETE OrderItems");
-                _context.Database.ExecuteSqlInterpolated($"DELETE Products");
-                _context.Database.ExecuteSqlInterpolated($"DELETE Orders");
-                _context.Database.ExecuteSqlInterpolated($"DELETE Customers");
-                _context.Dispose();
-            }
+            await _testData.ResetContext();
+            _testData.Dispose();
+            _dataStoreProvider.RemoveRegisteredDataStores(_testData.GetType(), Guid.NewGuid());
         }
 
         [Test]
-        public void Can_Create_Async()
+        public async Task Can_Create_Async()
         {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = testDataActions.CreateCustomerStub(x=>x.FirstName = "Albus");
+            
+            var customer = _testDataActions.CreateCustomerStub(x=>x.FirstName = "Albus");
 
             var service = this.ServiceProvider.GetService<ITestAppService>();
             var mapper = this.ServiceProvider.GetService<IMapper>();
@@ -98,7 +98,7 @@ namespace RCommon.Tests.Application.Services
             var result =  service.CreateAsync(customerDto);
 
             Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetFirstCustomer(x=>x.FirstName == "Albus");
+            savedCustomer = await _testDataActions.GetCustomerAsync(x=>x.FirstName == "Albus");
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
@@ -109,10 +109,8 @@ namespace RCommon.Tests.Application.Services
         [Test]
         public async Task Can_Update_Async()
         {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = await testDataActions.CreateCustomerAsync();
+            
+            var customer = await _testDataActions.CreateCustomerAsync();
 
             var service = this.ServiceProvider.GetService<ITestAppService>();
             var mapper = this.ServiceProvider.GetService<IMapper>();
@@ -120,14 +118,10 @@ namespace RCommon.Tests.Application.Services
             var customerDto = mapper.Map<CustomerDto>(customer);
             var firstName = new Faker().Name.FirstName();
             customerDto.FirstName = firstName;
-            var result = service.UpdateAsync(customerDto);
-
-            _context.Dispose(); // Refresh the cache
-            _context = new TestDbContext(this.Configuration);
-            testData = new EFTestData(_context);
+            var result = await service.UpdateAsync(customerDto);
 
             Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetCustomerById(customer.Id);
+            savedCustomer = await _testDataActions.GetCustomerAsync(x => x.Id == customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, firstName);
@@ -138,10 +132,8 @@ namespace RCommon.Tests.Application.Services
         [Test]
         public async Task Can_Delete_Async()
         {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = await testDataActions.CreateCustomerAsync();
+            
+            var customer = await _testDataActions.CreateCustomerAsync();
 
             var service = this.ServiceProvider.GetService<ITestAppService>();
             var mapper = this.ServiceProvider.GetService<IMapper>();
@@ -150,7 +142,7 @@ namespace RCommon.Tests.Application.Services
             var result = service.DeleteAsync(customerDto);
 
             Customer savedCustomer = null;
-            savedCustomer = testDataActions.GetCustomerById(customer.Id);
+            savedCustomer = await _testDataActions.GetCustomerAsync(x => x.Id == customer.Id);
 
             Assert.IsNull(savedCustomer);
         }
@@ -160,10 +152,8 @@ namespace RCommon.Tests.Application.Services
         [Test]
         public async Task Can_GetById_Async()
         {
-            _context = new TestDbContext(this.Configuration);
-            var testData = new EFTestData(_context);
-            var testDataActions = new EFTestDataActions(testData);
-            var customer = await testDataActions.CreateCustomerAsync();
+            
+            var customer = await _testDataActions.CreateCustomerAsync();
 
             var service = this.ServiceProvider.GetService<ITestAppService>();
 

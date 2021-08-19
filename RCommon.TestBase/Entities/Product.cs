@@ -21,32 +21,25 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase.Entities
 {
-    // OrderItems
-    public partial class OrderItem
+    // Products
+    public partial class Product
     {
-        public int OrderItemId { get; set; } // OrderItemID (Primary key)
-        public decimal? Price { get; set; } // Price
-        public int? Quantity { get; set; } // Quantity
-        public string Store { get; set; } // Store (length: 255)
-        public int? ProductId { get; set; } // ProductId
-        public int? OrderId { get; set; } // OrderId
+        public int ProductId { get; set; } // ProductID (Primary key)
+        public string Name { get; set; } // Name (length: 255)
+        public string Description { get; set; } // Description (length: 255)
 
-        // Foreign keys
+        // Reverse navigation
 
         /// <summary>
-        /// Parent Order pointed by [OrderItems].([OrderId]) (FK_Orders_OrderItems)
+        /// Child OrderItems where [OrderItems].[ProductId] point to this entity (FK_OrderItems_Product)
         /// </summary>
-        public virtual Order Order { get; set; } // FK_Orders_OrderItems
+        public virtual ICollection<OrderItem> OrderItems { get; set; } // OrderItems.FK_OrderItems_Product
 
-        /// <summary>
-        /// Parent Product pointed by [OrderItems].([ProductId]) (FK_OrderItems_Product)
-        /// </summary>
-        public virtual Product Product { get; set; } // FK_OrderItems_Product
-
-        public OrderItem()
+        public Product()
         {
+            OrderItems = new List<OrderItem>();
             InitializePartial();
         }
 

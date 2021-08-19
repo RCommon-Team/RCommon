@@ -44,6 +44,7 @@ namespace RCommon.ObjectAccess.Dapper
                         connection.Open();
                     }
                     await connection.InsertAsync(entity);
+                    
                 }
                 catch (Exception)
                 {

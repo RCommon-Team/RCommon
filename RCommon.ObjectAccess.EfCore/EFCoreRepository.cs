@@ -177,7 +177,7 @@
             if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
                 affected = await this.ObjectContext.SaveChangesAsync(true);
-                _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.NewGuid());
+                _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
             }
             return affected;
         }
@@ -242,11 +242,11 @@
         {
             get
             {
-
-                if (this._unitOfWorkManager.CurrentUnitOfWork != null)
+                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                if (uow != null)
                 {
 
-                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName);
+                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(uow.TransactionId.Value, this.DataStoreName);
 
                 }
                 return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this.DataStoreName);

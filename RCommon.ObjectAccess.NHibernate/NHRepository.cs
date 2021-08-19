@@ -49,18 +49,18 @@ namespace RCommon.ObjectAccess.NHibernate
         {
             get
             {
-                /*var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                
                 RCommonSessionFactory factory;
+                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+
                 if (uow != null)
                 {
-                    factory = (RCommonSessionFactory)this._dataStoreProvider.GetDataStore(uow.TransactionId.Value, this.DataStoreName);
+
+                    factory = this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(uow.TransactionId.Value, this.DataStoreName);
                     return factory.SessionFactory;
-
                 }
-
-                factory = (RCommonSessionFactory)this._dataStoreProvider.GetDataStore(this.DataStoreName);
-                return factory.SessionFactory;*/
-                return null;
+                factory = this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this.DataStoreName);
+                return factory.SessionFactory;
             }
         }
 
@@ -92,6 +92,7 @@ namespace RCommon.ObjectAccess.NHibernate
         public override async Task AttachAsync(TEntity entity)
         {
             await SessionFactory.GetCurrentSession().UpdateAsync(entity);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
         }
 
         protected override void ApplyFetchingStrategy(Expression[] paths)
@@ -119,16 +120,19 @@ namespace RCommon.ObjectAccess.NHibernate
         public override async Task AddAsync(TEntity entity)
         {
             await SessionFactory.GetCurrentSession().SaveOrUpdateAsync(entity);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
         }
 
         public override async Task DeleteAsync(TEntity entity)
         {
             await SessionFactory.GetCurrentSession().DeleteAsync(entity);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
         }
 
         public override async Task UpdateAsync(TEntity entity)
         {
             await SessionFactory.GetCurrentSession().UpdateAsync(entity);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
         }
 
         public override async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification)

@@ -16,29 +16,32 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using RCommon.DataServices;
-using RCommon.TestBase.Entities;
 using System;
-using System.Data;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase.Entities
 {
-    public interface ITestDbContext
+    // MonthlySalesSummary
+    public partial class MonthlySalesSummary
     {
-        DbSet<Customer> Customers { get; set; } // Customers
-        DbSet<Department> Departments { get; set; } // Departments
-        DbSet<MonthlySalesSummary> MonthlySalesSummaries { get; set; } // MonthlySalesSummary
-        DbSet<Order> Orders { get; set; } // Orders
-        DbSet<OrderItem> OrderItems { get; set; } // OrderItems
-        DbSet<Product> Products { get; set; } // Products
-        DbSet<SalesPerson> SalesPersons { get; set; } // SalesPerson
-        DbSet<SalesTerritory> SalesTerritories { get; set; } // SalesTerritory
+        public int Year { get; set; } // Year (Primary key)
+        public int Month { get; set; } // Month (Primary key)
+        public int SalesPersonId { get; set; } // SalesPersonId (Primary key)
+        public decimal? Amount { get; set; } // Amount
+        public string Currency { get; set; } // Currency (length: 255)
+        public string SalesPersonFirstName { get; set; } // SalesPersonFirstName (length: 255)
+        public string SalesPersonLastName { get; set; } // SalesPersonLastName (length: 255)
+
+        public MonthlySalesSummary()
+        {
+            InitializePartial();
+        }
+
+        partial void InitializePartial();
     }
+
 }
 // </auto-generated>
 

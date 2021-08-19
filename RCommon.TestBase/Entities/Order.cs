@@ -22,31 +22,33 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase.Entities
 {
-    // Customers
-    public partial class Customer : IBusinessEntity<int>
+    // Orders
+    public partial class Order : IBusinessEntity
     {
-        public string StreetAddress1 { get; set; } // StreetAddress1 (length: 255)
-        public string StreetAddress2 { get; set; } // StreetAddress2 (length: 255)
-        public string City { get; set; } // City (length: 255)
-        public string State { get; set; } // State (length: 255)
-        public string ZipCode { get; set; } // ZipCode (length: 255)
-        public string FirstName { get; set; } // FirstName (length: 255)
-        public string LastName { get; set; } // LastName (length: 255)
+        public int OrderId { get; set; } // OrderID (Primary key)
+        public DateTime? OrderDate { get; set; } // OrderDate
+        public DateTime? ShipDate { get; set; } // ShipDate
+        public int? CustomerId { get; set; } // CustomerId
 
         // Reverse navigation
 
         /// <summary>
-        /// Child Orders where [Orders].[CustomerId] point to this entity (FK_Customer_Orders)
+        /// Child OrderItems where [OrderItems].[OrderId] point to this entity (FK_Orders_OrderItems)
         /// </summary>
-        public virtual ICollection<Order> Orders { get; set; } // Orders.FK_Customer_Orders
+        public virtual ICollection<OrderItem> OrderItems { get; set; } // OrderItems.FK_Orders_OrderItems
 
-        public int Id { get; set; }
+        // Foreign keys
 
-        public Customer()
+        /// <summary>
+        /// Parent Customer pointed by [Orders].([CustomerId]) (FK_Customer_Orders)
+        /// </summary>
+        public virtual Customer Customer { get; set; } // FK_Customer_Orders
+
+        public Order()
         {
-            Orders = new List<Order>();
+            OrderItems = new List<OrderItem>();
             InitializePartial();
         }
 
@@ -54,7 +56,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         public object[] GetKeys()
         {
-            return new object[] { Id };
+            throw new NotImplementedException();
         }
     }
 

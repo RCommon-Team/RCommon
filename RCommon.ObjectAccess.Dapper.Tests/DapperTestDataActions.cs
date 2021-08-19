@@ -1,25 +1,28 @@
 ﻿using Bogus;
-using RCommon.Extensions;
 using RCommon.TestBase;
 using RCommon.TestBase.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using DapperExtensions;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.ObjectAccess.Dapper.Tests
 {
-    public class EFTestDataActions : TestDataActionsBase
+    public class DapperTestDataActions : TestDataActionsBase
     {
-        readonly EFTestData _generator;
 
-        public EFTestDataActions(EFTestData generator)
+        readonly DapperTestData _generator;
+
+        public DapperTestDataActions(DapperTestData generator)
         {
             _generator = generator;
 
         }
+
+
+
 
         public override async Task<Customer> CreateCustomerAsync()
         {
@@ -39,8 +42,11 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
                 .Generate();
             customize(customer);
-            await _generator.Context.Set<Customer>().AddAsync(customer);
-            await _generator.Context.SaveChangesAsync();
+
+            using (var connection = _generator.Context.GetDbConnection())
+            {
+                await connection.InsertAsync<Customer>(customer);
+            }
             return customer;
         }
 
@@ -57,15 +63,18 @@ namespace RCommon.ObjectAccess.EFCore.Tests
 
         public override async Task<Order> CreateOrderAsync(Action<Order> customize)
         {
-            
+
 
             var order = new Faker<Order>()
                 .RuleFor(x => x.OrderDate, f => f.Date.Past(2))
                 .RuleFor(x => x.ShipDate, f => f.Date.Past(2))
                 .Generate();
             customize(order);
-            await _generator.Context.Set<Order>().AddAsync(order);
-            await _generator.Context.SaveChangesAsync();
+
+            using (var connection = _generator.Context.GetDbConnection())
+            {
+                await connection.InsertAsync<Order>(order);
+            }
 
             return order;
         }
@@ -76,40 +85,55 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                     .RuleFor(x => x.Description, f => f.Commerce.ProductMaterial())
                     .RuleFor(x => x.Name, f => f.Commerce.ProductName())
                     .Generate();
-            await _generator.Context.Set<Product>().AddAsync(product);
-            await _generator.Context.SaveChangesAsync();
+
+            using (var connection = _generator.Context.GetDbConnection())
+            {
+                await connection.InsertAsync<Product>(product);
+            }
+
             return product;
         }
 
-        public async override Task<Customer> GetCustomerAsync(Func<Customer, bool> spec)
+        public override async Task<Customer> GetCustomerAsync(Func<Customer, bool> spec)
         {
 
-            var customer = _generator.Context.Set<Customer>()
-                .Where(spec)
-                .FirstOrDefault();
-            if (customer != null)
-                _generator.EntityDeleteActions.Add(x => x.Set<Customer>().Remove(customer));
-            return await Task.FromResult(customer);
+            Customer customer;
+
+            using (var connection = _generator.Context.GetDbConnection())
+            {
+                var data = await connection.GetPageAsync<Customer>(spec, null, 1, 1, null, null, false);
+                customer = data.First();
+            }
+
+            /*if (customer != null)
+                _generator.EntityDeleteActions.Add(x => x.Set<Customer>().Remove(customer));*/
+            return customer;
         }
 
         public async override Task<Order> GetOrderAsync(Func<Order, bool> spec)
         {
-            var order = _generator.Context.Set<Order>()
-                .Where(spec)
-                .FirstOrDefault();
-            if (order != null)
-                _generator.EntityDeleteActions.Add(x => x.Set<Order>().Remove(order));
-            return await Task.FromResult(order);
+            Order order;
+            using (var connection = _generator.Context.GetDbConnection())
+            {
+                var data = await connection.GetPageAsync<Order>(spec, null, 1, 1, null, null, false);
+                order = data.First();
+            }
+            /*if (order != null)
+                _generator.EntityDeleteActions.Add(x => x.Set<Order>().Remove(order));*/
+            return order;
         }
 
         public async override Task<SalesPerson> GetSalesPersonAsync(Func<SalesPerson, bool> spec)
         {
-            var salesPerson = _generator.Context.Set<SalesPerson>()
-                .Where(spec)
-                .FirstOrDefault();
-            if (salesPerson != null)
-                _generator.EntityDeleteActions.Add(x => x.Set<SalesPerson>().Remove(salesPerson));
-            return await Task.FromResult(salesPerson);
+            SalesPerson salesPerson;
+            using (var connection = _generator.Context.GetDbConnection())
+            {
+                var data = await connection.GetPageAsync<SalesPerson>(spec, null, 1, 1, null, null, false);
+                salesPerson = data.First();
+            }
+            /*if (salesPerson != null)
+                _generator.EntityDeleteActions.Add(x => x.Set<SalesPerson>().Remove(salesPerson));*/
+            return salesPerson;
         }
     }
 }

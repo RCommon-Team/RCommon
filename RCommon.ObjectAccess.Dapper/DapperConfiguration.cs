@@ -21,7 +21,7 @@ namespace RCommon.ObjectAccess.Dapper
         public void Configure(IContainerAdapter containerAdapter)
         {
 
-            // EF Core Repository
+            // Dapper Repository
             containerAdapter.AddGeneric(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
 
             // Registered DbContexts
@@ -34,7 +34,7 @@ namespace RCommon.ObjectAccess.Dapper
         }
 
 
-        public IObjectAccessConfiguration UsingDbConnectionManager<TDbConnection>()
+        public IObjectAccessConfiguration UsingDbConnection<TDbConnection>()
             where TDbConnection : IRDbConnection
         {
             var dbContext = typeof(TDbConnection).AssemblyQualifiedName;

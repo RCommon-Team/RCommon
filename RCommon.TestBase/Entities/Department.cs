@@ -21,25 +21,24 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase.Entities
 {
-    // Products
-    public partial class Product
+    // Departments
+    public partial class Department
     {
-        public int ProductId { get; set; } // ProductID (Primary key)
+        public int Id { get; set; } // Id (Primary key)
         public string Name { get; set; } // Name (length: 255)
-        public string Description { get; set; } // Description (length: 255)
 
         // Reverse navigation
 
         /// <summary>
-        /// Child OrderItems where [OrderItems].[ProductId] point to this entity (FK_OrderItems_Product)
+        /// Child SalesPersons where [SalesPerson].[DepartmentId] point to this entity (FK74214A90E25FF6)
         /// </summary>
-        public virtual ICollection<OrderItem> OrderItems { get; set; } // OrderItems.FK_OrderItems_Product
+        public virtual ICollection<SalesPerson> SalesPersons { get; set; } // SalesPerson.FK74214A90E25FF6
 
-        public Product()
+        public Department()
         {
-            OrderItems = new List<OrderItem>();
+            SalesPersons = new List<SalesPerson>();
             InitializePartial();
         }
 

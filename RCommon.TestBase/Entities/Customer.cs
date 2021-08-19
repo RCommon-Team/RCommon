@@ -16,34 +16,46 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
+using RCommon.BusinessEntities;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase.Entities
 {
-    // SalesTerritory
-    public partial class SalesTerritory
+    // Customers
+    public partial class Customer : IBusinessEntity<int>
     {
-        public int Id { get; set; } // Id (Primary key)
-        public string Name { get; set; } // Name (length: 255)
-        public string Description { get; set; } // Description (length: 255)
+        public string StreetAddress1 { get; set; } // StreetAddress1 (length: 255)
+        public string StreetAddress2 { get; set; } // StreetAddress2 (length: 255)
+        public string City { get; set; } // City (length: 255)
+        public string State { get; set; } // State (length: 255)
+        public string ZipCode { get; set; } // ZipCode (length: 255)
+        public string FirstName { get; set; } // FirstName (length: 255)
+        public string LastName { get; set; } // LastName (length: 255)
 
         // Reverse navigation
 
         /// <summary>
-        /// Child SalesPersons where [SalesPerson].[TerritoryId] point to this entity (FK74214A90B23DB0A3)
+        /// Child Orders where [Orders].[CustomerId] point to this entity (FK_Customer_Orders)
         /// </summary>
-        public virtual ICollection<SalesPerson> SalesPersons { get; set; } // SalesPerson.FK74214A90B23DB0A3
+        public virtual ICollection<Order> Orders { get; set; } // Orders.FK_Customer_Orders
 
-        public SalesTerritory()
+        public int Id { get; set; }
+
+        public Customer()
         {
-            SalesPersons = new List<SalesPerson>();
+            Orders = new List<Order>();
             InitializePartial();
         }
 
         partial void InitializePartial();
+
+        public object[] GetKeys()
+        {
+            return new object[] { Id };
+        }
     }
 
 }

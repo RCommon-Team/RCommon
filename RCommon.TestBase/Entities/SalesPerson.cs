@@ -16,33 +16,48 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
+using RCommon.BusinessEntities;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase.Entities
 {
-    // Departments
-    public partial class Department
+    // SalesPerson
+    public partial class SalesPerson : IBusinessEntity
     {
         public int Id { get; set; } // Id (Primary key)
-        public string Name { get; set; } // Name (length: 255)
+        public string FirstName { get; set; } // FirstName (length: 255)
+        public string LastName { get; set; } // LastName (length: 255)
+        public float? SalesQuota { get; set; } // SalesQuota
+        public decimal? SalesYtd { get; set; } // SalesYTD
+        public int? DepartmentId { get; set; } // DepartmentId
+        public int? TerritoryId { get; set; } // TerritoryId
 
-        // Reverse navigation
+        // Foreign keys
 
         /// <summary>
-        /// Child SalesPersons where [SalesPerson].[DepartmentId] point to this entity (FK74214A90E25FF6)
+        /// Parent Department pointed by [SalesPerson].([DepartmentId]) (FK74214A90E25FF6)
         /// </summary>
-        public virtual ICollection<SalesPerson> SalesPersons { get; set; } // SalesPerson.FK74214A90E25FF6
+        public virtual Department Department { get; set; } // FK74214A90E25FF6
 
-        public Department()
+        /// <summary>
+        /// Parent SalesTerritory pointed by [SalesPerson].([TerritoryId]) (FK74214A90B23DB0A3)
+        /// </summary>
+        public virtual SalesTerritory SalesTerritory { get; set; } // FK74214A90B23DB0A3
+
+        public SalesPerson()
         {
-            SalesPersons = new List<SalesPerson>();
             InitializePartial();
         }
 
         partial void InitializePartial();
+
+        public object[] GetKeys()
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

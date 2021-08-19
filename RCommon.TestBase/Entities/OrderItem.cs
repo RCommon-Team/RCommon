@@ -16,48 +16,41 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
-using RCommon.BusinessEntities;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.TestBase.Entities
 {
-    // Orders
-    public partial class Order : IBusinessEntity
+    // OrderItems
+    public partial class OrderItem
     {
-        public int OrderId { get; set; } // OrderID (Primary key)
-        public DateTime? OrderDate { get; set; } // OrderDate
-        public DateTime? ShipDate { get; set; } // ShipDate
-        public int? CustomerId { get; set; } // CustomerId
-
-        // Reverse navigation
-
-        /// <summary>
-        /// Child OrderItems where [OrderItems].[OrderId] point to this entity (FK_Orders_OrderItems)
-        /// </summary>
-        public virtual ICollection<OrderItem> OrderItems { get; set; } // OrderItems.FK_Orders_OrderItems
+        public int OrderItemId { get; set; } // OrderItemID (Primary key)
+        public decimal? Price { get; set; } // Price
+        public int? Quantity { get; set; } // Quantity
+        public string Store { get; set; } // Store (length: 255)
+        public int? ProductId { get; set; } // ProductId
+        public int? OrderId { get; set; } // OrderId
 
         // Foreign keys
 
         /// <summary>
-        /// Parent Customer pointed by [Orders].([CustomerId]) (FK_Customer_Orders)
+        /// Parent Order pointed by [OrderItems].([OrderId]) (FK_Orders_OrderItems)
         /// </summary>
-        public virtual Customer Customer { get; set; } // FK_Customer_Orders
+        public virtual Order Order { get; set; } // FK_Orders_OrderItems
 
-        public Order()
+        /// <summary>
+        /// Parent Product pointed by [OrderItems].([ProductId]) (FK_OrderItems_Product)
+        /// </summary>
+        public virtual Product Product { get; set; } // FK_OrderItems_Product
+
+        public OrderItem()
         {
-            OrderItems = new List<OrderItem>();
             InitializePartial();
         }
 
         partial void InitializePartial();
-
-        public object[] GetKeys()
-        {
-            throw new NotImplementedException();
-        }
     }
 
 }

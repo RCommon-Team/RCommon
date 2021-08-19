@@ -1,5 +1,6 @@
 ﻿using RCommon.BusinessServices;
 using RCommon.ObjectAccess.EFCore.Tests;
+using RCommon.TestBase.Entities;
 using RCommon.Tests.Application.DTO;
 using System;
 using System.Collections.Generic;

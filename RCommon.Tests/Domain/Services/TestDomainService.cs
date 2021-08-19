@@ -5,6 +5,7 @@ using RCommon.DataServices.Transactions;
 using RCommon.ExceptionHandling;
 using RCommon.ObjectAccess;
 using RCommon.ObjectAccess.EFCore.Tests;
+using RCommon.TestBase.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
