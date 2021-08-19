@@ -30,22 +30,22 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             get { return _entityDeleteActions; }
         }
 
-        public void Batch(Action<EFTestDataActions> action)
+        public async Task ResetContext()
         {
-            var dataActions = new EFTestDataActions(this);
-            action(dataActions);
-            _context.SaveChanges();
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE OrderItems");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Products");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Orders");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Customers");
         }
 
-        protected override async Task DisposeAsync(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (_entityDeleteActions.Count <= 0)
-                await Task.Yield();
+                
 
             _entityDeleteActions.ForEach(x => x(_context));
-            await _context.SaveChangesAsync();
-            await _context.DisposeAsync();
-            await Task.Yield();
+            _context.SaveChanges();
+            _context.Dispose();
         }
 
     }

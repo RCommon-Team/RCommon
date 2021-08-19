@@ -177,6 +177,7 @@
             if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
                 affected = await this.ObjectContext.SaveChangesAsync(true);
+                _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.NewGuid());
             }
             return affected;
         }

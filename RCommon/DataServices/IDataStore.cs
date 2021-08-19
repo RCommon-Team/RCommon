@@ -9,7 +9,7 @@ namespace RCommon.DataServices
     public interface IDataStore : IDisposable, IAsyncDisposable
     { 
 
-        Task PersistChangesAsync();
+        void PersistChanges();
 
         IDbConnection GetDbConnection();
     }

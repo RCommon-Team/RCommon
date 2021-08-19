@@ -100,11 +100,6 @@ namespace RCommon.DataServices.Transactions
             CurrentTransaction.EnlistScope(scope);
         }
 
-        private void UnitOfWork_UnitOfWorkCreated(IUnitOfWork arg1, Guid arg2)
-        {
-            throw new NotImplementedException();
-        }
-
         
 
         /// <summary>
@@ -145,29 +140,6 @@ namespace RCommon.DataServices.Transactions
                 }
             }
             _disposed = true;
-        }
-
-        protected override async Task DisposeAsync(bool disposing)
-        {
-            if (_disposed)
-                await Task.Yield();
-
-            if (disposing)
-            {
-                _logger.LogInformation("Disposing off transction manager {0}", _transactionManagerId);
-                if (_transactions != null && _transactions.Count > 0)
-                {
-                    await _transactions.ForEachAsync(async tx =>  
-                    {
-                        tx.TransactionDisposing -= OnTransactionDisposing;
-                        await tx.DisposeAsync();
-                    });
-
-                    _transactions.Clear();
-                }
-            }
-            _disposed = true;
-            await Task.Yield();
         }
     }
 }

@@ -104,7 +104,7 @@ namespace RCommon.DataServices.Transactions
         /// <summary>
         /// Callback executed when an enlisted scope has comitted.
         /// </summary>
-        async void OnScopeCommitting(IUnitOfWorkScope scope)
+        void OnScopeCommitting(IUnitOfWorkScope scope)
         {
             Guard.Against<ObjectDisposedException>(_disposed,
                                                    "The transaction attached to the scope has already been disposed.");
@@ -112,7 +112,7 @@ namespace RCommon.DataServices.Transactions
             _logger.LogInformation("Commit signalled by scope {0} on transaction {1}.", scope.ScopeId, _transactionId);
            if (!_attachedScopes.Contains(scope))
            {
-               await DisposeAsync();
+               Dispose();
                throw new InvalidOperationException("The scope being comitted is not attached to the current transaction.");
            }
             scope.ScopeComitting -= OnScopeCommitting;
@@ -124,12 +124,12 @@ namespace RCommon.DataServices.Transactions
                 _logger.LogInformation("All scopes have signalled a commit on transaction {0}. Flushing unit of work and comitting attached TransactionScope.", _transactionId);
                 try
                 {
-                    await _unitOfWork.FlushAsync();
+                    _unitOfWork.Flush();
                     _transaction.Complete();
                 }
                 finally
                 {
-                    await DisposeAsync(); //Dispose the transaction after comitting.
+                    Dispose(); //Dispose the transaction after comitting.
                 }
             }
         }
@@ -185,42 +185,6 @@ namespace RCommon.DataServices.Transactions
             _transaction = null;
             _attachedScopes = null;
             _disposed = true;
-        }
-
-        protected override async Task DisposeAsync(bool disposing)
-        {
-            if (_disposed)
-                await Task.Yield();
-
-            if (disposing)
-            {
-                _logger.LogInformation("Disposing off transction {0}", _transactionId);
-                if (_unitOfWork != null)
-                    await _unitOfWork.DisposeAsync();
-
-                if (_transaction != null)
-                    _transaction.Dispose();
-
-                if (TransactionDisposing != null)
-                    TransactionDisposing(this);
-
-                if (_attachedScopes != null && _attachedScopes.Count > 0)
-                {
-                    _attachedScopes.ForEach(scope =>
-                    {
-                        scope.ScopeComitting -= OnScopeCommitting;
-                        scope.ScopeRollingback -= OnScopeRollingBack;
-                        scope.Complete();
-                    });
-                    _attachedScopes.Clear();
-                }
-            }
-            TransactionDisposing = null;
-            _unitOfWork = null;
-            _transaction = null;
-            _attachedScopes = null;
-            _disposed = true;
-            await Task.Yield();
         }
 
 

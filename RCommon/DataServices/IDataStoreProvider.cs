@@ -17,6 +17,8 @@ namespace RCommon.DataServices
 
         IEnumerable<StoredDataSource> GetRegisteredDataStores(Func<StoredDataSource, bool> criteria);
 
-        Task RemoveRegisterdDataStoresAsync(Guid transactionId);
+        void RemoveRegisteredDataStores(Guid transactionId);
+
+        void RemoveRegisteredDataStores(Type type, Guid transactionId);
     }
 }

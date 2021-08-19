@@ -32,10 +32,10 @@ namespace RCommon.DataServices.Sql
             return connection;
         }
 
-        public async Task PersistChangesAsync()
+        public void PersistChanges()
         {
             // Nothing to do here because this is a SQL Connection
-            await Task.CompletedTask;
+            return;
         }
 
     }

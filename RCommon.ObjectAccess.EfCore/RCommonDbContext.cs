@@ -23,9 +23,9 @@ namespace RCommon.ObjectAccess.EFCore
             return base.Database.GetDbConnection();
         }
 
-        public async Task PersistChangesAsync()
+        public void PersistChanges()
         {
-            await this.SaveChangesAsync();
+            this.SaveChanges();
         }
     }
 }

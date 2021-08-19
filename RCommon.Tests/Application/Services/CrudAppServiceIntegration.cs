@@ -98,7 +98,7 @@ namespace RCommon.Tests.Application.Services
             var result =  service.CreateAsync(customerDto);
 
             Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetFirstCustomer(x=>x.FirstName == "Albus"));
+            savedCustomer = testDataActions.GetFirstCustomer(x=>x.FirstName == "Albus");
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
@@ -127,7 +127,7 @@ namespace RCommon.Tests.Application.Services
             testData = new EFTestData(_context);
 
             Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.Id));
+            savedCustomer = testDataActions.GetCustomerById(customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, firstName);
@@ -150,7 +150,7 @@ namespace RCommon.Tests.Application.Services
             var result = service.DeleteAsync(customerDto);
 
             Customer savedCustomer = null;
-            testData.Batch(action => savedCustomer = action.GetCustomerById(customer.Id));
+            savedCustomer = testDataActions.GetCustomerById(customer.Id);
 
             Assert.IsNull(savedCustomer);
         }

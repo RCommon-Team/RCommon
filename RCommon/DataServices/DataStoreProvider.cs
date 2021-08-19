@@ -182,11 +182,11 @@ namespace RCommon.DataServices
             return this._registeredDataStores.AsQueryable().Where(criteria);
         }
 
-        public async Task RemoveRegisterdDataStoresAsync(Guid transactionId)
+        public void RemoveRegisteredDataStores(Guid transactionId)
         {
-            var existingDataStores = _registeredDataStores.ToList(); // create a copy
+            var existingDataStores = _registeredDataStores.Where(x=>x.TransactionId == transactionId); // create a copy
 
-            await existingDataStores.ForEachAsync(x => _registeredDataStores.TryTake(out x));
+            existingDataStores.ForEach(x => _registeredDataStores.TryTake(out x));
             /*foreach (var item in existingDataStores)
             {
                 if (item.TransactionId == transactionId)
@@ -194,6 +194,14 @@ namespace RCommon.DataServices
                     _registeredDataStores.Remove(item);
                 }
             }*/
+        }
+
+        public void RemoveRegisteredDataStores(Type type, Guid transactionId)
+        {
+            var existingDataStores = _registeredDataStores.Where(x => x.DataStore.GetType().AssemblyQualifiedName == type.AssemblyQualifiedName
+            && x.TransactionId == transactionId); // create a copy
+
+            existingDataStores.ForEach(x => _registeredDataStores.TryTake(out x));
         }
 
 

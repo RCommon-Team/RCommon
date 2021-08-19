@@ -16,7 +16,7 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public EFTestDataActions(EFTestData generator)
         {
             _generator = generator;
-            
+
         }
 
 
