@@ -24,7 +24,7 @@ if (includeDetails)
 ## Unit of Work & Transaction Management
 The unit of work (UoW) pattern is loosely coupled from all object access strategies but provides granular control over transactions using ACID properties. Transactions are currently implemented through the UnitOfWork and the UnitOfWorkManager which provides a wrapper for TransactionScope. 
 ```csharp
-using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
+await using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
 {
     var domainData = await _crudDomainService.CreateAsync(entity); // Perform the work
 
@@ -215,7 +215,7 @@ public class CrudAppService<TDataTransferObject, TEntity> : RCommonAppService, I
         {
             var entity = this._objectMapper.Map<TEntity>(dto); // Map the entity to a DTO
 
-            using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
+            await using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
             {
                 var domainData = await _crudDomainService.CreateAsync(entity); // Perform the work
 
