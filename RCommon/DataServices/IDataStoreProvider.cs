@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RCommon.DataServices
 {
@@ -11,11 +12,13 @@ namespace RCommon.DataServices
         TDataStore GetDataStore<TDataStore>(string dataStoreName = null)
             where TDataStore : IDataStore;
 
-       void RegisterDataStore<TDataStore>(Guid transactionId, TDataStore dataStore) where TDataStore : IDataStore;
+        void RegisterDataStore<TDataStore>(Guid transactionId, TDataStore dataStore) where TDataStore : IDataStore;
 
 
         IEnumerable<StoredDataSource> GetRegisteredDataStores(Func<StoredDataSource, bool> criteria);
 
-        void RemoveRegisterdDataStores(Guid transactionId);
+        void RemoveRegisteredDataStores(Guid transactionId);
+
+        void RemoveRegisteredDataStores(Type type, Guid transactionId);
     }
 }

@@ -4,9 +4,9 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using RCommon;
+    using RCommon.BusinessEntities;
     using RCommon.DataServices;
     using RCommon.DataServices.Transactions;
-    using RCommon.Domain.Repositories;
     using RCommon.Expressions;
     using RCommon.Extensions;
     using System;
@@ -25,7 +25,8 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity> where TEntity : class
+    public class EFCoreRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity>
+        where TEntity : class, IBusinessEntity
     {
         private readonly List<string> _includes;
         private readonly Dictionary<Type, object> _objectSets;
@@ -56,13 +57,6 @@
             this._objectSets = new Dictionary<Type, object>();
         }
 
-        public override TEntity Add(TEntity entity)
-        {
-            var updatedEntity = this.ObjectSet.Add(entity).Entity;
-            this.Save();
-            return updatedEntity;
-        }
-
 
         protected override void ApplyFetchingStrategy(Expression[] paths)
         {
@@ -83,22 +77,7 @@
             return this.ObjectSet.AsQueryable<TEntity>();
         }
 
-        public override void Delete(TEntity entity)
-        {
-            this.ObjectSet.Remove(entity);
-            this.Save();
-        }
 
-
-        public override ICollection<TEntity> Find(ISpecification<TEntity> specification)
-        {
-            return this.FindCore(specification.Predicate).ToList();
-        }
-
-        public override ICollection<TEntity> Find(Expression<Func<TEntity, bool>> expression)
-        {
-            return this.FindCore(expression).ToList();
-        }
 
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
@@ -126,15 +105,6 @@
             }
             return queryable;
         }
-
-
-
-
-        public override int GetCount(ISpecification<TEntity> selectSpec) =>
-            this.Find(selectSpec).Count<TEntity>();
-
-        public override int GetCount(Expression<Func<TEntity, bool>> expression) =>
-            this.Find(expression).Count<TEntity>();
 
         /*private EntityKey GetEntityKey(TEntity entity)
         {
@@ -181,22 +151,6 @@
         }*/
 
 
-        private int Save()
-        {
-            int affected = 0;
-            if (this._unitOfWorkManager.CurrentUnitOfWork == null)
-            {
-                affected = this.ObjectContext.SaveChanges(true);
-            }
-            return affected;
-        }
-
-        public override void Update(TEntity entity)
-        {
-            this.ObjectSet.Update(entity);
-            this.Save();
-        }
-
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification)
         {
             return await this.FindCore(specification.Predicate).ToListAsync();
@@ -223,30 +177,21 @@
             if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
                 affected = await this.ObjectContext.SaveChangesAsync(true);
+                _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
             }
             return affected;
         }
 
-        public override void Attach(TEntity entity)
+        public override async Task AttachAsync(TEntity entity)
         {
             this.ObjectContext.Attach<TEntity>(entity);
-            this.Save();
+            await this.SaveAsync();
         }
 
-        public override TEntity Find(object primaryKey)
+        public override async Task DetachAsync(TEntity entity)
         {
-            
-            return this.ObjectSet.Find(primaryKey);
-        }
-
-        public override TEntity FindSingleOrDefault(Expression<Func<TEntity, bool>> expression)
-        {
-            return this.FindCore(expression).SingleOrDefault();
-        }
-
-        public override TEntity FindSingleOrDefault(ISpecification<TEntity> specification)
-        {
-            return this.FindCore(specification.Predicate).SingleOrDefault();
+            this.ObjectContext.Entry<TEntity>(entity).State = EntityState.Detached;
+            await this.SaveAsync();
         }
 
         public override async Task AddAsync(TEntity entity)
@@ -254,6 +199,7 @@
             await this.ObjectSet.AddAsync(entity);
             await this.SaveAsync();
         }
+
 
         public async override Task DeleteAsync(TEntity entity)
         {
@@ -296,11 +242,11 @@
         {
             get
             {
-
-                if (this._unitOfWorkManager.CurrentUnitOfWork != null)
+                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                if (uow != null)
                 {
 
-                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName);
+                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(uow.TransactionId.Value, this.DataStoreName);
 
                 }
                 return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this.DataStoreName);
@@ -313,20 +259,12 @@
         {
             get
             {
-                /*if (ReferenceEquals(this._objectSet, null))
-                {
-                    
-                    var objectSet = this.GetObjectSet<TEntity>();
-                    
-                    
-                    this._objectSet = objectSet;
-                }*/
+
                 return this.ObjectContext.Set<TEntity>();
-                //return this._objectSet;
             }
         }
 
-        public bool Tracking
+        public override bool Tracking
         {
             get =>
                 this._tracking;
@@ -352,8 +290,8 @@
                 }
 
                 // Start Eagerloading
-                
-                
+
+
                 if (this._includes.Count > 0)
                 {
                     Action<string> action = null;

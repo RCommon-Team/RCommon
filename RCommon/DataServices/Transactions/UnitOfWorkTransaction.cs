@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Transactions;
 using Microsoft.Extensions.Logging;
 using RCommon.Extensions;
@@ -26,7 +27,7 @@ namespace RCommon.DataServices.Transactions
     /// <summary>
     /// Encapsulates a unit of work transaction.
     /// </summary>
-    public class UnitOfWorkTransaction : IDisposable
+    public class UnitOfWorkTransaction : DisposableResource
     {
         bool _disposed;
         TransactionScope _transaction;
@@ -150,17 +151,8 @@ namespace RCommon.DataServices.Transactions
             Dispose();
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        /// <filterpriority>2</filterpriority>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
 
-        void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (_disposed)
                 return;
@@ -194,5 +186,8 @@ namespace RCommon.DataServices.Transactions
             _attachedScopes = null;
             _disposed = true;
         }
+
+
+
     }
 }

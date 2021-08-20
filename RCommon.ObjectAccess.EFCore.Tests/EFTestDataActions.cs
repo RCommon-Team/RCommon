@@ -1,50 +1,32 @@
 ﻿using Bogus;
 using RCommon.Extensions;
+using RCommon.TestBase;
+using RCommon.TestBase.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
-    public class EFTestDataActions
+    public class EFTestDataActions : TestDataActionsBase
     {
         readonly EFTestData _generator;
 
         public EFTestDataActions(EFTestData generator)
         {
             _generator = generator;
-            
+
         }
 
-
-        public Customer CreateCustomerStub(Action<Customer> customize)
+        public override async Task<Customer> CreateCustomerAsync()
         {
-            var customer = new Faker<Customer>()
-                .RuleFor(x => x.City, f => f.Address.City())
-                .RuleFor(x => x.FirstName, f => f.Name.FirstName())
-                .RuleFor(x => x.LastName, f => f.Name.LastName())
-                .RuleFor(x => x.State, f => f.Address.State())
-                .RuleFor(x => x.StreetAddress1, f => f.Address.StreetAddress())
-                .RuleFor(x => x.StreetAddress2, f => f.Address.SecondaryAddress())
-                .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
-                .Generate();
-           customize(customer);
-            return customer;
+            return await CreateCustomerAsync(x => { });
         }
 
-        public Customer CreateCustomerStub()
-        {
-            return CreateCustomerStub(x => { });
-        }
-
-        public Customer CreateCustomer()
-        {
-            return CreateCustomer(x => { });
-        }
-
-        public Customer CreateCustomer(Action<Customer> customize)
+        public override async Task<Customer> CreateCustomerAsync(Action<Customer> customize)
         {
 
             var customer = new Faker<Customer>()
@@ -57,23 +39,23 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
                 .Generate();
             customize(customer);
-            _generator.Context.Set<Customer>().Add(customer);
-            _generator.Context.SaveChanges();
+            await _generator.Context.Set<Customer>().AddAsync(customer);
+            await _generator.Context.SaveChangesAsync();
             return customer;
         }
 
-        public Order CreateOrder()
+        public override async Task<Order> CreateOrderAsync()
         {
-            return CreateOrder(x => { });
+            return await CreateOrderAsync(x => { });
         }
 
-        public Order CreateOrderForCustomer(Customer customer)
+        public override async Task<Order> CreateOrderForCustomerAsync(Customer customer)
         {
-            var order = CreateOrder(x => x.Customer = customer);
+            var order = await CreateOrderAsync(x => x.Customer = customer);
             return order;
         }
 
-        public Order CreateOrder(Action<Order> customize)
+        public override async Task<Order> CreateOrderAsync(Action<Order> customize)
         {
             
 
@@ -82,55 +64,24 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .RuleFor(x => x.ShipDate, f => f.Date.Past(2))
                 .Generate();
             customize(order);
-            _generator.Context.Set<Order>().Add(order);
-            _generator.Context.SaveChanges();
+            await _generator.Context.Set<Order>().AddAsync(order);
+            await _generator.Context.SaveChangesAsync();
 
             return order;
         }
 
-        public Order CreateOrderStub()
-        {
-            var order = new Faker<Order>()
-                .RuleFor(x => x.OrderDate, f => f.Date.Past(2))
-                .RuleFor(x => x.ShipDate, f => f.Date.Past(2))
-                .Generate();
-            return order;
-        }
-
-        public OrderItem CreateOrderItem(Action<OrderItem> customize)
-        {
-            
-            var orderItem = new Faker<OrderItem>()
-                .RuleFor(x => x.Price, f => decimal.Parse(f.Commerce.Price(20, 599, 2)))
-                .RuleFor(x => x.Quantity, f => f.Random.Int(1, 5))
-                .RuleFor(x => x.Store, f => f.Company.CompanyName())
-                .Generate();
-            customize(orderItem);
-            return orderItem;
-        }
-
-        public Product CreateProduct()
+        public override async Task<Product> CreateProductAsync()
         {
             var product = new Faker<Product>()
                     .RuleFor(x => x.Description, f => f.Commerce.ProductMaterial())
                     .RuleFor(x => x.Name, f => f.Commerce.ProductName())
                     .Generate();
-            _generator.Context.Set<Product>().Add(product);
+            await _generator.Context.Set<Product>().AddAsync(product);
+            await _generator.Context.SaveChangesAsync();
             return product;
         }
 
-        public Customer GetCustomerById(int customerId)
-        {
-            
-            var customer = _generator.Context.Set<Customer>()
-                .Where(x => x.CustomerId == customerId)
-                .FirstOrDefault();
-            if (customer != null)
-                _generator.EntityDeleteActions.Add(x => x.Set<Customer>().Remove(customer));
-            return customer;
-        }
-
-        public Customer GetFirstCustomer(Func<Customer, bool> spec)
+        public async override Task<Customer> GetCustomerAsync(Func<Customer, bool> spec)
         {
 
             var customer = _generator.Context.Set<Customer>()
@@ -138,27 +89,27 @@ namespace RCommon.ObjectAccess.EFCore.Tests
                 .FirstOrDefault();
             if (customer != null)
                 _generator.EntityDeleteActions.Add(x => x.Set<Customer>().Remove(customer));
-            return customer;
+            return await Task.FromResult(customer);
         }
 
-        public Order GetOrderById(int orderId)
+        public async override Task<Order> GetOrderAsync(Func<Order, bool> spec)
         {
             var order = _generator.Context.Set<Order>()
-                .Where(x => x.OrderId == orderId)
+                .Where(spec)
                 .FirstOrDefault();
             if (order != null)
                 _generator.EntityDeleteActions.Add(x => x.Set<Order>().Remove(order));
-            return order;
+            return await Task.FromResult(order);
         }
 
-        public SalesPerson GetSalesPersonById(int id)
+        public async override Task<SalesPerson> GetSalesPersonAsync(Func<SalesPerson, bool> spec)
         {
             var salesPerson = _generator.Context.Set<SalesPerson>()
-                .Where(x => x.Id == id)
+                .Where(spec)
                 .FirstOrDefault();
             if (salesPerson != null)
                 _generator.EntityDeleteActions.Add(x => x.Set<SalesPerson>().Remove(salesPerson));
-            return salesPerson;
+            return await Task.FromResult(salesPerson);
         }
     }
 }

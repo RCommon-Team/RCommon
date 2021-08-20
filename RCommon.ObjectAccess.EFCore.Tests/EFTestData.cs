@@ -5,10 +5,11 @@ using NUnit.Framework;
 using Microsoft.EntityFrameworkCore;
 using RCommon.Extensions;
 using RCommon.DataServices;
+using System.Threading.Tasks;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
-    public class EFTestData : IDisposable
+    public class EFTestData : DisposableResource
     {
         readonly DbContext _context;
         readonly IList<Action<DbContext>> _entityDeleteActions;
@@ -29,21 +30,23 @@ namespace RCommon.ObjectAccess.EFCore.Tests
             get { return _entityDeleteActions; }
         }
 
-        public void Batch(Action<EFTestDataActions> action)
+        public async Task ResetContext()
         {
-            var dataActions = new EFTestDataActions(this);
-            action(dataActions);
-            _context.SaveChanges();
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE OrderItems");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Products");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Orders");
+            await _context.Database.ExecuteSqlInterpolatedAsync($"DELETE Customers");
         }
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
             if (_entityDeleteActions.Count <= 0)
-                return;
+                
 
             _entityDeleteActions.ForEach(x => x(_context));
             _context.SaveChanges();
             _context.Dispose();
         }
+
     }
 }

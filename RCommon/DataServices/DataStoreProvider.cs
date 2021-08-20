@@ -1,27 +1,33 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using RCommon.DataServices.Transactions;
+using RCommon.Extensions;
 using RCommon.StateStorage;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Threading.Tasks;
 using System.Transactions;
 
 namespace RCommon.DataServices
 {
     public class DataStoreProvider : DisposableResource, IDataStoreProvider
     {
-        private ICollection<StoredDataSource> _registeredDataStores = new List<StoredDataSource>();
+        private BlockingCollection<StoredDataSource> _registeredDataStores = new BlockingCollection<StoredDataSource>();
         private readonly IServiceProvider _serviceProvider;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<DataStoreProvider> _logger;
 
-        public DataStoreProvider(IServiceProvider serviceProvider, IConfiguration configuration)
+        public DataStoreProvider(IServiceProvider serviceProvider, IConfiguration configuration, ILogger<DataStoreProvider> logger)
         {
             this._serviceProvider = serviceProvider;
             this._configuration = configuration;
+            this._logger = logger;
         }
 
 
@@ -42,13 +48,13 @@ namespace RCommon.DataServices
 
             if (!bFound)
             {
-                Debug.WriteLine("Creating New DataStore for type: " + newTypeName + " with TransactionId: " + transactionId.ToString());
+                _logger.LogDebug("Creating New DataStore for type: " + newTypeName + " with TransactionId: " + transactionId.ToString());
                 this._registeredDataStores.Add(new StoredDataSource(transactionId, dataStore));
             }
 
         }
 
-        
+
 
         public TDataStore GetDataStore<TDataStore>(Guid transactionId, string dataStoreName = null)
             where TDataStore : IDataStore
@@ -57,8 +63,8 @@ namespace RCommon.DataServices
             string typeName = string.Empty; // Default
 
             // Use the named DataStoreType. This is the least likely to cause issues unless they are configuration related issues.
-            Debug.WriteLine("Looking for DataStore with name: " + dataStoreName);
-            
+            _logger.LogDebug("Looking for DataStore with name: " + dataStoreName);
+
             if (this.CanFindTypeNameInConfig(dataStoreName, out typeName))
             {
 
@@ -68,7 +74,7 @@ namespace RCommon.DataServices
                     if (item.DataStore.GetType().AssemblyQualifiedName == typeName && item.TransactionId == transactionId)
                     {
                         bFound = true;
-                        Debug.WriteLine("Re-using DataStore for type: " + item.DataStore.GetType().AssemblyQualifiedName);
+                        _logger.LogDebug("Re-using DataStore for type: " + item.DataStore.GetType().AssemblyQualifiedName);
                         dataStore = item.DataStore;
                         break;
                     }
@@ -88,7 +94,7 @@ namespace RCommon.DataServices
                     Guard.Against<UnsupportedDataStoreException>(dataStore == null, "The IDataStore of type: " + typeof(TDataStore).AssemblyQualifiedName + " was not registered with the dependency injection container."
                 + " You can manually handle the dependency registration i.e. IServiceCollection.AddTransient<RCommonDbContext, MyDbContext>(); or RCommon allows you to"
                 + " handle the registration through the fluent configuration interface. See: http://reactor2.com/rcommon/configuration");
-                    
+
                     this.RegisterDataStore(transactionId, dataStore);
                     return (TDataStore)dataStore;
                 }
@@ -97,7 +103,7 @@ namespace RCommon.DataServices
             {
                 throw new UnsupportedDataStoreException("RCommon was not able to find a DataStore with the name of: " + dataStoreName + " in the configuration."
                     + " See: http://reactor2.com/rcommon/configuration to determine how to configure your DataStore with RCommon.");
-                    
+
             }
 
 
@@ -135,15 +141,11 @@ namespace RCommon.DataServices
 
                 if (bConfigFound)
                 {
-                    /*newDataStore = (IDataStore)this._serviceProvider.GetService(type);
-                    Guard.Against<UnsupportedDataStoreException>(newDataStore == null, "The IDataStore of type: " + typeof(TDataStore).AssemblyQualifiedName + " was not registered with the dependency injection container."
-                        + " RCommon allows you to handle the registration through the fluent configuration interface or via configuration file. See: http://reactor2.com/rcommon/configuration for details.");
-                    */
                     return true;
                 }
                 else
                 {
-                    
+
                     return false;
                 }
 
@@ -180,21 +182,26 @@ namespace RCommon.DataServices
             return this._registeredDataStores.AsQueryable().Where(criteria);
         }
 
-        public void RemoveRegisterdDataStores(Guid transactionId)
+        public void RemoveRegisteredDataStores(Guid transactionId)
         {
-            var existingDataStores = _registeredDataStores.ToList(); // create a copy
-            foreach (var item in existingDataStores)
+            var existingDataStores = _registeredDataStores.Where(x=>x.TransactionId == transactionId); // create a copy
+
+            existingDataStores.ForEach(x => _registeredDataStores.TryTake(out x));
+            /*foreach (var item in existingDataStores)
             {
                 if (item.TransactionId == transactionId)
                 {
                     _registeredDataStores.Remove(item);
                 }
-            }
+            }*/
         }
 
-        protected override void Dispose(bool disposing)
+        public void RemoveRegisteredDataStores(Type type, Guid transactionId)
         {
-            base.Dispose(disposing);
+            var existingDataStores = _registeredDataStores.Where(x => x.DataStore.GetType().AssemblyQualifiedName == type.AssemblyQualifiedName
+            && x.TransactionId == transactionId); // create a copy
+
+            existingDataStores.ForEach(x => _registeredDataStores.TryTake(out x));
         }
 
 

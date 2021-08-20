@@ -8,7 +8,6 @@ using RCommon.ObjectAccess;
 using NHibernate;
 using NHibernate.Linq;
 using NHibernate.Transform;
-using RCommon.Domain.Repositories;
 using RCommon.DataServices.Transactions;
 using RCommon.Expressions;
 using System;
@@ -16,6 +15,7 @@ using System.Linq.Expressions;
 using System.IO;
 using System.Threading.Tasks;
 using RCommon.DataServices;
+using RCommon.BusinessEntities;
 
 namespace RCommon.ObjectAccess.NHibernate
 {
@@ -23,7 +23,8 @@ namespace RCommon.ObjectAccess.NHibernate
     /// Inherits from the <see cref="FullFeaturedRepositoryBase{TEntity}"/> class to provide an implementation of a
     /// repository that uses NHibernate.
     /// </summary>
-    public class NHRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, INHRepository<TEntity> where TEntity : class
+    public class NHRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, INHRepository<TEntity> 
+        where TEntity : class, IBusinessEntity
     {
         //int _batchSize = -1;
         //bool _enableCached;
@@ -48,14 +49,18 @@ namespace RCommon.ObjectAccess.NHibernate
         {
             get
             {
-                if (this._unitOfWorkManager.CurrentUnitOfWork != null)
+                
+                RCommonSessionFactory factory;
+                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+
+                if (uow != null)
                 {
 
-                    return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName).SessionFactory;
-
+                    factory = this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(uow.TransactionId.Value, this.DataStoreName);
+                    return factory.SessionFactory;
                 }
-
-                return this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this.DataStoreName).SessionFactory;
+                factory = this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this.DataStoreName);
+                return factory.SessionFactory;
             }
         }
 
@@ -77,39 +82,17 @@ namespace RCommon.ObjectAccess.NHibernate
             }
         }
 
-        /// <summary>
-        /// Adds a transient instance of <see cref="TEntity"/> to be tracked
-        /// and persisted by the repository.
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <remarks>
-        /// The Add method replaces the existing <see cref="FullFeaturedRepositoryBase{TEntity}.Save"/> method, which will
-        /// eventually be removed from the public API.
-        /// </remarks>
-        public override TEntity Add(TEntity entity)
-        {
-            SessionFactory.GetCurrentSession().SaveOrUpdate(entity);
-            return entity;
-        }
-
-        /// <summary>
-        /// Marks the entity instance to be deleted from the store.
-        /// </summary>
-        /// <param name="entity">An instance of <typeparamref name="TEntity"/> that should be deleted.</param>
-        public override void Delete(TEntity entity)
-        {
-            SessionFactory.GetCurrentSession().Delete(entity);
-        }
-
+        public override bool Tracking { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 
         /// <summary>
         /// Attaches a detached entity, previously detached via the <see cref="IRepository{TEntity}.Detach"/> method.
         /// </summary>
         /// <param name="entity">The entity instance to attach back to the repository.</param>
-        public override void Attach(TEntity entity)
+        public override async Task AttachAsync(TEntity entity)
         {
-            SessionFactory.GetCurrentSession().Update(entity);
+            await SessionFactory.GetCurrentSession().UpdateAsync(entity);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
         }
 
         protected override void ApplyFetchingStrategy(Expression[] paths)
@@ -123,15 +106,6 @@ namespace RCommon.ObjectAccess.NHibernate
             }
         }
 
-        public override void Update(TEntity entity)
-        {
-            SessionFactory.GetCurrentSession().Update(entity);
-        }
-
-        public override ICollection<TEntity> Find(ISpecification<TEntity> specification)
-        {
-            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).ToList();
-        }
 
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
@@ -143,49 +117,22 @@ namespace RCommon.ObjectAccess.NHibernate
             return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression);
         }
 
-        public override ICollection<TEntity> Find(Expression<Func<TEntity, bool>> expression)
-        {
-            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).ToList();
-        }
-
-        public override TEntity Find(object primaryKey)
-        {
-            return SessionFactory.GetCurrentSession().Get<TEntity>(primaryKey);
-        }
-
-        public override int GetCount(ISpecification<TEntity> selectSpec)
-        {
-            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(selectSpec.Predicate).Count();
-        }
-
-        public override int GetCount(Expression<Func<TEntity, bool>> expression)
-        {
-            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).Count();
-        }
-
-        public override TEntity FindSingleOrDefault(Expression<Func<TEntity, bool>> expression)
-        {
-            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).SingleOrDefault();
-        }
-
-        public override TEntity FindSingleOrDefault(ISpecification<TEntity> specification)
-        {
-            return SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).SingleOrDefault();
-        }
-
         public override async Task AddAsync(TEntity entity)
         {
             await SessionFactory.GetCurrentSession().SaveOrUpdateAsync(entity);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
         }
 
         public override async Task DeleteAsync(TEntity entity)
         {
             await SessionFactory.GetCurrentSession().DeleteAsync(entity);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
         }
 
         public override async Task UpdateAsync(TEntity entity)
         {
             await SessionFactory.GetCurrentSession().UpdateAsync(entity);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
         }
 
         public override async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification)
@@ -231,6 +178,11 @@ namespace RCommon.ObjectAccess.NHibernate
         public async override Task<bool> AnyAsync(ISpecification<TEntity> specification)
         {
             return await SessionFactory.GetCurrentSession().Query<TEntity>().AnyAsync(specification.Predicate);
+        }
+
+        public override Task DetachAsync(TEntity entity)
+        {
+            throw new NotImplementedException();
         }
     }
 }

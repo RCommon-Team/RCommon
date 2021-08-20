@@ -18,6 +18,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using RCommon.TestBase.Entities;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {
@@ -27,9 +28,9 @@ namespace RCommon.ObjectAccess.EFCore.Tests
         public void Configure(EntityTypeBuilder<Customer> builder)
         {
             builder.ToTable("Customers", "dbo");
-            builder.HasKey(x => x.CustomerId).HasName("PK__Customer__A4AE64B8BBC282A0").IsClustered();
+            builder.HasKey(x => x.Id).HasName("PK__Customer__A4AE64B8BBC282A0").IsClustered();
 
-            builder.Property(x => x.CustomerId).HasColumnName(@"CustomerID").HasColumnType("int").IsRequired().ValueGeneratedOnAdd().UseIdentityColumn();
+            builder.Property(x => x.Id).HasColumnName(@"CustomerID").HasColumnType("int").IsRequired().ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(x => x.StreetAddress1).HasColumnName(@"StreetAddress1").HasColumnType("nvarchar(255)").IsRequired(false).HasMaxLength(255);
             builder.Property(x => x.StreetAddress2).HasColumnName(@"StreetAddress2").HasColumnType("nvarchar(255)").IsRequired(false).HasMaxLength(255);
             builder.Property(x => x.City).HasColumnName(@"City").HasColumnType("nvarchar(255)").IsRequired(false).HasMaxLength(255);

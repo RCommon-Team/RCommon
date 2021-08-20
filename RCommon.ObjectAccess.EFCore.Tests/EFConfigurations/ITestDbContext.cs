@@ -19,6 +19,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using RCommon.DataServices;
+using RCommon.TestBase.Entities;
 using System;
 using System.Data;
 using System.Linq;

@@ -23,6 +23,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RCommon.DataServices;
 using RCommon.TestBase;
+using RCommon.TestBase.Entities;
 using System;
 using System.Data;
 using System.Data.SqlTypes;

@@ -18,6 +18,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using RCommon.TestBase.Entities;
 
 namespace RCommon.ObjectAccess.EFCore.Tests
 {

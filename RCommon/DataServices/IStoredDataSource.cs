@@ -4,7 +4,7 @@ namespace RCommon.DataServices
 {
     public interface IStoredDataSource
     {
-        IDataStore DataStore { get;  }
+        IDataStore DataStore { get; }
         Guid TransactionId { get; }
     }
 }

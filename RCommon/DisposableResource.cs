@@ -24,6 +24,7 @@ namespace RCommon
         public async ValueTask DisposeAsync()
         {
             await this.DisposeAsync(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -33,7 +34,7 @@ namespace RCommon
         protected async virtual Task DisposeAsync(bool disposing)
         {
 
-            await Task.CompletedTask;
+            await Task.Yield();
         }
     }
 }

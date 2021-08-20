@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using RCommon.Extensions;
 
 namespace RCommon.DataServices.Transactions
 {
@@ -19,15 +20,13 @@ namespace RCommon.DataServices.Transactions
     {
         private bool _disposed;
         private readonly IDataStoreProvider _dataStoreProvider;
+        private readonly IServiceProvider _serviceProvider;
 
-        
-
-        public UnitOfWork(IDataStoreProvider dataStoreProvider)
+        public UnitOfWork(IDataStoreProvider dataStoreProvider, IServiceProvider serviceProvider)
         {
             this._dataStoreProvider = dataStoreProvider;
+            _serviceProvider = serviceProvider;
         }
-
-        
 
         public void Flush()
         {
@@ -36,55 +35,26 @@ namespace RCommon.DataServices.Transactions
 
             foreach (var item in registeredTypes)
             {
-
                 item.DataStore.PersistChanges();
-                item.DataStore.Dispose();
+                item.DataStore.Dispose(); // This should be managed through the lifetime of the DI container.
             }
 
-            this._dataStoreProvider.RemoveRegisterdDataStores(this.TransactionId.Value);
-        }
-
-        public async Task FlushAsync()
-        {
-            Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
-            var registeredTypes = this._dataStoreProvider.GetRegisteredDataStores(x => x.TransactionId == this.TransactionId);
-
-            foreach (var item in registeredTypes)
-            {
-                
-                await item.DataStore.PersistChangesAsync();
-                await item.DataStore.DisposeAsync();
-            }
-
-            this._dataStoreProvider.RemoveRegisterdDataStores(this.TransactionId.Value);
+           _dataStoreProvider.RemoveRegisteredDataStores(this.TransactionId.Value);
         }
 
 
         public Nullable<Guid> TransactionId { get; set; }
 
-        protected override void Dispose(bool disposing)
+        protected override Task DisposeAsync(bool disposing)
         {
-            if (!this._disposed)
-            {
-                if (disposing)
-                {
-
-                }
-                this._disposed = true;
-            }
+            _disposed = true;
+            return base.DisposeAsync(disposing);
         }
 
-        protected async override Task DisposeAsync(bool disposing)
+        protected override void Dispose(bool disposing)
         {
-            if (!this._disposed)
-            {
-                if (disposing)
-                {
-
-                }
-                this._disposed = true;
-            }
-            await Task.CompletedTask;
+            _disposed = true;
+            base.Dispose(disposing);
         }
 
     }

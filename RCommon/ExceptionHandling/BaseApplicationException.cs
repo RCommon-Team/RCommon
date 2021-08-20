@@ -140,7 +140,6 @@ namespace RCommon.ExceptionHandling
         /// </summary>
         /// <param name="info">Represents the SerializationInfo of the exception.</param>
         /// <param name="context">Represents the context information of the exception.</param>
-        [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("machineName", machineName, typeof(string));
