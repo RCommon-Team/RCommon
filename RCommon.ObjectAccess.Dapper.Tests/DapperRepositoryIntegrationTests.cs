@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using RCommon.DataServices;
@@ -36,7 +37,7 @@ namespace RCommon.ObjectAccess.Dapper.Tests
         {
             this.Logger.LogInformation("Beginning Onetime setup", null);
             //this.ContainerAdapter.Register<DbContext, TestDbConnection>(typeof(TestDbConnection).AssemblyQualifiedName);
-
+            
         }
 
         [SetUp]
@@ -78,6 +79,7 @@ namespace RCommon.ObjectAccess.Dapper.Tests
         [Test]
         public async Task Can_perform_simple_query()
         {
+
             var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
 
             var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();

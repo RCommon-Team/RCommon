@@ -42,10 +42,30 @@ namespace RCommon.ObjectAccess.Dapper.Tests
         {
             using (var connection = _context.GetDbConnection())
             {
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = sql;
-                cmd.CommandType = CommandType.Text;
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    if (connection.State == ConnectionState.Closed)
+                    {
+                        connection.Open();
+                    }
+                    var cmd = connection.CreateCommand();
+                    cmd.CommandText = sql;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (connection.State == ConnectionState.Open)
+                    {
+                        connection.Close();
+                    }
+                }
+                
             }
             
         }

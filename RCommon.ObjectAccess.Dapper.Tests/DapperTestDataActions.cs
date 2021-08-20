@@ -1,4 +1,5 @@
 ﻿using Bogus;
+using DapperExtensions;
 using RCommon.TestBase;
 using RCommon.TestBase.Entities;
 using System;
@@ -6,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DapperExtensions;
+using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 
 namespace RCommon.ObjectAccess.Dapper.Tests
 {
@@ -45,6 +46,10 @@ namespace RCommon.ObjectAccess.Dapper.Tests
 
             using (var connection = _generator.Context.GetDbConnection())
             {
+                DapperSqlMapperExtensions.SqlMapperExtensions.TableNameMapper = (type) =>
+                {
+                    return type.Name + "s";
+                };
                 await connection.InsertAsync<Customer>(customer);
             }
             return customer;
@@ -101,6 +106,7 @@ namespace RCommon.ObjectAccess.Dapper.Tests
 
             using (var connection = _generator.Context.GetDbConnection())
             {
+                
                 var data = await connection.GetPageAsync<Customer>(spec, null, 1, 1, null, null, false);
                 customer = data.First();
             }

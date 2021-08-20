@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RCommon.Extensions;
 
 namespace RCommon.DataServices.Sql
 {
@@ -26,7 +27,10 @@ namespace RCommon.DataServices.Sql
 
         public IDbConnection GetDbConnection()
         {
+            
+            
             var factory = DbProviderFactories.GetFactory(_providerInvariantName);
+            
             var connection = factory.CreateConnection();
             connection.ConnectionString = _connectionString;
             return connection;

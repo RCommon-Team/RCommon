@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Data.Common;
 using RCommon.BusinessEntities;
 using DapperExtensions;
+using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 
 namespace RCommon.ObjectAccess.Dapper
 {
@@ -43,6 +44,11 @@ namespace RCommon.ObjectAccess.Dapper
                     {
                         connection.Open();
                     }
+
+                    DapperSqlMapperExtensions.SqlMapperExtensions.TableNameMapper = (type) =>
+                    {
+                        return TableName;
+                    };
                     await connection.InsertAsync(entity);
                     
                 }
@@ -72,7 +78,10 @@ namespace RCommon.ObjectAccess.Dapper
                     {
                         connection.Open();
                     }
-
+                    DapperSqlMapperExtensions.SqlMapperExtensions.TableNameMapper = (type) =>
+                    {
+                        return TableName;
+                    };
 
                     await connection.DeleteAsync(entity);
                 }
@@ -104,6 +113,12 @@ namespace RCommon.ObjectAccess.Dapper
                     {
                         connection.Open();
                     }
+
+                    DapperSqlMapperExtensions.SqlMapperExtensions.TableNameMapper = (type) =>
+                    {
+                        return TableName;
+                    };
+
                     await connection.UpdateAsync(entity);
                 }
                 catch (Exception)
@@ -130,6 +145,10 @@ namespace RCommon.ObjectAccess.Dapper
                 {
                     parameters.Add(p.ParameterName, p.Value, p.DbType, p.Direction, p.Size);
                 }
+                DapperSqlMapperExtensions.SqlMapperExtensions.TableNameMapper = (type) =>
+                {
+                    return TableName;
+                };
                 var query = await connection.QueryAsync<TEntity>(sql, parameters, commandType: commandType);
                 return query.ToList();
             }
@@ -139,6 +158,10 @@ namespace RCommon.ObjectAccess.Dapper
         {
             using (var connection = this.DbConnection)
             {
+                DapperSqlMapperExtensions.SqlMapperExtensions.TableNameMapper = (type) =>
+                {
+                    return TableName;
+                };
                 return await connection.QuerySingleOrDefaultAsync<TEntity>(sql, primaryKey, commandType: commandType);
             }
         }
@@ -147,6 +170,10 @@ namespace RCommon.ObjectAccess.Dapper
         {
             using (var connection = this.DbConnection)
             {
+                DapperSqlMapperExtensions.SqlMapperExtensions.TableNameMapper = (type) =>
+                {
+                    return TableName;
+                };
                 return await connection.QuerySingleOrDefaultAsync<TEntity>(sql, dbParams, commandType: commandType);
             }
         }

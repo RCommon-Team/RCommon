@@ -1,8 +1,10 @@
-﻿using RCommon.Configuration;
+﻿using Microsoft.Data.SqlClient;
+using RCommon.Configuration;
 using RCommon.DataServices.Sql;
 using RCommon.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +22,8 @@ namespace RCommon.ObjectAccess.Dapper
         /// registering components.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
+            
+            DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
             // Dapper Repository
             containerAdapter.AddGeneric(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));

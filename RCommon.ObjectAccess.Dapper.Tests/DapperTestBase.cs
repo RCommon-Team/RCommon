@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RCommon.Configuration;
 using RCommon.DependencyInjection.Microsoft;
@@ -33,7 +34,7 @@ namespace RCommon.ObjectAccess.Dapper.Tests
                     x => x.UsingDbConnection<TestDbConnection>())
                 .And<CommonApplicationServicesConfiguration>();
 
-
+            
 
             this.ServiceProvider = services.BuildServiceProvider();
             this.Logger = this.ServiceProvider.GetService<ILogger>();

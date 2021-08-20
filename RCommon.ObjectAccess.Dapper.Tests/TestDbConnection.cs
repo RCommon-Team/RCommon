@@ -9,7 +9,7 @@ namespace RCommon.ObjectAccess.Dapper.Tests
     public class TestDbConnection : RDbConnection
     {
 
-        public TestDbConnection(IConfiguration configuration) : base("System.Data.SqlClient", configuration.GetConnectionString(@"TestDbConnection"))
+        public TestDbConnection(IConfiguration configuration) : base("Microsoft.Data.SqlClient", configuration.GetConnectionString(@"TestDbConnection"))
         {
 
         }
