@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using RCommon;
-using RCommon.Application.DTO;
+using RCommon.BusinessServices;
 using RCommon.Collections;
 using RCommon.DataServices.Transactions;
-using RCommon.Domain.DomainServices;
-using RCommon.Domain.Repositories;
+using RCommon.DataTransferObjects;
 using RCommon.ExceptionHandling;
 using RCommon.Expressions;
 using RCommon.Extensions;
+using RCommon.ObjectAccess;
 using RCommon.Validation;
 using Samples.Domain.Entities;
 using System;
@@ -23,12 +23,12 @@ namespace Samples.Domain.DomainServices
     /// Since our base class <see cref="CrudDomainService{TEntity}"/> already implements our CRUD in a best practices manner, all we need to do is add this logic for the operations that are 
     /// not as basic - such as paging, eager loading, etc. It is not explicitly aware of any transactions that may be occuring. 
     /// </summary>
-    public class DiveLocationService : CrudDomainService<DiveLocation>, IDiveLocationService
+    public class DiveLocationService : CrudBusinessService<DiveLocation>, IDiveLocationService
     {
-        private readonly IEagerFetchingRepository<DiveLocationDetail> _diveLocationDetailRepository;
-        private readonly IEagerFetchingRepository<DiveLocation> _diveLocationRepository;
+        private readonly IFullFeaturedRepository<DiveLocationDetail> _diveLocationDetailRepository;
+        private readonly IFullFeaturedRepository<DiveLocation> _diveLocationRepository;
 
-        public DiveLocationService(IEagerFetchingRepository<DiveLocationDetail> diveLocationDetailRepository, IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IEagerFetchingRepository<DiveLocation> diveLocationRepository, ILogger<DiveLocationService> logger, IExceptionManager exceptionManager)
+        public DiveLocationService(IFullFeaturedRepository<DiveLocationDetail> diveLocationDetailRepository, IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IFullFeaturedRepository<DiveLocation> diveLocationRepository, ILogger<DiveLocationService> logger, IExceptionManager exceptionManager)
             : base(unitOfWorkScopeFactory, diveLocationRepository, logger, exceptionManager)
         {
             _diveLocationDetailRepository = diveLocationDetailRepository;

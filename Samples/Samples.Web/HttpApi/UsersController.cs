@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RCommon.Domain.Repositories;
 using Samples.Application.ApplicationServices;
 using Samples.Domain;
 using Samples.Domain.Entities;

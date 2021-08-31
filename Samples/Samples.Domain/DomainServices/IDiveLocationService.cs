@@ -1,6 +1,7 @@
-﻿using RCommon.Application.DTO;
+﻿
+using RCommon.BusinessServices;
 using RCommon.Collections;
-using RCommon.Domain.DomainServices;
+using RCommon.DataTransferObjects;
 using RCommon.Expressions;
 using Samples.Domain.Entities;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace Samples.Domain.DomainServices
     /// <summary>
     /// Represents a service contract with <see cref="DiveLocationService"/>
     /// </summary>
-    public interface IDiveLocationService : ICrudDomainService<DiveLocation>
+    public interface IDiveLocationService : ICrudBusinessService<DiveLocation>
     {
         /// <summary>
         /// Retrieves a list of <see cref="DiveLocation"/>

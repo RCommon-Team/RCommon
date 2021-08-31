@@ -18,6 +18,7 @@
 
 
 
+using RCommon.BusinessEntities;
 using System;
 
 
@@ -44,7 +45,7 @@ namespace Samples.Domain.Entities
 
 
 
-    public partial class ApplicationUser
+    public partial class ApplicationUser : IBusinessEntity
 
     {
 
@@ -119,8 +120,10 @@ namespace Samples.Domain.Entities
 
         }
 
-
-
+        public object[] GetKeys()
+        {
+            return new object[] { this.Id };
+        }
     }
 
 }

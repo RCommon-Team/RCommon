@@ -1,4 +1,5 @@
-﻿using RCommon.Application.DTO;
+﻿
+using RCommon.DataTransferObjects;
 using Samples.Application.Contracts.Dto;
 using System.Threading.Tasks;
 

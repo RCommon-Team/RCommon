@@ -18,6 +18,7 @@
 
 
 
+using RCommon.BusinessEntities;
 using System;
 
 
@@ -44,7 +45,7 @@ namespace Samples.Domain.Entities
     
 
 
-public partial class DiveLocation
+public partial class DiveLocation : IBusinessEntity
     
 {
     
@@ -214,12 +215,12 @@ public partial class DiveLocation
 
     
     partial void InitializePartial();
-    
 
-
-
-
-}
+        public object[] GetKeys()
+        {
+            return new object[] { this.Id };
+        }
+    }
 
 }
 // </auto-generated>

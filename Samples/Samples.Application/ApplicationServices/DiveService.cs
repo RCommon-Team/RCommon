@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using RCommon.Application.DTO;
-using RCommon.Application.Services;
+using RCommon.ApplicationServices;
 using RCommon.Collections;
 using RCommon.DataServices.Transactions;
+using RCommon.DataTransferObjects;
 using RCommon.ExceptionHandling;
 using RCommon.Expressions;
 using Samples.Application.Contracts.Dto;
