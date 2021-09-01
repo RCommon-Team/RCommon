@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>1.0.0.33</Version>
+    <Version>1.0.0.34</Version>
     <Authors>Reactor2</Authors>
     <Company>Reactor2</Company>
     <Description>A lightweight application framework used for building applications with data access requirements for one or many data stores and data store types. Simplified unit of work pattern, domain services, application services, and base UI classes.</Description>
-    <Copyright>Copyright Reactor2 2020</Copyright>
-    <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
+    <Copyright>Copyright Reactor2 2021</Copyright>
+    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <PackageTags>RCommon, generic repository, .NET Core, exception management, logging, domain services, application framework</PackageTags>
