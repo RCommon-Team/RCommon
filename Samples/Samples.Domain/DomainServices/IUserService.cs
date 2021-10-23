@@ -1,5 +1,6 @@
-﻿using RCommon.Application.DTO;
+﻿
 using RCommon.Collections;
+using RCommon.DataTransferObjects;
 using Samples.Domain.Entities;
 using System.Threading.Tasks;
 

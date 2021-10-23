@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using RCommon.Application.DTO;
 using RCommon.Collections;
 using Samples.Application.Contracts.Dto;
 using Samples.Domain.Entities;

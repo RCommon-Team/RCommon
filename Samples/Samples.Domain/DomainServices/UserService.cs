@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using RCommon.Application.DTO;
+using RCommon.BusinessServices;
 using RCommon.Collections;
-using RCommon.Domain.DomainServices;
-using RCommon.Domain.Repositories;
+using RCommon.DataTransferObjects;
 using RCommon.ExceptionHandling;
 using RCommon.Extensions;
+using RCommon.ObjectAccess;
 using Samples.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 
 namespace Samples.Domain.DomainServices
 {
-    public class UserService : RCommonDomainService, IUserService
+    public class UserService : RCommonBusinessService, IUserService
     {
-        private readonly IEagerFetchingRepository<ApplicationUser> _userRepository;
+        private readonly IFullFeaturedRepository<ApplicationUser> _userRepository;
 
-        public UserService(IEagerFetchingRepository<ApplicationUser> userRepository, ILogger<UserService> logger, IExceptionManager exceptionManager) : base(logger, exceptionManager)
+        public UserService(IFullFeaturedRepository<ApplicationUser> userRepository, ILogger<UserService> logger, IExceptionManager exceptionManager) : base(logger, exceptionManager)
         {
             _userRepository = userRepository;
             _userRepository.DataStoreName = DataStoreDefinitions.Samples;

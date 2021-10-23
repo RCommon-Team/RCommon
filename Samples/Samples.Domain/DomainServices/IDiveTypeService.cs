@@ -1,5 +1,5 @@
-﻿using RCommon.Application.DTO;
-using RCommon.Domain.DomainServices;
+﻿
+using RCommon.BusinessServices;
 using Samples.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace Samples.Domain.DomainServices
     /// <summary>
     /// Represents a service contract with <see cref="DiveTypeService"/>
     /// </summary>
-    public interface IDiveTypeService : ICrudDomainService<DiveType>
+    public interface IDiveTypeService : ICrudBusinessService<DiveType>
     {
         
     }

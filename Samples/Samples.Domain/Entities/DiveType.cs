@@ -18,6 +18,7 @@
 
 
 
+using RCommon.BusinessEntities;
 using System;
 
 
@@ -44,7 +45,7 @@ namespace Samples.Domain.Entities
     
 
 
-public partial class DiveType
+public partial class DiveType : IBusinessEntity
     
 {
     
@@ -160,12 +161,12 @@ public partial class DiveType
 
     
     partial void InitializePartial();
-    
 
-
-
-
-}
+        public object[] GetKeys()
+        {
+            return new object[] { this.Id };
+        }
+    }
 
 }
 // </auto-generated>

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RCommon.Application.DTO;
 using RCommon.Collections;
+using RCommon.DataTransferObjects;
 using Samples.Application.Contracts.Dto;
 using System;
 using System.Collections.Generic;
