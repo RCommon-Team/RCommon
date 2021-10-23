@@ -8,6 +8,8 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
+using RCommon.Extensions;
 
 namespace RCommon.ObjectAccess.Dapper
 {
@@ -33,7 +35,6 @@ namespace RCommon.ObjectAccess.Dapper
             {
                 containerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
             }
-
 
         }
 
