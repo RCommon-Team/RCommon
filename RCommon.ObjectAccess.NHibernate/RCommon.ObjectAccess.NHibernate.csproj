@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+    <ProjectReference Include="..\RCommon.ObjectAccess\RCommon.ObjectAccess.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>
 

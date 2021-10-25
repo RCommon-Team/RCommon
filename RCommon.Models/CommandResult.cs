@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.ApplicationServices.DataTransferObjects
+namespace RCommon.Models
 {
     /// <summary>
     /// This class encapsulates a series of results stemming from validation, exception handling, and general

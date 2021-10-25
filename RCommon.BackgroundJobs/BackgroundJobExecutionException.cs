@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace RCommon.BackgroundJobs
 {
     [Serializable]
-    public class BackgroundJobExecutionException : AbpException
+    public class BackgroundJobExecutionException : GeneralException
     {
         public string JobType { get; set; }
 

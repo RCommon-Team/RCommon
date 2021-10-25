@@ -17,6 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
+    <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
     <ProjectReference Include="..\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />

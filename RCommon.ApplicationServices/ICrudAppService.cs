@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using RCommon.DataTransferObjects;
+using RCommon.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RCommon.Json;
+using System;
 
 namespace RCommon.BackgroundJobs
 {

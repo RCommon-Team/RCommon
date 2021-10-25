@@ -8,10 +8,10 @@ namespace RCommon.ApplicationServices.DataTransferObjects
     /// Represents a Data Transfer Object (DTO) that is typically used to encapsulate a PaginatedList so that it can be
     /// delivered to an application layer.
     /// </summary>
-    public class StaticPaginatedList<T>
+    public class PaginatedListModel<T>
         where T : class, new()
     {
-        public StaticPaginatedList()
+        public PaginatedListModel()
         {
 
         }

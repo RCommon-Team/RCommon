@@ -1,4 +1,4 @@
-﻿using Volo.Abp.DynamicProxy;
+﻿
 
 namespace RCommon.BackgroundJobs
 {

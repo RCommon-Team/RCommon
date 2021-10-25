@@ -23,8 +23,8 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
             base.InitializeBootstrapper(services);
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
-                .WithExceptionHandling<EhabExceptionHandlingConfiguration>(x=>
-                x.UsingDefaultExceptionPolicies());
+                .And<EhabExceptionHandlingConfiguration>(x=>
+                    x.UsingDefaultExceptionPolicies());
 
 
 

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using RCommon.BusinessEntities;
+using RCommon.Models;
 
 namespace RCommon.ApplicationServices
 {

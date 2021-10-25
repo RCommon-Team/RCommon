@@ -63,6 +63,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BusinessServices", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Exception Handling", "Exception Handling", "{81653BE2-F706-493D-A9AD-7538C9F210FA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Models", "RCommon.Models\RCommon.Models.csproj", "{60DD21D4-98D7-4101-86E3-8B2E4BA253EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.BusinessEntities", "RCommon.BusinessEntities\RCommon.BusinessEntities.csproj", "{E826DF9F-418D-4978-B357-304E732EFE9E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -169,6 +173,14 @@ Global
 		{C109B3AE-8757-4CD7-B3A2-4A8E44D5116A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C109B3AE-8757-4CD7-B3A2-4A8E44D5116A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C109B3AE-8757-4CD7-B3A2-4A8E44D5116A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60DD21D4-98D7-4101-86E3-8B2E4BA253EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60DD21D4-98D7-4101-86E3-8B2E4BA253EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60DD21D4-98D7-4101-86E3-8B2E4BA253EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60DD21D4-98D7-4101-86E3-8B2E4BA253EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E826DF9F-418D-4978-B357-304E732EFE9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E826DF9F-418D-4978-B357-304E732EFE9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E826DF9F-418D-4978-B357-304E732EFE9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E826DF9F-418D-4978-B357-304E732EFE9E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

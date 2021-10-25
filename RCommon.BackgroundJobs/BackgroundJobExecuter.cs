@@ -4,12 +4,10 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.ExceptionHandling;
 
 namespace RCommon.BackgroundJobs
 {
-    public class BackgroundJobExecuter : IBackgroundJobExecuter, ITransientDependency
+    public class BackgroundJobExecuter : IBackgroundJobExecuter
     {
         public ILogger<BackgroundJobExecuter> Logger { protected get; set; }
 
@@ -27,14 +25,14 @@ namespace RCommon.BackgroundJobs
             var job = context.ServiceProvider.GetService(context.JobType);
             if (job == null)
             {
-                throw new AbpException("The job type is not registered to DI: " + context.JobType);
+                throw new GeneralException("The job type is not registered to DI: " + context.JobType);
             }
 
             var jobExecuteMethod = context.JobType.GetMethod(nameof(IBackgroundJob<object>.Execute)) ?? 
                                    context.JobType.GetMethod(nameof(IAsyncBackgroundJob<object>.ExecuteAsync));
             if (jobExecuteMethod == null)
             {
-                throw new AbpException($"Given job type does not implement {typeof(IBackgroundJob<>).Name} or {typeof(IAsyncBackgroundJob<>).Name}. " +
+                throw new GeneralException($"Given job type does not implement {typeof(IBackgroundJob<>).Name} or {typeof(IAsyncBackgroundJob<>).Name}. " +
                                        "The job type was: " + context.JobType);
             }
 

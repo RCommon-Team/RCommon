@@ -4,10 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Volo.Abp.BackgroundWorkers;
-using Volo.Abp.DistributedLocking;
-using Volo.Abp.Threading;
-using Volo.Abp.Timing;
+
 
 namespace RCommon.BackgroundJobs
 {

@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.Guids;
-using Volo.Abp.Timing;
 
 namespace RCommon.BackgroundJobs
 {
     /// <summary>
     /// Default implementation of <see cref="IBackgroundJobManager"/>.
     /// </summary>
-    [Dependency(ReplaceServices = true)]
-    public class DefaultBackgroundJobManager : IBackgroundJobManager, ITransientDependency
+    public class DefaultBackgroundJobManager : IBackgroundJobManager
     {
         protected IClock Clock { get; }
         protected IBackgroundJobSerializer Serializer { get; }
