@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RCommon.BusinessServices\RCommon.BusinessServices.csproj" />
+    <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>
 

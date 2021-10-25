@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>
 

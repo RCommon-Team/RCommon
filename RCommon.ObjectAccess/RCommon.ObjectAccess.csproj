@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>
 

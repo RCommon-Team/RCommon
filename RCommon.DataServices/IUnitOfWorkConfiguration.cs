@@ -14,11 +14,12 @@
 //limitations under the License. 
 #endregion
 
+using System;
 using System.Transactions;
 using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
 
-namespace RCommon.Configuration
+namespace RCommon.DataServices
 {
     /// <summary>
     /// Configuration settings for <see cref="UnitOfWorkScope"/> instances in RCommon.
@@ -41,5 +42,24 @@ namespace RCommon.Configuration
         /// </summary>
         /// <param name="isolationLevel"></param>
         IUnitOfWorkConfiguration WithDefaultIsolation(IsolationLevel isolationLevel);
+
+
+        /// <summary>
+        /// Configures RCommon unit of work settings.
+        /// </summary>
+        /// <typeparam name="T">A <see cref="IUnitOfWorkConfiguration"/> type that can be used to configure
+        /// unit of work settings.</typeparam>
+        /// <returns><see cref="IRCommonConfiguration"/></returns>
+        IUnitOfWorkConfiguration WithUnitOfWork<T>() where T : IUnitOfWorkConfiguration, new();
+
+        ///<summary>
+        /// Configures RCommon unit of work settings.
+        ///</summary>
+        /// <typeparam name="T">A <see cref="IRCommonConfiguration"/> type that can be used to configure
+        /// unit of work settings.</typeparam>
+        ///<param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
+        /// custom actions on the <see cref="IUnitOfWorkConfiguration"/> instance.</param>
+        ///<returns><see cref="IRCommonConfiguration"/></returns>
+        IUnitOfWorkConfiguration WithUnitOfWork<T>(Action<T> actions) where T : IUnitOfWorkConfiguration, new();
     }
 }

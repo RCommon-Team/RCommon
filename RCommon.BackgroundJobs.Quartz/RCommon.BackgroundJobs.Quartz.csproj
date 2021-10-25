@@ -1,7 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
+    <PackageReference Include="Quartz" Version="3.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj" />
+    <ProjectReference Include="..\RCommon\RCommon.csproj" />
+  </ItemGroup>
 
 </Project>
