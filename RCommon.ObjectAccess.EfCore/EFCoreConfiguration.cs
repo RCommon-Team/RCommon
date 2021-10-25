@@ -29,9 +29,9 @@ using RCommon.StateStorage;
 namespace RCommon.ObjectAccess.EFCore
 {
     /// <summary>
-    /// Implementation of <see cref="IObjectAccessConfiguration"/> for Entity Framework.
+    /// Implementation of <see cref="IEFCoreConfiguration"/> for Entity Framework.
     /// </summary>
-    public class EFCoreConfiguration : IObjectAccessConfiguration
+    public class EFCoreConfiguration : IEFCoreConfiguration
     {
         private List<string> _dbContextTypes = new List<string>();
 
@@ -51,12 +51,12 @@ namespace RCommon.ObjectAccess.EFCore
             {
                 containerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
             }
-            
-            
+
+
         }
 
 
-        public IObjectAccessConfiguration UsingDbContext<TDbContext>()
+        public IEFCoreConfiguration UsingDbContext<TDbContext>()
             where TDbContext : RCommonDbContext
         {
             var dbContext = typeof(TDbContext).AssemblyQualifiedName;

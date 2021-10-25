@@ -21,7 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
 
-namespace RCommon.DataServices
+namespace RCommon.DataServices.Transactions
 {
     ///<summary>
     /// Implementation of <see cref="IUnitOfWorkConfiguration"/>.

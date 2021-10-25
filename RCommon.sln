@@ -47,19 +47,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Background Jobs", "Backgrou
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Object Access", "Object Access", "{0A72EADE-8CF6-49A8-A594-55F54BBF61C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ObjectAccess", "RCommon.ObjectAccess\RCommon.ObjectAccess.csproj", "{0611296E-B19D-4855-85F9-20BCBC115022}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess", "RCommon.ObjectAccess\RCommon.ObjectAccess.csproj", "{0611296E-B19D-4855-85F9-20BCBC115022}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Validation", "RCommon.Validation\RCommon.Validation.csproj", "{9BC9743D-BB10-4CC7-98C7-53C168D15121}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Validation", "RCommon.Validation\RCommon.Validation.csproj", "{9BC9743D-BB10-4CC7-98C7-53C168D15121}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ApplicationServices", "RCommon.ApplicationServices\RCommon.ApplicationServices.csproj", "{D0A71FB7-0BC7-40F3-9040-7667D6316D89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ApplicationServices", "RCommon.ApplicationServices\RCommon.ApplicationServices.csproj", "{D0A71FB7-0BC7-40F3-9040-7667D6316D89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.DataServices", "RCommon.DataServices\RCommon.DataServices.csproj", "{25B9AD33-2516-498D-9BBD-C6728649FDDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DataServices", "RCommon.DataServices\RCommon.DataServices.csproj", "{25B9AD33-2516-498D-9BBD-C6728649FDDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ExceptionHandling", "RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj", "{EFBDE01F-9BB3-4176-9F77-37F30D9C6947}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ExceptionHandling", "RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj", "{EFBDE01F-9BB3-4176-9F77-37F30D9C6947}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Json.NewtonSoft", "RCommon.Json.NewtonSoft\RCommon.Json.NewtonSoft.csproj", "{30AE741C-5C83-4743-89D5-06360D8F5BC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Json.NewtonSoft", "RCommon.Json.NewtonSoft\RCommon.Json.NewtonSoft.csproj", "{30AE741C-5C83-4743-89D5-06360D8F5BC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.BusinessServices", "RCommon.BusinessServices\RCommon.BusinessServices.csproj", "{C109B3AE-8757-4CD7-B3A2-4A8E44D5116A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BusinessServices", "RCommon.BusinessServices\RCommon.BusinessServices.csproj", "{C109B3AE-8757-4CD7-B3A2-4A8E44D5116A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Exception Handling", "Exception Handling", "{81653BE2-F706-493D-A9AD-7538C9F210FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +183,7 @@ Global
 		{31DF0037-CA8E-4979-946B-F7554BFF48C4} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{97A6138B-5602-4247-A4BD-555846FB6702} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{6FB45C2A-F38A-4865-BFB7-1CFC9197A837} = {FF409757-E986-43E2-B465-B64D246AF63B}
+		{55FB91BD-E1FA-4F3F-8CC6-62AB92D668F8} = {81653BE2-F706-493D-A9AD-7538C9F210FA}
 		{FB6002E5-0E17-403F-9DFB-482AB7A4E525} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70} = {0A72EADE-8CF6-49A8-A594-55F54BBF61C6}
@@ -189,6 +192,7 @@ Global
 		{4A59D010-0DFD-4918-9768-57F33531C40A} = {3C743CCE-675D-4B3A-B99A-9EC9DFE1CAD3}
 		{7535EE4B-A950-44B7-85B9-32286B7BA66A} = {3C743CCE-675D-4B3A-B99A-9EC9DFE1CAD3}
 		{0611296E-B19D-4855-85F9-20BCBC115022} = {0A72EADE-8CF6-49A8-A594-55F54BBF61C6}
+		{EFBDE01F-9BB3-4176-9F77-37F30D9C6947} = {81653BE2-F706-493D-A9AD-7538C9F210FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

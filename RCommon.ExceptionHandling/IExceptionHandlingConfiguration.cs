@@ -1,13 +1,13 @@
-﻿using RCommon.DependencyInjection;
+﻿using RCommon.Configuration;
+using RCommon.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace RCommon.ExceptionHandling
 {
-    public interface IExceptionHandlingConfiguration
+    public interface IExceptionHandlingConfiguration : IServiceConfiguration
     {
-        void Configure(IContainerAdapter containerAdapter);
 
         IExceptionHandlingConfiguration WithExceptionHandling<T>() where T : IExceptionHandlingConfiguration, new();
 

@@ -1,5 +1,4 @@
-﻿using RCommon.BusinessEntities;
-using RCommon.DataTransferObjects;
+﻿
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

@@ -4,4 +4,12 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
+    <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
+    <ProjectReference Include="..\RCommon.ObjectAccess\RCommon.ObjectAccess.csproj" />
+    <ProjectReference Include="..\RCommon.Validation\RCommon.Validation.csproj" />
+    <ProjectReference Include="..\RCommon\RCommon.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,6 @@
 
 
+using RCommon.Configuration;
 using RCommon.DependencyInjection;
 using System;
 
@@ -8,14 +9,8 @@ namespace RCommon.ObjectAccess
     /// <summary>
     /// Base interface implemented by specific data configurators that configure RCommon data providers.
     /// </summary>
-    public interface IObjectAccessConfiguration
+    public interface IObjectAccessConfiguration : IServiceConfiguration
     {
-        /// <summary>
-        /// Called by RCommon <see cref="Configure"/> to configure data providers.
-        /// </summary>
-        /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance that allows
-        /// registering components.</param>
-        void Configure(IContainerAdapter containerAdapter);
 
         /// <summary>
         /// Configure data providers used by RCommon.

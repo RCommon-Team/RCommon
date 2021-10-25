@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
 using RCommon.BusinessServices;
-using RCommon.DataTransferObjects;
 using RCommon.DataServices.Transactions;
 using RCommon.ExceptionHandling;
 using System;

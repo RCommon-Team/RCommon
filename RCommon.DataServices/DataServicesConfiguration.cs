@@ -1,18 +1,30 @@
 ﻿using RCommon.Configuration;
+using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace RCommon.DataServices
 {
-    public class DataServicesConfiguration : IUnitOfWorkConfiguration
+    public class DataServicesConfiguration : IDataServicesConfiguration
     {
+        readonly IContainerAdapter _containerAdapter;
+        bool _autoCompleteScope = false;
+        IsolationLevel _defaultIsolation = IsolationLevel.ReadCommitted;
+
+        /// <summary>
+        /// Configures <see cref="UnitOfWorkScope"/> settings.
+        /// </summary>
+        /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
             containerAdapter.AddScoped<IDataStoreProvider, DataStoreProvider>();
+
         }
 
         /// <summary>
@@ -25,7 +37,7 @@ namespace RCommon.DataServices
         {
             var uowConfiguration = (T)Activator.CreateInstance(typeof(T));
             uowConfiguration.Configure(_containerAdapter);
-            return this;
+            return uowConfiguration;
         }
 
         ///<summary>
@@ -41,7 +53,7 @@ namespace RCommon.DataServices
             var uowConfiguration = (T)Activator.CreateInstance(typeof(T));
             actions(uowConfiguration);
             uowConfiguration.Configure(_containerAdapter);
-            return this;
+            return uowConfiguration;
         }
 
     }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RCommon.ExceptionHandling
+namespace RCommon
 {
     /// <summary>
     /// Thrown if invalid argument supplied. 

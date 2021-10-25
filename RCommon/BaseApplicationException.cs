@@ -11,7 +11,7 @@ using System.Security.Principal;
 using System.Security.Permissions;
 using System.Reflection;
 
-namespace RCommon.ExceptionHandling
+namespace RCommon
 {
     [Serializable]
     public class BaseApplicationException : ApplicationException

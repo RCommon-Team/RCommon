@@ -10,7 +10,7 @@ namespace RCommon.ObjectAccess
 {
     public class ObjectAccessConfiguration : IObjectAccessConfiguration
     {
-        private readonly IContainerAdapter _containerAdapter;
+        private IContainerAdapter _containerAdapter;
 
         public void Configure(IContainerAdapter containerAdapter)
         {

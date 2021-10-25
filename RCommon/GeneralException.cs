@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.Serialization;
 
-namespace RCommon.ExceptionHandling
+namespace RCommon
 {
     public enum SeverityOptions : int
     {

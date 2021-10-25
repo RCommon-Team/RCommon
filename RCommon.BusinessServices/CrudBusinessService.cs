@@ -2,7 +2,6 @@
 using RCommon;
 using RCommon.BusinessEntities;
 using RCommon.DataServices.Transactions;
-using RCommon.DataTransferObjects;
 using RCommon.ExceptionHandling;
 using RCommon.ObjectAccess;
 using RCommon.Validation;
