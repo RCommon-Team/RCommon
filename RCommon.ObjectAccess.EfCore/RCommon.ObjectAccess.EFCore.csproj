@@ -28,11 +28,4 @@
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\..\..\..\..\OneDrive - NTeris\Businesses\NTeris\Graphics\Reactor2-Icon-DarkBG-100.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
-
 </Project>

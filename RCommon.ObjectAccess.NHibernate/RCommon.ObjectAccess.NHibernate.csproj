@@ -11,7 +11,7 @@
     <PackageTags>NHibernate, Generic Repository, .NET Core</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <PackageIcon></PackageIcon>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <Version>1.0.0.12</Version>
   </PropertyGroup>
@@ -27,13 +27,6 @@
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon.ObjectAccess\RCommon.ObjectAccess.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\..\..\..\OneDrive - NTeris\Businesses\NTeris\Graphics\reactor2-icon-darkbg-small.jpg">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
   </ItemGroup>
 
 </Project>

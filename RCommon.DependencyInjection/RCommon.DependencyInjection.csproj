@@ -6,7 +6,7 @@
     <Description>Dependency injection abstractions for RCommon application framework.</Description>
     <Copyright>Copyright Reactor2 2020</Copyright>
     <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
-    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <PackageIcon></PackageIcon>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageTags>rcommon, dependency injection, di container, di abstraction</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -15,13 +15,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommonServiceLocator" Version="2.0.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\..\..\..\OneDrive - NTeris\Businesses\NTeris\Graphics\reactor2-icon-darkbg-small.jpg">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
   </ItemGroup>
 
 </Project>

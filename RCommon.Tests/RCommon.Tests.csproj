@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ExceptionHandling\**" />
+    <EmbeddedResource Remove="ExceptionHandling\**" />
+    <None Remove="ExceptionHandling\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
     <PackageReference Include="nunit" Version="3.13.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
@@ -17,10 +23,6 @@
     <ProjectReference Include="..\RCommon.ObjectAccess.EFCore.Tests\RCommon.ObjectAccess.EFCore.Tests.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ExceptionHandling\" />
   </ItemGroup>
 
   <ItemGroup>
