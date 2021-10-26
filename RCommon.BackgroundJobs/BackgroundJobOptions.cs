@@ -1,7 +1,7 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using RCommon.Extensions;
 
 namespace RCommon.BackgroundJobs
 {

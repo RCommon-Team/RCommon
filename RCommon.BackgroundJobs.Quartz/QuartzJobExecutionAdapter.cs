@@ -5,7 +5,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Quartz;
-using Volo.Abp.Json;
+using RCommon.Extensions;
+using RCommon.Json;
 
 namespace RCommon.BackgroundJobs.Quartz
 {

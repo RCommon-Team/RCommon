@@ -28,7 +28,7 @@ namespace RCommon.BackgroundJobs
                 return genericArgs[0];
             }
 
-            throw new AbpException($"Could not find type of the job args. " +
+            throw new GeneralException($"Could not find type of the job args. " +
                                    $"Ensure that given type implements the {typeof(IBackgroundJob<>).AssemblyQualifiedName} or {typeof(IAsyncBackgroundJob<>).AssemblyQualifiedName} interface. " +
                                    $"Given job type: {jobType.AssemblyQualifiedName}");
         }

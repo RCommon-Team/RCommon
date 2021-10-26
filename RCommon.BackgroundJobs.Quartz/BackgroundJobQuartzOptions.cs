@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Quartz;
+using RCommon.Extensions;
 
 namespace RCommon.BackgroundJobs.Quartz
 {
@@ -16,7 +17,11 @@ namespace RCommon.BackgroundJobs.Quartz
         public Func<int, IJobExecutionContext, JobExecutionException,Task> RetryStrategy
         {
             get => _retryStrategy;
-            set => _retryStrategy = Guard.IsNotNull(value, nameof(value));
+            set
+            {
+                Guard.IsNotNull(value, nameof(value));
+                _retryStrategy = value;
+            } 
         }
         private Func<int, IJobExecutionContext, JobExecutionException,Task> _retryStrategy;
 

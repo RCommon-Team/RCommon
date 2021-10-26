@@ -1,7 +1,10 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using RCommon.ApplicationServices;
 using RCommon.Configuration;
+using RCommon.DataServices;
+using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection.Microsoft;
 using RCommon.ExceptionHandling.EnterpriseLibraryCore;
 using RCommon.TestBase;
@@ -27,10 +30,11 @@ namespace RCommon.ObjectAccess.Dapper.Tests
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithStateStorage<DefaultStateStorageConfiguration>()
-                .WithExceptionHandling<EhabExceptionHandlingConfiguration>(x =>
+                .And<EhabExceptionHandlingConfiguration>(x =>
                     x.UsingDefaultExceptionPolicies())
-                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
-                .WithObjectAccess<DapperConfiguration>(
+                .And<DataServicesConfiguration>(x=> 
+                    x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
+                .And<DapperConfiguration>(
                     x => x.UsingDbConnection<TestDbConnection>())
                 .And<CommonApplicationServicesConfiguration>();
 

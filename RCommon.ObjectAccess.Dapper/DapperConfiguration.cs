@@ -13,7 +13,7 @@ using RCommon.Extensions;
 
 namespace RCommon.ObjectAccess.Dapper
 {
-    public class DapperConfiguration : IObjectAccessConfiguration
+    public class DapperConfiguration : IDapperConfiguration
     {
         private List<string> _dbContextTypes = new List<string>();
 
@@ -24,7 +24,7 @@ namespace RCommon.ObjectAccess.Dapper
         /// registering components.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
-            
+
             DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
             // Dapper Repository
@@ -39,7 +39,7 @@ namespace RCommon.ObjectAccess.Dapper
         }
 
 
-        public IObjectAccessConfiguration UsingDbConnection<TDbConnection>()
+        public IDapperConfiguration UsingDbConnection<TDbConnection>()
             where TDbConnection : IRDbConnection
         {
             var dbContext = typeof(TDbConnection).AssemblyQualifiedName;

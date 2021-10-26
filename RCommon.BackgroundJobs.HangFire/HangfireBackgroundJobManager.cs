@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Hangfire;
-using Volo.Abp.DependencyInjection;
 
 namespace RCommon.BackgroundJobs.Hangfire
 {
-    [Dependency(ReplaceServices = true)]
-    public class HangfireBackgroundJobManager : IBackgroundJobManager, ITransientDependency
+    public class HangfireBackgroundJobManager : IBackgroundJobManager
     {
         public virtual Task<string> EnqueueAsync<TArgs>(TArgs args, BackgroundJobPriority priority = BackgroundJobPriority.Normal,
             TimeSpan? delay = null)

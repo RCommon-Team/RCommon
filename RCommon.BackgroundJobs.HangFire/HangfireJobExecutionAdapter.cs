@@ -24,7 +24,7 @@ namespace RCommon.BackgroundJobs.Hangfire
         {
             if (!Options.IsJobExecutionEnabled)
             {
-                throw new AbpException(
+                throw new GeneralException(
                     "Background job execution is disabled. " +
                     "This method should not be called! " +
                     "If you want to enable the background job execution, " +

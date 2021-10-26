@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace RCommon.ApplicationServices
+namespace RCommon.ApplicationServices.Common
 {
     public class EmailService : IEmailService
     {

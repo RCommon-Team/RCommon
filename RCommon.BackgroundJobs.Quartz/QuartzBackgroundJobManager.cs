@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Quartz;
-using Volo.Abp.Json;
+using RCommon.Json;
 
 namespace RCommon.BackgroundJobs.Quartz
 {

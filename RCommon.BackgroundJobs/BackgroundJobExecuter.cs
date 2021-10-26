@@ -4,20 +4,21 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using RCommon.ExceptionHandling;
 
 namespace RCommon.BackgroundJobs
 {
-    public class BackgroundJobExecuter : IBackgroundJobExecuter
+    public class BackgroundJobExecuter : RCommonService, IBackgroundJobExecuter
     {
-        public ILogger<BackgroundJobExecuter> Logger { protected get; set; }
+        private readonly IExceptionManager _exceptionManager;
 
         protected BackgroundJobOptions Options { get; }
 
-        public BackgroundJobExecuter(IOptions<BackgroundJobOptions> options)
+        public BackgroundJobExecuter(IOptions<BackgroundJobOptions> options, ILogger<BackgroundJobExecuter> logger, IExceptionManager exceptionManager)
+            :base(logger)
         {
             Options = options.Value;
-
-            Logger = NullLogger<BackgroundJobExecuter>.Instance;
+            _exceptionManager = exceptionManager;
         }
 
         public virtual async Task ExecuteAsync(JobExecutionContext context)
@@ -49,11 +50,10 @@ namespace RCommon.BackgroundJobs
             }
             catch (Exception ex)
             {
-                Logger.LogException(ex);
+                string errorMessage = "A background job execution is failed. See inner exception for details.";
+                Logger.LogError(ex, errorMessage, context);
 
-                await context.ServiceProvider
-                    .GetRequiredService<IExceptionNotifier>()
-                    .NotifyAsync(new ExceptionNotificationContext(ex));
+                _exceptionManager.HandleException(ex, DefaultExceptionPolicies.BasePolicy);
 
                 throw new BackgroundJobExecutionException("A background job execution is failed. See inner exception for details.", ex)
                 {

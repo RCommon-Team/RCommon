@@ -10,7 +10,8 @@ namespace RCommon.BackgroundJobs
 
         public BackgroundJobNameAttribute([NotNull] string name)
         {
-            Name = Check.NotNullOrWhiteSpace(name, nameof(name));
+            Guard.IsNotNull(name, nameof(name));
+            Name = name;
         }
 
         public static string GetName<TJobArgs>()
@@ -20,7 +21,7 @@ namespace RCommon.BackgroundJobs
 
         public static string GetName([NotNull] Type jobArgsType)
         {
-            Check.NotNull(jobArgsType, nameof(jobArgsType));
+            Guard.IsNotNull(jobArgsType, nameof(jobArgsType));
 
             return jobArgsType
                        .GetCustomAttributes(true)

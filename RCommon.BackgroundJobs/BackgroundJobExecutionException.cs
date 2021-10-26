@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RCommon;
+using System;
 using System.Runtime.Serialization;
 
 namespace RCommon.BackgroundJobs

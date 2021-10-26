@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.ApplicationServices
+namespace RCommon.ApplicationServices.Common
 {
     public class EmailSettings
     {

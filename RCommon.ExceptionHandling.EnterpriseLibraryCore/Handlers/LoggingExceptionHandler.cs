@@ -11,9 +11,9 @@ using System.Text;
 namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Handlers
 {
     [ConfigurationElementType(typeof(CustomHandlerData))]
-    public class LoggingExceptonHandler : IExceptionHandler
+    public class LoggingExceptionHandler : IExceptionHandler
     {
-        public LoggingExceptonHandler(NameValueCollection vars)
+        public LoggingExceptionHandler(NameValueCollection vars)
         {
 
         }

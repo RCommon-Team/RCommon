@@ -70,13 +70,13 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
                 .ForExceptionType<Exception>()              // For any type of exception
                 .WrapWith<GeneralException>()               // Wrap with a better exception with more info
                     .UsingMessage("A handled exception occured and was processed by the BasePolicy")
-                .HandleCustom<LoggingExceptonHandler>()     // Log the exception
+                .HandleCustom<LoggingExceptionHandler>()     // Log the exception
                 .ThenThrowNewException()                        // Rethrow the exception so the appropriate layer can handle it
 
                 .GivenPolicyWithName("BusinessWrapPolicy")  // For wrapping all exceptions that bubble up to business layer
                 .ForExceptionType<Exception>()
                 .WrapWith<BusinessException>()
-                .HandleCustom<LoggingExceptonHandler>()
+                .HandleCustom<LoggingExceptionHandler>()
                 .ThenThrowNewException()
 
                 .GivenPolicyWithName("BusinessReplacePolicy")// We use this for removing sensitive information from an exception
@@ -87,7 +87,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
                 .GivenPolicyWithName("ApplicationWrapPolicy")  // For wrapping all exceptions that bubble up to application layer
                 .ForExceptionType<Exception>()
                 .WrapWith<ApplicationTierException>()
-                .HandleCustom<LoggingExceptonHandler>()
+                .HandleCustom<LoggingExceptionHandler>()
                 .ThenThrowNewException()
 
                 .GivenPolicyWithName("ApplicationReplacePolicy")// We use this for removing sensitive information from an exception
@@ -98,7 +98,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
                 .GivenPolicyWithName("SecurityReplacePolicy")// We use this for removing sensitive information from an exception
                 .ForExceptionType<SecurityException>()     // The assumption is that we've already handled the exception at a lower layer 
                 .ReplaceWith<FriendlySecurityException>()   // So let's simply make this a presentation friendly exception
-                .HandleCustom<LoggingExceptonHandler>()
+                .HandleCustom<LoggingExceptionHandler>()
                 .ThenThrowNewException()                       // No need to log, just 
 
                 .GivenPolicyWithName("PresentationReplacePolicy")// We use this for removing sensitive information from an exception

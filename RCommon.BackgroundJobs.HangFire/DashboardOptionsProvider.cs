@@ -6,11 +6,11 @@ namespace RCommon.BackgroundJobs.Hangfire
 {
     public class DashboardOptionsProvider
     {
-        protected BackgroundJobOptions AbpBackgroundJobOptions { get; }
+        protected BackgroundJobOptions BackgroundJobOptions { get; }
 
         public DashboardOptionsProvider(IOptions<BackgroundJobOptions> abpBackgroundJobOptions)
         {
-            AbpBackgroundJobOptions = abpBackgroundJobOptions.Value;
+            BackgroundJobOptions = abpBackgroundJobOptions.Value;
         }
 
         public virtual DashboardOptions Get()
