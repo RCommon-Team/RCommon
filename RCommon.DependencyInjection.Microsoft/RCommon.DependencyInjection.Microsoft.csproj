@@ -3,14 +3,17 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Reactor2</Authors>
-    <Copyright>Copyright Reactor2 2020</Copyright>
-    <PackageIcon></PackageIcon>
+    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Copyright></Copyright>
+    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageTags>RCommon, Dependency Injection, Microsoft</PackageTags>
-    <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
-    <Description>An implementation of the native dependency injection container implemented by Microsoft on the .NET Core 3.1 framework.</Description>
+    <PackageTags>RCommon, Dependency Injection, Microsoft, di abstractions, c#, .NET</PackageTags>
+    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+    <PackageIconUrl />
+    <Company>RCommon</Company>
+    <Version>1.0.1.40</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +22,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

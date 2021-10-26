@@ -2,19 +2,29 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Authors>Reactor2</Authors>
-    <Description>Dependency injection abstractions for RCommon application framework.</Description>
-    <Copyright>Copyright Reactor2 2020</Copyright>
-    <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
-    <PackageIcon></PackageIcon>
+    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+    <Copyright></Copyright>
+    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageTags>rcommon, dependency injection, di container, di abstraction</PackageTags>
+    <PackageTags>RCommon, dependency injection, di container, di abstractions, c#, .NET</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
+    <PackageIconUrl />
+    <Company>RCommon</Company>
+    <Version>1.0.1.40</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommonServiceLocator" Version="2.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

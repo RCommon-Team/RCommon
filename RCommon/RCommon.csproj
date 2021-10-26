@@ -2,18 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>1.0.0.40</Version>
-    <Authors>Reactor2</Authors>
-    <Company>Reactor2</Company>
-    <Description>A lightweight application framework used for building applications with data access requirements for one or many data stores and data store types. Simplified unit of work pattern, domain services, application services, and base UI classes.</Description>
-    <Copyright>Copyright Reactor2 2021</Copyright>
+    <Version>1.0.1.40</Version>
+    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Company>RCommon</Company>
+    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+    <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
-    <PackageTags>RCommon, generic repository, .NET Core, exception management, logging, domain services, application framework</PackageTags>
+    <PackageTags>RCommon, language extensions, generic factories, abstractions, c#, .NET</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.40</FileVersion>
+    <PackageIconUrl />
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +29,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
