@@ -24,7 +24,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess
+namespace RCommon.Persistance
 {
     ///<summary>
     /// A base class for implementors of <see cref="IRepository{TEntity}"/>.

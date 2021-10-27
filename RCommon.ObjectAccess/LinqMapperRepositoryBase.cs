@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using RCommon.DataServices.Transactions;
 using RCommon.DataServices.Sql;
 
-namespace RCommon.ObjectAccess
+namespace RCommon.Persistance
 {
     public abstract class LinqMapperRepositoryBase<TEntity> : DisposableResource, ILinqMapperRepository<TEntity>
        where TEntity : IBusinessEntity

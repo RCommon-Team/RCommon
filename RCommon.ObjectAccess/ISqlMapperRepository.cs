@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess
+namespace RCommon.Persistance
 {
     public interface ISqlMapperRepository<TEntity> : IWriteOnlyRepository<TEntity> , INamedDataSource
         where TEntity : IBusinessEntity

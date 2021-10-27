@@ -9,7 +9,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.Persistance.EFCore.Tests
 {
     public class EFTestDataActions : TestDataActionsBase
     {

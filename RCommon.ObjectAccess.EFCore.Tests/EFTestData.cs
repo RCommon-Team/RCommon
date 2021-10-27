@@ -7,7 +7,7 @@ using RCommon.Extensions;
 using RCommon.DataServices;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.Persistance.EFCore.Tests
 {
     public class EFTestData : DisposableResource
     {

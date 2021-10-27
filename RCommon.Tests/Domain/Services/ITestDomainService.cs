@@ -1,5 +1,5 @@
 ﻿using RCommon.BusinessServices;
-using RCommon.ObjectAccess.EFCore.Tests;
+using RCommon.Persistance.EFCore.Tests;
 using RCommon.TestBase.Entities;
 using RCommon.Tests.Application.DTO;
 using System;

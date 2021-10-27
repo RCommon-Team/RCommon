@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 using RCommon.Extensions;
 
-namespace RCommon.ObjectAccess.Dapper
+namespace RCommon.Persistance.Dapper
 {
     public class DapperConfiguration : IDapperConfiguration
     {

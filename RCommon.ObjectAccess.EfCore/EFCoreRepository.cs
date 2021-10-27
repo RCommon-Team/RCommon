@@ -1,4 +1,4 @@
-﻿namespace RCommon.ObjectAccess.EFCore
+﻿namespace RCommon.Persistance.EFCore
 {
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;

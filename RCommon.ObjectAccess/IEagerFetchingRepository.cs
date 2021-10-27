@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace RCommon.ObjectAccess
+namespace RCommon.Persistance
 {
     public interface IEagerFetchingRepository<TEntity>
     {

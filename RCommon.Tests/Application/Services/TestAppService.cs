@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
 using RCommon.ExceptionHandling;
-using RCommon.ObjectAccess.EFCore.Tests;
+using RCommon.Persistance.EFCore.Tests;
 using RCommon.TestBase.Entities;
 using RCommon.Tests.Application.DTO;
 using RCommon.Tests.Domain.Services;

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess
+namespace RCommon.Persistance
 {
     public interface IFullFeaturedRepository<TEntity> : ILinqMapperRepository<TEntity>, IEagerFetchingRepository<TEntity>, IGraphRepository<TEntity>
         where TEntity : class, IBusinessEntity

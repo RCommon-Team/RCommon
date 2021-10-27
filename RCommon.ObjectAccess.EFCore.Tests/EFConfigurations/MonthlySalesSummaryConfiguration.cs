@@ -20,7 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RCommon.TestBase.Entities;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.Persistance.EFCore.Tests
 {
     // MonthlySalesSummary
     public partial class MonthlySalesSummaryConfiguration : IEntityTypeConfiguration<MonthlySalesSummary>

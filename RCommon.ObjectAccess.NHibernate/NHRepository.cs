@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RCommon.DependencyInjection;
 using RCommon.Extensions;
-using RCommon.ObjectAccess;
+using RCommon.Persistance;
 using NHibernate;
 using NHibernate.Linq;
 using NHibernate.Transform;
@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 using RCommon.DataServices;
 using RCommon.BusinessEntities;
 
-namespace RCommon.ObjectAccess.NHibernate
+namespace RCommon.Persistance.NHibernate
 {
     /// <summary>
     /// Inherits from the <see cref="FullFeaturedRepositoryBase{TEntity}"/> class to provide an implementation of a

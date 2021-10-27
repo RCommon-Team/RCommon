@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess
+namespace RCommon.Persistance
 {
     public class ObjectAccessConfiguration : IObjectAccessConfiguration
     {

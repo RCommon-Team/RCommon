@@ -18,7 +18,7 @@ using RCommon.ExceptionHandling.EnterpriseLibraryCore;
 using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
 
-namespace RCommon.ObjectAccess.EFCore.Tests
+namespace RCommon.Persistance.EFCore.Tests
 {
     public abstract class EFCoreTestBase : TestBootstrapper
     {

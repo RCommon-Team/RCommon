@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.Dapper.Tests
+namespace RCommon.Persistance.Dapper.Tests
 {
     [TestFixture()]
     public class DapperRepositoryIntegrationTests : DapperTestBase

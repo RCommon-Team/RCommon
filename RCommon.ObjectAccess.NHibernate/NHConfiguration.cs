@@ -3,10 +3,10 @@ using System;
 using RCommon.Configuration;
 using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
-using RCommon.ObjectAccess;
+using RCommon.Persistance;
 using NHibernate;
 
-namespace RCommon.ObjectAccess.NHibernate
+namespace RCommon.Persistance.NHibernate
 {
     /// <summary>
     /// Implementation of <see cref="IObjectAccessConfiguration"/> that configures RCommon to use NHibernate.

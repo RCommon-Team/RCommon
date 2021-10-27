@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore
+namespace RCommon.Persistance.EFCore
 {
     public interface IEFCoreRepository<TEntity> where TEntity : IBusinessEntity
     {

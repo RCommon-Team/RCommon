@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.NHibernate
+namespace RCommon.Persistance.NHibernate
 {
     public interface INHRepository<TEntity> where TEntity : class
     {

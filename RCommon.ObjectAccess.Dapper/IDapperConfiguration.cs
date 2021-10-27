@@ -1,7 +1,7 @@
 ﻿using RCommon.Configuration;
 using RCommon.DataServices.Sql;
 
-namespace RCommon.ObjectAccess.Dapper
+namespace RCommon.Persistance.Dapper
 {
     public interface IDapperConfiguration : IServiceConfiguration
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using NHibernate;
 
-namespace RCommon.ObjectAccess.NHibernate
+namespace RCommon.Persistance.NHibernate
 {
 	public class NHibernateToMicrosoftLogger : INHibernateLogger
 	{

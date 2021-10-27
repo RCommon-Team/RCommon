@@ -17,7 +17,7 @@ using RCommon.BusinessEntities;
 using DapperExtensions;
 using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 
-namespace RCommon.ObjectAccess.Dapper
+namespace RCommon.Persistance.Dapper
 {
     public class DapperRepository<TEntity> : SqlMapperRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity

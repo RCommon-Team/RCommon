@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess
+namespace RCommon.Persistance
 {
     public interface IReadOnlyRepository<TEntity> : IQueryable<TEntity>
     {

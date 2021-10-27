@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.ObjectAccess.Dapper.Tests
+namespace RCommon.Persistance.Dapper.Tests
 {
     public class TestDbConnection : RDbConnection
     {

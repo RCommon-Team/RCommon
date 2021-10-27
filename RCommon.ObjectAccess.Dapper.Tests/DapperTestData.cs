@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.Dapper.Tests
+namespace RCommon.Persistance.Dapper.Tests
 {
     public class DapperTestData : DisposableResource
     {

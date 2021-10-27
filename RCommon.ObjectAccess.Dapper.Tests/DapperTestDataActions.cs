@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 
-namespace RCommon.ObjectAccess.Dapper.Tests
+namespace RCommon.Persistance.Dapper.Tests
 {
     public class DapperTestDataActions : TestDataActionsBase
     {

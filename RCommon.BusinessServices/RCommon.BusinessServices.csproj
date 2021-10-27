@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -10,7 +10,7 @@
     <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
     <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
     <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
-    <ProjectReference Include="..\RCommon.ObjectAccess\RCommon.ObjectAccess.csproj" />
+    <ProjectReference Include="..\RCommon.Persistance\RCommon.Persistance.csproj" />
     <ProjectReference Include="..\RCommon.Validation\RCommon.Validation.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>

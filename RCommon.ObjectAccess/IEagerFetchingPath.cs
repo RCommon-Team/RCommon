@@ -1,4 +1,4 @@
-﻿namespace RCommon.ObjectAccess
+﻿namespace RCommon.Persistance
 {
     using System;
     using System.Linq.Expressions;

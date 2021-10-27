@@ -7,8 +7,8 @@ namespace RCommon.BackgroundJobs
 {
     public class BackgroundJobOptions
     {
-        private readonly Dictionary<Type, BackgroundJobConfiguration> _jobConfigurationsByArgsType;
-        private readonly Dictionary<string, BackgroundJobConfiguration> _jobConfigurationsByName;
+        private readonly Dictionary<Type, BackgroundJobSettings> _jobConfigurationsByArgsType;
+        private readonly Dictionary<string, BackgroundJobSettings> _jobConfigurationsByName;
         
         /// <summary>
         /// Default: true.
@@ -17,16 +17,16 @@ namespace RCommon.BackgroundJobs
 
         public BackgroundJobOptions()
         {
-            _jobConfigurationsByArgsType = new Dictionary<Type, BackgroundJobConfiguration>();
-            _jobConfigurationsByName = new Dictionary<string, BackgroundJobConfiguration>();
+            _jobConfigurationsByArgsType = new Dictionary<Type, BackgroundJobSettings>();
+            _jobConfigurationsByName = new Dictionary<string, BackgroundJobSettings>();
         }
 
-        public BackgroundJobConfiguration GetJob<TArgs>()
+        public BackgroundJobSettings GetJob<TArgs>()
         {
             return GetJob(typeof(TArgs));
         }
 
-        public BackgroundJobConfiguration GetJob(Type argsType)
+        public BackgroundJobSettings GetJob(Type argsType)
         {
             var jobConfiguration = _jobConfigurationsByArgsType.GetOrDefault(argsType);
 
@@ -38,7 +38,7 @@ namespace RCommon.BackgroundJobs
             return jobConfiguration;
         }
 
-        public BackgroundJobConfiguration GetJob(string name)
+        public BackgroundJobSettings GetJob(string name)
         {
             var jobConfiguration = _jobConfigurationsByName.GetOrDefault(name);
 
@@ -50,7 +50,7 @@ namespace RCommon.BackgroundJobs
             return jobConfiguration;
         }
 
-        public IReadOnlyList<BackgroundJobConfiguration> GetJobs()
+        public IReadOnlyList<BackgroundJobSettings> GetJobs()
         {
             return _jobConfigurationsByArgsType.Values.ToImmutableList();
         }
@@ -62,10 +62,10 @@ namespace RCommon.BackgroundJobs
 
         public void AddJob(Type jobType)
         {
-            AddJob(new BackgroundJobConfiguration(jobType));
+            AddJob(new BackgroundJobSettings(jobType));
         }
 
-        public void AddJob(BackgroundJobConfiguration jobConfiguration)
+        public void AddJob(BackgroundJobSettings jobConfiguration)
         {
             _jobConfigurationsByArgsType[jobConfiguration.ArgsType] = jobConfiguration;
             _jobConfigurationsByName[jobConfiguration.JobName] = jobConfiguration;

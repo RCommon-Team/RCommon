@@ -1,7 +1,7 @@
 ﻿using NHibernate;
 using System;
 
-namespace RCommon.ObjectAccess.NHibernate
+namespace RCommon.Persistance.NHibernate
 {
 	public class NHibernateToMicrosoftLoggerFactory : INHibernateLoggerFactory
 	{

@@ -7,7 +7,7 @@ using System.Data;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ObjectAccess.EFCore
+namespace RCommon.Persistance.EFCore
 {
     public abstract class RCommonDbContext : DbContext, IDataStore
     {

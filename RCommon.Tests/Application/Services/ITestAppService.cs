@@ -1,6 +1,6 @@
 ﻿
 using RCommon.ApplicationServices;
-using RCommon.ObjectAccess.EFCore.Tests;
+using RCommon.Persistance.EFCore.Tests;
 using RCommon.Tests.Application.DTO;
 using System;
 using System.Collections.Generic;

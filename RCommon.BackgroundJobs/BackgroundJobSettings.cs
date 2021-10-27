@@ -2,7 +2,7 @@
 
 namespace RCommon.BackgroundJobs
 {
-    public class BackgroundJobConfiguration
+    public class BackgroundJobSettings
     {
         public Type ArgsType { get; }
 
@@ -10,7 +10,7 @@ namespace RCommon.BackgroundJobs
 
         public string JobName { get; }
 
-        public BackgroundJobConfiguration(Type jobType)
+        public BackgroundJobSettings(Type jobType)
         {
             JobType = jobType;
             ArgsType = BackgroundJobArgsHelper.GetJobArgsType(jobType);

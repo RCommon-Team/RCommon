@@ -10,7 +10,7 @@ using NHibernate.Driver;
 using NHibernate.Mapping.ByCode;
 using System.Data;
 
-namespace RCommon.ObjectAccess.NHibernate
+namespace RCommon.Persistance.NHibernate
 {
     public abstract class RCommonSessionFactory : IDataStore
     {

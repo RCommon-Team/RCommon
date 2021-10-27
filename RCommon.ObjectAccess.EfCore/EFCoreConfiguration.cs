@@ -26,7 +26,7 @@ using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
 using RCommon.StateStorage;
 
-namespace RCommon.ObjectAccess.EFCore
+namespace RCommon.Persistance.EFCore
 {
     /// <summary>
     /// Implementation of <see cref="IEFCoreConfiguration"/> for Entity Framework.

@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon", "RCommon\RCommon.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection", "RCommon.DependencyInjection\RCommon.DependencyInjection.csproj", "{3D1AEC2A-77E4-4E2A-8FA9-D782E5F99CD0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.EFCore", "RCommon.ObjectAccess.EfCore\RCommon.ObjectAccess.EFCore.csproj", "{D24B4C22-2EBF-4412-B2D9-B4DBC4482756}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.EFCore", "RCommon.ObjectAccess.EfCore\RCommon.Persistance.EFCore.csproj", "{D24B4C22-2EBF-4412-B2D9-B4DBC4482756}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.NHibernate", "RCommon.ObjectAccess.NHibernate\RCommon.ObjectAccess.NHibernate.csproj", "{8D53A0C7-0700-4862-91C6-926C1382CC6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.NHibernate", "RCommon.ObjectAccess.NHibernate\RCommon.Persistance.NHibernate.csproj", "{8D53A0C7-0700-4862-91C6-926C1382CC6D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection.Autofac", "RCommon.DepenencyInjection.Autofac\RCommon.DependencyInjection.Autofac.csproj", "{5FE75456-0764-4946-A5A3-9F893745FDD4}"
 EndProject
@@ -21,9 +21,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DependencyInjection", "Depe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Tests", "RCommon.Tests\RCommon.Tests.csproj", "{68ED8F88-64A7-4F54-8A05-DDBB6894F10B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.EFCore.Tests", "RCommon.ObjectAccess.EFCore.Tests\RCommon.ObjectAccess.EFCore.Tests.csproj", "{31DF0037-CA8E-4979-946B-F7554BFF48C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.EFCore.Tests", "RCommon.ObjectAccess.EFCore.Tests\RCommon.Persistance.EFCore.Tests.csproj", "{31DF0037-CA8E-4979-946B-F7554BFF48C4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.NHibernate.Tests", "RCommon.ObjectAccess.NHibernate.Tests\RCommon.ObjectAccess.NHibernate.Tests.csproj", "{97A6138B-5602-4247-A4BD-555846FB6702}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.NHibernate.Tests", "RCommon.ObjectAccess.NHibernate.Tests\RCommon.Persistance.NHibernate.Tests.csproj", "{97A6138B-5602-4247-A4BD-555846FB6702}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection.Microsoft", "RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj", "{6FB45C2A-F38A-4865-BFB7-1CFC9197A837}"
 EndProject
@@ -33,9 +33,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ExceptionHandling.E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase", "RCommon.TestBase\RCommon.TestBase.csproj", "{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.Dapper", "RCommon.ObjectAccess.Dapper\RCommon.ObjectAccess.Dapper.csproj", "{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.Dapper", "RCommon.ObjectAccess.Dapper\RCommon.Persistance.Dapper.csproj", "{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess.Dapper.Tests", "RCommon.ObjectAccess.Dapper.Tests\RCommon.ObjectAccess.Dapper.Tests.csproj", "{AB009DA1-E781-4EBF-B1A5-EA31A82F004E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.Dapper.Tests", "RCommon.ObjectAccess.Dapper.Tests\RCommon.Persistance.Dapper.Tests.csproj", "{AB009DA1-E781-4EBF-B1A5-EA31A82F004E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs", "RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj", "{68333112-9361-4A32-AF1D-CFA28D445402}"
 EndProject
@@ -45,9 +45,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs.Quar
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Background Jobs", "Background Jobs", "{3C743CCE-675D-4B3A-B99A-9EC9DFE1CAD3}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Object Access", "Object Access", "{0A72EADE-8CF6-49A8-A594-55F54BBF61C6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistance", "Persistance", "{0A72EADE-8CF6-49A8-A594-55F54BBF61C6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ObjectAccess", "RCommon.ObjectAccess\RCommon.ObjectAccess.csproj", "{0611296E-B19D-4855-85F9-20BCBC115022}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance", "RCommon.ObjectAccess\RCommon.Persistance.csproj", "{0611296E-B19D-4855-85F9-20BCBC115022}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Validation", "RCommon.Validation\RCommon.Validation.csproj", "{9BC9743D-BB10-4CC7-98C7-53C168D15121}"
 EndProject
@@ -66,6 +66,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Models", "RCommon.Models\RCommon.Models.csproj", "{60DD21D4-98D7-4101-86E3-8B2E4BA253EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.BusinessEntities", "RCommon.BusinessEntities\RCommon.BusinessEntities.csproj", "{E826DF9F-418D-4978-B357-304E732EFE9E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistance", "Persistance", "{F8D8C009-564C-4F33-A49B-CE7830575A09}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Exception Handling", "Exception Handling", "{C120A15C-F5B4-4DB1-89C2-2B6B72675933}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Background Jobs", "Background Jobs", "{E0757D1A-4407-41A6-9DF7-1E61E96F3C5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.BackgroundJobs.Tests", "RCommon.BackgroundJobs.Tests\RCommon.BackgroundJobs.Tests.csproj", "{DAA5A385-9E79-4A20-AEE1-F46ED09BC468}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +189,10 @@ Global
 		{E826DF9F-418D-4978-B357-304E732EFE9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E826DF9F-418D-4978-B357-304E732EFE9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E826DF9F-418D-4978-B357-304E732EFE9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAA5A385-9E79-4A20-AEE1-F46ED09BC468}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAA5A385-9E79-4A20-AEE1-F46ED09BC468}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAA5A385-9E79-4A20-AEE1-F46ED09BC468}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAA5A385-9E79-4A20-AEE1-F46ED09BC468}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -192,19 +204,23 @@ Global
 		{5FE75456-0764-4946-A5A3-9F893745FDD4} = {FF409757-E986-43E2-B465-B64D246AF63B}
 		{A92D9860-39F1-4D27-89DF-0FA40FFED1A9} = {FF409757-E986-43E2-B465-B64D246AF63B}
 		{68ED8F88-64A7-4F54-8A05-DDBB6894F10B} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
-		{31DF0037-CA8E-4979-946B-F7554BFF48C4} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
-		{97A6138B-5602-4247-A4BD-555846FB6702} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
+		{31DF0037-CA8E-4979-946B-F7554BFF48C4} = {F8D8C009-564C-4F33-A49B-CE7830575A09}
+		{97A6138B-5602-4247-A4BD-555846FB6702} = {F8D8C009-564C-4F33-A49B-CE7830575A09}
 		{6FB45C2A-F38A-4865-BFB7-1CFC9197A837} = {FF409757-E986-43E2-B465-B64D246AF63B}
 		{55FB91BD-E1FA-4F3F-8CC6-62AB92D668F8} = {81653BE2-F706-493D-A9AD-7538C9F210FA}
-		{FB6002E5-0E17-403F-9DFB-482AB7A4E525} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
+		{FB6002E5-0E17-403F-9DFB-482AB7A4E525} = {C120A15C-F5B4-4DB1-89C2-2B6B72675933}
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70} = {0A72EADE-8CF6-49A8-A594-55F54BBF61C6}
-		{AB009DA1-E781-4EBF-B1A5-EA31A82F004E} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
+		{AB009DA1-E781-4EBF-B1A5-EA31A82F004E} = {F8D8C009-564C-4F33-A49B-CE7830575A09}
 		{68333112-9361-4A32-AF1D-CFA28D445402} = {3C743CCE-675D-4B3A-B99A-9EC9DFE1CAD3}
 		{4A59D010-0DFD-4918-9768-57F33531C40A} = {3C743CCE-675D-4B3A-B99A-9EC9DFE1CAD3}
 		{7535EE4B-A950-44B7-85B9-32286B7BA66A} = {3C743CCE-675D-4B3A-B99A-9EC9DFE1CAD3}
 		{0611296E-B19D-4855-85F9-20BCBC115022} = {0A72EADE-8CF6-49A8-A594-55F54BBF61C6}
 		{EFBDE01F-9BB3-4176-9F77-37F30D9C6947} = {81653BE2-F706-493D-A9AD-7538C9F210FA}
+		{F8D8C009-564C-4F33-A49B-CE7830575A09} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
+		{C120A15C-F5B4-4DB1-89C2-2B6B72675933} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
+		{E0757D1A-4407-41A6-9DF7-1E61E96F3C5E} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
+		{DAA5A385-9E79-4A20-AEE1-F46ED09BC468} = {E0757D1A-4407-41A6-9DF7-1E61E96F3C5E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

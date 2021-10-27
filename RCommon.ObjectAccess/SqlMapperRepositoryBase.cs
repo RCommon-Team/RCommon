@@ -13,7 +13,7 @@ using RCommon.DataServices.Transactions;
 using RCommon.DataServices.Sql;
 using RCommon.BusinessEntities;
 
-namespace RCommon.ObjectAccess
+namespace RCommon.Persistance
 {
     public abstract class SqlMapperRepositoryBase<TEntity> : DisposableResource, ISqlMapperRepository<TEntity>
        where TEntity : class, IBusinessEntity
