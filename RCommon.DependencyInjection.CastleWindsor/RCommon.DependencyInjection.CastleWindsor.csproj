@@ -4,13 +4,16 @@
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageIcon></PackageIcon>
-    <Copyright>Copyright Reactor2 2020</Copyright>
+    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <Authors>Reactor2</Authors>
-    <Description>Dependency Injection implementation for CastleWindsor on the RCommon Application Frameowrk.</Description>
-    <RepositoryUrl>http://reactor2.com/rcommon</RepositoryUrl>
-    <PackageTags>rcommon, dependency injection, castle windsor</PackageTags>
+    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+    <PackageTags>RCommon, dependency injection, castle windsor, di abstractions, c#, .NET</PackageTags>
+    <PackageIconUrl />
+    <Company>RCommon</Company>
+    <Version>1.0.1.40</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +23,13 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

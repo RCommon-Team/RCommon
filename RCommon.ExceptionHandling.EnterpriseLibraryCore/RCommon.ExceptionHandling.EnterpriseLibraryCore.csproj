@@ -2,16 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Authors>Reactor2</Authors>
+    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
     <Description>Implementation of Exception Handling Application Block (EHAB) for Enterprise Library Core on RCommon Framework.</Description>
     <Copyright>Copyright Reactor2 2020</Copyright>
-    <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
-    <PackageIcon></PackageIcon>
-    <RepositoryUrl>https://github.com/Reactor2Team</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
-    <PackageTags>rcommon, exception handling, ehab, enterprise library</PackageTags>
+    <PackageTags>RCommon, exception handling, ehab, enterprise library, exception handling abstractions, c#, .NET</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0.14</Version>
+    <Version>1.0.1.40</Version>
+    <PackageIconUrl />
+    <Company>RCommon</Company>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +23,13 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

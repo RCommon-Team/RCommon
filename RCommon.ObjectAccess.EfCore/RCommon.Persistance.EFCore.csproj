@@ -2,17 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Authors>Reactor2</Authors>
-    <Company>Reactor2</Company>
-    <Description>Implementation of Entity Framework Core on the RCommon application framework.</Description>
-    <Copyright>Copyright Reactor2 2020</Copyright>
-    <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
-    <PackageIcon>Reactor2-Icon-DarkBG-100.png</PackageIcon>
+    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Company>RCommon</Company>
+    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+    <Copyright></Copyright>
+    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageTags>Rcommon, generic repository, .NET Core, Entity Framework Core Repository</PackageTags>
+    <PackageTags>RCommon, generic repository, Entity Framework Core Repository, persistance framework, EF</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
-    <Version>1.0.0.23</Version>
+    <Version>1.0.1.40</Version>
+    <PackageIconUrl />
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +27,13 @@
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon.Persistance\RCommon.Persistance.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

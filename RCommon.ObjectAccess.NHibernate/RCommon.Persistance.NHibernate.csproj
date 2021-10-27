@@ -2,18 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Authors>Reactor2</Authors>
-    <Company>Reactor2</Company>
-    <Description>An implementation of NHibernate ORM on the RCommon application framework.</Description>
-    <Copyright>Copyright Reactor2 2020</Copyright>
-    <PackageProjectUrl>http://reactor2.com/rcommon</PackageProjectUrl>
+    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Company>RCommon</Company>
+    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+    <Copyright></Copyright>
+    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageTags>NHibernate, Generic Repository, .NET Core</PackageTags>
+    <PackageTags>RCommon, NHibernate, Generic Repository, object access, data access. persistance framework</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageIcon></PackageIcon>
+    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <Version>1.0.0.12</Version>
+    <Version>1.0.1.40</Version>
+    <PackageIconUrl />
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +28,13 @@
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon.Persistance\RCommon.Persistance.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
