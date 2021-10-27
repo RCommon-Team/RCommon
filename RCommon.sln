@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon", "RCommon\RCommon.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection", "RCommon.DependencyInjection\RCommon.DependencyInjection.csproj", "{3D1AEC2A-77E4-4E2A-8FA9-D782E5F99CD0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.EFCore", "RCommon.ObjectAccess.EfCore\RCommon.Persistance.EFCore.csproj", "{D24B4C22-2EBF-4412-B2D9-B4DBC4482756}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.EFCore", "RCommon.Persistance.EfCore\RCommon.Persistance.EFCore.csproj", "{D24B4C22-2EBF-4412-B2D9-B4DBC4482756}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.NHibernate", "RCommon.ObjectAccess.NHibernate\RCommon.Persistance.NHibernate.csproj", "{8D53A0C7-0700-4862-91C6-926C1382CC6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.NHibernate", "RCommon.Persistance.NHibernate\RCommon.Persistance.NHibernate.csproj", "{8D53A0C7-0700-4862-91C6-926C1382CC6D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection.Autofac", "RCommon.DepenencyInjection.Autofac\RCommon.DependencyInjection.Autofac.csproj", "{5FE75456-0764-4946-A5A3-9F893745FDD4}"
 EndProject
@@ -21,9 +21,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DependencyInjection", "Depe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Tests", "RCommon.Tests\RCommon.Tests.csproj", "{68ED8F88-64A7-4F54-8A05-DDBB6894F10B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.EFCore.Tests", "RCommon.ObjectAccess.EFCore.Tests\RCommon.Persistance.EFCore.Tests.csproj", "{31DF0037-CA8E-4979-946B-F7554BFF48C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.EFCore.Tests", "RCommon.Persistance.EFCore.Tests\RCommon.Persistance.EFCore.Tests.csproj", "{31DF0037-CA8E-4979-946B-F7554BFF48C4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.NHibernate.Tests", "RCommon.ObjectAccess.NHibernate.Tests\RCommon.Persistance.NHibernate.Tests.csproj", "{97A6138B-5602-4247-A4BD-555846FB6702}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.NHibernate.Tests", "RCommon.Persistance.NHibernate.Tests\RCommon.Persistance.NHibernate.Tests.csproj", "{97A6138B-5602-4247-A4BD-555846FB6702}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection.Microsoft", "RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj", "{6FB45C2A-F38A-4865-BFB7-1CFC9197A837}"
 EndProject
@@ -33,9 +33,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ExceptionHandling.E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase", "RCommon.TestBase\RCommon.TestBase.csproj", "{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.Dapper", "RCommon.ObjectAccess.Dapper\RCommon.Persistance.Dapper.csproj", "{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.Dapper", "RCommon.Persistance.Dapper\RCommon.Persistance.Dapper.csproj", "{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.Dapper.Tests", "RCommon.ObjectAccess.Dapper.Tests\RCommon.Persistance.Dapper.Tests.csproj", "{AB009DA1-E781-4EBF-B1A5-EA31A82F004E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistance.Dapper.Tests", "RCommon.Persistance.Dapper.Tests\RCommon.Persistance.Dapper.Tests.csproj", "{AB009DA1-E781-4EBF-B1A5-EA31A82F004E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs", "RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj", "{68333112-9361-4A32-AF1D-CFA28D445402}"
 EndProject

@@ -20,7 +20,6 @@
     <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
     <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
     <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
-    <ProjectReference Include="..\RCommon.Persistance\RCommon.Persistance.csproj" />
     <ProjectReference Include="..\RCommon.Validation\RCommon.Validation.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>
