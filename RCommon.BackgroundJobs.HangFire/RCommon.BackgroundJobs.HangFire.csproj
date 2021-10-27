@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hangfire" Version="1.7.25" />
+    <PackageReference Include="Hangfire" Version="1.7.26" />
   </ItemGroup>
 
   <ItemGroup>

@@ -33,9 +33,6 @@ namespace RCommon.Persistance.EFCore.Tests
 
             base.InitializeBootstrapper(services);
 
-            //services.AddDbContext<RCommonDbContext, TestDbContext>();
-            //services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Transient);
-
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithStateStorage<DefaultStateStorageConfiguration>()
                 .And<EhabExceptionHandlingConfiguration>(x=>

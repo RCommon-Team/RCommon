@@ -1,10 +1,11 @@
 using RCommon.BackgroundJobs;
+using RCommon.BackgroundJobs.Tests;
 using System.Threading.Tasks;
 
 
 namespace Volo.Abp.BackgroundJobs
 {
-    public class BackgroundJobExecuterTests : BackgroundJobsTestBase
+    public class BackgroundJobExecuterTests : BackgroundJobTestBase
     {
         private readonly IBackgroundJobExecuter _backgroundJobExecuter;
 
