@@ -4,7 +4,7 @@ using RCommon.BusinessEntities;
 using RCommon.DataServices.Transactions;
 using RCommon.ExceptionHandling;
 using RCommon.Models;
-using RCommon.Persistance;
+using RCommon.Persistence;
 using RCommon.Validation;
 using System;
 using System.Collections.Generic;

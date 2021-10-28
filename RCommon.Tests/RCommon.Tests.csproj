@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.Persistance.EFCore.Tests\RCommon.Persistance.EFCore.Tests.csproj" />
+    <ProjectReference Include="..\RCommon.Persistence.EFCore.Tests\RCommon.Persistence.EFCore.Tests.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>

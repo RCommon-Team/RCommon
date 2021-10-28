@@ -11,17 +11,20 @@
     <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageTags>RCommon, business services, business service abstractions, CRUD helpers, c#, .NET</PackageTags>
+    <PackageTags>RCommon, data access, object access, dapper, generic repository, repository abstractions, persistance framework</PackageTags>
     <Version>1.0.1.40</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
-    <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
-    <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
-    <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
+    <PackageReference Include="Dapper" Version="2.0.90" />
+    <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
+    <PackageReference Include="DapperExtensions" Version="1.7.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
-    <ProjectReference Include="..\RCommon.Validation\RCommon.Validation.csproj" />
     <ProjectReference Include="..\RCommon\RCommon.csproj" />
   </ItemGroup>
 

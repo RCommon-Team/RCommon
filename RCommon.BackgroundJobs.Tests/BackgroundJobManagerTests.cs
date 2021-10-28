@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
 
-namespace Volo.Abp.BackgroundJobs
+namespace RCommon.BackgroundJobs.Tests
 {
-    public class BackgroundJobManagerTests : BackgroundJobsTestBase
+    public class BackgroundJobManagerTests : BackgroundJobTestBase
     {
         private readonly IBackgroundJobManager _backgroundJobManager;
         private readonly IBackgroundJobStore _backgroundJobStore;

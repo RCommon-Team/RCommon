@@ -3,7 +3,7 @@ using RCommon.BackgroundJobs.Tests;
 using System.Threading.Tasks;
 
 
-namespace Volo.Abp.BackgroundJobs
+namespace RCommon.BackgroundJobs.Tests
 {
     public class BackgroundJobExecuterTests : BackgroundJobTestBase
     {
