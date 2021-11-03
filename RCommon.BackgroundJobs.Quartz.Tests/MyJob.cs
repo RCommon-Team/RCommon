@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using Volo.Abp.DependencyInjection;
+﻿using RCommon.BackgroundJobs;
+using System.Collections.Generic;
 
-namespace Volo.Abp.BackgroundJobs
+namespace RCommon.BackgroundJobs.Quartz.Tests
 {
-    public class MyJob : BackgroundJob<MyJobArgs>, ISingletonDependency
+    public class MyJob : BackgroundJob<MyJobArgs>
     {
         public List<string> ExecutedValues { get; } = new List<string>();
 

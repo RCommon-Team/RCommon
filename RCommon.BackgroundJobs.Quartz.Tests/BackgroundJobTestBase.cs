@@ -1,13 +1,7 @@
-﻿
-using DapperExtensions.Mapper;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RCommon.ApplicationServices;
 using RCommon.Configuration;
-using RCommon.DataServices;
-using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection.Microsoft;
-using RCommon.ExceptionHandling.EnterpriseLibraryCore;
 using RCommon.TestBase;
 using System;
 using System.Collections.Generic;
@@ -16,9 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence.Dapper.Tests
+namespace RCommon.BackgroundJobs.Quartz.Tests
 {
-    public abstract class DapperTestBase : TestBootstrapper
+    public abstract class BackgroundJobTestBase : TestBootstrapper
     {
 
         protected void InitializeRCommon(IServiceCollection services)
@@ -28,16 +22,10 @@ namespace RCommon.Persistence.Dapper.Tests
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithStateStorage<DefaultStateStorageConfiguration>()
-                .And<EhabExceptionHandlingConfiguration>(x =>
-                    x.UsingDefaultExceptionPolicies())
-                .And<DataServicesConfiguration>(x=> 
-                    x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
-                .And<DapperConfiguration>(x => 
-                    x.UsingDbConnection<TestDbConnection>()
-                    .WithPluralizedClassMapper())
-                .And<CommonApplicationServicesConfiguration>();
+                .And<BackgroundJobsConfiguration>(x =>
+                    x.WithJobManager<QuartzBackgroundJobManager>());
 
-            
+
 
             this.ServiceProvider = services.BuildServiceProvider();
             this.Logger = this.ServiceProvider.GetService<ILogger>();

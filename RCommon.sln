@@ -39,7 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistence.Dapper.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs", "RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj", "{68333112-9361-4A32-AF1D-CFA28D445402}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs.HangFire", "RCommon.BackgroundJobs.HangFire\RCommon.BackgroundJobs.HangFire.csproj", "{4A59D010-0DFD-4918-9768-57F33531C40A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs.Hangfire", "RCommon.BackgroundJobs.HangFire\RCommon.BackgroundJobs.Hangfire.csproj", "{4A59D010-0DFD-4918-9768-57F33531C40A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs.Quartz", "RCommon.BackgroundJobs.Quartz\RCommon.BackgroundJobs.Quartz.csproj", "{7535EE4B-A950-44B7-85B9-32286B7BA66A}"
 EndProject
@@ -74,6 +74,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs.Tests", "RCommon.BackgroundJobs.Tests\RCommon.BackgroundJobs.Tests.csproj", "{DAA5A385-9E79-4A20-AEE1-F46ED09BC468}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistence", "RCommon.Persistence\RCommon.Persistence.csproj", "{C5AAB002-5E01-4E0A-8259-A29A8FAEA581}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.BackgroundJobs.Hangfire.Tests", "RCommon.BackgroundJobs.Hangfire.Tests\RCommon.BackgroundJobs.Hangfire.Tests.csproj", "{E73EB019-B76D-4C00-9879-77A087592AE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.BackgroundJobs.Quartz.Tests", "RCommon.BackgroundJobs.Quartz.Tests\RCommon.BackgroundJobs.Quartz.Tests.csproj", "{F5A6EDED-9660-448E-9FE9-15008230C1D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -193,6 +197,14 @@ Global
 		{C5AAB002-5E01-4E0A-8259-A29A8FAEA581}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5AAB002-5E01-4E0A-8259-A29A8FAEA581}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5AAB002-5E01-4E0A-8259-A29A8FAEA581}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E73EB019-B76D-4C00-9879-77A087592AE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E73EB019-B76D-4C00-9879-77A087592AE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E73EB019-B76D-4C00-9879-77A087592AE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E73EB019-B76D-4C00-9879-77A087592AE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5A6EDED-9660-448E-9FE9-15008230C1D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5A6EDED-9660-448E-9FE9-15008230C1D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5A6EDED-9660-448E-9FE9-15008230C1D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5A6EDED-9660-448E-9FE9-15008230C1D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -221,6 +233,8 @@ Global
 		{E0757D1A-4407-41A6-9DF7-1E61E96F3C5E} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{DAA5A385-9E79-4A20-AEE1-F46ED09BC468} = {E0757D1A-4407-41A6-9DF7-1E61E96F3C5E}
 		{C5AAB002-5E01-4E0A-8259-A29A8FAEA581} = {0A72EADE-8CF6-49A8-A594-55F54BBF61C6}
+		{E73EB019-B76D-4C00-9879-77A087592AE5} = {E0757D1A-4407-41A6-9DF7-1E61E96F3C5E}
+		{F5A6EDED-9660-448E-9FE9-15008230C1D6} = {E0757D1A-4407-41A6-9DF7-1E61E96F3C5E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

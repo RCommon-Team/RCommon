@@ -1,4 +1,4 @@
-﻿namespace Volo.Abp.BackgroundJobs
+﻿namespace RCommon.BackgroundJobs.Hangfire.Tests
 {
     public class MyJobArgs
     {

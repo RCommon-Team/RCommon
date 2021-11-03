@@ -4,13 +4,13 @@ using Microsoft.Extensions.Options;
 
 namespace RCommon.BackgroundJobs.Hangfire
 {
-    public class DashboardOptionsProvider
+    public class HangfireDashboardOptionsProvider
     {
         protected BackgroundJobOptions BackgroundJobOptions { get; }
 
-        public DashboardOptionsProvider(IOptions<BackgroundJobOptions> abpBackgroundJobOptions)
+        public HangfireDashboardOptionsProvider(IOptions<BackgroundJobOptions> backgroundJobOptions)
         {
-            BackgroundJobOptions = abpBackgroundJobOptions.Value;
+            BackgroundJobOptions = backgroundJobOptions.Value;
         }
 
         public virtual DashboardOptions Get()

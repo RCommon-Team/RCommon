@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using RCommon.Configuration;
 using RCommon.DependencyInjection.Microsoft;
-using RCommon.ExceptionHandling.EnterpriseLibraryCore;
 using RCommon.TestBase;
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.BackgroundJobs.Tests
+namespace RCommon.BackgroundJobs.Hangfire.Tests
 {
     public abstract class BackgroundJobTestBase : TestBootstrapper
     {
@@ -23,9 +22,8 @@ namespace RCommon.BackgroundJobs.Tests
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithStateStorage<DefaultStateStorageConfiguration>()
-                .And<>
-                .And<EhabExceptionHandlingConfiguration>(x =>
-                    x.UsingDefaultExceptionPolicies());
+                .And<BackgroundJobsConfiguration>(x =>
+                    x.WithJobManager<HangfireBackgroundJobManager>());
 
 
 

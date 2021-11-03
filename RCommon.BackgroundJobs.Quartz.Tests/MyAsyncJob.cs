@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Volo.Abp.BackgroundJobs
+namespace RCommon.BackgroundJobs.Quartz.Tests
 {
     public class MyAsyncJob : AsyncBackgroundJob<MyAsyncJobArgs>
     {

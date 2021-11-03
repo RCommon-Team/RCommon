@@ -1,22 +1,23 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using NUnit.Framework;
 using Shouldly;
-using Xunit;
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace RCommon.BackgroundJobs.Tests
+namespace RCommon.BackgroundJobs.Quartz.Tests
 {
-    public class BackgroundJobManagerTests : BackgroundJobTestBase
+    public class QuartzBackgroundJobManagerTests : BackgroundJobTestBase
     {
         private readonly IBackgroundJobManager _backgroundJobManager;
         private readonly IBackgroundJobStore _backgroundJobStore;
 
-        public BackgroundJobManagerTests()
+        public QuartzBackgroundJobManagerTests()
         {
-            _backgroundJobManager = GetRequiredService<IBackgroundJobManager>();
-            _backgroundJobStore = GetRequiredService<IBackgroundJobStore>();
+            _backgroundJobManager = this.ServiceProvider.GetService<IBackgroundJobManager>();
+            _backgroundJobStore = this.ServiceProvider.GetService<IBackgroundJobStore>();
         }
 
-        [Fact]
+        [Test]
         public async Task Should_Store_Jobs()
         {
             var jobIdAsString = await _backgroundJobManager.EnqueueAsync(new MyJobArgs("42"));
@@ -24,7 +25,7 @@ namespace RCommon.BackgroundJobs.Tests
             (await _backgroundJobStore.FindAsync(Guid.Parse(jobIdAsString))).ShouldNotBeNull();
         }
 
-        [Fact]
+        [Test]
         public async Task Should_Store_Async_Jobs()
         {
             var jobIdAsString = await _backgroundJobManager.EnqueueAsync(new MyAsyncJobArgs("42"));

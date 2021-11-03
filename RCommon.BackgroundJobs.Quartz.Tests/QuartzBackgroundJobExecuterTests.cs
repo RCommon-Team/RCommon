@@ -1,25 +1,26 @@
+using NUnit.Framework;
 using RCommon.BackgroundJobs;
-using RCommon.BackgroundJobs.Tests;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
 
-
-namespace RCommon.BackgroundJobs.Tests
+namespace RCommon.BackgroundJobs.Quartz.Tests
 {
-    public class BackgroundJobExecuterTests : BackgroundJobTestBase
+    public class QuartzBackgroundJobExecuterTests : BackgroundJobTestBase
     {
         private readonly IBackgroundJobExecuter _backgroundJobExecuter;
 
-        public BackgroundJobExecuterTests()
+        public QuartzBackgroundJobExecuterTests()
         {
-            _backgroundJobExecuter = GetRequiredService<IBackgroundJobExecuter>();
+            _backgroundJobExecuter = this.ServiceProvider.GetService<IBackgroundJobExecuter>();
         }
 
-        [Fact]
+        [Test]
         public async Task Should_Execute_Tasks()
         {
             //Arrange
 
-            var jobObject = GetRequiredService<MyJob>();
+            var jobObject = new MyJob();
             jobObject.ExecutedValues.ShouldBeEmpty();
 
             //Act
@@ -37,12 +38,12 @@ namespace RCommon.BackgroundJobs.Tests
             jobObject.ExecutedValues.ShouldContain("42");
         }
 
-        [Fact]
+        [Test]
         public async Task Should_Execute_Async_Tasks()
         {
             //Arrange
 
-            var jobObject = GetRequiredService<MyAsyncJob>();
+            var jobObject = new MyAsyncJob();
             jobObject.ExecutedValues.ShouldBeEmpty();
 
             //Act

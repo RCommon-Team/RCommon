@@ -1,4 +1,4 @@
-﻿namespace Volo.Abp.BackgroundJobs
+﻿namespace RCommon.BackgroundJobs.Quartz.Tests
 {
     public class MyAsyncJobArgs
     {

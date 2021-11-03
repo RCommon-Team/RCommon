@@ -45,6 +45,7 @@ namespace RCommon.Configuration
         private void InitializeDefaults()
         {
             _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
+            _containerAdapter.AddTransient<IClock, Clock>();
         }
 
         /// <summary>
@@ -79,7 +80,7 @@ namespace RCommon.Configuration
         }
 
         
-
+        //public IRCommonConfiguration WithClockOptions
         
        
 

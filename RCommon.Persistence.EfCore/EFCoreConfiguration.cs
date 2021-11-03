@@ -59,7 +59,7 @@ namespace RCommon.Persistence.EFCore
         public IEFCoreConfiguration UsingDbContext<TDbContext>()
             where TDbContext : RCommonDbContext
         {
-            var dbContext = typeof(TDbContext).AssemblyQualifiedName;
+            string dbContext = typeof(TDbContext).AssemblyQualifiedName;
             _dbContextTypes.Add(dbContext);
 
             //_dbContextType = Activator.CreateInstance(typeof(TDbContext));
