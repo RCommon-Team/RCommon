@@ -38,10 +38,6 @@ namespace RCommon.TestBase
             services.AddSingleton<ILogger>(TestLogger.Create());
             services.AddSingleton<IConfiguration>(this.Configuration);
             services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
-
-            //services.AddDbContext<RCommonDbContext, TestDbContext>(ServiceLifetime.Transient);
-
-
         }
 
 

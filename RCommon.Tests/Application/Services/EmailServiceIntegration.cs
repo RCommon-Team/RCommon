@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using RCommon.ApplicationServices;
+using RCommon.ApplicationServices.Common;
 using RCommon.Configuration;
 using RCommon.DependencyInjection.Microsoft;
 using RCommon.TestBase;

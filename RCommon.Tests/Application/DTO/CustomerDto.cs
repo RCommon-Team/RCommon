@@ -16,7 +16,7 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
-using RCommon.ObjectAccess.EFCore.Tests;
+using RCommon.Persistence.EFCore.Tests;
 using System;
 using System.Collections.Generic;
 using System.Threading;

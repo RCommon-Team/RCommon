@@ -14,6 +14,7 @@
 //limitations under the License. 
 #endregion
 
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace RCommon.DependencyInjection
@@ -36,6 +37,8 @@ namespace RCommon.DependencyInjection
         void AddTransient(Type service, Type implementation);
         void AddTransient<TService, TImplementation>() where TImplementation : TService;
         void AddTransient<TService>(Func<IServiceProvider, TService> implementationFactory);
+
+        IServiceCollection Services { get; }
 
 
     }

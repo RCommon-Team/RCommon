@@ -10,6 +10,13 @@ namespace RCommon
     /// </summary>
     public class Guard
     {
+
+        public Guard()
+        {
+
+        }
+
+
         /// <summary>
         /// Throws an exception of type <typeparamref name="TException"/> with the specified message
         /// when the assertion statement is true.
@@ -271,10 +278,10 @@ namespace RCommon
             }
         }
 
-        [DebuggerStepThrough]
+        /*[DebuggerStepThrough]
         public static void IsNotInPast(DateTime argument, string argumentName)
         {
-            if (argument < SystemTime.Now())
+            if (argument < Lazy<IClock>SystemTime.Now())
             {
                 throw new ArgumentOutOfRangeException(argumentName);
             }
@@ -287,7 +294,7 @@ namespace RCommon
             {
                 throw new ArgumentOutOfRangeException(argumentName);
             }
-        }
+        }*/
 
         [DebuggerStepThrough]
         public static void IsNotNegative(TimeSpan argument, string argumentName)

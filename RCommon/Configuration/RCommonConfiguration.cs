@@ -16,7 +16,6 @@
 
 using System;
 using RCommon;
-using RCommon.DataServices;
 using RCommon.DependencyInjection;
 
 namespace RCommon.Configuration
@@ -46,7 +45,7 @@ namespace RCommon.Configuration
         private void InitializeDefaults()
         {
             _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
-            _containerAdapter.AddScoped<IDataStoreProvider, DataStoreProvider>();
+            _containerAdapter.AddTransient<IClock, Clock>();
         }
 
         /// <summary>
@@ -80,92 +79,10 @@ namespace RCommon.Configuration
             return this;
         }
 
-        /// <summary>
-        /// Configure data providers (ORM only for now) used by RCommon.
-        /// </summary>
-        /// <typeparam name="T">A <see cref="IObjectAccessConfiguration"/> type that can be used to configure
-        /// data providers for RCommon.</typeparam>
-        /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithObjectAccess<T>() where T : IObjectAccessConfiguration, new()
-        {
-            var datConfiguration = (T) Activator.CreateInstance(typeof (T));
-            datConfiguration.Configure(_containerAdapter);
-            return this;
-        }
-
-        /// <summary>
-        /// Configure data providers (ORM only for now) used by RCommon.
-        /// </summary>
-        /// <typeparam name="T">A <see cref="IObjectAccessConfiguration"/> type that can be used to configure
-        /// data providers for RCommon.</typeparam>
-        /// <param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
-        /// custom actions on the <see cref="IObjectAccessConfiguration"/> instance.</param>
-        /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithObjectAccess<T>(Action<T> actions) where T : IObjectAccessConfiguration, new()
-        {
-            var dataConfiguration = (T) Activator.CreateInstance(typeof (T));
-            actions(dataConfiguration);
-            dataConfiguration.Configure(_containerAdapter);
-            return this;
-        }
-
-        /// <summary>
-        /// Configures RCommon unit of work settings.
-        /// </summary>
-        /// <typeparam name="T">A <see cref="IUnitOfWorkConfiguration"/> type that can be used to configure
-        /// unit of work settings.</typeparam>
-        /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithUnitOfWork<T> () where T : IUnitOfWorkConfiguration, new()
-        {
-            var uowConfiguration = (T) Activator.CreateInstance(typeof (T));
-            uowConfiguration.Configure(_containerAdapter);
-            return this;
-        }
-
-        ///<summary>
-        /// Configures RCommon unit of work settings.
-        ///</summary>
-        /// <typeparam name="T">A <see cref="IRCommonConfiguration"/> type that can be used to configure
-        /// unit of work settings.</typeparam>
-        ///<param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
-        /// custom actions on the <see cref="IUnitOfWorkConfiguration"/> instance.</param>
-        ///<returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithUnitOfWork<T>(Action<T> actions) where T : IUnitOfWorkConfiguration, new()
-        {
-            var uowConfiguration = (T) Activator.CreateInstance(typeof (T));
-            actions(uowConfiguration);
-            uowConfiguration.Configure(_containerAdapter);
-            return this;
-        }
-
-        /// <summary>
-        /// Configures RCommon unit of work settings.
-        /// </summary>
-        /// <typeparam name="T">A <see cref="IUnitOfWorkConfiguration"/> type that can be used to configure
-        /// unit of work settings.</typeparam>
-        /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithExceptionHandling<T>() where T : IExceptionHandlingConfiguration, new()
-        {
-            var exHandling = (T)Activator.CreateInstance(typeof(T));
-            exHandling.Configure(_containerAdapter);
-            return this;
-        }
-
-        ///<summary>
-        /// Configures RCommon unit of work settings.
-        ///</summary>
-        /// <typeparam name="T">A <see cref="IRCommonConfiguration"/> type that can be used to configure
-        /// unit of work settings.</typeparam>
-        ///<param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
-        /// custom actions on the <see cref="IUnitOfWorkConfiguration"/> instance.</param>
-        ///<returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithExceptionHandling<T>(Action<T> actions) where T : IExceptionHandlingConfiguration, new()
-        {
-            var exHandling = (T)Activator.CreateInstance(typeof(T));
-            actions(exHandling);
-            exHandling.Configure(_containerAdapter);
-            return this;
-        }
+        
+        //public IRCommonConfiguration WithClockOptions
+        
+       
 
         public IRCommonConfiguration And<T>() where T : IServiceConfiguration, new()
         {

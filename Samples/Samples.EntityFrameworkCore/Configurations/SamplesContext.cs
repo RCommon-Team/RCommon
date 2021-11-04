@@ -25,7 +25,7 @@ using Microsoft.EntityFrameworkCore;
 
 
 using Microsoft.Extensions.Configuration;
-using RCommon.ObjectAccess.EFCore;
+using RCommon.Persistence.EFCore;
 using Samples.Domain.Entities;
 using System;
 

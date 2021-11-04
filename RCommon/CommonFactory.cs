@@ -1,4 +1,4 @@
-﻿using RCommon.DataServices.Transactions;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
@@ -76,12 +76,4 @@ namespace RCommon
 
     }
 
-    /*public class Test
-    {
-        public Test()
-        {
-            var factory = new CommonFactory<IUnitOfWorkManager, TransactionMode, IUnitOfWorkScope>
-                (x => new UnitOfWorkManager(null, null, null, null) y=> new UnitOfWorkScope(x)).Create(y, TransactionMode.Default);
-        }
-    }*/
 }

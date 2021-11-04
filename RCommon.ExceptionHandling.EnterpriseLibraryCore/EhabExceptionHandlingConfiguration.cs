@@ -14,6 +14,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
 {
     public class EhabExceptionHandlingConfiguration : IExceptionHandlingConfiguration
     {
+        IContainerAdapter _containerAdapter;
 
         public EhabExceptionHandlingConfiguration()
         {
@@ -22,10 +23,40 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
 
         public void Configure(IContainerAdapter containerAdapter)
         {
+            _containerAdapter = containerAdapter;
             containerAdapter.AddTransient<IExceptionManager, EntLibExceptionManager>();
             //containerAdapter.AddSingleton<IConfigurationSource, DictionaryConfigurationSource>();
 
             
+        }
+
+        /// <summary>
+        /// Configures RCommon unit of work settings.
+        /// </summary>
+        /// <typeparam name="T">A <see cref="IUnitOfWorkConfiguration"/> type that can be used to configure
+        /// unit of work settings.</typeparam>
+        /// <returns><see cref="IRCommonConfiguration"/></returns>
+        public IExceptionHandlingConfiguration WithExceptionHandling<T>() where T : IExceptionHandlingConfiguration, new()
+        {
+            var exHandling = (T)Activator.CreateInstance(typeof(T));
+            exHandling.Configure(_containerAdapter);
+            return this;
+        }
+
+        ///<summary>
+        /// Configures RCommon unit of work settings.
+        ///</summary>
+        /// <typeparam name="T">A <see cref="IRCommonConfiguration"/> type that can be used to configure
+        /// unit of work settings.</typeparam>
+        ///<param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
+        /// custom actions on the <see cref="IUnitOfWorkConfiguration"/> instance.</param>
+        ///<returns><see cref="IRCommonConfiguration"/></returns>
+        public IExceptionHandlingConfiguration WithExceptionHandling<T>(Action<T> actions) where T : IExceptionHandlingConfiguration, new()
+        {
+            var exHandling = (T)Activator.CreateInstance(typeof(T));
+            actions(exHandling);
+            exHandling.Configure(_containerAdapter);
+            return this;
         }
 
         public void UsingDefaultExceptionPolicies()
@@ -39,13 +70,13 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
                 .ForExceptionType<Exception>()              // For any type of exception
                 .WrapWith<GeneralException>()               // Wrap with a better exception with more info
                     .UsingMessage("A handled exception occured and was processed by the BasePolicy")
-                .HandleCustom<LoggingExceptonHandler>()     // Log the exception
+                .HandleCustom<LoggingExceptionHandler>()     // Log the exception
                 .ThenThrowNewException()                        // Rethrow the exception so the appropriate layer can handle it
 
                 .GivenPolicyWithName("BusinessWrapPolicy")  // For wrapping all exceptions that bubble up to business layer
                 .ForExceptionType<Exception>()
                 .WrapWith<BusinessException>()
-                .HandleCustom<LoggingExceptonHandler>()
+                .HandleCustom<LoggingExceptionHandler>()
                 .ThenThrowNewException()
 
                 .GivenPolicyWithName("BusinessReplacePolicy")// We use this for removing sensitive information from an exception
@@ -56,7 +87,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
                 .GivenPolicyWithName("ApplicationWrapPolicy")  // For wrapping all exceptions that bubble up to application layer
                 .ForExceptionType<Exception>()
                 .WrapWith<ApplicationTierException>()
-                .HandleCustom<LoggingExceptonHandler>()
+                .HandleCustom<LoggingExceptionHandler>()
                 .ThenThrowNewException()
 
                 .GivenPolicyWithName("ApplicationReplacePolicy")// We use this for removing sensitive information from an exception
@@ -67,7 +98,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore
                 .GivenPolicyWithName("SecurityReplacePolicy")// We use this for removing sensitive information from an exception
                 .ForExceptionType<SecurityException>()     // The assumption is that we've already handled the exception at a lower layer 
                 .ReplaceWith<FriendlySecurityException>()   // So let's simply make this a presentation friendly exception
-                .HandleCustom<LoggingExceptonHandler>()
+                .HandleCustom<LoggingExceptionHandler>()
                 .ThenThrowNewException()                       // No need to log, just 
 
                 .GivenPolicyWithName("PresentationReplacePolicy")// We use this for removing sensitive information from an exception

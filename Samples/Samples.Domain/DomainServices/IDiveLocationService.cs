@@ -1,8 +1,8 @@
 ﻿
 using RCommon.BusinessServices;
 using RCommon.Collections;
-using RCommon.DataTransferObjects;
 using RCommon.Expressions;
+using RCommon.Models;
 using Samples.Domain.Entities;
 using System.Threading.Tasks;
 

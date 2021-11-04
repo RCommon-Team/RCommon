@@ -8,13 +8,14 @@ namespace RCommon.DependencyInjection.Microsoft
 {
     public class DotNetCoreContainerAdapter : IContainerAdapter
     {
-        private IServiceCollection _services;
+        private readonly IServiceCollection _services;
 
         public DotNetCoreContainerAdapter(IServiceCollection services)
         {
             _services = services;
         }
 
+        public IServiceCollection Services => _services;
 
         public void AddGeneric(Type service, Type implementation)
         {

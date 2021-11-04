@@ -11,7 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\RCommon.BusinessServices\RCommon.BusinessServices.csproj" />
     <ProjectReference Include="..\..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
+    <ProjectReference Include="..\..\RCommon.Models\RCommon.Models.csproj" />
     <ProjectReference Include="..\..\RCommon\RCommon.csproj" />
   </ItemGroup>
 

@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using RCommon.Collections;
-using RCommon.DataTransferObjects;
 using RCommon.ExceptionHandling;
+using RCommon.Models;
 using Samples.Application.ApplicationServices;
 using Samples.Application.Contracts.Dto;
 using Samples.Web.Models;
@@ -37,7 +37,7 @@ namespace Samples.Web.Controllers
             try
             {
                 model.CurrentPage = currentPage.GetValueOrDefault(1);
-                CommandResult<StaticPaginatedList<DiveLocationDto>> cmd = new CommandResult<StaticPaginatedList<DiveLocationDto>>();
+                CommandResult<PaginatedListModel<DiveLocationDto>> cmd = new CommandResult<PaginatedListModel<DiveLocationDto>>();
                 if (searchTerms == null)
                 {
                     cmd = await _diveService.GetAllDiveLocationsAsync(model.CurrentPage, PresentationDefaults.PagedDataSize);

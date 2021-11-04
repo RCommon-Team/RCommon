@@ -5,13 +5,15 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
-    <Copyright>Copyright Reactor2 2020</Copyright>
+    <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <Authors>Reactor2</Authors>
-    <Description>An implementation of the Autofac dependency injection container implemented by Autofac on the .NET Core 3.1 framework.</Description>
+    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageTags>rcommon, dependency injection, autofac</PackageTags>
-    <Version>1.0.1</Version>
+    <PackageTags>RCommon, dependency injection, autofac, di abstractions, c#, .NET</PackageTags>
+    <Version>1.0.1.40</Version>
+    <PackageIconUrl />
+    <Company>RCommon</Company>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\..\OneDrive - NTeris\Businesses\NTeris\Graphics\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
