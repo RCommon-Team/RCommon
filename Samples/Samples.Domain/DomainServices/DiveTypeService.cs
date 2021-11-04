@@ -2,7 +2,7 @@
 using RCommon.BusinessServices;
 using RCommon.DataServices.Transactions;
 using RCommon.ExceptionHandling;
-using RCommon.ObjectAccess;
+using RCommon.Persistence;
 using Samples.Domain.Entities;
 using System;
 using System.Collections.Generic;

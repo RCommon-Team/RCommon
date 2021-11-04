@@ -17,12 +17,14 @@ using Microsoft.Net.Http.Headers;
 using RCommon;
 using RCommon.DependencyInjection.Microsoft;
 using RCommon.Configuration;
-using RCommon.ObjectAccess.EFCore;
 using RCommon.ExceptionHandling.EnterpriseLibraryCore;
 using Samples.Application;
 using Samples.Domain;
 using AutoMapper;
 using Samples.ObjectAccess.EFCore;
+using RCommon.DataServices.Transactions;
+using RCommon.Persistence.EFCore;
+using RCommon.ApplicationServices;
 
 namespace Samples.Web
 {
@@ -59,13 +61,13 @@ namespace Samples.Web
             // Configure RCommon
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services)) // Allows us to use generic Dependency Injection. We could easily swap out for Autofac with a few lines of code
                 .WithStateStorage<DefaultStateStorageConfiguration>() // Basic state management. This layer mostly encapsulates the web runtime. Microsoft has a bad habit of revising what an HttpContext is/means so we limit that impact.
-                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>() // Everything releated to transaction management. Powerful stuff happens here.
-                .WithObjectAccess<EFCoreConfiguration>(x => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .And<DefaultUnitOfWorkConfiguration>() // Everything releated to transaction management. Powerful stuff happens here.
+                .And<EFCoreConfiguration>(x => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
                     x.UsingDbContext<SamplesContext>();
                 })
-                .WithExceptionHandling<EhabExceptionHandlingConfiguration>(x => // I prefer using Enterprise Library for this. It is one of the only fully though through libraries for exception handling.
+                .And<EhabExceptionHandlingConfiguration>(x => // I prefer using Enterprise Library for this. It is one of the only fully though through libraries for exception handling.
                     x.UsingDefaultExceptionPolicies())
                 .And<CommonApplicationServicesConfiguration>()
                 .And<DomainLayerConfiguration>()

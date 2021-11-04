@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RCommon.Collections;
-using RCommon.DataTransferObjects;
+using RCommon.Models;
 using Samples.Application.Contracts.Dto;
 using System;
 using System.Collections.Generic;
@@ -43,7 +43,7 @@ namespace Samples.Web.Models
 
         public int TotalPages => this.PagedData.TotalPages;
 
-        public StaticPaginatedList<DiveLocationDto> PagedData { get; set; }
+        public PaginatedListModel<DiveLocationDto> PagedData { get; set; }
 
         public bool ShowPrevious => this.PagedData.HasPreviousPage;
         public bool ShowNext => this.PagedData.HasNextPage;

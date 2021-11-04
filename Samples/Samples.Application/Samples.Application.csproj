@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
     <ProjectReference Include="..\..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\RCommon\RCommon.csproj" />
     <ProjectReference Include="..\Samples.Application.Contracts\Samples.Application.Contracts.csproj" />

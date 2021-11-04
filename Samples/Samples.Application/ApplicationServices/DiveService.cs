@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 using RCommon.ApplicationServices;
 using RCommon.Collections;
 using RCommon.DataServices.Transactions;
-using RCommon.DataTransferObjects;
 using RCommon.ExceptionHandling;
 using RCommon.Expressions;
+using RCommon.Models;
 using Samples.Application.Contracts.Dto;
 using Samples.Domain.DomainServices;
 using Samples.Domain.Entities;
@@ -203,9 +203,9 @@ namespace Samples.Application.ApplicationServices
             return cmd;
         }
 
-        public async virtual Task<CommandResult<StaticPaginatedList<DiveLocationDto>>> GetAllDiveLocationsAsync(int pageIndex, int pageSize)
+        public async virtual Task<CommandResult<PaginatedListModel<DiveLocationDto>>> GetAllDiveLocationsAsync(int pageIndex, int pageSize)
         {
-            var cmd = new CommandResult<StaticPaginatedList<DiveLocationDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
+            var cmd = new CommandResult<PaginatedListModel<DiveLocationDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
 
             try
             {
@@ -222,7 +222,7 @@ namespace Samples.Application.ApplicationServices
                 {
                     var diveLocationList = _objectMapper.Map<ICollection<DiveLocationDto>>(locationCmd.DataResult.OrderBy(x=>x.LocationName)); // I would normally write a custom type converter (see below) for this if time allowed
                     //cmd.DataResult = _objectMapper.Map<PaginatedList<DiveLocationDto>>(locationCmd.DataResult); // Would need a custom type converter to do this but the in-memory affect would be the same
-                    cmd.DataResult = new StaticPaginatedList<DiveLocationDto>()
+                    cmd.DataResult = new PaginatedListModel<DiveLocationDto>()
                     {
                         Data = diveLocationList,
                         PageIndex = locationCmd.DataResult.PageIndex,
@@ -254,9 +254,9 @@ namespace Samples.Application.ApplicationServices
 
         }
 
-        public async virtual Task<CommandResult<StaticPaginatedList<DiveLocationDto>>> SearchDiveLocationsAsync(string searchTerms, int pageIndex, int pageSize)
+        public async virtual Task<CommandResult<PaginatedListModel<DiveLocationDto>>> SearchDiveLocationsAsync(string searchTerms, int pageIndex, int pageSize)
         {
-            var cmd = new CommandResult<StaticPaginatedList<DiveLocationDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
+            var cmd = new CommandResult<PaginatedListModel<DiveLocationDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
 
             try
             {
@@ -273,7 +273,7 @@ namespace Samples.Application.ApplicationServices
                 {
                     var diveLocationList = _objectMapper.Map<ICollection<DiveLocationDto>>(locationCmd.DataResult.OrderBy(x => x.LocationName)); // I would normally write a custom type converter (see below) for this if time allowed
                     //cmd.DataResult = _objectMapper.Map<PaginatedList<DiveLocationDto>>(locationCmd.DataResult); // Would need a custom type converter to do this but the in-memory affect would be the same
-                    cmd.DataResult = new StaticPaginatedList<DiveLocationDto>()
+                    cmd.DataResult = new PaginatedListModel<DiveLocationDto>()
                     {
                         Data = diveLocationList,
                         PageIndex = locationCmd.DataResult.PageIndex,

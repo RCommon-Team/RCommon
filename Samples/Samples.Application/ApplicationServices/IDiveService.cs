@@ -1,6 +1,6 @@
 ﻿
 using RCommon.Collections;
-using RCommon.DataTransferObjects;
+using RCommon.Models;
 using Samples.Application.Contracts.Dto;
 using System;
 using System.Collections.Generic;
@@ -17,12 +17,12 @@ namespace Samples.Application.ApplicationServices
         Task<CommandResult<bool>> DeleteDiveLocationAsync(DiveLocationDto diveLocationDto);
         Task<CommandResult<bool>> UpdateDiveLocationAsync(DiveLocationDto diveLocationDto);
 
-        Task<CommandResult<StaticPaginatedList<DiveLocationDto>>> GetAllDiveLocationsAsync(int pageIndex, int pageSize);
+        Task<CommandResult<PaginatedListModel<DiveLocationDto>>> GetAllDiveLocationsAsync(int pageIndex, int pageSize);
 
         Task<CommandResult<ICollection<DiveTypeDto>>> GetAllDiveTypesAsync();
 
         Task<CommandResult<DiveLocationDto>> GetDiveLocationByIdAsync(Guid id);
 
-        Task<CommandResult<StaticPaginatedList<DiveLocationDto>>> SearchDiveLocationsAsync(string searchTerms, int pageIndex, int pageSize);
+        Task<CommandResult<PaginatedListModel<DiveLocationDto>>> SearchDiveLocationsAsync(string searchTerms, int pageIndex, int pageSize);
     }
 }

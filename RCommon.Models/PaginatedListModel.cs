@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.ApplicationServices.DataTransferObjects
+namespace RCommon.Models
 {
     /// <summary>
     /// Represents a Data Transfer Object (DTO) that is typically used to encapsulate a PaginatedList so that it can be

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using RCommon.BusinessServices;
 using RCommon.Collections;
-using RCommon.DataTransferObjects;
 using RCommon.ExceptionHandling;
 using RCommon.Extensions;
-using RCommon.ObjectAccess;
+using RCommon.Models;
+using RCommon.Persistence;
 using Samples.Domain.Entities;
 using System;
 using System.Collections.Generic;

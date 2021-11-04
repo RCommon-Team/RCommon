@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Logging;
 using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
-using RCommon.DataTransferObjects;
 using RCommon.ExceptionHandling;
+using RCommon.Models;
 using Samples.Application.Contracts.Dto;
 using Samples.Domain.DomainServices;
 using System;
@@ -26,9 +26,9 @@ namespace Samples.Application.ApplicationServices
             _objectMapper = objectMapper;
         }
 
-        public async virtual Task<CommandResult<StaticPaginatedList<ApplicationUserDto>>> SearchUsersAsync(string searchTerms, int pageIndex, int pageSize)
+        public async virtual Task<CommandResult<PaginatedListModel<ApplicationUserDto>>> SearchUsersAsync(string searchTerms, int pageIndex, int pageSize)
         {
-            var cmd = new CommandResult<StaticPaginatedList<ApplicationUserDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
+            var cmd = new CommandResult<PaginatedListModel<ApplicationUserDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
 
             try
             {
@@ -37,7 +37,7 @@ namespace Samples.Application.ApplicationServices
 
                 var userList = _objectMapper.Map<ICollection<ApplicationUserDto>>(userCmd.DataResult.OrderBy(x => x.LastName)); // I would normally write a custom type converter (see below) for this if time allowed
 
-                cmd.DataResult = new StaticPaginatedList<ApplicationUserDto>()
+                cmd.DataResult = new PaginatedListModel<ApplicationUserDto>()
                 {
                     Data = userList,
                     PageIndex = userCmd.DataResult.PageIndex,

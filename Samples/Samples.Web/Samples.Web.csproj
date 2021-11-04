@@ -1689,7 +1689,7 @@
     <ProjectReference Include="..\..\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
     <ProjectReference Include="..\..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj" />
-    <ProjectReference Include="..\..\RCommon.ObjectAccess.EfCore\RCommon.ObjectAccess.EFCore.csproj" />
+    <ProjectReference Include="..\..\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
     <ProjectReference Include="..\..\RCommon\RCommon.csproj" />
     <ProjectReference Include="..\Samples.Application.Contracts\Samples.Application.Contracts.csproj" />
     <ProjectReference Include="..\Samples.Application\Samples.Application.csproj" />
