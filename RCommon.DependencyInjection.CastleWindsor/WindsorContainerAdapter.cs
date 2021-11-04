@@ -18,6 +18,7 @@ using System;
 using Castle.Core;
 using Castle.MicroKernel.Registration;
 using Castle.Windsor;
+using Microsoft.Extensions.DependencyInjection;
 using RCommon.Configuration;
 using RCommon.DependencyInjection;
 
@@ -28,7 +29,10 @@ namespace RCommon.DependencyInjection.CastleWindsor
     /// </summary>
     public class WindsorContainerAdapter : IContainerAdapter
     {
-        readonly IWindsorContainer _container;
+        private readonly IWindsorContainer _container;
+        private readonly IServiceCollection _services;
+
+        public IServiceCollection Services => _services;
 
         /// <summary>
         /// Default Constructor.
@@ -36,9 +40,10 @@ namespace RCommon.DependencyInjection.CastleWindsor
         /// </summary>
         /// <param name="container">The <see cref="IWindsorContainer"/> instance used by the WindsorContainerAdapter
         /// to register components.</param>
-        public WindsorContainerAdapter(IWindsorContainer container)
+        public WindsorContainerAdapter(IWindsorContainer container, IServiceCollection services)
         {
             _container = container;
+            _services = services;
         }
 
         /// <summary>

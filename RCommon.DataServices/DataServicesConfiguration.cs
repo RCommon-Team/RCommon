@@ -13,9 +13,7 @@ namespace RCommon.DataServices
 {
     public class DataServicesConfiguration : IDataServicesConfiguration
     {
-        readonly IContainerAdapter _containerAdapter;
-        bool _autoCompleteScope = false;
-        IsolationLevel _defaultIsolation = IsolationLevel.ReadCommitted;
+        private IContainerAdapter _containerAdapter;
 
         /// <summary>
         /// Configures <see cref="UnitOfWorkScope"/> settings.
@@ -23,7 +21,8 @@ namespace RCommon.DataServices
         /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance.</param>
         public void Configure(IContainerAdapter containerAdapter)
         {
-            containerAdapter.AddScoped<IDataStoreProvider, DataStoreProvider>();
+            _containerAdapter = containerAdapter;
+            _containerAdapter.AddScoped<IDataStoreProvider, DataStoreProvider>();
 
         }
 

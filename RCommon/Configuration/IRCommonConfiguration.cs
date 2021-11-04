@@ -14,6 +14,7 @@
 //limitations under the License. 
 #endregion
 
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace RCommon.Configuration

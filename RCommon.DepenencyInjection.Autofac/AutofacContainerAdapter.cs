@@ -11,18 +11,20 @@ namespace RCommon.DependencyInjection.Autofac
     public class AutofacContainerAdapter : IContainerAdapter
     {
        
-        ContainerBuilder _builder;
+        private readonly ContainerBuilder _builder;
+        private readonly IServiceCollection _services;
+
+        public IServiceCollection Services => _services;
 
         /// <summary>
         /// Default Constructor.
         /// Creates a new instance of the <see cref="AutofacContainerAdapter"/> class.
         /// </summary>
         /// <param name="builder"></param>
-        public AutofacContainerAdapter(ContainerBuilder builder)
+        public AutofacContainerAdapter(ContainerBuilder builder, IServiceCollection services)
         {
             _builder = builder;
-
-            
+            _services = services;
         }
 
         /// <summary>
