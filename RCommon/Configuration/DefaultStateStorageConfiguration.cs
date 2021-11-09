@@ -25,13 +25,13 @@ namespace RCommon.Configuration
     /// Default implementation of <see cref="IStateStorageConfiguration"/> that allows configuring
     /// state storage in RCommon.
     /// </summary>
-    public class DefaultStateStorageConfiguration : IStateStorageConfiguration
+    public class DefaultStateStorageConfiguration : RCommonConfiguration, IStateStorageConfiguration
     {
         Type _customSessionType;
         Type _customLocalStateType;
         Type _customApplicationStateType;
 
-        public DefaultStateStorageConfiguration()
+        public DefaultStateStorageConfiguration(IContainerAdapter containerAdapter):base(containerAdapter)
         {
 
         }
@@ -74,32 +74,30 @@ namespace RCommon.Configuration
         /// <summary>
         /// Called by RCommon <see cref="Configure"/> to configure state storage.
         /// </summary>
-        /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance that can be
-        /// used to register state storage components.</param>
-        public void Configure(IContainerAdapter containerAdapter)
+        public override void Configure()
         {
             if (_customSessionType != null)
-                containerAdapter.AddTransient(typeof(ISessionState), _customSessionType);
+                this.ContainerAdapter.AddTransient(typeof(ISessionState), _customSessionType);
             else
             {
-                containerAdapter.AddTransient<ISessionStateSelector, DefaultSessionStateSelector>();
-                containerAdapter.AddTransient<ISessionState, SessionStateWrapper>();
+                this.ContainerAdapter.AddTransient<ISessionStateSelector, DefaultSessionStateSelector>();
+                this.ContainerAdapter.AddTransient<ISessionState, SessionStateWrapper>();
             }
 
             if (_customLocalStateType != null)
-                containerAdapter.AddTransient(typeof(IContextState), _customLocalStateType);
+                this.ContainerAdapter.AddTransient(typeof(IContextState), _customLocalStateType);
             else
             {
-                containerAdapter.AddTransient<IContextStateSelector, DefaultContextStateSelector>();
-                containerAdapter.AddTransient<IContextState, ContextStateWrapper>();
+                this.ContainerAdapter.AddTransient<IContextStateSelector, DefaultContextStateSelector>();
+                this.ContainerAdapter.AddTransient<IContextState, ContextStateWrapper>();
             }
            
             if (_customApplicationStateType != null)
-                containerAdapter.AddSingleton(typeof(IApplicationState), _customApplicationStateType);
+                this.ContainerAdapter.AddSingleton(typeof(IApplicationState), _customApplicationStateType);
             else
-                containerAdapter.AddSingleton<IApplicationState, ApplicationState>();
+                this.ContainerAdapter.AddSingleton<IApplicationState, ApplicationState>();
 
-            containerAdapter.AddTransient<IStateStorage, StateStorageWrapper>();
+            this.ContainerAdapter.AddTransient<IStateStorage, StateStorageWrapper>();
         }
     }
 }

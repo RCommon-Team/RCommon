@@ -9,8 +9,6 @@ namespace RCommon.ExceptionHandling
     public interface IExceptionHandlingConfiguration : IServiceConfiguration
     {
 
-        IExceptionHandlingConfiguration WithExceptionHandling<T>() where T : IExceptionHandlingConfiguration, new();
-
-        IExceptionHandlingConfiguration WithExceptionHandling<T>(Action<T> actions) where T : IExceptionHandlingConfiguration, new();
+        IExceptionHandlingConfiguration UsingDefaultExceptionPolicies();
     }
 }

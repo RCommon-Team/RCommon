@@ -25,7 +25,13 @@ namespace RCommon.Configuration
     ///</summary>
     public class RCommonConfiguration : IRCommonConfiguration
     {
-        readonly IContainerAdapter _containerAdapter;
+        private readonly IContainerAdapter _containerAdapter;
+        public IContainerAdapter ContainerAdapter => _containerAdapter;
+
+        protected RCommonConfiguration()
+        {
+
+        }
 
         ///<summary>
         /// Default Constructor.
@@ -35,17 +41,8 @@ namespace RCommon.Configuration
         /// used to register components.</param>
         public RCommonConfiguration(IContainerAdapter containerAdapter)
         {
+            Guard.Against<NullReferenceException>(containerAdapter == null, "IContainerAdapter cannot be null");
             _containerAdapter = containerAdapter;
-            InitializeDefaults();
-        }
-
-        /// <summary>
-        /// Registers default components for RCommon.
-        /// </summary>
-        private void InitializeDefaults()
-        {
-            _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
-            _containerAdapter.AddTransient<IClock, Clock>();
         }
 
         /// <summary>
@@ -55,10 +52,10 @@ namespace RCommon.Configuration
         /// state storage services exposed by RCommon.
         /// </typeparam>
         /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithStateStorage<T>() where T : IStateStorageConfiguration, new()
+        public IRCommonConfiguration WithStateStorage<T>() where T : IStateStorageConfiguration
         {
-            var configuration = (T) Activator.CreateInstance(typeof (T));
-            configuration.Configure(_containerAdapter);
+            var configuration = (T) Activator.CreateInstance(typeof (T), new object[] { this.ContainerAdapter });
+            configuration.Configure();
             return this;
         }
 
@@ -71,32 +68,35 @@ namespace RCommon.Configuration
         /// <param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
         /// custom actions on the <see cref="IStateStorageConfiguration"/> instance.</param>
         /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithStateStorage<T>(Action<T> actions) where T : IStateStorageConfiguration, new()
+        public IRCommonConfiguration WithStateStorage<T>(Action<T> actions) where T : IStateStorageConfiguration
         {
-            var configuration = (T) Activator.CreateInstance(typeof (T));
+            var configuration = (T) Activator.CreateInstance(typeof (T), new object[] { this.ContainerAdapter });
             actions(configuration);
-            configuration.Configure(_containerAdapter);
+            configuration.Configure();
             return this;
         }
-
-        
-        //public IRCommonConfiguration WithClockOptions
         
        
 
-        public IRCommonConfiguration And<T>() where T : IServiceConfiguration, new()
+        public IRCommonConfiguration And<T>() where T : IServiceConfiguration
         {
-            var configuration = (T)Activator.CreateInstance(typeof(T));
-            configuration.Configure(_containerAdapter);
+            var configuration = (T)Activator.CreateInstance(typeof(T), new object[] { this.ContainerAdapter });
+            configuration.Configure();
             return this;
         }
 
-        public IRCommonConfiguration And<T>(Action<T> actions) where T : IServiceConfiguration, new()
+        public IRCommonConfiguration And<T>(Action<T> actions) where T : IServiceConfiguration
         {
-            var configuration = (T)Activator.CreateInstance(typeof(T));
+            var configuration = (T)Activator.CreateInstance(typeof(T), new object[] { this.ContainerAdapter });
             actions(configuration);
-            configuration.Configure(_containerAdapter);
+            configuration.Configure();
             return this;
+        }
+
+        public virtual void Configure()
+        {
+            _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
+            _containerAdapter.AddTransient<IClock, Clock>();
         }
     }
 }

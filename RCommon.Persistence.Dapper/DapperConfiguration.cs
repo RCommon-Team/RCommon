@@ -14,27 +14,34 @@ using DapperExtensions.Mapper;
 
 namespace RCommon.Persistence.Dapper
 {
-    public class DapperConfiguration : IDapperConfiguration
+    public class DapperConfiguration : RCommonConfiguration, IDapperConfiguration
     {
         private List<string> _dbContextTypes = new List<string>();
+
+
+        public DapperConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
+        {
+
+        }
+
 
         /// <summary>
         /// Called by RCommon <see cref="Configure"/> to configure data providers.
         /// </summary>
         /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance that allows
         /// registering components.</param>
-        public void Configure(IContainerAdapter containerAdapter)
+        public override void Configure()
         {
-
+            
             DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
             // Dapper Repository
-            containerAdapter.AddGeneric(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
 
             // Registered DbContexts
             foreach (var dbContext in _dbContextTypes)
             {
-                containerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
+                this.ContainerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
             }
 
         }

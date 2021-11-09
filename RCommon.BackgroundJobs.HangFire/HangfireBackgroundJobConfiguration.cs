@@ -10,11 +10,12 @@ using Hangfire;
 
 namespace RCommon.BackgroundJobs.Hangfire
 {
-    public class HangFireBackgroundJobConfiguration : IServiceConfiguration
+    public class HangFireBackgroundJobConfiguration : RCommonConfiguration
     {
-        public void Configure(IContainerAdapter containerAdapter)
+
+        public HangFireBackgroundJobConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
         {
-            
+
         }
     }
 }
