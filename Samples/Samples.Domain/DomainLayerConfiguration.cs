@@ -12,14 +12,20 @@ namespace Samples.Domain
     /// </summary>
     /// <remarks>Note that this class is unaware of which DI container it is using which allows us to swap it out at any time
     /// without affecting any of our application code other than what is specific used for container configuration in Startup.</remarks>
-    public class DomainLayerConfiguration : IServiceConfiguration
+    public class DomainLayerConfiguration : RCommonConfiguration, IServiceConfiguration
     {
-        public void Configure(IContainerAdapter containerAdapter)
+        public DomainLayerConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
+        {
+
+        }
+
+
+        public override void Configure()
         {
             // Register all of the domain services with the Dependency Injection Container. 
-            containerAdapter.AddTransient<IDiveLocationService, DiveLocationService>();
-            containerAdapter.AddTransient<IDiveTypeService, DiveTypeService>();
-            containerAdapter.AddTransient<IUserService, UserService>();
+            this.ContainerAdapter.AddTransient<IDiveLocationService, DiveLocationService>();
+            this.ContainerAdapter.AddTransient<IDiveTypeService, DiveTypeService>();
+            this.ContainerAdapter.AddTransient<IUserService, UserService>();
         }
     }
 }
