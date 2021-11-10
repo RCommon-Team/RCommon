@@ -16,6 +16,7 @@ using System.IO;
 using System.Threading.Tasks;
 using RCommon.DataServices;
 using RCommon.BusinessEntities;
+using System.Threading;
 
 namespace RCommon.Persistence.NHibernate
 {
@@ -89,10 +90,10 @@ namespace RCommon.Persistence.NHibernate
         /// Attaches a detached entity, previously detached via the <see cref="IRepository{TEntity}.Detach"/> method.
         /// </summary>
         /// <param name="entity">The entity instance to attach back to the repository.</param>
-        public override async Task AttachAsync(TEntity entity)
+        public override async Task AttachAsync(TEntity entity, CancellationToken token = default)
         {
-            await SessionFactory.GetCurrentSession().UpdateAsync(entity);
-            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
+            await SessionFactory.GetCurrentSession().UpdateAsync(entity, token);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
         }
 
         protected override void ApplyFetchingStrategy(Expression[] paths)
@@ -117,70 +118,70 @@ namespace RCommon.Persistence.NHibernate
             return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression);
         }
 
-        public override async Task AddAsync(TEntity entity)
+        public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
             await SessionFactory.GetCurrentSession().SaveOrUpdateAsync(entity);
-            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
         }
 
-        public override async Task DeleteAsync(TEntity entity)
+        public override async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
-            await SessionFactory.GetCurrentSession().DeleteAsync(entity);
-            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
+            await SessionFactory.GetCurrentSession().DeleteAsync(entity, token);
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
         }
 
-        public override async Task UpdateAsync(TEntity entity)
+        public override async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             await SessionFactory.GetCurrentSession().UpdateAsync(entity);
-            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
+            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
         }
 
-        public override async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification)
+        public override async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).ToListAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).ToListAsync(token);
         }
 
-        public override async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression)
+        public override async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).ToListAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).ToListAsync(token);
         }
 
-        public override async Task<TEntity> FindAsync(object primaryKey)
+        public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().GetAsync<TEntity>(primaryKey);
+            return await SessionFactory.GetCurrentSession().GetAsync<TEntity>(primaryKey, token);
         }
 
-        public override async Task<int> GetCountAsync(ISpecification<TEntity> selectSpec)
+        public override async Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(selectSpec.Predicate).CountAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(selectSpec.Predicate).CountAsync(token);
         }
 
-        public override async Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression)
+        public override async Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).CountAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).CountAsync(token);
         }
 
-        public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression)
+        public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).SingleOrDefaultAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).SingleOrDefaultAsync(token);
         }
 
-        public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification)
+        public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).SingleOrDefaultAsync();
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).SingleOrDefaultAsync(token);
         }
 
-        public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression)
+        public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().Query<TEntity>().AnyAsync(expression);
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().AnyAsync(expression, token);
         }
 
-        public async override Task<bool> AnyAsync(ISpecification<TEntity> specification)
+        public async override Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await SessionFactory.GetCurrentSession().Query<TEntity>().AnyAsync(specification.Predicate);
+            return await SessionFactory.GetCurrentSession().Query<TEntity>().AnyAsync(specification.Predicate, token);
         }
 
-        public override Task DetachAsync(TEntity entity)
+        public override Task DetachAsync(TEntity entity, CancellationToken token = default)
         {
             throw new NotImplementedException();
         }

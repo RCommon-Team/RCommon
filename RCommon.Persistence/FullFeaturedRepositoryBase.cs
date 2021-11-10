@@ -22,6 +22,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RCommon.Persistence
@@ -109,12 +110,19 @@ namespace RCommon.Persistence
 
 
         /// <summary>
-        /// Attaches a detached entity, previously detached via the <see cref="IRepository{TEntity}.Detach"/> method.
+        /// Attaches a detached entity, previously detached via the method.
         /// </summary>
         /// <param name="entity">The entity instance to attach back to the repository.</param>
-        public abstract Task AttachAsync(TEntity entity);
+        /// <param name="token">Cancellation Token</param>
+        public abstract Task AttachAsync(TEntity entity, CancellationToken token = default);
 
-        public abstract Task DetachAsync(TEntity entity);
+        /// <summary>
+        /// Detaches an entity.
+        /// </summary>
+        /// <param name="entity">Entity to detach from the repository</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Task</returns>
+        public abstract Task DetachAsync(TEntity entity, CancellationToken token = default);
 
 
         /// <summary>
@@ -150,18 +158,18 @@ namespace RCommon.Persistence
 
         public abstract IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
-        public abstract Task AddAsync(TEntity entity);
-        public abstract Task DeleteAsync(TEntity entity);
-        public abstract Task UpdateAsync(TEntity entity);
-        public abstract Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification);
-        public abstract Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression);
-        public abstract Task<TEntity> FindAsync(object primaryKey);
-        public abstract Task<int> GetCountAsync(ISpecification<TEntity> selectSpec);
-        public abstract Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression);
-        public abstract Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression);
-        public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification);
-        public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression);
-        public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification);
+        public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
+        public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
+        public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);
+        public abstract Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+        public abstract Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default);
+        public abstract Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default);
+        public abstract Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+        public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
 
         public abstract bool Tracking { get; set; }
     }
