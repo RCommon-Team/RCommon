@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Authors>Reactor2, Jason Webb</Authors>
     <Description>Implementation of Exception Handling Application Block (EHAB) for Enterprise Library Core on RCommon Framework.</Description>
     <Copyright>Copyright Reactor2 2020</Copyright>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
