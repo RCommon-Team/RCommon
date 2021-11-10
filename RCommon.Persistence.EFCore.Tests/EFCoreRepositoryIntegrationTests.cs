@@ -60,22 +60,17 @@ namespace RCommon.Persistence.EFCore.Tests
             this.Logger.LogInformation("Tearing down Test", null);
 
             await _testData.ResetContext();
-            _testData.Dispose();
-            _dataStoreProvider.RemoveRegisteredDataStores(_testData.GetType(), Guid.NewGuid());
+            //_testData.Dispose();
+            _dataStoreProvider.RemoveRegisteredDataStores(_testData.GetType(), Guid.Empty);
         }
 
         [Test]
-        public async Task Can_Run_Tests_In_Web_Environment()
+        public async Task Can_Run_In_Web_Environment()
         {
             this.CreateWebRequest();
             
-            await this.Can_Add_Async();
-            await this.Can_Delete_Async();
-            await this.Can_eager_load_repository_and_query_async();
-            await this.Can_perform_simple_query();
-            await this.Can_Update_Async();
+
             await this.UnitOfWork_Can_commit();
-            await this.UnitOfWork_can_commit_multiple_db_operations();
         }
 
         [Test]

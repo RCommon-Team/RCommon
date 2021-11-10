@@ -28,11 +28,6 @@ namespace RCommon.Configuration
         private readonly IContainerAdapter _containerAdapter;
         public IContainerAdapter ContainerAdapter => _containerAdapter;
 
-        protected RCommonConfiguration()
-        {
-
-        }
-
         ///<summary>
         /// Default Constructor.
         /// Creates a new instance of the <see cref="RCommonConfiguration"/>  class.
