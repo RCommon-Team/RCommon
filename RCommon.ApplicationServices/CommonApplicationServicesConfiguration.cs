@@ -8,18 +8,18 @@ using System.Text;
 
 namespace RCommon.ApplicationServices
 {
-    public class CommonApplicationServicesConfiguration : IServiceConfiguration
+    public class CommonApplicationServicesConfiguration : RCommonConfiguration
     {
-        public CommonApplicationServicesConfiguration()
+        public CommonApplicationServicesConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
         {
-
+            
         }
 
-
-        public void Configure(IContainerAdapter containerAdapter)
+        public override void Configure()
         {
-            containerAdapter.AddGeneric(typeof(ICrudBusinessService<>), typeof(CrudBusinessService<>));
-            containerAdapter.AddGeneric(typeof(ICrudAppService<>), typeof(CrudAppService<,>));
+            this.ContainerAdapter.AddGeneric(typeof(ICrudBusinessService<>), typeof(CrudBusinessService<>));
+            this.ContainerAdapter.AddGeneric(typeof(ICrudAppService<>), typeof(CrudAppService<,>));
         }
+
     }
 }

@@ -22,7 +22,7 @@ namespace RCommon.Configuration
     /// <summary>
     /// Configuration interface exposed by RCommon to configure different services exposed by RCommon.
     /// </summary>
-    public interface IRCommonConfiguration
+    public interface IRCommonConfiguration : IServiceConfiguration
     {
         /// <summary>
         /// Configure RCommon state storage using a <see cref="IStateStorageConfiguration"/> instance.
@@ -31,7 +31,7 @@ namespace RCommon.Configuration
         /// state storage services exposed by RCommon.
         /// </typeparam>
         /// <returns><see cref="IRCommonConfiguration"/></returns>
-        IRCommonConfiguration WithStateStorage<T>() where T : IStateStorageConfiguration, new();
+        IRCommonConfiguration WithStateStorage<T>() where T : IStateStorageConfiguration;
 
         /// <summary>
         /// Configure RCommon state storage using a <see cref="IStateStorageConfiguration"/> instance.
@@ -42,10 +42,10 @@ namespace RCommon.Configuration
         /// <param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
         /// custom actions on the <see cref="IStateStorageConfiguration"/> instance.</param>
         /// <returns><see cref="IRCommonConfiguration"/></returns>
-        IRCommonConfiguration WithStateStorage<T>(Action<T> actions) where T : IStateStorageConfiguration, new();
+        IRCommonConfiguration WithStateStorage<T>(Action<T> actions) where T : IStateStorageConfiguration;
 
-        IRCommonConfiguration And<T>() where T : IServiceConfiguration, new();
+        IRCommonConfiguration And<T>() where T : IServiceConfiguration;
 
-        IRCommonConfiguration And<T>(Action<T> actions) where T : IServiceConfiguration, new();
+        IRCommonConfiguration And<T>(Action<T> actions) where T : IServiceConfiguration;
     }
 }

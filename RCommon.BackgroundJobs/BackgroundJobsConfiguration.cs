@@ -9,29 +9,26 @@ using System.Threading.Tasks;
 
 namespace RCommon.BackgroundJobs
 {
-    public class BackgroundJobsConfiguration : IServiceConfiguration
+    public class BackgroundJobsConfiguration : RCommonConfiguration
     {
-
-        private IContainerAdapter _containerAdapter;
         private List<string> _jobTypes = new List<string>();
 
-        public BackgroundJobsConfiguration()
+        public BackgroundJobsConfiguration(IContainerAdapter containerAdapter):base(containerAdapter)
         {
 
         }
 
 
-        public void Configure(IContainerAdapter containerAdapter)
+        public override void Configure()
         {
-            _containerAdapter = containerAdapter;
-            _containerAdapter.AddTransient<IBackgroundJobExecuter, BackgroundJobExecuter>();
+            this.ContainerAdapter.AddTransient<IBackgroundJobExecuter, BackgroundJobExecuter>();
         }
 
         public IServiceConfiguration WithJobManager<TJobManager>()
             where TJobManager : IBackgroundJobManager
         {
             string type = typeof(TJobManager).AssemblyQualifiedName;
-            _containerAdapter.AddTransient(typeof(IBackgroundJobManager), Type.GetType(type));
+            this.ContainerAdapter.AddTransient(typeof(IBackgroundJobManager), Type.GetType(type));
             return this;
         }
 

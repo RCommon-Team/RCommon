@@ -11,18 +11,21 @@ using System.Transactions;
 
 namespace RCommon.DataServices
 {
-    public class DataServicesConfiguration : IDataServicesConfiguration
+    public class DataServicesConfiguration : RCommonConfiguration, IDataServicesConfiguration
     {
-        private IContainerAdapter _containerAdapter;
+
+        public DataServicesConfiguration(IContainerAdapter containerAdapter):base(containerAdapter)
+        {
+
+        }
 
         /// <summary>
         /// Configures <see cref="UnitOfWorkScope"/> settings.
         /// </summary>
         /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance.</param>
-        public void Configure(IContainerAdapter containerAdapter)
+        public override void Configure()
         {
-            _containerAdapter = containerAdapter;
-            _containerAdapter.AddScoped<IDataStoreProvider, DataStoreProvider>();
+            this.ContainerAdapter.AddScoped<IDataStoreProvider, DataStoreProvider>();
 
         }
 
@@ -32,10 +35,10 @@ namespace RCommon.DataServices
         /// <typeparam name="T">A <see cref="IUnitOfWorkConfiguration"/> type that can be used to configure
         /// unit of work settings.</typeparam>
         /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IUnitOfWorkConfiguration WithUnitOfWork<T>() where T : IUnitOfWorkConfiguration, new()
+        public IUnitOfWorkConfiguration WithUnitOfWork<T>() where T : IUnitOfWorkConfiguration
         {
-            var uowConfiguration = (T)Activator.CreateInstance(typeof(T));
-            uowConfiguration.Configure(_containerAdapter);
+            var uowConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { this.ContainerAdapter });
+            uowConfiguration.Configure();
             return uowConfiguration;
         }
 
@@ -47,11 +50,11 @@ namespace RCommon.DataServices
         ///<param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
         /// custom actions on the <see cref="IUnitOfWorkConfiguration"/> instance.</param>
         ///<returns><see cref="IRCommonConfiguration"/></returns>
-        public IUnitOfWorkConfiguration WithUnitOfWork<T>(Action<T> actions) where T : IUnitOfWorkConfiguration, new()
+        public IUnitOfWorkConfiguration WithUnitOfWork<T>(Action<T> actions) where T : IUnitOfWorkConfiguration
         {
-            var uowConfiguration = (T)Activator.CreateInstance(typeof(T));
+            var uowConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { this.ContainerAdapter });
             actions(uowConfiguration);
-            uowConfiguration.Configure(_containerAdapter);
+            uowConfiguration.Configure();
             return uowConfiguration;
         }
 

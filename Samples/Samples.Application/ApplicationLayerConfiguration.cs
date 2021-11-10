@@ -12,13 +12,20 @@ namespace Samples.Application
     /// </summary>
     /// <remarks>Note that this class is unaware of which DI container it is using which allows us to swap it out at any time
     /// without affecting any of our application code other than what is specific used for container configuration in Startup.</remarks>
-    public class ApplicationLayerConfiguration : IServiceConfiguration
+    public class ApplicationLayerConfiguration : RCommonConfiguration, IServiceConfiguration
     {
-        public void Configure(IContainerAdapter containerAdapter)
+
+        public ApplicationLayerConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
+        {
+
+        }
+
+
+        public override void Configure()
         {
             // Register all of our application services. 
-            containerAdapter.AddTransient<IDiveService, DiveService>();
-            containerAdapter.AddTransient<IApplicationUserService, ApplicationUserService>();
+            this.ContainerAdapter.AddTransient<IDiveService, DiveService>();
+            this.ContainerAdapter.AddTransient<IApplicationUserService, ApplicationUserService>();
         }
     }
 }

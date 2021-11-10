@@ -31,25 +31,30 @@ namespace RCommon.Persistence.EFCore
     /// <summary>
     /// Implementation of <see cref="IEFCoreConfiguration"/> for Entity Framework.
     /// </summary>
-    public class EFCoreConfiguration : IEFCoreConfiguration
+    public class EFCoreConfiguration : RCommonConfiguration, IEFCoreConfiguration
     {
         private List<string> _dbContextTypes = new List<string>();
+
+
+        public EFCoreConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
+        {
+
+        }
+
 
         /// <summary>
         /// Called by RCommon <see cref="Configure"/> to configure data providers.
         /// </summary>
-        /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance that allows
-        /// registering components.</param>
-        public void Configure(IContainerAdapter containerAdapter)
+        public override void Configure()
         {
 
             // EF Core Repository
-            containerAdapter.AddGeneric(typeof(IFullFeaturedRepository<>), typeof(EFCoreRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(IFullFeaturedRepository<>), typeof(EFCoreRepository<>));
 
             // Registered DbContexts
             foreach (var dbContext in _dbContextTypes)
             {
-                containerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
+                this.ContainerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
             }
 
 

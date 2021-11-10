@@ -8,14 +8,13 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public class ObjectAccessConfiguration : IObjectAccessConfiguration
+    public class ObjectAccessConfiguration : RCommonConfiguration, IObjectAccessConfiguration
     {
-        private IContainerAdapter _containerAdapter;
-
-        public void Configure(IContainerAdapter containerAdapter)
+        public ObjectAccessConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
         {
-            _containerAdapter = containerAdapter;
+
         }
+
 
         /// <summary>
         /// Configure data providers (ORM only for now) used by RCommon.
@@ -26,7 +25,7 @@ namespace RCommon.Persistence
         public IObjectAccessConfiguration WithObjectAccess<T>() where T : IObjectAccessConfiguration, new()
         {
             var datConfiguration = (T)Activator.CreateInstance(typeof(T));
-            datConfiguration.Configure(_containerAdapter);
+            datConfiguration.Configure();
             return this;
         }
 
@@ -42,7 +41,7 @@ namespace RCommon.Persistence
         {
             var dataConfiguration = (T)Activator.CreateInstance(typeof(T));
             actions(dataConfiguration);
-            dataConfiguration.Configure(_containerAdapter);
+            dataConfiguration.Configure();
             return this;
         }
     }

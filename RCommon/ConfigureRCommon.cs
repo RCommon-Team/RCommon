@@ -36,7 +36,9 @@ namespace RCommon
         {
             Guard.Against<ArgumentNullException>(containerAdapter == null,
                                                  "Expected a non-null IContainerAdapter implementation.");
-            return new RCommonConfiguration(containerAdapter);
+            var config = new RCommonConfiguration(containerAdapter);
+            config.Configure();
+            return config;
         }
     }
 }
