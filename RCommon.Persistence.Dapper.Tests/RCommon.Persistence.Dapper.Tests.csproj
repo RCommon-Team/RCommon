@@ -26,7 +26,7 @@
     <ProjectReference Include="..\RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj" />
     <ProjectReference Include="..\RCommon.Persistence.Dapper\RCommon.Persistence.Dapper.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
-    <ProjectReference Include="..\RCommon\RCommon.csproj" />
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

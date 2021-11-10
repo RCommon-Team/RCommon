@@ -22,7 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Persistence.EFCore.Tests\RCommon.Persistence.EFCore.Tests.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
-    <ProjectReference Include="..\RCommon\RCommon.csproj" />
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

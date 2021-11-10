@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon", "RCommon\RCommon.csproj", "{04F96FF4-7229-4468-A486-086993EFD2A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Core", "RCommon.Core\RCommon.Core.csproj", "{04F96FF4-7229-4468-A486-086993EFD2A2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DependencyInjection", "RCommon.DependencyInjection\RCommon.DependencyInjection.csproj", "{3D1AEC2A-77E4-4E2A-8FA9-D782E5F99CD0}"
 EndProject

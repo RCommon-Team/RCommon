@@ -13,6 +13,7 @@
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, c#, .NET, background jobs, background workers, background job abstractions</PackageTags>
     <Company>RCommon</Company>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,11 +22,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
-    <ProjectReference Include="..\RCommon\RCommon.csproj" />
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon.Core\reactor2-icon-darkbg-small.jpg">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
