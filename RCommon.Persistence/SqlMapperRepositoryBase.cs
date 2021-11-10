@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using RCommon.DataServices.Transactions;
 using RCommon.DataServices.Sql;
 using RCommon.BusinessEntities;
+using System.Threading;
 
 namespace RCommon.Persistence
 {
@@ -33,11 +34,11 @@ namespace RCommon.Persistence
         public string TableName { get; set; }
         public string DataStoreName { get; set; }
 
-        public abstract Task AddAsync(TEntity entity);
-        public abstract Task DeleteAsync(TEntity entity);
+        public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
+        public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
         public abstract Task<ICollection<TEntity>> FindAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
         public abstract Task<TEntity> FindSingleOrDefaultAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
-        public abstract Task UpdateAsync(TEntity entity);
+        public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);
 
         protected internal IDbConnection DbConnection
         {

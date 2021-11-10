@@ -16,6 +16,7 @@ using System.Data.Common;
 using RCommon.BusinessEntities;
 using DapperExtensions;
 using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
+using System.Threading;
 
 namespace RCommon.Persistence.Dapper
 {
@@ -33,7 +34,7 @@ namespace RCommon.Persistence.Dapper
 
 
 
-        public override async Task AddAsync(TEntity entity)
+        public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
 
             using (var connection = this.DbConnection)
@@ -64,7 +65,7 @@ namespace RCommon.Persistence.Dapper
         }
 
        
-        public override async Task DeleteAsync(TEntity entity)
+        public override async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
             using (var connection = this.DbConnection)
             {
@@ -94,7 +95,7 @@ namespace RCommon.Persistence.Dapper
 
         
 
-        public override async Task UpdateAsync(TEntity entity)
+        public override async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
 
             using (var connection = this.DbConnection)

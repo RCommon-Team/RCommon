@@ -16,6 +16,7 @@
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -151,91 +152,91 @@
         }*/
 
 
-        public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification)
+        public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await this.FindCore(specification.Predicate).ToListAsync();
+            return await this.FindCore(specification.Predicate).ToListAsync(token);
         }
 
-        public async override Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression)
+        public async override Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await this.FindCore(expression).ToListAsync();
+            return await this.FindCore(expression).ToListAsync(token);
         }
 
-        public async override Task<int> GetCountAsync(ISpecification<TEntity> selectSpec)
+        public async override Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            return await this.FindCore(selectSpec.Predicate).CountAsync();
+            return await this.FindCore(selectSpec.Predicate).CountAsync(token);
         }
 
-        public async override Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression)
+        public async override Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await this.FindCore(expression).CountAsync();
+            return await this.FindCore(expression).CountAsync(token);
         }
 
-        private async Task<int> SaveAsync()
+        private async Task<int> SaveAsync(CancellationToken token = default)
         {
             int affected = 0;
             if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
-                affected = await this.ObjectContext.SaveChangesAsync(true);
-                _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.NewGuid()); // Remove any instance of this type so a fresh instance is used next time
+                affected = await this.ObjectContext.SaveChangesAsync(true, token);
+                _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
             }
             return affected;
         }
 
-        public override async Task AttachAsync(TEntity entity)
+        public override async Task AttachAsync(TEntity entity, CancellationToken token = default)
         {
             this.ObjectContext.Attach<TEntity>(entity);
-            await this.SaveAsync();
+            await this.SaveAsync(token);
         }
 
-        public override async Task DetachAsync(TEntity entity)
+        public override async Task DetachAsync(TEntity entity, CancellationToken token = default)
         {
             this.ObjectContext.Entry<TEntity>(entity).State = EntityState.Detached;
-            await this.SaveAsync();
+            await this.SaveAsync(token);
         }
 
-        public override async Task AddAsync(TEntity entity)
+        public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
-            await this.ObjectSet.AddAsync(entity);
-            await this.SaveAsync();
+            await this.ObjectSet.AddAsync(entity, token);
+            await this.SaveAsync(token);
         }
 
 
-        public async override Task DeleteAsync(TEntity entity)
+        public async override Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
             this.ObjectSet.Remove(entity);
             await this.SaveAsync();
         }
 
-        public async override Task UpdateAsync(TEntity entity)
+        public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             this.ObjectSet.Update(entity);
-            await this.SaveAsync();
+            await this.SaveAsync(token);
         }
 
-        public override async Task<TEntity> FindAsync(object primaryKey)
+        public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            return await this.ObjectSet.FindAsync(primaryKey);
+            return await this.ObjectSet.FindAsync(primaryKey, token);
         }
 
-        public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression)
+        public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await this.FindCore(expression).SingleOrDefaultAsync();
+            return await this.FindCore(expression).SingleOrDefaultAsync(token);
         }
 
-        public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification)
+        public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await this.FindCore(specification.Predicate).SingleOrDefaultAsync();
+            return await this.FindCore(specification.Predicate).SingleOrDefaultAsync(token);
         }
 
-        public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression)
+        public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await this.FindCore(expression).AnyAsync();
+            return await this.FindCore(expression).AnyAsync(token);
         }
 
-        public async override Task<bool> AnyAsync(ISpecification<TEntity> specification)
+        public async override Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await this.FindCore(specification.Predicate).AnyAsync();
+            return await this.FindCore(specification.Predicate).AnyAsync(token);
         }
 
         protected internal DbContext ObjectContext
