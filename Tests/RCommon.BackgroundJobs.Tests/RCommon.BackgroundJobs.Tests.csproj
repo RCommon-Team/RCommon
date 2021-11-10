@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj" />
-    <ProjectReference Include="..\RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>
 

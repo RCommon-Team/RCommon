@@ -24,13 +24,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
-    <ProjectReference Include="..\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
-    <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
-    <ProjectReference Include="..\RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj" />
-    <ProjectReference Include="..\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
-    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

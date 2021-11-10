@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -11,11 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\RCommon.BusinessServices\RCommon.BusinessServices.csproj" />
-    <ProjectReference Include="..\..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
-    <ProjectReference Include="..\..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
-    <ProjectReference Include="..\..\RCommon.Models\RCommon.Models.csproj" />
-    <ProjectReference Include="..\..\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.BusinessServices\RCommon.BusinessServices.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Models\RCommon.Models.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
