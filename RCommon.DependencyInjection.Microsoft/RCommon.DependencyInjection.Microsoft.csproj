@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Reactor2, Jason Webb, Ritesh Rao</Authors>
+    <Authors>Reactor2, Jason Webb</Authors>
     <Copyright></Copyright>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
