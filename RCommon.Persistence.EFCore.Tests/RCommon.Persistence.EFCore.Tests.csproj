@@ -30,7 +30,7 @@
     <ProjectReference Include="..\RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj" />
     <ProjectReference Include="..\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
-    <ProjectReference Include="..\RCommon\RCommon.csproj" />
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

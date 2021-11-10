@@ -14,6 +14,7 @@
     <RepositoryType>GitHub</RepositoryType>
     <Version>1.0.1.40</Version>
     <PackageIconUrl />
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,11 +27,11 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
-    <ProjectReference Include="..\RCommon\RCommon.csproj" />
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon.Core\reactor2-icon-darkbg-small.jpg">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

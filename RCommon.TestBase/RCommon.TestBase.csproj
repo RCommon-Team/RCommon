@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -21,7 +21,7 @@
     <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
     <ProjectReference Include="..\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
-    <ProjectReference Include="..\RCommon\RCommon.csproj" />
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 
 </Project>

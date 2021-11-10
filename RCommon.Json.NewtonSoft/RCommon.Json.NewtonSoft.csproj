@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -13,10 +13,11 @@
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, serialization, json, json abstractions, newtonsoft, c#, .NET</PackageTags>
     <Version>1.0.1.40</Version>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\RCommon\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon.Core\reactor2-icon-darkbg-small.jpg">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
