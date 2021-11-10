@@ -17,11 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
-    <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
-    <ProjectReference Include="..\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
-    <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
-    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DataServices\RCommon.DataServices.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
   </ItemGroup>
 
 </Project>

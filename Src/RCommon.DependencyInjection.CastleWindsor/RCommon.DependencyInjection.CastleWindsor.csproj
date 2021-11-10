@@ -10,20 +10,15 @@
     <Authors>Reactor2, Jason Webb</Authors>
     <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageTags>RCommon, dependency injection, autofac, di abstractions, c#, .NET</PackageTags>
-    <Version>1.0.1.40</Version>
+    <PackageTags>RCommon, dependency injection, castle windsor, di abstractions, c#, .NET</PackageTags>
     <PackageIconUrl />
     <Company>RCommon</Company>
+    <Version>1.0.1.40</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
-    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+    <PackageReference Include="Castle.Windsor" Version="5.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +26,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
   </ItemGroup>
 
 </Project>

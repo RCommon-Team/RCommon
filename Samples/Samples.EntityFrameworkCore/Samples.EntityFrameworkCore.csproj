@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
     <ProjectReference Include="..\Samples.Domain\Samples.Domain.csproj" />
   </ItemGroup>
 

@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.BackgroundJobs.Quartz\RCommon.BackgroundJobs.Quartz.csproj" />
-    <ProjectReference Include="..\RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.BackgroundJobs.Quartz\RCommon.BackgroundJobs.Quartz.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>
 

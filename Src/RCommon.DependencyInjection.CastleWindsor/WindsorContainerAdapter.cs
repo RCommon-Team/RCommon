@@ -1,29 +1,47 @@
-using System;
-using Autofac;
-using Microsoft.Extensions.DependencyInjection;
-using RCommon.Configuration;
-using RCommon.DependencyInjection;
-using System.Linq;
-using Autofac.Builder;
+#region license
+//Copyright 2010 Ritesh Rao 
 
-namespace RCommon.DependencyInjection.Autofac
+//Licensed under the Apache License, Version 2.0 (the "License"); 
+//you may not use this file except in compliance with the License. 
+//You may obtain a copy of the License at 
+
+//http://www.apache.org/licenses/LICENSE-2.0 
+
+//Unless required by applicable law or agreed to in writing, software 
+//distributed under the License is distributed on an "AS IS" BASIS, 
+//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+//See the License for the specific language governing permissions and 
+//limitations under the License. 
+#endregion
+
+using System;
+using Castle.Core;
+using Castle.MicroKernel.Registration;
+using Castle.Windsor;
+using Microsoft.Extensions.DependencyInjection;
+using RCommon.DependencyInjection;
+
+namespace RCommon.DependencyInjection.CastleWindsor
 {
-    public class AutofacContainerAdapter : IContainerAdapter
+    /// <summary>
+    /// <see cref="IContainerAdapter"/> implementation for Castle Windsor.
+    /// </summary>
+    public class WindsorContainerAdapter : IContainerAdapter
     {
-       
-        private readonly ContainerBuilder _builder;
+        private readonly IWindsorContainer _container;
         private readonly IServiceCollection _services;
 
         public IServiceCollection Services => _services;
 
         /// <summary>
         /// Default Constructor.
-        /// Creates a new instance of the <see cref="AutofacContainerAdapter"/> class.
+        /// Creates a new instance of the <see cref="WindsorContainerAdapter"/> class.
         /// </summary>
-        /// <param name="builder"></param>
-        public AutofacContainerAdapter(ContainerBuilder builder, IServiceCollection services)
+        /// <param name="container">The <see cref="IWindsorContainer"/> instance used by the WindsorContainerAdapter
+        /// to register components.</param>
+        public WindsorContainerAdapter(IWindsorContainer container, IServiceCollection services)
         {
-            _builder = builder;
+            _container = container;
             _services = services;
         }
 
@@ -36,7 +54,7 @@ namespace RCommon.DependencyInjection.Autofac
         /// the implementation registered for the <typeparamref name="TService"/></typeparam>
         public void Register<TService, TImplementation>() where TImplementation : TService
         {
-            _builder.RegisterType<TImplementation>().As<TService>();
+            Register(typeof(TService), typeof(TImplementation));
         }
 
         /// <summary>
@@ -49,7 +67,7 @@ namespace RCommon.DependencyInjection.Autofac
         /// <param name="named">string. The service name with which the implementation is registered.</param>
         public void Register<TService, TImplementation>(string named) where TImplementation : TService
         {
-            _builder.RegisterType<TImplementation>().Named<TService>(named);
+            Register(typeof (TService), typeof (TImplementation), named);
         }
 
         /// <summary>
@@ -61,22 +79,34 @@ namespace RCommon.DependencyInjection.Autofac
         /// registered for the service type.</param>
         public void Register(Type service, Type implementation)
         {
-            _builder.RegisterType(implementation).As(service);
+            _container.Register(Component.For(service).ImplementedBy(implementation).LifeStyle.Is(LifestyleType.Transient));
         }
 
         /// <summary>
         /// Registers a named implementation type for a service type.
         /// </summary>
-        /// <param name="service"><see cref="Type"/>. The type representing the service for which the
+        /// <param name="service"><see cref="Type"/>. The type representing the service fow which the
         /// implementation type if registered.</param>
         /// <param name="implementation"><see cref="Type"/>. The type representing the implementaton
         /// registered for the service.</param>
         /// <param name="named">string. The service name with which the implementation is registered.</param>
         public void Register(Type service, Type implementation, string named)
         {
-            _builder.RegisterType(implementation).Named(named, service);
+            _container.Register(Component.For(service)
+                .ImplementedBy(implementation)
+                .LifeStyle.Is(LifestyleType.Transient)
+                .Named(named));
         }
 
+        ///<summary>
+        /// Registers a open generic implementation for a generic service type.
+        ///</summary>
+        ///<param name="service">The type representing the service for which the implementation type is registered.</param>
+        ///<param name="implementation">The type representing the implementation registered for the service.</param>
+        public void RegisterGeneric(Type service, Type implementation)
+        {
+            Register(service, implementation);
+        }
 
         ///<summary>
         /// Registers a named open generic implementation for a generic service type.
@@ -86,7 +116,7 @@ namespace RCommon.DependencyInjection.Autofac
         ///<param name="named">string. The service name with which the implementation is registerd.</param>
         public void RegisterGeneric(Type service, Type implementation, string named)
         {
-            _builder.RegisterGeneric(service).Named(named, service);
+            Register(service, implementation, named);
         }
 
         /// <summary>
@@ -98,7 +128,7 @@ namespace RCommon.DependencyInjection.Autofac
         /// the implementation that is registered as a singleton for the service type.</typeparam>
         public void RegisterSingleton<TService, TImplementation>() where TImplementation : TService
         {
-            _builder.RegisterType<TImplementation>().As<TService>().SingleInstance();
+            RegisterSingleton(typeof (TService), typeof (TImplementation));
         }
 
         /// <summary>
@@ -111,7 +141,7 @@ namespace RCommon.DependencyInjection.Autofac
         /// <param name="named">string. The service name with which the implementation is registerd.</param>
         public void RegisterSingleton<TService, TImplementation>(string named) where TImplementation : TService
         {
-            _builder.RegisterType<TImplementation>().Named<TService>(named).SingleInstance();
+            RegisterSingleton(typeof(TService), typeof(TImplementation), named);
         }
 
         /// <summary>
@@ -123,7 +153,9 @@ namespace RCommon.DependencyInjection.Autofac
         /// the implementation that is registered as a singleton for the service type.</param>
         public void RegisterSingleton(Type service, Type implementation)
         {
-            _builder.RegisterType(implementation).As(service).SingleInstance();
+            _container.Register(Component.For(service)
+                                    .ImplementedBy(implementation)
+                                    .LifeStyle.Is(LifestyleType.Singleton));
         }
 
         /// <summary>
@@ -136,89 +168,125 @@ namespace RCommon.DependencyInjection.Autofac
         /// <param name="named">string. The service name with which the implementation is registered.</param>
         public void RegisterSingleton(Type service, Type implementation, string named)
         {
-            _builder.RegisterType(implementation).Named(named, service).SingleInstance();
+            _container.Register(Component.For(service)
+                                    .ImplementedBy(implementation)
+                                    .LifeStyle.Is(LifestyleType.Singleton)
+                                    .Named(named));
         }
 
-       
+        /// <summary>
+        /// Registers an instance as an implementation for a service type.
+        /// </summary>
+        /// <typeparam name="TService"><typeparamref name="TService"/>. The type representing
+        /// the service for which the instance is registered.</typeparam>
+        /// <param name="instance">An instance of type <typeparamref name="TService"/> that is
+        /// registered as an instance for <typeparamref name="TService"/>.</param>
+        public void RegisterInstance<TService>(TService instance) where TService : class
+        {
+            RegisterInstance(typeof (TService), instance);
+        }
+
+        /// <summary>
+        /// Registers an named instance as an implementation for a service type.
+        /// </summary>
+        /// <typeparam name="TService"><typeparamref name="TService"/>. The type representing
+        /// the service for which the instance is registered.</typeparam>
+        /// <param name="instance">An instance of type <typeparamref name="TService"/> that is
+        /// registered as an instance for <typeparamref name="TService"/>.</param>
+        /// <param name="named">string. The service name with which the implementation is registered.</param>
+        public void RegisterInstance<TService>(TService instance, string named) where TService : class
+        {
+            RegisterInstance(typeof(TService), instance, named);
+        }
+
+        /// <summary>
+        /// Registers an instance as an implementation for a service type.
+        /// </summary>
+        /// <param name="service"><see cref="Type"/>. The type representing
+        /// the service for which the instance is registered.</param>
+        /// <param name="instance">An instance of <paramref name="service"/> that is
+        /// registered as an instance for the service.</param>
+        public void RegisterInstance(Type service, object instance)
+        {
+            _container.Register(Component.For(service).Instance(instance));
+        }
+
+        /// <summary>
+        /// Registers a named instance as an implementation for a service type.
+        /// </summary>
+        /// <param name="service"><see cref="Type"/>. The type representing
+        /// the service for which the instance is registered.</param>
+        /// <param name="instance">An instance of <paramref name="service"/> that is
+        /// registered as an instance for the service.</param>
+        /// <param name="named">string. The service name with which the implementation is registered.</param>
+        public void RegisterInstance(Type service, object instance, string named)
+        {
+            _container.Register(Component.For(service).Instance(instance).Named(named));
+        }
 
         public void AddGeneric(Type service, Type implementation)
         {
-            _builder.RegisterGeneric(implementation).As(service);
+            throw new NotImplementedException();
         }
 
         public void AddScoped(Type service, Func<IServiceProvider, object> implementationFactory)
         {
-            // Not sure if this will work
-            _builder.Register<Func<IServiceProvider, object>>(component => provider => 
-            component.ResolveKeyed(implementationFactory.Invoke(provider), service))
-                .InstancePerLifetimeScope();
+            throw new NotImplementedException();
         }
 
         public void AddScoped(Type service, Type implementation)
         {
-            _builder.RegisterType(implementation).As(service).InstancePerLifetimeScope();
+            throw new NotImplementedException();
         }
 
         public void AddScoped<TService, TImplementation>() where TImplementation : TService
         {
-            _builder.RegisterType(typeof(TImplementation)).As(typeof(TService)).InstancePerLifetimeScope();
+            throw new NotImplementedException();
         }
 
         public void AddScoped<TService>(Func<IServiceProvider, TService> implementationFactory)
         {
-            //_builder.Register<Func<IServiceProvider, TService>>(c => s => c.ResolveKeyed<IServiceProvider>(s)).InstancePerLifetimeScope();
-            // Not sure if this will work
-            _builder.Register<Func<IServiceProvider, TService>>(component => provider =>
-            component.ResolveKeyed<TService>(implementationFactory.Invoke(provider)))
-                .InstancePerLifetimeScope();
+            throw new NotImplementedException();
         }
 
         public void AddSingleton(Type service, Func<IServiceProvider, object> implementationFactory)
         {
-            // Not sure if this will work
-            _builder.Register<Func<IServiceProvider, object>>(component => provider =>
-            component.ResolveKeyed(implementationFactory.Invoke(provider), service))
-                .SingleInstance();
+            throw new NotImplementedException();
         }
 
         public void AddSingleton(Type service, Type implementation)
         {
-            _builder.RegisterType(implementation).As(service).SingleInstance();
+            throw new NotImplementedException();
         }
 
         public void AddSingleton<TService, TImplementation>() where TImplementation : TService
         {
-            _builder.RegisterType(typeof(TImplementation)).As(typeof(TService)).SingleInstance();
+            throw new NotImplementedException();
         }
 
         public void AddSingleton<TService>(Func<IServiceProvider, TService> implementationFactory)
         {
-            _builder.Register<Func<IServiceProvider, TService>>(component => provider =>
-            component.ResolveKeyed<TService>(implementationFactory.Invoke(provider)))
-                .SingleInstance();
+            throw new NotImplementedException();
         }
 
         public void AddTransient(Type service, Func<IServiceProvider, object> implementationFactory)
         {
-            // Not sure if this will work
-            _builder.Register<Func<IServiceProvider, object>>(component => provider =>
-            component.ResolveKeyed(implementationFactory.Invoke(provider), service));
+            throw new NotImplementedException();
         }
 
         public void AddTransient(Type service, Type implementation)
         {
-            _builder.RegisterType(implementation).As(service);
+            throw new NotImplementedException();
         }
 
         public void AddTransient<TService, TImplementation>() where TImplementation : TService
         {
-            _builder.RegisterType(typeof(TImplementation)).As(typeof(TService));
+            throw new NotImplementedException();
         }
 
         public void AddTransient<TService>(Func<IServiceProvider, TService> implementationFactory)
         {
-            _builder.Register<Func<IServiceProvider, TService>>(component => provider =>
-            component.ResolveKeyed<TService>(implementationFactory.Invoke(provider)));
+            throw new NotImplementedException();
         }
     }
 }

@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.BackgroundJobs.HangFire\RCommon.BackgroundJobs.Hangfire.csproj" />
-    <ProjectReference Include="..\RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.BackgroundJobs.HangFire\RCommon.BackgroundJobs.Hangfire.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.BackgroundJobs\RCommon.BackgroundJobs.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>
 

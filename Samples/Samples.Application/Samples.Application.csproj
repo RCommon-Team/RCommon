@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
-    <ProjectReference Include="..\..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
-    <ProjectReference Include="..\..\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
     <ProjectReference Include="..\Samples.Application.Contracts\Samples.Application.Contracts.csproj" />
     <ProjectReference Include="..\Samples.Domain\Samples.Domain.csproj" />
   </ItemGroup>
