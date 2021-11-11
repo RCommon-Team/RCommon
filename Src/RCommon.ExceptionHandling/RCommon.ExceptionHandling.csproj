@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <PackageIconUrl />
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>

@@ -19,6 +19,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using System;
@@ -176,6 +177,8 @@ namespace RCommon.Persistence.EFCore.Tests
         {
             get { return new FakeDbAsyncQueryProvider<TEntity>(_query.Provider); }
         }
+
+        public override IEntityType EntityType => throw new NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator()
         {
