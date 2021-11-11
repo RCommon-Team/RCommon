@@ -13,6 +13,7 @@
     <PackageTags>RCommon, exception handling, exception handling abstractions, c#, .NET</PackageTags>
     <Version>1.0.1.40</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
