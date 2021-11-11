@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
     <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
@@ -12,16 +12,16 @@
     <PackageTags>RCommon, generic repository, Entity Framework Core Repository, persistance framework, EF</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
-    <Version>1.0.1.40</Version>
+    <Version>1.0.1.41</Version>
     <PackageIconUrl />
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

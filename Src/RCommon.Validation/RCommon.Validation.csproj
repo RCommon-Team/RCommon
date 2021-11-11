@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <PackageIconUrl />
@@ -10,7 +10,7 @@
     <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
-    <Version>1.0.1.40</Version>
+    <Version>1.0.1.41</Version>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, object validation, validation abstractions, c#, .NET</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -25,6 +25,11 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="10.3.4" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
   </ItemGroup>
 
 </Project>

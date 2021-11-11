@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
@@ -12,7 +12,7 @@
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, background jobs, background workers, background job abstractions, quartz, job scheduling, c#, .NET</PackageTags>
-    <Version>1.0.1.40</Version>
+    <Version>1.0.1.41</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 

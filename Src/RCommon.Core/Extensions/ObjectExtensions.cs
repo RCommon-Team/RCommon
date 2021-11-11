@@ -211,5 +211,10 @@ namespace RCommon.Extensions
 
             return obj;
         }
+
+        public static string GetGenericTypeName(this object @object)
+        {
+            return @object.GetType().GetGenericTypeName();
+        }
     }
 }
