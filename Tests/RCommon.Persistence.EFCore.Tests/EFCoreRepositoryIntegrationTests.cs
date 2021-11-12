@@ -193,7 +193,7 @@ namespace RCommon.Persistence.EFCore.Tests
             repo.DataStoreName = "TestDbContext";
 
             //await repo.AddAsync(customer);
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            using (var scope = scopeFactory.Create())
             {
                 customer = await repo.FindAsync(customer.Id);
                 customer.LastName = "Changed";
