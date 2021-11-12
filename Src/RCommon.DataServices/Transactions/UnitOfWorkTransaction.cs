@@ -93,7 +93,10 @@ namespace RCommon.DataServices.Transactions
             _logger.LogInformation("Scope {1} enlisted with transaction {1}", scope.ScopeId, _transactionId);
             _attachedScopes.Add(scope);
             this.UnitOfWork.TransactionId = _transactionId;
-            scope.ScopeComitting += OnScopeCommitting;
+            scope.ScopeComitting += async (scope) =>
+            {
+                await OnScopeCommitting(scope);
+            };
             scope.ScopeRollingback += OnScopeRollingBack;
 
         }
@@ -104,7 +107,7 @@ namespace RCommon.DataServices.Transactions
         /// <summary>
         /// Callback executed when an enlisted scope has comitted.
         /// </summary>
-        void OnScopeCommitting(IUnitOfWorkScope scope)
+        private async Task OnScopeCommitting(IUnitOfWorkScope scope)
         {
             Guard.Against<ObjectDisposedException>(_disposed,
                                                    "The transaction attached to the scope has already been disposed.");
@@ -115,7 +118,10 @@ namespace RCommon.DataServices.Transactions
                Dispose();
                throw new InvalidOperationException("The scope being comitted is not attached to the current transaction.");
            }
-            scope.ScopeComitting -= OnScopeCommitting;
+            scope.ScopeComitting -= async (scope) =>
+            {
+                await OnScopeCommitting(scope);
+            };
             scope.ScopeRollingback -= OnScopeRollingBack;
             scope.Complete();
             _attachedScopes.Remove(scope);
@@ -124,12 +130,13 @@ namespace RCommon.DataServices.Transactions
                 _logger.LogInformation("All scopes have signalled a commit on transaction {0}. Flushing unit of work and comitting attached TransactionScope.", _transactionId);
                 try
                 {
-                    _unitOfWork.Flush();
+                    await _unitOfWork.FlushAsync();
                     _transaction.Complete();
                 }
                 finally
                 {
                     Dispose(); //Dispose the transaction after comitting.
+                    await Task.CompletedTask;
                 }
             }
         }
@@ -144,7 +151,10 @@ namespace RCommon.DataServices.Transactions
             _logger.LogInformation("Rollback signalled by scope {0} on transaction {1}.", scope.ScopeId, _transactionId);
             _logger.LogInformation("Detaching all scopes and disposing of attached TransactionScope on transaction {0}", _transactionId);
 
-            scope.ScopeComitting -= OnScopeCommitting;
+            scope.ScopeComitting -= async (scope) =>
+            {
+                await OnScopeCommitting(scope);
+            };
             scope.ScopeRollingback -= OnScopeRollingBack;
             scope.Complete();
             _attachedScopes.Remove(scope);
@@ -173,7 +183,10 @@ namespace RCommon.DataServices.Transactions
                 {
                     _attachedScopes.ForEach(scope =>
                     {
-                        scope.ScopeComitting -= OnScopeCommitting;
+                        scope.ScopeComitting -= async (scope) =>
+                        {
+                            await OnScopeCommitting(scope);
+                        };
                         scope.ScopeRollingback -= OnScopeRollingBack;
                         scope.Complete();
                     });

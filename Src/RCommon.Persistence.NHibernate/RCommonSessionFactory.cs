@@ -9,6 +9,7 @@ using NHibernate.Dialect;
 using NHibernate.Driver;
 using NHibernate.Mapping.ByCode;
 using System.Data;
+using System.Threading;
 
 namespace RCommon.Persistence.NHibernate
 {
@@ -16,16 +17,11 @@ namespace RCommon.Persistence.NHibernate
     {
         private readonly ISessionFactory _sessionFactory;
 
-       
 
-        public void PersistChanges()
-        {
-            this.OpenSession().Flush();
-        }
 
-        public async Task PersistChangesAsync()
+        public async Task PersistChangesAsync(CancellationToken cancellationToken)
         {
-            await this.OpenSession().FlushAsync();
+            await this.OpenSession().FlushAsync(cancellationToken);
         }
 
         public void Dispose()

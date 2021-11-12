@@ -11,6 +11,7 @@
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
     <Version>1.0.1.41</Version>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

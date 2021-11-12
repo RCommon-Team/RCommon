@@ -177,6 +177,7 @@
             int affected = 0;
             if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
+                
                 affected = await this.ObjectContext.SaveChangesAsync(true, token);
                 _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
             }
@@ -239,7 +240,7 @@
             return await this.FindCore(specification.Predicate).AnyAsync(token);
         }
 
-        protected internal DbContext ObjectContext
+        protected internal RCommonDbContext ObjectContext
         {
             get
             {

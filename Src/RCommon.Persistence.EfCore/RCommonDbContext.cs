@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RCommon.Persistence.EFCore
@@ -23,9 +24,9 @@ namespace RCommon.Persistence.EFCore
             return base.Database.GetDbConnection();
         }
 
-        public void PersistChanges()
+        public async Task PersistChangesAsync(CancellationToken cancellationToken)
         {
-            this.SaveChanges();
+            await this.SaveChangesAsync(true, cancellationToken);
         }
     }
 }
