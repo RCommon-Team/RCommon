@@ -18,7 +18,7 @@ namespace RCommon.ApplicationServices
         public override void Configure()
         {
             this.ContainerAdapter.AddGeneric(typeof(ICrudBusinessService<>), typeof(CrudBusinessService<>));
-            this.ContainerAdapter.AddGeneric(typeof(ICrudAppService<>), typeof(CrudAppService<,>));
+            this.ContainerAdapter.AddGeneric(typeof(ICrudAppService<,>), typeof(CrudAppService<,>));
         }
 
     }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices
 {
-    public interface ICrudAppService<TDataTransferObject>
+    public interface ICrudAppService<TDataTransferObject, TEntity>
     {
         Task<CommandResult<bool>> CreateAsync(TDataTransferObject dto);
         Task<CommandResult<bool>> DeleteAsync(TDataTransferObject dto);

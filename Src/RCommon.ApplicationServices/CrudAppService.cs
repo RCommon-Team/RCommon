@@ -12,7 +12,7 @@ using RCommon.Models;
 
 namespace RCommon.ApplicationServices
 {
-    public class CrudAppService<TDataTransferObject, TEntity> : RCommonAppService, ICrudAppService<TDataTransferObject>
+    public class CrudAppService<TDataTransferObject, TEntity> : RCommonAppService, ICrudAppService<TDataTransferObject, TEntity>
         where TEntity : IBusinessEntity
     {
         private readonly ICrudBusinessService<TEntity> _crudDomainService;
