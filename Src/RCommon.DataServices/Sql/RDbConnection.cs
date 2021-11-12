@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using RCommon.Extensions;
 
@@ -37,10 +36,10 @@ namespace RCommon.DataServices.Sql
             return connection;
         }
 
-        public async Task PersistChangesAsync(CancellationToken cancellationToken)
+        public void PersistChanges()
         {
             // Nothing to do here because this is a SQL Connection
-            await Task.FromResult(true);
+            return;
         }
 
     }
