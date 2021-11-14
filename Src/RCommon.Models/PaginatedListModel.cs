@@ -8,7 +8,7 @@ namespace RCommon.Models
     /// Represents a Data Transfer Object (DTO) that is typically used to encapsulate a PaginatedList so that it can be
     /// delivered to an application layer.
     /// </summary>
-    public class PaginatedListModel<T>
+    public class PaginatedListModel<T> : IModel
         where T : class, new()
     {
         public PaginatedListModel()
