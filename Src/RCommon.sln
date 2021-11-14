@@ -83,6 +83,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Authorization.Web",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Web", "RCommon.Web\RCommon.Web.csproj", "{659EE78E-5572-4D2D-A41B-BB08668C57A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ApplicationServices.MediatR", "RCommon.ApplicationServices.Mediatr\RCommon.ApplicationServices.MediatR.csproj", "{9A353217-EB70-454F-BD4E-9A1B58185EA2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -217,6 +219,10 @@ Global
 		{659EE78E-5572-4D2D-A41B-BB08668C57A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{659EE78E-5572-4D2D-A41B-BB08668C57A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{659EE78E-5572-4D2D-A41B-BB08668C57A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A353217-EB70-454F-BD4E-9A1B58185EA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A353217-EB70-454F-BD4E-9A1B58185EA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A353217-EB70-454F-BD4E-9A1B58185EA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A353217-EB70-454F-BD4E-9A1B58185EA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
