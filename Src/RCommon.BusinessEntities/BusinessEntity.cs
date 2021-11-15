@@ -22,7 +22,7 @@ namespace RCommon.BusinessEntities
         }
     }
 
-    /// <inheritdoc cref="IEntity{TKey}" />
+    /// <inheritdoc cref="IBusinessEntity{TKey}" />
     [Serializable]
     public abstract class BusinessEntity<TKey> : BusinessEntity, IBusinessEntity<TKey>
     {

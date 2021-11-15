@@ -216,7 +216,7 @@
 
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            return await this.ObjectSet.FindAsync(primaryKey, token);
+            return await this.ObjectSet.FindAsync(new object[] { primaryKey }, token);
         }
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)

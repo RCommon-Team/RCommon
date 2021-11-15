@@ -13,7 +13,7 @@
     <PackageTags>RCommon, dependency injection, castle windsor, di abstractions, c#, .NET</PackageTags>
     <PackageIconUrl />
     <Company>RCommon</Company>
-    <Version>1.0.1.41</Version>
+    <Version>1.0.1.42</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 

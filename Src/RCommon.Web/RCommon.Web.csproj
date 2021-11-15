@@ -10,7 +10,7 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
     <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
-    <Version>1.0.1.41</Version>
+    <Version>1.0.1.42</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.14.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
   </ItemGroup>
 
 </Project>

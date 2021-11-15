@@ -79,9 +79,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs.Hang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BackgroundJobs.Quartz.Tests", "..\Tests\RCommon.BackgroundJobs.Quartz.Tests\RCommon.BackgroundJobs.Quartz.Tests.csproj", "{F5A6EDED-9660-448E-9FE9-15008230C1D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Authorization.Web", "RCommon.Authorization.Web\RCommon.Authorization.Web.csproj", "{EB9D0188-16C7-4A77-AB00-C858A6302BE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Authorization.Web", "RCommon.Authorization.Web\RCommon.Authorization.Web.csproj", "{EB9D0188-16C7-4A77-AB00-C858A6302BE4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Web", "RCommon.Web\RCommon.Web.csproj", "{659EE78E-5572-4D2D-A41B-BB08668C57A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Web", "RCommon.Web\RCommon.Web.csproj", "{659EE78E-5572-4D2D-A41B-BB08668C57A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ApplicationServices.MediatR", "RCommon.ApplicationServices.Mediatr\RCommon.ApplicationServices.MediatR.csproj", "{9A353217-EB70-454F-BD4E-9A1B58185EA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.ApplicationServices.Messaging", "RCommon.ApplicationServices.Messaging\RCommon.ApplicationServices.Messaging.csproj", "{50114EC6-C2BD-4F2E-A4F2-0498070A523A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -217,6 +221,14 @@ Global
 		{659EE78E-5572-4D2D-A41B-BB08668C57A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{659EE78E-5572-4D2D-A41B-BB08668C57A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{659EE78E-5572-4D2D-A41B-BB08668C57A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A353217-EB70-454F-BD4E-9A1B58185EA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A353217-EB70-454F-BD4E-9A1B58185EA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A353217-EB70-454F-BD4E-9A1B58185EA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A353217-EB70-454F-BD4E-9A1B58185EA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50114EC6-C2BD-4F2E-A4F2-0498070A523A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50114EC6-C2BD-4F2E-A4F2-0498070A523A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50114EC6-C2BD-4F2E-A4F2-0498070A523A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50114EC6-C2BD-4F2E-A4F2-0498070A523A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
