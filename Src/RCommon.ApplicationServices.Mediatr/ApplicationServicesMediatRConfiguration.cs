@@ -10,15 +10,26 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.MediatR
 {
-    public class ApplicationServicesMediatRConfiguration : RCommonConfiguration
+    public static class ApplicationServicesMediatRConfiguration
     {
-        public ApplicationServicesMediatRConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
+
+        public static ICommonApplicationServicesConfiguration WithMediatRLoggingBehavior(this ICommonApplicationServicesConfiguration config)
         {
-            this.ContainerAdapter.AddGeneric(typeof(LoggingBehavior<,>), typeof(IPipelineBehavior<,>));
-            this.ContainerAdapter.AddGeneric(typeof(ValidatorBehavior<,,>), typeof(IPipelineBehavior<,>));
-            this.ContainerAdapter.AddGeneric(typeof(UnitOfWorkBehavior<,>), typeof(IPipelineBehavior<,>));
+            config.ContainerAdapter.AddGeneric(typeof(LoggingBehavior<,>), typeof(IPipelineBehavior<,>));
+            return config;
         }
 
+        public static ICommonApplicationServicesConfiguration WithMediatRValidationBehavior(this ICommonApplicationServicesConfiguration config)
+        {
+            config.ContainerAdapter.AddGeneric(typeof(ValidatorBehavior<,,>), typeof(IPipelineBehavior<,>));
+            return config;
+        }
+
+        public static ICommonApplicationServicesConfiguration WithMediatRUnitOfWorkBehavior(this ICommonApplicationServicesConfiguration config)
+        {
+            config.ContainerAdapter.AddGeneric(typeof(UnitOfWorkBehavior<,>), typeof(IPipelineBehavior<,>));
+            return config;
+        }
 
     }
 }
