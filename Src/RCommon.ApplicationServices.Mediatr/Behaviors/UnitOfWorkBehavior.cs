@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.MediatR.Behaviors
 {
-    public class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class UnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     {
-        private readonly ILogger<TransactionBehavior<TRequest, TResponse>> _logger;
+        private readonly ILogger<UnitOfWorkBehavior<TRequest, TResponse>> _logger;
         private readonly IUnitOfWorkScopeFactory _unitOfWorkScopeFactory;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public TransactionBehavior(IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
-            ILogger<TransactionBehavior<TRequest, TResponse>> logger)
+        public UnitOfWorkBehavior(IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
+            ILogger<UnitOfWorkBehavior<TRequest, TResponse>> logger)
         {
             _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkScopeFactory));
             _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 
