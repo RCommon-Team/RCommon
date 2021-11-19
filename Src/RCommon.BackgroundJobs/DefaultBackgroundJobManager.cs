@@ -8,13 +8,13 @@ namespace RCommon.BackgroundJobs
     /// </summary>
     public class DefaultBackgroundJobManager : IBackgroundJobManager
     {
-        protected IClock Clock { get; }
+        protected ISystemTime Clock { get; }
         protected IBackgroundJobSerializer Serializer { get; }
         protected IGuidGenerator GuidGenerator { get; }
         protected IBackgroundJobStore Store { get; }
         
         public DefaultBackgroundJobManager(
-            IClock clock,
+            ISystemTime clock,
             IBackgroundJobSerializer serializer,
             IBackgroundJobStore store,
             IGuidGenerator guidGenerator)

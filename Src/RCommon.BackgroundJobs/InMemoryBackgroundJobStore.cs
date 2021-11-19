@@ -11,12 +11,12 @@ namespace RCommon.BackgroundJobs
     {
         private readonly ConcurrentDictionary<Guid, BackgroundJobInfo> _jobs;
 
-        protected IClock Clock { get; }
+        protected ISystemTime Clock { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InMemoryBackgroundJobStore"/> class.
         /// </summary>
-        public InMemoryBackgroundJobStore(IClock clock)
+        public InMemoryBackgroundJobStore(ISystemTime clock)
         {
             Clock = clock;
             _jobs = new ConcurrentDictionary<Guid, BackgroundJobInfo>();

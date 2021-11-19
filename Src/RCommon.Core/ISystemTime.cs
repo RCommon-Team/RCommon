@@ -2,7 +2,7 @@
 
 namespace RCommon
 {
-    public interface IClock
+    public interface ISystemTime
     {
         /// <summary>
         /// Gets Now.

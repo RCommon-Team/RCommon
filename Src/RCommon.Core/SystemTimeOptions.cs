@@ -2,14 +2,14 @@ using System;
 
 namespace RCommon
 {
-    public class ClockOptions
+    public class SystemTimeOptions
     {
         /// <summary>
         /// Default: <see cref="DateTimeKind.Unspecified"/>
         /// </summary>
         public DateTimeKind Kind { get; set; }
 
-        public ClockOptions()
+        public SystemTimeOptions()
         {
             Kind = DateTimeKind.Unspecified;
         }

@@ -91,7 +91,7 @@ namespace RCommon.Configuration
         public virtual void Configure()
         {
             _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
-            _containerAdapter.AddTransient<IClock, Clock>();
+            _containerAdapter.AddTransient<ISystemTime, SystemTime>();
         }
     }
 }
