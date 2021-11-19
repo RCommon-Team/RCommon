@@ -72,12 +72,29 @@ namespace RCommon.Configuration
             return this;
         }
 
-        public IRCommonConfiguration WithTimeOptions(Action<SystemTimeOptions> actions) 
+        public IRCommonConfiguration WithGuidGenerator<T>(Action<SequentialGuidGeneratorOptions> actions) where T : IGuidGenerator
         {
-            this.ContainerAdapter.Services.Configure(actions);
+            this.ContainerAdapter.Services.Configure<SequentialGuidGeneratorOptions>(actions);
+            this.ContainerAdapter.AddTransient<IGuidGenerator, T>();
             return this;
         }
 
+        public IRCommonConfiguration WithGuidGenerator<T>() where T : IGuidGenerator
+        {
+            if (typeof(T) is SequentialGuidGenerator)
+            {
+                this.ContainerAdapter.Services.Configure<SequentialGuidGeneratorOptions>(x=>x.GetDefaultSequentialGuidType());
+            }
+            this.ContainerAdapter.AddTransient<IGuidGenerator, T>();
+            return this;
+        }
+
+        public IRCommonConfiguration WithDateTimeSystem<T>(Action<SystemTimeOptions> actions) where T : ISystemTime
+        {
+            this.ContainerAdapter.Services.Configure<SystemTimeOptions>(actions);
+            this.ContainerAdapter.AddTransient<ISystemTime, SystemTime>();
+            return this;
+        }
 
 
         public IRCommonConfiguration And<T>() where T : IServiceConfiguration
@@ -97,7 +114,6 @@ namespace RCommon.Configuration
 
         public virtual void Configure()
         {
-            _containerAdapter.AddTransient<ISystemTime, SystemTime>();
             _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
         }
     }

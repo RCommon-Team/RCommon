@@ -8,7 +8,7 @@ namespace RCommon
 
     /// <summary>
     /// Implements <see cref="IGuidGenerator"/> by creating sequential Guids.
-    /// Use <see cref="AbpSequentialGuidGeneratorOptions"/> to configure.
+    /// Use <see cref="SequentialGuidGeneratorOptions"/> to configure.
     /// </summary>
     public class SequentialGuidGenerator : IGuidGenerator
     {
