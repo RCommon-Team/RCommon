@@ -2,7 +2,7 @@ using System;
 
 namespace RCommon
 {
-    public class SystemTimeOptions
+    public class SystemTimeOptions : ISystemTimeOptions
     {
         /// <summary>
         /// Default: <see cref="DateTimeKind.Unspecified"/>

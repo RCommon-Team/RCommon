@@ -15,6 +15,7 @@
 #endregion
 
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using RCommon;
 using RCommon.DependencyInjection;
 
@@ -70,8 +71,14 @@ namespace RCommon.Configuration
             configuration.Configure();
             return this;
         }
-        
-       
+
+        public IRCommonConfiguration WithTimeOptions(Action<SystemTimeOptions> actions) 
+        {
+            this.ContainerAdapter.Services.Configure(actions);
+            return this;
+        }
+
+
 
         public IRCommonConfiguration And<T>() where T : IServiceConfiguration
         {
@@ -90,8 +97,8 @@ namespace RCommon.Configuration
 
         public virtual void Configure()
         {
-            _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
             _containerAdapter.AddTransient<ISystemTime, SystemTime>();
+            _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
         }
     }
 }
