@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 namespace RCommon.TestBase.Entities
 {
     // Customers
-    public partial class Customer : IBusinessEntity<int>
+    public partial class Customer : BusinessEntity<int>
     {
         public string StreetAddress1 { get; set; } // StreetAddress1 (length: 255)
         public string StreetAddress2 { get; set; } // StreetAddress2 (length: 255)
@@ -42,8 +42,6 @@ namespace RCommon.TestBase.Entities
         /// </summary>
         public virtual ICollection<Order> Orders { get; set; } // Orders.FK_Customer_Orders
 
-        public int Id { get; set; }
-
         public Customer()
         {
             Orders = new List<Order>();
@@ -52,7 +50,7 @@ namespace RCommon.TestBase.Entities
 
         partial void InitializePartial();
 
-        public object[] GetKeys()
+        public override object[] GetKeys()
         {
             return new object[] { Id };
         }

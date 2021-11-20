@@ -45,7 +45,7 @@ namespace Samples.Domain.Entities
 
 
 
-    public partial class ApplicationUser : IBusinessEntity
+    public partial class ApplicationUser : BusinessEntity
 
     {
 
@@ -120,7 +120,7 @@ namespace Samples.Domain.Entities
 
         }
 
-        public object[] GetKeys()
+        public override object[] GetKeys()
         {
             return new object[] { this.Id };
         }

@@ -1,4 +1,5 @@
-﻿using RCommon.ApplicationServices;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RCommon.ApplicationServices;
 using RCommon.ApplicationServices.Common;
 using RCommon.BusinessServices;
 using RCommon.Configuration;
@@ -23,8 +24,9 @@ namespace RCommon.ApplicationServices
             return this;
         }
 
-        public ICommonApplicationServicesConfiguration WithSmtpEmailServices(Func<EmailSettings, bool> emailSettings)
+        public ICommonApplicationServicesConfiguration WithSmtpEmailServices(Action<EmailSettings> emailSettings)
         {
+            this.ContainerAdapter.Services.Configure<EmailSettings>(emailSettings);
             this.ContainerAdapter.AddTransient<IEmailService, EmailService>();
             return this;
         }

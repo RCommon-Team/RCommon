@@ -177,6 +177,7 @@
             int affected = 0;
             if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
+                
                 affected = await this.ObjectContext.SaveChangesAsync(true, token);
                 _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
             }
@@ -198,6 +199,7 @@
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
             await this.ObjectSet.AddAsync(entity, token);
+            entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
             await this.SaveAsync(token);
         }
 
@@ -205,12 +207,14 @@
         public async override Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
             this.ObjectSet.Remove(entity);
+            entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
             await this.SaveAsync();
         }
 
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             this.ObjectSet.Update(entity);
+            entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
             await this.SaveAsync(token);
         }
 
@@ -291,8 +295,6 @@
                 }
 
                 // Start Eagerloading
-
-
                 if (this._includes.Count > 0)
                 {
                     Action<string> action = null;

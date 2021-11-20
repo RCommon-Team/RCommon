@@ -1,4 +1,7 @@
-﻿namespace RCommon.BusinessEntities
+﻿using MediatR;
+using System.Collections.Generic;
+
+namespace RCommon.BusinessEntities
 {
     /// <summary>
     /// Defines an entity. It's primary key may not be "Id" or it may have a composite primary key.
@@ -11,6 +14,13 @@
         /// </summary>
         /// <returns></returns>
         object[] GetKeys();
+
+        IReadOnlyCollection<ILocalEvent> LocalEvents { get; }
+
+        void AddLocalEvent(ILocalEvent eventItem);
+        void ClearLocalEvents();
+        bool EntityEquals(IBusinessEntity other);
+        void RemoveLocalEvent(ILocalEvent eventItem);
     }
 
     /// <summary>

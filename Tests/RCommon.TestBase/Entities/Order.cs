@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 namespace RCommon.TestBase.Entities
 {
     // Orders
-    public partial class Order : IBusinessEntity
+    public partial class Order : BusinessEntity
     {
         public int OrderId { get; set; } // OrderID (Primary key)
         public DateTime? OrderDate { get; set; } // OrderDate
@@ -54,9 +54,9 @@ namespace RCommon.TestBase.Entities
 
         partial void InitializePartial();
 
-        public object[] GetKeys()
+        public override object[] GetKeys()
         {
-            throw new NotImplementedException();
+            return new object[] {this.OrderId};
         }
     }
 

@@ -57,18 +57,18 @@ namespace RCommon.ApplicationServices
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
-                throw ex;
+                throw;
             }
             catch (AutoMapperMappingException ex) // Mapping Exception
             {
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
 
         }
@@ -104,18 +104,18 @@ namespace RCommon.ApplicationServices
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
-                throw ex;
+                throw;
             }
             catch (AutoMapperMappingException ex) // Mapping Exception
             {
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
 
         }
@@ -151,18 +151,18 @@ namespace RCommon.ApplicationServices
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
-                throw ex;
+                throw;
             }
             catch (AutoMapperMappingException ex) // Mapping Exception
             {
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
 
         }
@@ -192,18 +192,18 @@ namespace RCommon.ApplicationServices
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
-                throw ex;
+                throw;
             }
             catch (AutoMapperMappingException ex) // Mapping Exception
             {
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
 
         }
@@ -232,18 +232,18 @@ namespace RCommon.ApplicationServices
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationReplacePolicy);
-                throw ex;
+                throw;
             }
             catch (AutoMapperMappingException ex) // Mapping Exception
             {
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
             catch (ApplicationException ex) // We didn't do a good job handling exceptions at a lower level or have failed logic in this class
             {
                 result.Exception = ex;
                 this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.ApplicationWrapPolicy);
-                throw ex;
+                throw;
             }
 
         }

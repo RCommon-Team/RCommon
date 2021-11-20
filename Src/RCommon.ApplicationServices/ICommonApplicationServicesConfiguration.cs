@@ -7,6 +7,6 @@ namespace RCommon.ApplicationServices
     public interface ICommonApplicationServicesConfiguration : IServiceConfiguration
     {
         ICommonApplicationServicesConfiguration WithCrudHelpers();
-        ICommonApplicationServicesConfiguration WithSmtpEmailServices(Func<EmailSettings, bool> emailSettings);
+        ICommonApplicationServicesConfiguration WithSmtpEmailServices(Action<EmailSettings> emailSettings);
     }
 }

@@ -8,7 +8,7 @@ namespace RCommon.ApplicationServices.Common
     {
         event EventHandler<EventArgs> EmailSent;
 
-        void SendEmail(MailMessage message, EmailSettings settings);
-        Task SendEmailAsync(MailMessage message, EmailSettings settings);
+        void SendEmail(MailMessage message);
+        Task SendEmailAsync(MailMessage message);
     }
 }

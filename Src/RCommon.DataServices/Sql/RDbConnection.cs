@@ -14,6 +14,8 @@ namespace RCommon.DataServices.Sql
         private readonly string _providerInvariantName;
         private readonly string _connectionString;
 
+        public event EventHandler<DataStorePersistingEventArgs> DataStorePersisting;
+
         public RDbConnection(string providerInvariantName, string connectionString)
         {
             _providerInvariantName = providerInvariantName;
@@ -38,8 +40,19 @@ namespace RCommon.DataServices.Sql
 
         public void PersistChanges()
         {
+            this.OnDataStorePersisting(new DataStorePersistingEventArgs()); 
+
             // Nothing to do here because this is a SQL Connection
             return;
+        }
+
+        protected virtual void OnDataStorePersisting(DataStorePersistingEventArgs args)
+        {
+            EventHandler<DataStorePersistingEventArgs> handler = DataStorePersisting;
+            if (handler != null)
+            {
+                handler(this, args);
+            }
         }
 
     }

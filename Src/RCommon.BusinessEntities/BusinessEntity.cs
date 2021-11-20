@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MediatR;
 using RCommon.Extensions;
 
 namespace RCommon.BusinessEntities
@@ -19,6 +20,25 @@ namespace RCommon.BusinessEntities
         public bool EntityEquals(IBusinessEntity other)
         {
             return this.BinaryEquals(other);
+        }
+
+        private List<ILocalEvent> _localEvents;
+        public IReadOnlyCollection<ILocalEvent> LocalEvents => _localEvents?.AsReadOnly();
+
+        public void AddLocalEvent(ILocalEvent eventItem)
+        {
+            _localEvents = _localEvents ?? new List<ILocalEvent>();
+            _localEvents.Add(eventItem);
+        }
+
+        public void RemoveLocalEvent(ILocalEvent eventItem)
+        {
+            _localEvents?.Remove(eventItem);
+        }
+
+        public void ClearLocalEvents()
+        {
+            _localEvents?.Clear();
         }
     }
 

@@ -33,7 +33,16 @@ namespace RCommon.Tests.Application.Services
 
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
-                .And<CommonApplicationServicesConfiguration>();
+                .And<CommonApplicationServicesConfiguration>(x =>
+                    x.WithSmtpEmailServices(settings =>
+                    {
+                        settings.EnableSsl = true;
+                        settings.From = "you@ytest.com";
+                        settings.Host = "smtp.sendgrid.net";
+                        settings.Password = "yourpassword";
+                        settings.Port = 587;
+                        settings.UserName = "apikey";
+                    }));
 
 
 
@@ -54,23 +63,17 @@ namespace RCommon.Tests.Application.Services
         [Test]
         public void Can_send_email()
         {
-            var settings = new EmailSettings();
-            settings.EnableSsl = true;
-            settings.From = "you@ytest.com";
-            settings.Host = "smtp.sendgrid.net";
-            settings.Password = "yourpassword";
-            settings.Port = 587;
-            settings.UserName = "apikey";
             var message = new MailMessage();
             message.To.Add("youremail@test.com");
-            message.From = new MailAddress(settings.From);
+            message.From = new MailAddress("test@test.com");
             message.Subject = "Test Email";
             message.Body = "Test Body of Message";
             message.BodyEncoding = Encoding.UTF8;
             message.IsBodyHtml = true;
 
+
             var emailService = this.ServiceProvider.GetService<IEmailService>();
-            emailService.SendEmail(message, settings);
+            emailService.SendEmail(message);
 
             emailService.EmailSent += EmailService_EmailSent;
 
@@ -86,23 +89,16 @@ namespace RCommon.Tests.Application.Services
         [Test]
         public async Task Can_send_email_async()
         {
-            var settings = new EmailSettings();
-            settings.EnableSsl = true;
-            settings.From = "you@ytest.com";
-            settings.Host = "smtp.sendgrid.net";
-            settings.Password = "yourpassword";
-            settings.Port = 587;
-            settings.UserName = "apikey";
             var message = new MailMessage();
             message.To.Add("youremail@test.com");
-            message.From = new MailAddress(settings.From);
+            message.From = new MailAddress("test@test.com");
             message.Subject = "Test Email";
             message.Body = "Test Body of Message";
             message.BodyEncoding = Encoding.UTF8;
             message.IsBodyHtml = true;
 
             var emailService = this.ServiceProvider.GetService<IEmailService>();
-            await emailService.SendEmailAsync(message, settings);
+            await emailService.SendEmailAsync(message);
 
             emailService.EmailSent += EmailService_EmailSent;
 

@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 namespace RCommon.TestBase.Entities
 {
     // SalesPerson
-    public partial class SalesPerson : IBusinessEntity
+    public partial class SalesPerson : BusinessEntity
     {
         public int Id { get; set; } // Id (Primary key)
         public string FirstName { get; set; } // FirstName (length: 255)
@@ -54,9 +54,9 @@ namespace RCommon.TestBase.Entities
 
         partial void InitializePartial();
 
-        public object[] GetKeys()
+        public override object[] GetKeys()
         {
-            throw new NotImplementedException();
+            return new object[] { this.Id };
         }
     }
 
