@@ -2,13 +2,36 @@
 using System.Collections.Generic;
 using MediatR;
 using RCommon.Extensions;
+using PropertyChanged;
+using System.ComponentModel;
 
 namespace RCommon.BusinessEntities
 {
     /// <inheritdoc/>
     [Serializable]
-    public abstract class BusinessEntity : IBusinessEntity
+    public abstract class BusinessEntity : IBusinessEntity, INotifyPropertyChanged
     {
+        private bool _allowChangeTracking = true;
+        public BusinessEntity()
+        {
+            this.PropertyChanged += BusinessEntity_PropertyChanged;
+        }
+
+        // Not sure this is neccesary.
+        private void BusinessEntity_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (this.AllowChangeTracking)
+            {
+                this.IsChanged = true;
+            }
+        }
+
+        public event EventHandler<LocalEventsChangedEventArgs> LocalEventsAdded;
+        public event EventHandler<LocalEventsChangedEventArgs> LocalEventsRemoved;
+        public event EventHandler<LocalEventsClearedEventArgs> LocalEventsCleared;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+
         /// <inheritdoc/>
         public override string ToString()
         {
@@ -16,6 +39,7 @@ namespace RCommon.BusinessEntities
         }
 
         public abstract object[] GetKeys();
+        public bool IsChanged { get; set; }
 
         public bool EntityEquals(IBusinessEntity other)
         {
@@ -25,20 +49,52 @@ namespace RCommon.BusinessEntities
         private List<ILocalEvent> _localEvents;
         public IReadOnlyCollection<ILocalEvent> LocalEvents => _localEvents?.AsReadOnly();
 
+        public bool AllowChangeTracking { get => _allowChangeTracking; set => _allowChangeTracking = value; }
+
         public void AddLocalEvent(ILocalEvent eventItem)
         {
             _localEvents = _localEvents ?? new List<ILocalEvent>();
             _localEvents.Add(eventItem);
+            this.OnLocalEventsAdded(new LocalEventsChangedEventArgs(this, eventItem));
         }
 
         public void RemoveLocalEvent(ILocalEvent eventItem)
         {
             _localEvents?.Remove(eventItem);
+            this.OnLocalEventsRemoved(new LocalEventsChangedEventArgs(this, eventItem));
         }
 
         public void ClearLocalEvents()
         {
             _localEvents?.Clear();
+            this.OnLocalEventsCleared(new LocalEventsClearedEventArgs(this, this.LocalEvents));
+        }
+
+        protected void OnLocalEventsAdded(LocalEventsChangedEventArgs args)
+        {
+            EventHandler<LocalEventsChangedEventArgs> handler = LocalEventsAdded;
+            if (handler != null)
+            {
+                handler(this, args);
+            }
+        }
+
+        protected void OnLocalEventsRemoved(LocalEventsChangedEventArgs args)
+        {
+            EventHandler<LocalEventsChangedEventArgs> handler = LocalEventsRemoved;
+            if (handler != null)
+            {
+                handler(this, args);
+            }
+        }
+
+        protected void OnLocalEventsCleared(LocalEventsClearedEventArgs args)
+        {
+            EventHandler<LocalEventsClearedEventArgs> handler = LocalEventsCleared;
+            if (handler != null)
+            {
+                handler(this, args);
+            }
         }
     }
 

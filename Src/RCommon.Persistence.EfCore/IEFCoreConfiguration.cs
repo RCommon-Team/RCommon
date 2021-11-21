@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.EFCore
 {
-    public interface IEFCoreConfiguration : IServiceConfiguration
+    public interface IEFCoreConfiguration : IRCommonConfiguration
     {
         IEFCoreConfiguration UsingDbContext<TDbContext>() where TDbContext : RCommonDbContext;
     }

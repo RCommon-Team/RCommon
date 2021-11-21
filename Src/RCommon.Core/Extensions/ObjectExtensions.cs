@@ -5,6 +5,7 @@ using System.Text;
 using System.Reflection;
 using System.ComponentModel;
 using System.Globalization;
+using RCommon.Reflection;
 
 namespace RCommon.Extensions
 {
@@ -215,6 +216,18 @@ namespace RCommon.Extensions
         public static string GetGenericTypeName(this object @object)
         {
             return @object.GetType().GetGenericTypeName();
+        }
+
+        /// <summary>
+        /// Traverses and object, and it's properties recursively to find any object which matches the type param of <typeparamref name="T"/>
+        /// and returns that object into the output collection.
+        /// </summary>
+        /// <typeparam name="T">Type we are looking for in the object graph</typeparam>
+        /// <param name="root">starting object.</param>
+        /// <returns>A flattened list of objects that match the <typeparamref name="T"/> in this object graph</returns>
+        public static IEnumerable<T> TraverseGraphFor<T>(this object root) where T : class
+        {
+            return ObjectGraphWalker.TraverseGraphFor<T>(root);
         }
     }
 }

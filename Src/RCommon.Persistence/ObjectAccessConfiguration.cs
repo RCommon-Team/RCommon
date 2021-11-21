@@ -8,41 +8,27 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public class ObjectAccessConfiguration : RCommonConfiguration, IObjectAccessConfiguration
+    public static class ObjectAccessConfiguration
     {
-        public ObjectAccessConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
-        {
 
-        }
-
-
-        /// <summary>
-        /// Configure data providers (ORM only for now) used by RCommon.
-        /// </summary>
-        /// <typeparam name="T">A <see cref="IObjectAccessConfiguration"/> type that can be used to configure
-        /// data providers for RCommon.</typeparam>
-        /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IObjectAccessConfiguration WithObjectAccess<T>() where T : IObjectAccessConfiguration, new()
-        {
-            var datConfiguration = (T)Activator.CreateInstance(typeof(T));
-            datConfiguration.Configure();
-            return this;
-        }
-
-        /// <summary>
-        /// Configure data providers (ORM only for now) used by RCommon.
-        /// </summary>
-        /// <typeparam name="T">A <see cref="IObjectAccessConfiguration"/> type that can be used to configure
-        /// data providers for RCommon.</typeparam>
-        /// <param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
-        /// custom actions on the <see cref="IObjectAccessConfiguration"/> instance.</param>
-        /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IObjectAccessConfiguration WithObjectAccess<T>(Action<T> actions) where T : IObjectAccessConfiguration, new()
+        public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration, new()
         {
             var dataConfiguration = (T)Activator.CreateInstance(typeof(T));
+            config.ContainerAdapter.AddTransient(typeof(IObjectAccessConfiguration), dataConfiguration.GetType());
+            dataConfiguration.Configure();
+            return dataConfiguration;
+        }
+
+        public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config, Action<T> actions) 
+            where T : IObjectAccessConfiguration, new()
+        {
+            var dataConfiguration = (T)Activator.CreateInstance(typeof(T));
+            config.ContainerAdapter.AddTransient(typeof(IObjectAccessConfiguration), dataConfiguration.GetType());
             actions(dataConfiguration);
             dataConfiguration.Configure();
-            return this;
+            return dataConfiguration;
         }
+
+
     }
 }

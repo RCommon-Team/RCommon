@@ -1,5 +1,6 @@
 ﻿namespace RCommon.Persistence.EFCore
 {
+    using MediatR;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -34,6 +35,8 @@
         private readonly IDataStoreProvider _dataStoreProvider;
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
+        private readonly IMediator _mediator;
+
         //private DbSet<TEntity> _objectSet;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
@@ -46,11 +49,12 @@
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager)
+        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IMediator mediator)
         {
             this._dataStoreProvider = dataStoreProvider;
             this._logger = logger.CreateLogger(this.GetType().Name);
             this._unitOfWorkManager = unitOfWorkManager;
+            this. _mediator = mediator;
             this._includes = new List<string>();
             //this._objectSet = null;
             this._repositoryQuery = null;
@@ -126,32 +130,6 @@
             return new EntityKey(this.ObjectContext.DefaultContainerName + "." + this.ObjectSet.EntitySet.Name, entityKeyValues);
         }*/
 
-        /*private DbSet<T> GetObjectSet<T>() where T : class
-        {
-            object obj2 = null;
-            if (!this._objectSets.TryGetValue(typeof(T), out obj2))
-            {
-                obj2 = this.ObjectContext.Set<T>();// CreateObjectSet<T>();
-                this._objectSets.Add(typeof(T), obj2);
-            }
-            return (DbSet<T>)obj2;
-        }*/
-
-        /*private ObjectStateEntry GetObjectStateEntry(TEntity entity)
-        {
-            ObjectStateEntry entry = null;
-            this.ObjectContext.ObjectStateManager.TryGetObjectStateEntry(this.GetEntityKey(entity), out entry);
-            return entry;
-        }
-
-        private ObjectStateEntry GetObjectStateEntry(EntityKey entityKey)
-        {
-            ObjectStateEntry entry = null;
-            this.ObjectContext.ObjectStateManager.TryGetObjectStateEntry(entityKey, out entry);
-            return entry;
-        }*/
-
-
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await this.FindCore(specification.Predicate).ToListAsync(token);
@@ -177,7 +155,6 @@
             int affected = 0;
             if (this._unitOfWorkManager.CurrentUnitOfWork == null)
             {
-                
                 affected = await this.ObjectContext.SaveChangesAsync(true, token);
                 _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
             }
@@ -200,6 +177,7 @@
         {
             await this.ObjectSet.AddAsync(entity, token);
             entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
+            entity.PublishLocalEvents(_mediator);
             await this.SaveAsync(token);
         }
 
