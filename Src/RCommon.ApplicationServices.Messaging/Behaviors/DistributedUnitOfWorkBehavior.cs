@@ -8,20 +8,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.MediatR.Behaviors
+namespace RCommon.ApplicationServices.Messaging.Behaviors
 {
-    public class UnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class DistributedUnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> 
+        where TRequest : notnull
     {
-        private readonly ILogger<UnitOfWorkBehavior<TRequest, TResponse>> _logger;
+        private readonly ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> _logger;
+        private readonly IDistributedEventBroker _distributedEventBroker;
         private readonly IUnitOfWorkScopeFactory _unitOfWorkScopeFactory;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public UnitOfWorkBehavior(IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
-            ILogger<UnitOfWorkBehavior<TRequest, TResponse>> logger)
+        public DistributedUnitOfWorkBehavior(IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
+            ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> logger, IDistributedEventBroker distributedEventBroker)
         {
             _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkScopeFactory));
             _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 
             _logger = logger ?? throw new ArgumentException(nameof(ILogger));
+            _distributedEventBroker = distributedEventBroker;
         }
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
@@ -51,7 +54,7 @@ namespace RCommon.ApplicationServices.MediatR.Behaviors
                 }
 
                 //Perform MassTransit publish events
-                
+                await _distributedEventBroker.PublishDistributedEvents(cancellationToken);
 
 
                 return response;

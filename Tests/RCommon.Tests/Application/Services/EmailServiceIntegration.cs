@@ -33,8 +33,7 @@ namespace RCommon.Tests.Application.Services
 
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
-                .And<CommonApplicationServicesConfiguration>(x =>
-                    x.WithSmtpEmailServices(settings =>
+                .WithSmtpEmailServices(settings =>
                     {
                         settings.EnableSsl = true;
                         settings.From = "you@ytest.com";
@@ -42,7 +41,7 @@ namespace RCommon.Tests.Application.Services
                         settings.Password = "yourpassword";
                         settings.Port = 587;
                         settings.UserName = "apikey";
-                    }));
+                    });
 
 
 

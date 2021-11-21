@@ -35,13 +35,12 @@ namespace RCommon.Persistence.EFCore.Tests
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithStateStorage<DefaultStateStorageConfiguration>()
-                .And<EhabExceptionHandlingConfiguration>(x=>
+                .And<EhabExceptionHandlingConfiguration>(x =>
                     x.UsingDefaultExceptionPolicies())
-                .And<DataServicesConfiguration>(x=>
+                .And<DataServicesConfiguration>(x =>
                     x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
-                .And<EFCoreConfiguration>(x => 
-                    x.UsingDbContext<TestDbContext>())
-                .And<CommonApplicationServicesConfiguration>();
+                .And<EFCoreConfiguration>(x =>
+                    x.UsingDbContext<TestDbContext>());
 
             
 

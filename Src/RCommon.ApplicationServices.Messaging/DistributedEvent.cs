@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.Messaging
 {
-    public record DistributedEvent
+    public record DistributedEvent : IDistributedEvent
     {
         public DistributedEvent()
         {
-                
+
         }
     }
 }

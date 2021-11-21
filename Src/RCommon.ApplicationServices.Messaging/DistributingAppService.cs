@@ -13,12 +13,13 @@ namespace RCommon.ApplicationServices.Messaging
     public class DistributingAppService : RCommonAppService
     {
 
-        public DistributingAppService(ILogger logger, IExceptionManager exceptionManager, IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IPublishEndpoint endpoint) 
+        public DistributingAppService(ILogger logger, IExceptionManager exceptionManager, IUnitOfWorkScopeFactory unitOfWorkScopeFactory
+            , IDistributedEventBroker distributedEventBroker) 
             : base(logger, exceptionManager, unitOfWorkScopeFactory)
         {
-            DistributionEndpoint = endpoint;
+            DistributedEventBroker = distributedEventBroker;
         }
 
-        public IPublishEndpoint DistributionEndpoint { get; }
+        public IDistributedEventBroker DistributedEventBroker { get; }
     }
 }

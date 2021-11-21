@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.MediatR.Behaviors
+namespace RCommon.ApplicationServices.Behaviors
 {
     public abstract class ValidatorBehavior<TRequest, TResponse, TException> : IPipelineBehavior<TRequest, TResponse> where TException : GeneralException, new()
     {

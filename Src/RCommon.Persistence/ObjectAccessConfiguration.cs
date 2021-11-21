@@ -1,4 +1,5 @@
-﻿using RCommon.Configuration;
+﻿using RCommon.BusinessEntities;
+using RCommon.Configuration;
 using RCommon.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace RCommon.Persistence
 
         public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration, new()
         {
+            config = WithChangeTracking(config);
             var dataConfiguration = (T)Activator.CreateInstance(typeof(T));
             config.ContainerAdapter.AddTransient(typeof(IObjectAccessConfiguration), dataConfiguration.GetType());
             dataConfiguration.Configure();
@@ -22,6 +24,7 @@ namespace RCommon.Persistence
         public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config, Action<T> actions) 
             where T : IObjectAccessConfiguration, new()
         {
+            config = WithChangeTracking(config);
             var dataConfiguration = (T)Activator.CreateInstance(typeof(T));
             config.ContainerAdapter.AddTransient(typeof(IObjectAccessConfiguration), dataConfiguration.GetType());
             actions(dataConfiguration);
@@ -29,6 +32,17 @@ namespace RCommon.Persistence
             return dataConfiguration;
         }
 
+        /// <summary>
+        /// Right now we are always using change tracking due to requirements for publishing entity events and those events being
+        /// somewhat tied to Change Tracking.
+        /// </summary>
+        /// <param name="config">Instance of <see cref="IRCommonConfiguration"/>passed in.</param>
+        /// <returns>Updated instance of <see cref="IRCommonConfiguration"/>RCommon Configuration</returns>
+        private static IRCommonConfiguration WithChangeTracking(this IRCommonConfiguration config)
+        {
+            config.ContainerAdapter.AddScoped<IChangeTracker, ChangeTracker>();
+            return config;
+        }
 
     }
 }
