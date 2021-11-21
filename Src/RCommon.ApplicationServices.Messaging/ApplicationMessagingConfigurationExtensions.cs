@@ -21,7 +21,7 @@ namespace RCommon.ApplicationServices.Messaging
             return config;
         }
 
-        public static IRCommonConfiguration WithMediatRDistributedUnitOfWorkBehavior(this IRCommonConfiguration config)
+        public static IRCommonConfiguration AddDisributedUnitOfWorkToMediatorPipeline(this IRCommonConfiguration config)
         {
             config.ContainerAdapter.AddGeneric(typeof(DistributedUnitOfWorkBehavior<,>), typeof(IPipelineBehavior<,>));
             return config;
