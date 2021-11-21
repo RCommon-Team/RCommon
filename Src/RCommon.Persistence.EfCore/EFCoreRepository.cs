@@ -21,7 +21,7 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    /// A concrete implementation for Entity Framework Core version 3.x. This class
+    /// A concrete implementation for Entity Framework Core.
     /// currently exposes much of the functionality of EF with the exception of change tracking and peristance models. We expose IQueryable to layers down stream
     /// so that complex joins can be utilized and then managed at the domain level. This implementation makes special considerations for managing the lifetime of the
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
@@ -32,9 +32,6 @@
     {
         private readonly List<string> _includes;
         private readonly Dictionary<Type, object> _objectSets;
-        private readonly IDataStoreProvider _dataStoreProvider;
-        private readonly ILogger _logger;
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
         private readonly IMediator _mediator;
 
         //private DbSet<TEntity> _objectSet;
@@ -49,12 +46,12 @@
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IMediator mediator)
+        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager
+            , IMediator mediator, IChangeTracker changeTracker) 
+            : base(dataStoreProvider, unitOfWorkManager, changeTracker)
         {
-            this._dataStoreProvider = dataStoreProvider;
-            this._logger = logger.CreateLogger(this.GetType().Name);
-            this._unitOfWorkManager = unitOfWorkManager;
-            this. _mediator = mediator;
+            this.Logger = logger.CreateLogger(this.GetType().Name);
+            this._mediator = mediator;
             this._includes = new List<string>();
             //this._objectSet = null;
             this._repositoryQuery = null;
@@ -105,7 +102,7 @@
             }
             catch (ApplicationException exception)
             {
-                this._logger.LogError(exception, "Error in Repository.FindCore: " + base.GetType().ToString() + " while executing a query on the Context.", expression);
+                this.Logger.LogError(exception, "Error in Repository.FindCore: " + base.GetType().ToString() + " while executing a query on the Context.", expression);
                 throw new RepositoryException("Error in Repository: " + base.GetType().ToString() + " while executing a query on the Context.", exception.GetBaseException());
             }
             return queryable;
@@ -150,17 +147,6 @@
             return await this.FindCore(expression).CountAsync(token);
         }
 
-        private async Task<int> SaveAsync(CancellationToken token = default)
-        {
-            int affected = 0;
-            if (this._unitOfWorkManager.CurrentUnitOfWork == null)
-            {
-                affected = await this.ObjectContext.SaveChangesAsync(true, token);
-                _dataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
-            }
-            return affected;
-        }
-
         public override async Task AttachAsync(TEntity entity, CancellationToken token = default)
         {
             this.ObjectContext.Attach<TEntity>(entity);
@@ -177,7 +163,7 @@
         {
             await this.ObjectSet.AddAsync(entity, token);
             entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
-            entity.PublishLocalEvents(_mediator);
+            this.ChangeTracker.AddEntity(entity);
             await this.SaveAsync(token);
         }
 
@@ -186,6 +172,7 @@
         {
             this.ObjectSet.Remove(entity);
             entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
+            this.ChangeTracker.AddEntity(entity);
             await this.SaveAsync();
         }
 
@@ -193,6 +180,7 @@
         {
             this.ObjectSet.Update(entity);
             entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
+            this.ChangeTracker.AddEntity(entity);
             await this.SaveAsync(token);
         }
 
@@ -225,15 +213,27 @@
         {
             get
             {
-                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                var uow = this.UnitOfWorkManager.CurrentUnitOfWork;
                 if (uow != null)
                 {
 
-                    return this._dataStoreProvider.GetDataStore<RCommonDbContext>(uow.TransactionId.Value, this.DataStoreName);
+                    return this.DataStoreProvider.GetDataStore<RCommonDbContext>(uow.TransactionId.Value, this.DataStoreName);
 
                 }
-                return this._dataStoreProvider.GetDataStore<RCommonDbContext>(this.DataStoreName);
+                return this.DataStoreProvider.GetDataStore<RCommonDbContext>(this.DataStoreName);
             }
+        }
+
+        private async Task<int> SaveAsync(CancellationToken token = default)
+        {
+            int affected = 0;
+            if (this.UnitOfWorkManager.CurrentUnitOfWork == null)
+            {
+                this.ChangeTracker.TrackedEntities.PublishLocalEvents(_mediator);
+                affected = await this.ObjectContext.SaveChangesAsync(true, token);
+                this.DataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
+            }
+            return affected;
         }
 
 

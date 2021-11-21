@@ -14,6 +14,7 @@
 //limitations under the License. 
 #endregion
 
+using Microsoft.Extensions.Logging;
 using RCommon.BusinessEntities;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
@@ -34,7 +35,12 @@ namespace RCommon.Persistence
     public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IFullFeaturedRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
-
+        public FullFeaturedRepositoryBase(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker)
+        {
+            DataStoreProvider = dataStoreProvider;
+            UnitOfWorkManager = unitOfWorkManager;
+            ChangeTracker = changeTracker;
+        }
 
         /// <summary>
         /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="FullFeaturedRepositoryBase{TEntity}"/> 
@@ -172,5 +178,9 @@ namespace RCommon.Persistence
         public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
 
         public abstract bool Tracking { get; set; }
+        public IDataStoreProvider DataStoreProvider { get; }
+        public ILogger Logger { get; set; }
+        public IUnitOfWorkManager UnitOfWorkManager { get; }
+        public IChangeTracker ChangeTracker { get; }
     }
 }

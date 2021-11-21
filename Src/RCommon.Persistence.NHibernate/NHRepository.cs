@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using RCommon.DataServices;
 using RCommon.BusinessEntities;
 using System.Threading;
+using MediatR;
 
 namespace RCommon.Persistence.NHibernate
 {
@@ -32,38 +33,18 @@ namespace RCommon.Persistence.NHibernate
         //string _cachedQueryName;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private readonly IDataStoreProvider _dataStoreProvider;
+        private readonly IMediator _mediator;
 
         /// <summary>
         /// Default Constructor.
         /// Creates a new instance of the <see cref="NHRepository{TEntity}"/> class.
         /// </summary>
-        public NHRepository(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager)
+        public NHRepository(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, IMediator mediator)
+            : base(dataStoreProvider, unitOfWorkManager, changeTracker)
         {
-            this._dataStoreProvider = dataStoreProvider;
-            this._unitOfWorkManager = unitOfWorkManager;
+            _mediator = mediator;
         }
 
-        /// <summary>
-        /// Gets the <see cref="ISession"/> instnace that is used by the repository.
-        /// </summary>
-        private ISessionFactory SessionFactory
-        {
-            get
-            {
-                
-                RCommonSessionFactory factory;
-                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
-
-                if (uow != null)
-                {
-
-                    factory = this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(uow.TransactionId.Value, this.DataStoreName);
-                    return factory.SessionFactory;
-                }
-                factory = this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this.DataStoreName);
-                return factory.SessionFactory;
-            }
-        }
 
         /// <summary>
         /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="FullFeaturedRepositoryBase{TEntity}"/> 
@@ -77,24 +58,11 @@ namespace RCommon.Persistence.NHibernate
         {
             get
             {
-
-
                 return SessionFactory.GetCurrentSession().Query<TEntity>();
             }
         }
 
         public override bool Tracking { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-
-        /// <summary>
-        /// Attaches a detached entity, previously detached via the <see cref="IRepository{TEntity}.Detach"/> method.
-        /// </summary>
-        /// <param name="entity">The entity instance to attach back to the repository.</param>
-        public override async Task AttachAsync(TEntity entity, CancellationToken token = default)
-        {
-            await SessionFactory.GetCurrentSession().UpdateAsync(entity, token);
-            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
-        }
 
         protected override void ApplyFetchingStrategy(Expression[] paths)
         {
@@ -107,7 +75,6 @@ namespace RCommon.Persistence.NHibernate
             }
         }
 
-
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
             return SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate);
@@ -118,22 +85,40 @@ namespace RCommon.Persistence.NHibernate
             return SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression);
         }
 
+        /// <summary>
+        /// Attaches a detached entity, previously detached via the <see cref="IRepository{TEntity}.Detach"/> method.
+        /// </summary>
+        /// <param name="entity">The entity instance to attach back to the repository.</param>
+        public override async Task AttachAsync(TEntity entity, CancellationToken token = default)
+        {
+            entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
+            this.ChangeTracker.AddEntity(entity);
+            await SessionFactory.GetCurrentSession().UpdateAsync(entity, token);
+            await this.SaveAsync(token);
+        }
+
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
+            entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
+            this.ChangeTracker.AddEntity(entity);
             await SessionFactory.GetCurrentSession().SaveOrUpdateAsync(entity);
-            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
+            await this.SaveAsync(token);
         }
 
         public override async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
+            entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
+            this.ChangeTracker.AddEntity(entity);
             await SessionFactory.GetCurrentSession().DeleteAsync(entity, token);
-            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
+            await this.SaveAsync(token);
         }
 
         public override async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
+            entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
+            this.ChangeTracker.AddEntity(entity);
             await SessionFactory.GetCurrentSession().UpdateAsync(entity);
-            _dataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
+            await this.SaveAsync(token);
         }
 
         public override async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
@@ -184,6 +169,28 @@ namespace RCommon.Persistence.NHibernate
         public override Task DetachAsync(TEntity entity, CancellationToken token = default)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Gets the <see cref="ISession"/> instnace that is used by the repository.
+        /// </summary>
+        private ISessionFactory SessionFactory
+        {
+            get
+            {
+                var factory = this._dataStoreProvider.GetDataStore<RCommonSessionFactory>(this.DataStoreName);
+                return factory.SessionFactory;
+            }
+        }
+
+        private async Task SaveAsync(CancellationToken token = default)
+        {
+            if (this.UnitOfWorkManager.CurrentUnitOfWork == null)
+            {
+                this.ChangeTracker.TrackedEntities.PublishLocalEvents(_mediator);
+                await this.SessionFactory.GetCurrentSession().FlushAsync(token);
+                this.DataStoreProvider.RemoveRegisteredDataStores(this.SessionFactory.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
+            }
         }
     }
 }

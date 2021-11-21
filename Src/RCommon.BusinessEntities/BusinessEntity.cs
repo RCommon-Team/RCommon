@@ -14,12 +14,17 @@ namespace RCommon.BusinessEntities
         private bool _allowChangeTracking = true;
         public BusinessEntity()
         {
-            this.PropertyChanged += BusinessEntity_PropertyChanged;
+            this.PropertyChanged += OnPropertyChanged;
         }
 
         // Not sure this is neccesary.
-        private void BusinessEntity_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        protected void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
             if (this.AllowChangeTracking)
             {
                 this.IsChanged = true;
