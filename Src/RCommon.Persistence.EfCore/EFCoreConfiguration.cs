@@ -56,8 +56,6 @@ namespace RCommon.Persistence.EFCore
             {
                 this.ContainerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
             }
-
-
         }
 
 
@@ -66,8 +64,6 @@ namespace RCommon.Persistence.EFCore
         {
             string dbContext = typeof(TDbContext).AssemblyQualifiedName;
             _dbContextTypes.Add(dbContext);
-
-            //_dbContextType = Activator.CreateInstance(typeof(TDbContext));
 
             return this;
         }

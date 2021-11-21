@@ -18,6 +18,8 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon;
 using RCommon.DependencyInjection;
+using MediatR;
+using System.Reflection;
 
 namespace RCommon.Configuration
 {
@@ -115,6 +117,9 @@ namespace RCommon.Configuration
         public virtual void Configure()
         {
             _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
+
+            // MediaR is a first class citizen in the RCommon Framework
+            _containerAdapter.Services.AddMediatR(Assembly.GetEntryAssembly());
         }
     }
 }

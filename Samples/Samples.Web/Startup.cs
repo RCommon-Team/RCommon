@@ -26,6 +26,7 @@ using RCommon.DataServices.Transactions;
 using RCommon.Persistence.EFCore;
 using RCommon.ApplicationServices;
 using RCommon.DataServices;
+using RCommon.Persistence;
 
 namespace Samples.Web
 {
@@ -65,7 +66,7 @@ namespace Samples.Web
                 .WithCrudHelpers()
                 .And<DataServicesConfiguration>(x=>
                     x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()) // Everything releated to transaction management. Powerful stuff happens here.
-                .And<EFCoreConfiguration>(x => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .WithObjectAccess<EFCoreConfiguration>(x => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
                     x.UsingDbContext<SamplesContext>();

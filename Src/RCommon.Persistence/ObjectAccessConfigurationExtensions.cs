@@ -9,24 +9,22 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public static class ObjectAccessConfiguration
+    public static class ObjectAccessConfigurationExtensions
     {
 
-        public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration, new()
+        public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration
         {
             config = WithChangeTracking(config);
-            var dataConfiguration = (T)Activator.CreateInstance(typeof(T));
-            config.ContainerAdapter.AddTransient(typeof(IObjectAccessConfiguration), dataConfiguration.GetType());
+            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
             dataConfiguration.Configure();
             return dataConfiguration;
         }
 
         public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config, Action<T> actions) 
-            where T : IObjectAccessConfiguration, new()
+            where T : IObjectAccessConfiguration
         {
             config = WithChangeTracking(config);
-            var dataConfiguration = (T)Activator.CreateInstance(typeof(T));
-            config.ContainerAdapter.AddTransient(typeof(IObjectAccessConfiguration), dataConfiguration.GetType());
+            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
             actions(dataConfiguration);
             dataConfiguration.Configure();
             return dataConfiguration;
