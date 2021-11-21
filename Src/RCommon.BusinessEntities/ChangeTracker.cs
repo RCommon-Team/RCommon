@@ -20,7 +20,7 @@ namespace RCommon.BusinessEntities
 
         public void AddEntity(IBusinessEntity entity)
         {
-            Guard.Against<ArgumentNullException>(entity != null, $"Entity of type {entity.GetType().AssemblyQualifiedName} cannot be null");
+            Guard.Against<ArgumentNullException>(entity == null, $"Entity of type {entity.GetType().AssemblyQualifiedName} cannot be null");
 
             entity.AllowChangeTracking = true;
             _businessEntities.Add(entity);

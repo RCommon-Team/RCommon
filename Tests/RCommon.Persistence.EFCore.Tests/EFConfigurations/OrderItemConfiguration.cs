@@ -29,7 +29,8 @@ namespace RCommon.Persistence.EFCore.Tests
         {
             builder.ToTable("OrderItems", "dbo");
             builder.HasKey(x => x.OrderItemId).HasName("PK__OrderIte__57ED06A1FD2C18E0").IsClustered();
-
+            builder.Ignore(x => x.AllowChangeTracking);
+            builder.Ignore(x => x.IsChanged);
             builder.Property(x => x.OrderItemId).HasColumnName(@"OrderItemID").HasColumnType("int").IsRequired().ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(x => x.Price).HasColumnName(@"Price").HasColumnType("decimal(19,5)").IsRequired(false);
             builder.Property(x => x.Quantity).HasColumnName(@"Quantity").HasColumnType("int").IsRequired(false);

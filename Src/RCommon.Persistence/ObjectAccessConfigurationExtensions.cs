@@ -14,8 +14,8 @@ namespace RCommon.Persistence
 
         public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration
         {
-            config = WithChangeTracking(config);
             var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
+            config = WithChangeTracking(dataConfiguration);
             dataConfiguration.Configure();
             return dataConfiguration;
         }
@@ -23,8 +23,9 @@ namespace RCommon.Persistence
         public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config, Action<T> actions) 
             where T : IObjectAccessConfiguration
         {
-            config = WithChangeTracking(config);
+            
             var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
+            config = WithChangeTracking(dataConfiguration);
             actions(dataConfiguration);
             dataConfiguration.Configure();
             return dataConfiguration;
@@ -36,7 +37,7 @@ namespace RCommon.Persistence
         /// </summary>
         /// <param name="config">Instance of <see cref="IRCommonConfiguration"/>passed in.</param>
         /// <returns>Updated instance of <see cref="IRCommonConfiguration"/>RCommon Configuration</returns>
-        private static IRCommonConfiguration WithChangeTracking(this IRCommonConfiguration config)
+        private static IRCommonConfiguration WithChangeTracking(this IObjectAccessConfiguration config)
         {
             config.ContainerAdapter.AddScoped<IChangeTracker, ChangeTracker>();
             return config;
