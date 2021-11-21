@@ -25,6 +25,7 @@ using Samples.ObjectAccess.EFCore;
 using RCommon.DataServices.Transactions;
 using RCommon.Persistence.EFCore;
 using RCommon.ApplicationServices;
+using RCommon.DataServices;
 
 namespace Samples.Web
 {
@@ -62,7 +63,8 @@ namespace Samples.Web
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services)) // Allows us to use generic Dependency Injection. We could easily swap out for Autofac with a few lines of code
                 .WithStateStorage<DefaultStateStorageConfiguration>() // Basic state management. This layer mostly encapsulates the web runtime. Microsoft has a bad habit of revising what an HttpContext is/means so we limit that impact.
                 .WithCrudHelpers()
-                .And<DefaultUnitOfWorkConfiguration>() // Everything releated to transaction management. Powerful stuff happens here.
+                .And<DataServicesConfiguration>(x=>
+                    x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()) // Everything releated to transaction management. Powerful stuff happens here.
                 .And<EFCoreConfiguration>(x => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
