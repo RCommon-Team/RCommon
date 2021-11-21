@@ -31,7 +31,7 @@ namespace RCommon.Authorization.Web.Filters
                 {
                     new OpenApiSecurityRequirement
                     {
-                        [ oAuthScheme ] = new [] { "orderingapi" }
+                        [ oAuthScheme ] = new [] { "api" }
                     }
                 };
         }

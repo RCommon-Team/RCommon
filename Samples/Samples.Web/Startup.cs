@@ -112,7 +112,6 @@ namespace Samples.Web
                 });*/
 
             })
-                .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Latest)
             .AddSessionStateTempDataProvider();
 
             services.AddSession();
