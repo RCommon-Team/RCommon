@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 
 namespace Samples.Web.Controllers
 {
-    [Authorize]
     public class DiveLocationsController : Controller
     {
         private readonly IDiveService _diveService;
