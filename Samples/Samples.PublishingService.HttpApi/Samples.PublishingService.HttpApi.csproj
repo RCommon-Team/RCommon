@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.ApplicationServices.Messaging\RCommon.ApplicationServices.Messaging.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Models\RCommon.Models.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Persistence\RCommon.Persistence.csproj" />
+    <ProjectReference Include="..\Samples.Application.Contracts\Samples.Application.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
