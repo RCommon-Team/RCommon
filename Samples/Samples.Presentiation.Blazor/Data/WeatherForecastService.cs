@@ -1,3 +1,4 @@
+
 namespace Samples.Presentiation.Blazor.Data
 {
     public class WeatherForecastService
