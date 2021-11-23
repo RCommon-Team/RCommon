@@ -44,6 +44,12 @@ namespace RCommon.Configuration
         /// <returns><see cref="IRCommonConfiguration"/></returns>
         IRCommonConfiguration WithStateStorage<T>(Action<T> actions) where T : IStateStorageConfiguration;
 
+        IRCommonConfiguration WithGuidGenerator<T>(Action<SequentialGuidGeneratorOptions> actions) where T : IGuidGenerator;
+
+        IRCommonConfiguration WithGuidGenerator<T>() where T : IGuidGenerator;
+
+        IRCommonConfiguration WithDateTimeSystem<T>(Action<SystemTimeOptions> actions) where T : ISystemTime;
+
         IRCommonConfiguration And<T>() where T : IServiceConfiguration;
 
         IRCommonConfiguration And<T>(Action<T> actions) where T : IServiceConfiguration;

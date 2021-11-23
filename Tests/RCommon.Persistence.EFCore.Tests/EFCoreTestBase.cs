@@ -35,13 +35,15 @@ namespace RCommon.Persistence.EFCore.Tests
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithStateStorage<DefaultStateStorageConfiguration>()
-                .And<EhabExceptionHandlingConfiguration>(x=>
+                .And<EhabExceptionHandlingConfiguration>(x =>
                     x.UsingDefaultExceptionPolicies())
-                .And<DataServicesConfiguration>(x=>
-                    x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
-                .And<EFCoreConfiguration>(x => 
-                    x.UsingDbContext<TestDbContext>())
-                .And<CommonApplicationServicesConfiguration>();
+                .And<DataServicesConfiguration>(x =>
+                    x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()) // Everything releated to transaction management. Powerful stuff happens here.
+                .WithObjectAccess<EFCoreConfiguration>(x => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                {
+                    // Add all the DbContexts here
+                    x.UsingDbContext<TestDbContext>();
+                });
 
             
 

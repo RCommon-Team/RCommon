@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="DomainEvents\" />
+    <Folder Include="Model\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Persistence\RCommon.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

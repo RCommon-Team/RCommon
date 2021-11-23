@@ -7,23 +7,24 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Net;
+using Microsoft.Extensions.Options;
 
 namespace RCommon.ApplicationServices.Common
 {
     public class EmailService : IEmailService
     {
+        public EmailSettings Settings { get; }
 
-
-        public EmailService()
+        public EmailService(IOptions<EmailSettings> settings)
         {
-
+            Settings = settings.Value;
         }
 
 
         /// <summary>
         /// Sends a MailMessage object using the SMTP settings.
         /// </summary>
-        public void SendEmail(MailMessage message, EmailSettings settings)
+        public void SendEmail(MailMessage message)
         {
             if (message == null)
                 throw new ArgumentNullException("message");
@@ -33,10 +34,10 @@ namespace RCommon.ApplicationServices.Common
                 message.BodyEncoding = Encoding.UTF8;
                 using (var smtp = new SmtpClient())
                 {
-                    smtp.Credentials = new NetworkCredential(settings.UserName, settings.Password);
-                    smtp.Host = settings.Host;
-                    smtp.Port = settings.Port;
-                    smtp.EnableSsl = settings.EnableSsl;
+                    smtp.Credentials = new NetworkCredential(this.Settings.UserName, this.Settings.Password);
+                    smtp.Host = this.Settings.Host;
+                    smtp.Port = this.Settings.Port;
+                    smtp.EnableSsl = this.Settings.EnableSsl;
                     smtp.Send(message);
                 }
                 OnEmailSent(message);
@@ -53,10 +54,10 @@ namespace RCommon.ApplicationServices.Common
         /// Sends the mail message asynchronously in another thread.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        public async Task SendEmailAsync(MailMessage message, EmailSettings settings)
+        public async Task SendEmailAsync(MailMessage message)
         {
             
-            await Task.Run(() => SendEmail(message, settings));
+            await Task.Run(() => SendEmail(message));
         }
 
         /// <summary>
@@ -70,9 +71,6 @@ namespace RCommon.ApplicationServices.Common
                 EmailSent(message, new EventArgs());
             }
         }
-
-
-
 
     }
 }

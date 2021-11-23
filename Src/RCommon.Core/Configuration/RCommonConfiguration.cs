@@ -15,8 +15,11 @@
 #endregion
 
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using RCommon;
 using RCommon.DependencyInjection;
+using MediatR;
+using System.Reflection;
 
 namespace RCommon.Configuration
 {
@@ -70,8 +73,31 @@ namespace RCommon.Configuration
             configuration.Configure();
             return this;
         }
-        
-       
+
+        public IRCommonConfiguration WithGuidGenerator<T>(Action<SequentialGuidGeneratorOptions> actions) where T : IGuidGenerator
+        {
+            this.ContainerAdapter.Services.Configure<SequentialGuidGeneratorOptions>(actions);
+            this.ContainerAdapter.AddTransient<IGuidGenerator, T>();
+            return this;
+        }
+
+        public IRCommonConfiguration WithGuidGenerator<T>() where T : IGuidGenerator
+        {
+            if (typeof(T) is SequentialGuidGenerator)
+            {
+                this.ContainerAdapter.Services.Configure<SequentialGuidGeneratorOptions>(x=>x.GetDefaultSequentialGuidType());
+            }
+            this.ContainerAdapter.AddTransient<IGuidGenerator, T>();
+            return this;
+        }
+
+        public IRCommonConfiguration WithDateTimeSystem<T>(Action<SystemTimeOptions> actions) where T : ISystemTime
+        {
+            this.ContainerAdapter.Services.Configure<SystemTimeOptions>(actions);
+            this.ContainerAdapter.AddTransient<ISystemTime, SystemTime>();
+            return this;
+        }
+
 
         public IRCommonConfiguration And<T>() where T : IServiceConfiguration
         {
@@ -91,7 +117,9 @@ namespace RCommon.Configuration
         public virtual void Configure()
         {
             _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
-            _containerAdapter.AddTransient<IClock, Clock>();
+
+            // MediaR is a first class citizen in the RCommon Framework
+            _containerAdapter.Services.AddMediatR(Assembly.GetEntryAssembly());
         }
     }
 }

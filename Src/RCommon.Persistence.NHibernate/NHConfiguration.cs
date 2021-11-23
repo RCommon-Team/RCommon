@@ -11,7 +11,7 @@ namespace RCommon.Persistence.NHibernate
     /// <summary>
     /// Implementation of <see cref="IObjectAccessConfiguration"/> that configures RCommon to use NHibernate.
     /// </summary>
-    public class NHConfiguration : RCommonConfiguration, IServiceConfiguration
+    public class NHConfiguration : RCommonConfiguration
     {
 
         public NHConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)

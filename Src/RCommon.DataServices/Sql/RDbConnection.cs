@@ -37,7 +37,8 @@ namespace RCommon.DataServices.Sql
         }
 
         public void PersistChanges()
-        {
+        { 
+
             // Nothing to do here because this is a SQL Connection
             return;
         }

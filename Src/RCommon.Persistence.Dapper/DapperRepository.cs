@@ -17,19 +17,20 @@ using RCommon.BusinessEntities;
 using DapperExtensions;
 using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 using System.Threading;
+using MediatR;
 
 namespace RCommon.Persistence.Dapper
 {
     public class DapperRepository<TEntity> : SqlMapperRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        
+        private readonly IMediator _mediator;
 
-        
-        public DapperRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager)
-            : base(dataStoreProvider, logger, unitOfWorkManager)
+        public DapperRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker
+            , IMediator mediator)
+            : base(dataStoreProvider, logger, unitOfWorkManager, changeTracker)
         {
-            
+            _mediator = mediator;
         }
 
 
@@ -46,8 +47,11 @@ namespace RCommon.Persistence.Dapper
                         connection.Open();
                     }
 
+                    entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
+                    this.ChangeTracker.AddEntity(entity);
                     await connection.InsertAsync(entity);
-                    
+                    this.SaveChanges();
+
                 }
                 catch (Exception)
                 {
@@ -76,7 +80,10 @@ namespace RCommon.Persistence.Dapper
                         connection.Open();
                     }
 
+                    entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
+                    this.ChangeTracker.AddEntity(entity);
                     await connection.DeleteAsync(entity);
+                    this.SaveChanges();
                 }
                 catch (Exception)
                 {
@@ -107,7 +114,10 @@ namespace RCommon.Persistence.Dapper
                         connection.Open();
                     }
 
+                    entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
+                    this.ChangeTracker.AddEntity(entity);
                     await connection.UpdateAsync(entity);
+                    this.SaveChanges();
                 }
                 catch (Exception)
                 {
@@ -155,6 +165,13 @@ namespace RCommon.Persistence.Dapper
                 
                 return await connection.QuerySingleOrDefaultAsync<TEntity>(sql, dbParams, commandType: commandType);
             }
+        }
+
+        protected void SaveChanges()
+        {
+            // We are not actually persisting anything since that is handled by the client
+            // , but we need to publish events.
+            this.ChangeTracker.TrackedEntities.PublishLocalEvents(_mediator);
         }
 
 

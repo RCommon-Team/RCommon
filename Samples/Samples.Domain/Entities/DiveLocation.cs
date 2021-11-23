@@ -45,7 +45,7 @@ namespace Samples.Domain.Entities
     
 
 
-public partial class DiveLocation : IBusinessEntity
+public partial class DiveLocation : BusinessEntity
     
 {
     
@@ -216,7 +216,7 @@ public partial class DiveLocation : IBusinessEntity
     
     partial void InitializePartial();
 
-        public object[] GetKeys()
+        public override object[] GetKeys()
         {
             return new object[] { this.Id };
         }

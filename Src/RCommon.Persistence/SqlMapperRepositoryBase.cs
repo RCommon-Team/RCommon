@@ -23,11 +23,12 @@ namespace RCommon.Persistence
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public SqlMapperRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager)
+        public SqlMapperRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker)
         {
             _dataStoreProvider = dataStoreProvider;
             _logger = logger.CreateLogger(this.GetType().Name);
             _unitOfWorkManager = unitOfWorkManager;
+            ChangeTracker = changeTracker;
         }
 
 
@@ -53,6 +54,8 @@ namespace RCommon.Persistence
                 return this._dataStoreProvider.GetDataStore<RDbConnection>(this.DataStoreName).GetDbConnection();
             }
         }
+
+        public IChangeTracker ChangeTracker { get; }
     }
 
 }

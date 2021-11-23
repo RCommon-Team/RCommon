@@ -29,7 +29,8 @@ namespace RCommon.Persistence.EFCore.Tests
         {
             builder.ToTable("Departments", "dbo");
             builder.HasKey(x => x.Id).HasName("PK__Departme__3214EC07CB60603A").IsClustered();
-
+            builder.Ignore(x => x.AllowChangeTracking);
+            builder.Ignore(x => x.IsChanged);
             builder.Property(x => x.Id).HasColumnName(@"Id").HasColumnType("int").IsRequired().ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(x => x.Name).HasColumnName(@"Name").HasColumnType("nvarchar(255)").IsRequired(false).HasMaxLength(255);
 

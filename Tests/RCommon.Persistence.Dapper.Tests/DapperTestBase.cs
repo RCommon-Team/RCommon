@@ -30,12 +30,11 @@ namespace RCommon.Persistence.Dapper.Tests
                 .WithStateStorage<DefaultStateStorageConfiguration>()
                 .And<EhabExceptionHandlingConfiguration>(x =>
                     x.UsingDefaultExceptionPolicies())
-                .And<DataServicesConfiguration>(x=> 
+                .And<DataServicesConfiguration>(x =>
                     x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
-                .And<DapperConfiguration>(x => 
+                .And<DapperConfiguration>(x =>
                     x.UsingDbConnection<TestDbConnection>()
-                    .WithPluralizedClassMapper())
-                .And<CommonApplicationServicesConfiguration>();
+                    .WithPluralizedClassMapper());
 
             
 
