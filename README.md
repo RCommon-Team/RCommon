@@ -22,7 +22,7 @@ if (includeDetails)
 
 
 ## Unit of Work & Transaction Management
-The unit of work (UoW) pattern is loosely coupled from all persistence strategies but provides granular control over transactions using ACID properties. Transactions are currently implemented through the UnitOfWork and the UnitOfWorkManager which provides a wrapper for TransactionScope. 
+The unit of work (UoW) pattern is loosely coupled from all persistence strategies but provides granular control over transactions using ACID properties. Transactions are currently implemented through the UnitOfWork and the UnitOfWorkManager which provides a wrapper for TransactionScope. [As .NET Core does not support transactions across multiple databases or providers](https://github.com/dotnet/runtime/issues/715), we've had to rely on distributed events and messaging patterns such as "outbox" to implement support for these types of transactions. 
 ```csharp
 await using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
 {
@@ -163,5 +163,10 @@ public class CrudAppService<TDataTransferObject, TEntity> : RCommonAppService, I
     ...
 ```
 
-
+##Credits
+We give special thanks to a number of projects that have been inspirational to us in building this project:
+NCommon
+ABP Framework
+MassTransit
+MediatR
 
