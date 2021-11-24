@@ -1,16 +1,16 @@
 # RCommon Application Framework
 
 ## Overview
-RCommon was originally born as the (now abandoned) [NCommon](https://github.com/riteshrao/ncommon "NCommon") project but was resurrected out of the need to generate a productive, yet a relatively sound (architecturally speaking) application. Architectural patterns are used to implement some of the most commonly used tools in the .NET 5 stack. The primary goals of this framework are:
-1. Future proofing applications against changing architectural needs whether changes are required from lower level code (e.g. .NET Framework), or in response to changing technology conditions (e.g. using EFCore instead of Linq2Sql, NLog for Logger.NET, StructureMap vs. Autofac, etc.)
-2. Solve common problems under the presentation layer. Presentation frameworks are something else entirely. We try to keep everything nice under the hood. Cross cutting concerns, data access strategies, transaction management, validation, business rules, exception management, and logging is where we want to shine.
+RCommon was originally born as the (now abandoned) [NCommon](https://github.com/riteshrao/ncommon "NCommon") project but was resurrected out of the need to generate a productive, yet a relatively sound (architecturally speaking) application. Architectural patterns are used to implement some of the most commonly used tools in the .NET 6 stack. The primary goals of this framework are:
+1. Future proofing applications against changing architectural or infrastructure needs.
+2. Solve common problems under the presentation layer. Presentation frameworks are something else entirely. We try to keep everything nice under the hood. Cross cutting concerns, persistence strategies, transaction management, validation, business rules, exception management, and logging is where we want to shine.
 3. Code testability. We try to limit the "magic" used. Things like dependency injection are used but in a very straightforward manner. Unit tests, and integration tests should be implemented to the highest degree possible. Afterall, we want the applications you build on top of this to work :) 
 4. Last but not least - open source forever. 
 
 We track bugs, enhancement requests, new feature requests, and general issues on [GitHub Issues](https://github.com/Reactor2Team/RCommon/issues "GitHub Issues") and are very responsive. General "how to" and community support should be managed on [Stack Overflow](https://stackoverflow.com/questions/tagged/rcommon "Stack Overflow"). 
 
 ## Repository Pattern & Object Persistence
-RCommon provides a common abstraction and underlying strategies/implementations for a variety of repositories including SQL via Dapper (soon), Entity Framework Core, Nhibernate, and MongoDB (soon) making RCommon one of the most versatile Object Access Repositories available. Each implementation is unit tested (soon) and integration tested in web, single threaded, and multithreaded hosting environments. "Full featured" object access strategies such as EFCore and NHibernate come packaged with the ability to eager load additionally entities into the IQueryable expression map.
+RCommon provides a common abstraction and underlying strategies/implementations for a variety of repositories including Dapper, Entity Framework Core, and NHibernate making RCommon one of the most versatile persistence Repositories available. Each implementation is unit tested and integration tested in web, single threaded, and multithreaded hosting environments. "Full featured" object access strategies such as EFCore and NHibernate come packaged with the ability to eager load additionally entities into the IQueryable expression map.
 ```csharp
 if (includeDetails)
     {
@@ -22,7 +22,7 @@ if (includeDetails)
 
 
 ## Unit of Work & Transaction Management
-The unit of work (UoW) pattern is loosely coupled from all object access strategies but provides granular control over transactions using ACID properties. Transactions are currently implemented through the UnitOfWork and the UnitOfWorkManager which provides a wrapper for TransactionScope. 
+The unit of work (UoW) pattern is loosely coupled from all persistence strategies but provides granular control over transactions using ACID properties. Transactions are currently implemented through the UnitOfWork and the UnitOfWorkManager which provides a wrapper for TransactionScope. 
 ```csharp
 await using (var scope = UnitOfWorkScopeFactory.Create()) // Always use a Unit of Work
 {
@@ -98,101 +98,8 @@ public async Task<CommandResult<bool>> NewCustomerSignupPromotion(CustomerDto cu
 ## Logging
 Logging is used throughout the framework all the way down to the infrastructure. Microsoft's native logging is used but may be overridden by Nlog or other logging providers using the native interface. Rcommon uses the options pattern to allow you to subscribe to events generated in specific layers, or adjust verbosity overall. 
 
-## Domain Services & Entity Validation
-A set of domain service base classes allows you access to underlying API's including validation, exception management, unit of work management, logging, and repository operations. Business rule validators are implemented via the Specification pattern and rules may be auto-wired and mapped to domain services and entities. Repository operations may also be auto-wired to run after the business rules/validation layer successfully concludes.
-
-Setting up of Entity Validator, and Rules Evaluator
-```csharp
-private void AddRulesAndValidators()
-{
-    this.SetEntityValidator(new CustomerValidator()); // This will get called before execution against repository
-
-    this.SetBusinessRulesEvaluator(new CustomerBusinessRulesEvaluator()); // These rules will be evaluated before execution against repository
-}
-```
-Customer Validator Example
-```csharp
-public class CustomerValidator : EntityValidatorBase<Customer>
-{
-    public CustomerValidator()
-    {
-        this.AddValidation("ZipCode Rule", new ValidationRule<Customer>(
-            new Specification<Customer>(x => x.ZipCode != "30062"), "We don't like people from that zip code!", "ZipCode"));
-    }
-}
-```
-Customer Business Rules Evaluator Example
-```csharp
-public class CustomerBusinessRulesEvaluator : BusinessRulesEvaluatorBase<Customer>
-{
-    public CustomerBusinessRulesEvaluator()
-    {
-        var rule = new BusinessRule<Customer>(
-            new Specification<Customer>(x => x.ZipCode != "30062"),
-                x => this.SomeImportantBusinessAction(x)
-            );
-        this.AddRule("ZipCodeRule", rule);
-    }
-
-    private void SomeImportantBusinessAction(Customer customer)
-    {
-        Debug.WriteLine("We are doing something important related to the business rule for " + customer.FirstName + " " + customer.LastName);
-    }
-}
-```
-And Finally
-```csharp
-protected virtual ValidationResult ValidateEntity(TEntity entity)
-{
-    var result = new ValidationResult();
-    if (_entityValidator != null)
-    {
-        result = _entityValidator.Validate(entity);
-    }
-    return result;
-}
-
-protected virtual void EvaluateBusinessRules(TEntity entity)
-{
-    if (_businessRulesEvaluator != null)
-    {
-        _businessRulesEvaluator.Evaluate(entity);
-    }
-}
-
-public virtual async Task<CommandResult<bool>> CreateAsync(TEntity entity)
-{
-    var result = new CommandResult<bool>();
-    try
-    {
-        result.ValidationResult = this.ValidateEntity(entity);
-        if (result.ValidationResult.IsValid)
-        {
-            await _repository.AddAsync(entity);
-            this.EvaluateBusinessRules(entity);
-            this.Logger.LogDebug("Creating entity of type {0}.", entity);
-            result.DataResult = true;
-        }
-        else
-        {
-            this.Logger.LogWarning("Validator of type " + this._entityValidator.GetType().ToString() + " was not able to validate entity of type " + entity.GetType().ToString());
-            result.DataResult = false;
-        }
-        return result;
-    }
-    catch (ApplicationException ex)
-    {
-        result.Exception = ex;
-        this.ExceptionManager.HandleException(ex, DefaultExceptionPolicies.BusinessWrapPolicy);
-        throw ex;
-    }
-}
-```
-
-
-
 ## Application Layer
-A set of application service bases classes are included to simplify the mapping of entities to DTO's and implement the UnitOfWork pattern as well as encapsulating output from domain/business services and wrapping them in JSON friendly containers for handling by the application service or presentation layer. Additionally, the application layer simplifies exposing application services as Http API services.
+A set of application service bases classes are included to simplify the mapping of entities to DTO's, implementing the UnitOfWork pattern in distributed systems. [MassTransit](https://masstransit-project.com/ "MassTransit") and [MediatR](https://github.com/jbogard/MediatR "MediatR") are first class citizens of RCommon as they are themselves excellent uses of abstractions and RCommon merely provides wrappers their usage. As such, RCommon's application layer is also seamlessly integrated with these libraries to support loosely coupled patterns for distributed computing systems. 
 ```csharp
 public class CrudAppService<TDataTransferObject, TEntity> : RCommonAppService, ICrudAppService<TDataTransferObject> where TEntity : class
 {
