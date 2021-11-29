@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RCommon.Json
+namespace RCommon.Serialization.Json
 {
     public interface IJsonSerializer
     {

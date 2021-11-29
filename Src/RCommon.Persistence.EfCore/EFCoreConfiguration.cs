@@ -50,6 +50,11 @@ namespace RCommon.Persistence.EFCore
 
             // EF Core Repository
             this.ContainerAdapter.AddGeneric(typeof(IFullFeaturedRepository<>), typeof(EFCoreRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(ILinqMapperRepository<>), typeof(EFCoreRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
 
             // Registered DbContexts
             foreach (var dbContext in _dbContextTypes)

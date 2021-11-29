@@ -16,6 +16,7 @@
     <FileVersion>1.0.0.40</FileVersion>
     <PackageIconUrl />
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RootNamespace>$(MSBuildProjectName.Replace(" ", "_").Replace(".Core", ""))</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -83,7 +83,7 @@ namespace RCommon.Configuration
 
         public IRCommonConfiguration WithGuidGenerator<T>() where T : IGuidGenerator
         {
-            if (typeof(T) is SequentialGuidGenerator)
+            if (typeof(T) == typeof(SequentialGuidGenerator))
             {
                 this.ContainerAdapter.Services.Configure<SequentialGuidGeneratorOptions>(x=>x.GetDefaultSequentialGuidType());
             }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RCommon.DataServices.Transactions;
 using System.Transactions;
 
 namespace RCommon.Web
@@ -12,9 +13,10 @@ namespace RCommon.Web
         public TransactionScope TransactionScope { get; set; }
 
 
+
         public RCommonController()
         {
-
+            
         }
     }
 }
