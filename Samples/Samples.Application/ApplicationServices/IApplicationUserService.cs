@@ -7,6 +7,6 @@ namespace Samples.Application.ApplicationServices
 {
     public interface IApplicationUserService
     {
-        Task<CommandResult<PaginatedListModel<ApplicationUserDto>>> SearchUsersAsync(string searchTerms, int pageIndex, int pageSize);
+        Task<CommandResult<ApplicationUserListModel>> SearchUsersAsync(ApplicationUserSearchRequest request);
     }
 }

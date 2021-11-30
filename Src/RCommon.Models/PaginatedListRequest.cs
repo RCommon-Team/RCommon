@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace RCommon.Models
 {
     [DataContract]
-    public abstract class PaginatedListRequest : IModel
+    public abstract class PaginatedListRequest : IModel, IPaginatedListRequest
     {
         public PaginatedListRequest()
         {

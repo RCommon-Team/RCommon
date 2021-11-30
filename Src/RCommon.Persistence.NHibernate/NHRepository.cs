@@ -18,6 +18,7 @@ using RCommon.DataServices;
 using RCommon.BusinessEntities;
 using System.Threading;
 using MediatR;
+using RCommon.Collections;
 
 namespace RCommon.Persistence.NHibernate
 {
@@ -134,6 +135,20 @@ namespace RCommon.Persistence.NHibernate
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
             return await SessionFactory.GetCurrentSession().GetAsync<TEntity>(primaryKey, token);
+        }
+
+        public async override Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await Task.FromResult(SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate).OrderBy(specification.OrderByExpression)
+                .ToPaginatedList(specification.PageIndex, specification.PageSize));
+        }
+
+        public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            int? pageIndex, int pageSize = 0,
+            CancellationToken token = default)
+        {
+            return await Task.FromResult(SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).OrderBy(orderByExpression)
+                .ToPaginatedList(pageIndex, pageSize));
         }
 
         public override async Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)

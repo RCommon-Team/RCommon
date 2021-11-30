@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using RCommon.DataServices.Transactions;
 using RCommon.DataServices.Sql;
 using System.Threading;
+using RCommon.Collections;
 
 namespace RCommon.Persistence
 {
@@ -114,6 +115,10 @@ namespace RCommon.Persistence
         public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default);
         public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+        public abstract Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            int? pageIndex, int pageSize = 0,
+            CancellationToken token = default);
+        public abstract Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
 
         protected internal IDbConnection DbConnection
         {

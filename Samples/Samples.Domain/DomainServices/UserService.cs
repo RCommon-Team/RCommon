@@ -26,16 +26,15 @@ namespace Samples.Domain.DomainServices
         }
 
 
-        public async Task<CommandResult<IPaginatedList<ApplicationUser>>> SearchUsersAsync(string searchTerms, int pageIndex, int pageSize)
+        public async Task<CommandResult<IPaginatedList<ApplicationUser>>> SearchUsersAsync(SearchPaginatedListRequest request)
         {
             var result = new CommandResult<IPaginatedList<ApplicationUser>>();
             try
             {
 
 
-                var query = _userRepository.Where(x => x.FirstName.StartsWith(searchTerms) || x.LastName.StartsWith(searchTerms)); // We are deferring execution by doing this.
-                query = query.OrderBy(x => x.LastName); // Sort by Name for now. We can add sorting criteria later.
-                result.DataResult = query.ToPaginatedList(pageIndex, pageSize);
+                var query = _userRepository.FindAsync(x => x.FirstName.StartsWith(request.SearchString) || x.LastName.StartsWith(request.SearchString),
+                    x => x.LastName, request.PageIndex, request.PageIndex); // We are deferring execution by doing this.
                 this.Logger.LogDebug("Getting a paged list of Application Users of type {0}.", typeof(ApplicationUser).Name);
 
                 return await Task.FromResult(result);

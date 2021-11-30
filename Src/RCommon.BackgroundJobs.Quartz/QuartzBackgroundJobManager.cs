@@ -23,7 +23,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Quartz;
-using RCommon.Json;
+using RCommon.Serialization.Json;
 
 namespace RCommon.BackgroundJobs.Quartz
 {

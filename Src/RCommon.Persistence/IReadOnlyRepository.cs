@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RCommon.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -29,5 +30,10 @@ namespace RCommon.Persistence
         Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
 
         Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
+        Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            int? pageIndex, int pageSize = 0,
+            CancellationToken token = default);
+        Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
     }
 }

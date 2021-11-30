@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Samples.Application.ApplicationServices;
+using Samples.Application.Contracts.Dto;
 using Samples.Domain;
 using Samples.Domain.Entities;
 using Samples.Web.Infrastructure;
@@ -31,7 +32,11 @@ namespace Samples.Web.HttpApi
         {
             try
             {
-                var result = await _userService.SearchUsersAsync(q, page, PresentationDefaults.PagedDataSize);
+                var request = new ApplicationUserSearchRequest();
+                request.SearchString = q;
+                request.PageSize = page;
+                request.PageSize = PresentationDefaults.PagedDataSize;
+                var result = await _userService.SearchUsersAsync(request);
                 return new JsonResult(result);
             }
             catch (ApplicationException ex)

@@ -6,6 +6,7 @@ using System.Text;
 using RCommon.Extensions;
 using System.Text.Json.Serialization;
 using RCommon.Serialization.Json;
+using RCommon.Collections;
 
 namespace RCommon.Models
 {
@@ -15,15 +16,17 @@ namespace RCommon.Models
     /// </summary>
     public abstract record PaginatedListModel<TSource, TOut> : IModel
         where TSource : class, new()
+        where TOut : class, new()
     {
-        protected PaginatedListModel()
-        {
-
-        }
+        
 
         protected PaginatedListModel(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false)
         {
-            Paginate(source, paginatedListRequest, skipTotal);
+            PaginateQueryable(source, paginatedListRequest, skipTotal);
+        }
+        protected PaginatedListModel(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false)
+        {
+            PaginateList(source, paginatedListRequest, skipTotal);
         }
 
         private IQueryable<TSource> Sort(IQueryable<TSource> source)
@@ -40,8 +43,8 @@ namespace RCommon.Models
                 : source.OrderBy(sortExp);
         }
 
-        protected void Paginate(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false, 
-            int totalRows = 0, bool skipSort = false)
+        protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false, 
+            int totalRows = 0, bool skipSort = true)
         {
             if (paginatedListRequest == null)
             {
@@ -77,9 +80,15 @@ namespace RCommon.Models
             Items = CastItems(query).ToList();
         }
 
-        protected virtual Expression<Func<TSource, object>> SortExpression() => null;
+        protected void PaginateList(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false,
+            int totalRows = 0, bool skipSort = true)
+        {
+            this.PaginateQueryable(source.AsQueryable(), paginatedListRequest, skipTotal);
+        }
 
         protected abstract IQueryable<TOut> CastItems(IQueryable<TSource> source);
+
+        protected virtual Expression<Func<TSource, object>> SortExpression() => null;
 
         public List<TOut> Items { get; set; }
 

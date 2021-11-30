@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace Samples.Web.Models
+namespace RCommon.Models
 {
-    public class UserSearchRequestModel : PagingRequestModel
+    public class SearchPaginatedListRequest : PaginatedListRequest, ISearchPaginatedListRequest
     {
-        public UserSearchRequestModel()
+        public SearchPaginatedListRequest()
         {
 
         }
-
         public string SearchString { get; set; }
     }
 }

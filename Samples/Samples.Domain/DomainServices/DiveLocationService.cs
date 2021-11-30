@@ -13,6 +13,7 @@ using Samples.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -81,7 +82,8 @@ namespace Samples.Domain.DomainServices
         /// <param name="pageSize">Size of objects to include in paging</param>
         /// <returns>Returns an object called <see cref="CommandResult{TResult}"/> which encapsulates <see cref="IPaginatedList{T}"/> of type <see cref="DiveLocation"/></returns>
         /// <exception cref="BusinessException">BusinessException wraps all other exceptions.</exception>
-        public async Task<CommandResult<IPaginatedList<DiveLocation>>> GetAllDiveLocationsAsync(bool includeDetails, int pageIndex, int pageSize)
+        public async Task<CommandResult<IPaginatedList<DiveLocation>>> GetAllDiveLocationsAsync(bool includeDetails, int pageIndex, int pageSize, 
+            Expression<Func<DiveLocation, object>> orderByExpression)
         {
             var result = new CommandResult<IPaginatedList<DiveLocation>>();
             try
@@ -94,12 +96,10 @@ namespace Samples.Domain.DomainServices
                     _diveLocationRepository.EagerlyWith(x => x.DiveLocationDetail); 
                 }
 
-                var query = _diveLocationRepository.Where(x => true); // We are deferring execution by doing this.
-                query = query.OrderBy(x => x.LocationName); // Sort by Name for now. We can add sorting criteria later.
-                result.DataResult = query.ToPaginatedList(pageIndex, pageSize);
+                var query = await _diveLocationRepository.FindAsync(x => true, orderByExpression, pageIndex, pageSize);// We are deferring execution by doing this.
                 this.Logger.LogDebug("Getting a paged list of Dive Locations of type {0}.", typeof(DiveLocation).Name);
 
-                return await Task.FromResult(result);
+                result.DataResult = query;
             }
             catch (ApplicationException ex)
             {
@@ -110,7 +110,8 @@ namespace Samples.Domain.DomainServices
             return result;
         }
 
-        public async Task<CommandResult<IPaginatedList<DiveLocation>>> SearchDiveLocationsAsync(string searchTerms, bool includeDetails, int pageIndex, int pageSize)
+        public async Task<CommandResult<IPaginatedList<DiveLocation>>> SearchDiveLocationsAsync(string searchTerms, bool includeDetails, int pageIndex, 
+            int pageSize, Expression<Func<DiveLocation, object>> orderByExpression)
         {
             var result = new CommandResult<IPaginatedList<DiveLocation>>();
             try
@@ -123,9 +124,8 @@ namespace Samples.Domain.DomainServices
                     _diveLocationRepository.EagerlyWith(x => x.DiveLocationDetail);
                 }
 
-                var query = _diveLocationRepository.Where(x => x.LocationName.StartsWith(searchTerms) || x.DiveDesc.Contains(searchTerms)); // We are deferring execution by doing this.
-                query = query.OrderBy(x => x.LocationName); // Sort by Name for now. We can add sorting criteria later.
-                result.DataResult = query.ToPaginatedList(pageIndex, pageSize);
+                result.DataResult = await _diveLocationRepository.FindAsync(x => x.LocationName.StartsWith(searchTerms) || x.DiveDesc.Contains(searchTerms),
+                    orderByExpression, pageIndex, pageSize); // We are deferring execution by doing this.
                 this.Logger.LogDebug("Getting a paged list of Dive Locations of type {0}.", typeof(DiveLocation).Name);
 
                 return await Task.FromResult(result);

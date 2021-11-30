@@ -19,7 +19,7 @@
 //limitations under the License. 
 #endregion
 
-using RCommon.Json;
+using RCommon.Serialization.Json;
 using System;
 
 namespace RCommon.BackgroundJobs

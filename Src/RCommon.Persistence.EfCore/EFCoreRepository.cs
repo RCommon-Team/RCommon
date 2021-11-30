@@ -6,10 +6,12 @@
     using Microsoft.Extensions.Logging;
     using RCommon;
     using RCommon.BusinessEntities;
+    using RCommon.Collections;
     using RCommon.DataServices;
     using RCommon.DataServices.Transactions;
     using RCommon.Expressions;
     using RCommon.Extensions;
+    using RCommon.Linq;
     using System;
     using System.Collections.Generic;
     using System.Data;
@@ -79,74 +81,6 @@
             return this.ObjectSet.AsQueryable<TEntity>();
         }
 
-
-
-        public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
-        {
-            return this.FindCore(specification.Predicate);
-        }
-
-        public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression)
-        {
-            return this.FindCore(expression);
-        }
-
-        private IQueryable<TEntity> FindCore(Expression<Func<TEntity, bool>> expression)
-        {
-            IQueryable<TEntity> queryable;
-            try
-            {
-                Guard.Against<NullReferenceException>(this.RepositoryQuery == null, "RepositoryQuery is null");
-
-                queryable = this.RepositoryQuery.Where<TEntity>(expression);
-            }
-            catch (ApplicationException exception)
-            {
-                this.Logger.LogError(exception, "Error in Repository.FindCore: " + base.GetType().ToString() + " while executing a query on the Context.", expression);
-                throw new RepositoryException("Error in Repository: " + base.GetType().ToString() + " while executing a query on the Context.", exception.GetBaseException());
-            }
-            return queryable;
-        }
-
-        /*private EntityKey GetEntityKey(TEntity entity)
-        {
-            List<EntityKeyMember> entityKeyValues = new List<EntityKeyMember>();
-            using (ReadOnlyMetadataCollection<EdmMember>.Enumerator enumerator = this.ObjectSet.EntitySet.ElementType.KeyMembers.GetEnumerator())
-            {
-                while (true)
-                {
-                    if (!enumerator.MoveNext())
-                    {
-                        break;
-                    }
-                    EdmMember current = enumerator.Current;
-                    object keyValue = entity.GetType().GetProperty(current.Name).GetValue(entity, null);
-                    entityKeyValues.Add(new EntityKeyMember(current.Name, keyValue));
-                }
-            }
-            return new EntityKey(this.ObjectContext.DefaultContainerName + "." + this.ObjectSet.EntitySet.Name, entityKeyValues);
-        }*/
-
-        public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
-        {
-            return await this.FindCore(specification.Predicate).ToListAsync(token);
-        }
-
-        public async override Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
-        {
-            return await this.FindCore(expression).ToListAsync(token);
-        }
-
-        public async override Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
-        {
-            return await this.FindCore(selectSpec.Predicate).CountAsync(token);
-        }
-
-        public async override Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
-        {
-            return await this.FindCore(expression).CountAsync(token);
-        }
-
         public override async Task AttachAsync(TEntity entity, CancellationToken token = default)
         {
             this.ObjectContext.Attach<TEntity>(entity);
@@ -184,9 +118,70 @@
             await this.SaveAsync(token);
         }
 
+        private IQueryable<TEntity> FindCore(Expression<Func<TEntity, bool>> expression)
+        {
+            IQueryable<TEntity> queryable;
+            try
+            {
+                Guard.Against<NullReferenceException>(this.RepositoryQuery == null, "RepositoryQuery is null");
+
+                queryable = this.RepositoryQuery.Where<TEntity>(expression);
+            }
+            catch (ApplicationException exception)
+            {
+                this.Logger.LogError(exception, "Error in Repository.FindCore: " + base.GetType().ToString() + " while executing a query on the Context.", expression);
+                throw new RepositoryException("Error in Repository: " + base.GetType().ToString() + " while executing a query on the Context.", exception.GetBaseException());
+            }
+            return queryable;
+        }
+
+        public async override Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
+        {
+            return await this.FindCore(selectSpec.Predicate).CountAsync(token);
+        }
+
+        public async override Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await this.FindCore(expression).CountAsync(token);
+        }
+
+        public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
+        {
+            return this.FindCore(specification.Predicate);
+        }
+
+        public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression)
+        {
+            return this.FindCore(expression);
+        }
+
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
             return await this.ObjectSet.FindAsync(new object[] { primaryKey }, token);
+        }
+
+        public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await this.FindCore(specification.Predicate).ToListAsync(token);
+        }
+
+        public async override Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await this.FindCore(expression).ToListAsync(token);
+        }
+
+        public async override Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await Task.FromResult(this.FindCore(specification.Predicate).OrderBy(specification.OrderByExpression)
+                .ToPaginatedList(specification.PageIndex, specification.PageSize));
+        }
+
+        public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, 
+            int? pageIndex, int pageSize = 0, 
+            CancellationToken token = default)
+        {
+            return await Task.FromResult(this.FindCore(expression).OrderBy(orderByExpression)
+                .ToPaginatedList(pageIndex, pageSize));
         }
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)

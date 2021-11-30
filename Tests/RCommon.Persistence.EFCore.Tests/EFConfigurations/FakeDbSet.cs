@@ -190,7 +190,7 @@ namespace RCommon.Persistence.EFCore.Tests
             return _data.GetEnumerator();
         }
 
-        IAsyncEnumerator<TEntity> GetAsyncEnumerator(CancellationToken cancellationToken = default(CancellationToken))
+        public override IAsyncEnumerator<TEntity> GetAsyncEnumerator(CancellationToken cancellationToken = default(CancellationToken))
         {
             return new FakeDbAsyncEnumerator<TEntity>(this.AsEnumerable().GetEnumerator());
         }

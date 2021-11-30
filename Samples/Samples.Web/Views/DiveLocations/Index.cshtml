@@ -1,5 +1,5 @@
 ﻿@using Samples.Web.Extensions;
-@model DiveLocationListModel
+@model DiveLocationListViewModel
 
 
 @{ ViewBag.Title = "Manage Forms";
@@ -48,9 +48,9 @@
             </tr>
         </thead>
         <tbody>
-            @if (Model.PagedData != null && Model.PagedData.Data.Count() > 0)
+            @if (Model.PagedData != null && Model.PagedData.Items.Count() > 0)
             {
-@foreach (var item in Model.PagedData.Data)
+@foreach (var item in Model.PagedData.Items)
 {
 <tr>
     <td>

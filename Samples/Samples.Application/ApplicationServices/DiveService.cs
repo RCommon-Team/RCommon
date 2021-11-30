@@ -203,14 +203,15 @@ namespace Samples.Application.ApplicationServices
             return cmd;
         }
 
-        public async virtual Task<CommandResult<PaginatedListModel<DiveLocationDto>>> GetAllDiveLocationsAsync(int pageIndex, int pageSize)
+        public async virtual Task<CommandResult<DiveLocationListModel>> GetAllDiveLocationsAsync(DiveLocationSearchRequest request)
         {
-            var cmd = new CommandResult<PaginatedListModel<DiveLocationDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
+            var cmd = new CommandResult<DiveLocationListModel>(); // We only return serializable Data transfer objects (DTO) from this layer
 
             try
             {
-                
-                var locationCmd = await _diveLocationService.GetAllDiveLocationsAsync(true, pageIndex, pageSize);// Perform the work
+
+                var locationCmd = await _diveLocationService.GetAllDiveLocationsAsync(true, request.PageIndex, request.PageSize.Value,
+                    x => x.LocationName);// Perform the work
 
                 if (locationCmd.HasException)
                 {
@@ -220,18 +221,9 @@ namespace Samples.Application.ApplicationServices
                 }
                 else
                 {
-                    var diveLocationList = _objectMapper.Map<ICollection<DiveLocationDto>>(locationCmd.DataResult.OrderBy(x=>x.LocationName)); // I would normally write a custom type converter (see below) for this if time allowed
-                    //cmd.DataResult = _objectMapper.Map<PaginatedList<DiveLocationDto>>(locationCmd.DataResult); // Would need a custom type converter to do this but the in-memory affect would be the same
-                    cmd.DataResult = new PaginatedListModel<DiveLocationDto>()
-                    {
-                        Data = diveLocationList,
-                        PageIndex = locationCmd.DataResult.PageIndex,
-                        PageSize = locationCmd.DataResult.PageSize,
-                        TotalPages = locationCmd.DataResult.TotalPages,
-                        TotalCount = locationCmd.DataResult.TotalCount,
-                        HasNextPage = locationCmd.DataResult.HasNextPage,
-                        HasPreviousPage = locationCmd.DataResult.HasPreviousPage
-                    };// Map the PaginatedList to a DTO
+
+                    
+                    cmd.DataResult = new DiveLocationListModel(locationCmd.DataResult, request);
                     
                 }
                 
@@ -254,14 +246,15 @@ namespace Samples.Application.ApplicationServices
 
         }
 
-        public async virtual Task<CommandResult<PaginatedListModel<DiveLocationDto>>> SearchDiveLocationsAsync(string searchTerms, int pageIndex, int pageSize)
+        public async virtual Task<CommandResult<DiveLocationListModel>> SearchDiveLocationsAsync(DiveLocationSearchRequest request)
         {
-            var cmd = new CommandResult<PaginatedListModel<DiveLocationDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
+            var cmd = new CommandResult<DiveLocationListModel>(); // We only return serializable Data transfer objects (DTO) from this layer
 
             try
             {
                 
-                var locationCmd = await _diveLocationService.SearchDiveLocationsAsync(searchTerms, true, pageIndex, pageSize);// Perform the work
+                var locationCmd = await _diveLocationService.SearchDiveLocationsAsync(request.SearchTerms, true, request.PageIndex, request.PageSize.Value, 
+                    x => x.LocationName);// Perform the work
 
                 if (locationCmd.HasException)
                 {
@@ -271,18 +264,8 @@ namespace Samples.Application.ApplicationServices
                 }
                 else
                 {
-                    var diveLocationList = _objectMapper.Map<ICollection<DiveLocationDto>>(locationCmd.DataResult.OrderBy(x => x.LocationName)); // I would normally write a custom type converter (see below) for this if time allowed
                     //cmd.DataResult = _objectMapper.Map<PaginatedList<DiveLocationDto>>(locationCmd.DataResult); // Would need a custom type converter to do this but the in-memory affect would be the same
-                    cmd.DataResult = new PaginatedListModel<DiveLocationDto>()
-                    {
-                        Data = diveLocationList,
-                        PageIndex = locationCmd.DataResult.PageIndex,
-                        PageSize = locationCmd.DataResult.PageSize,
-                        TotalPages = locationCmd.DataResult.TotalPages,
-                        TotalCount = locationCmd.DataResult.TotalCount,
-                        HasNextPage = locationCmd.DataResult.HasNextPage,
-                        HasPreviousPage = locationCmd.DataResult.HasPreviousPage
-                    };// Map the PaginatedList to a DTO
+                    cmd.DataResult = new DiveLocationListModel(locationCmd.DataResult, request); // Map the PaginatedList to a DTO
 
                 }
 
