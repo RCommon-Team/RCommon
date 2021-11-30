@@ -172,16 +172,32 @@
 
         public async override Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await Task.FromResult(this.FindCore(specification.Predicate).OrderBy(specification.OrderByExpression)
-                .ToPaginatedList(specification.PageIndex, specification.PageSize));
+            IQueryable<TEntity> query;
+            if (specification.OrderByAscending)
+            {
+                query = this.FindCore(specification.Predicate).OrderBy(specification.OrderByExpression);
+            }
+            else
+            {
+                query = this.FindCore(specification.Predicate).OrderByDescending(specification.OrderByExpression);
+            }
+            return await Task.FromResult(query.ToPaginatedList(specification.PageIndex, specification.PageSize));
         }
 
-        public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, 
-            int? pageIndex, int pageSize = 0, 
+        public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending, int? pageIndex, int pageSize = 0, 
             CancellationToken token = default)
         {
-            return await Task.FromResult(this.FindCore(expression).OrderBy(orderByExpression)
-                .ToPaginatedList(pageIndex, pageSize));
+            IQueryable<TEntity> query;
+            if (orderByAscending)
+            {
+                query = this.FindCore(expression).OrderBy(orderByExpression);
+            }
+            else
+            {
+                query = this.FindCore(expression).OrderByDescending(orderByExpression);
+            }
+            return await Task.FromResult(query.ToPaginatedList(pageIndex, pageSize));
         }
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)

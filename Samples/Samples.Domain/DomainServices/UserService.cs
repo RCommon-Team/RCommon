@@ -34,7 +34,7 @@ namespace Samples.Domain.DomainServices
 
 
                 var query = _userRepository.FindAsync(x => x.FirstName.StartsWith(request.SearchString) || x.LastName.StartsWith(request.SearchString),
-                    x => x.LastName, request.PageIndex, request.PageIndex); // We are deferring execution by doing this.
+                    x => x.LastName, true, request.PageIndex, request.PageIndex); // We are deferring execution by doing this.
                 this.Logger.LogDebug("Getting a paged list of Application Users of type {0}.", typeof(ApplicationUser).Name);
 
                 return await Task.FromResult(result);

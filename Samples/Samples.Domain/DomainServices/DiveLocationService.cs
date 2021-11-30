@@ -96,7 +96,7 @@ namespace Samples.Domain.DomainServices
                     _diveLocationRepository.EagerlyWith(x => x.DiveLocationDetail); 
                 }
 
-                var query = await _diveLocationRepository.FindAsync(x => true, orderByExpression, pageIndex, pageSize);// We are deferring execution by doing this.
+                var query = await _diveLocationRepository.FindAsync(x => true, orderByExpression, true, pageIndex, pageSize);// We are deferring execution by doing this.
                 this.Logger.LogDebug("Getting a paged list of Dive Locations of type {0}.", typeof(DiveLocation).Name);
 
                 result.DataResult = query;
@@ -125,7 +125,7 @@ namespace Samples.Domain.DomainServices
                 }
 
                 result.DataResult = await _diveLocationRepository.FindAsync(x => x.LocationName.StartsWith(searchTerms) || x.DiveDesc.Contains(searchTerms),
-                    orderByExpression, pageIndex, pageSize); // We are deferring execution by doing this.
+                    orderByExpression, true, pageIndex, pageSize); // We are deferring execution by doing this.
                 this.Logger.LogDebug("Getting a paged list of Dive Locations of type {0}.", typeof(DiveLocation).Name);
 
                 return await Task.FromResult(result);

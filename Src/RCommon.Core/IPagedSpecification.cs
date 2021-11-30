@@ -13,5 +13,7 @@ namespace RCommon
         public int PageSize { get; }
 
         public Expression<Func<T, object>> OrderByExpression { get; }
+
+        public bool OrderByAscending { get; set; }
     }
 }
