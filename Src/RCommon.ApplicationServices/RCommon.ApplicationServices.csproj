@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -10,7 +10,7 @@
     <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
-    <Version>1.0.1.44</Version>
+    <Version>1.0.1.45</Version>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, application services, common application services, email, CRUD helpers, c#, .NET</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

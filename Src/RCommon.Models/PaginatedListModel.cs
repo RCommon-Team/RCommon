@@ -18,7 +18,8 @@ namespace RCommon.Models
         where TSource : class, new()
         where TOut : class, new()
     {
-        
+
+        private Expression<Func<TSource, object>> _sortExpression = null;
 
         protected PaginatedListModel(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false)
         {
@@ -31,16 +32,15 @@ namespace RCommon.Models
 
         private IQueryable<TSource> Sort(IQueryable<TSource> source)
         {
-            var sortExp = SortExpression();
 
-            if (sortExp == null)
+            if (this.SortExpression == null)
             {
                 return source;
             }
 
             return SortDirection == SortDirectionEnum.Descending
-                ? source.OrderByDescending(sortExp)
-                : source.OrderBy(sortExp);
+                ? source.OrderByDescending(this.SortExpression)
+                : source.OrderBy(this.SortExpression);
         }
 
         protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false, 
@@ -88,7 +88,8 @@ namespace RCommon.Models
 
         protected abstract IQueryable<TOut> CastItems(IQueryable<TSource> source);
 
-        protected virtual Expression<Func<TSource, object>> SortExpression() => null;
+        [JsonIgnore]
+        public virtual Expression<Func<TSource, object>> SortExpression { get => _sortExpression; set => _sortExpression = value; }
 
         public List<TOut> Items { get; set; }
 
