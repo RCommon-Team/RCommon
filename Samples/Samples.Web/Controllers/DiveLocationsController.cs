@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -32,18 +33,22 @@ namespace Samples.Web.Controllers
 
         public async Task<IActionResult> Index(int? currentPage, string? searchTerms)
         {
-            var model = new DiveLocationListModel();
+            var model = new DiveLocationListViewModel();
             try
             {
+                CommandResult<DiveLocationListModel> cmd = new CommandResult<DiveLocationListModel>();
                 model.CurrentPage = currentPage.GetValueOrDefault(1);
-                CommandResult<PaginatedListModel<DiveLocationDto>> cmd = new CommandResult<PaginatedListModel<DiveLocationDto>>();
+                var request = new DiveLocationSearchRequest();
+                request.SearchTerms = searchTerms;
+                request.PageSize = PresentationDefaults.PagedDataSize;
+                request.PageIndex = currentPage.HasValue ? currentPage.Value : 1;
                 if (searchTerms == null)
                 {
-                    cmd = await _diveService.GetAllDiveLocationsAsync(model.CurrentPage, PresentationDefaults.PagedDataSize);
+                    cmd = await _diveService.GetAllDiveLocationsAsync(request);
                 }
                 else
                 {
-                    cmd = await _diveService.SearchDiveLocationsAsync(searchTerms, model.CurrentPage, PresentationDefaults.PagedDataSize);
+                    cmd = await _diveService.SearchDiveLocationsAsync(request);
 
                 }
 

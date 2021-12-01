@@ -158,10 +158,10 @@ namespace RCommon.Extensions
 
 				return dtData;
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 
-				throw ex;
+				throw;
 			}
 			finally
 			{

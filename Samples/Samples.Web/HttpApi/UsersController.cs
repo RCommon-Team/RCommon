@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Samples.Application.ApplicationServices;
+using Samples.Application.Contracts.Dto;
 using Samples.Domain;
 using Samples.Domain.Entities;
 using Samples.Web.Infrastructure;
@@ -9,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Samples.Web.HttpApi
 {
@@ -31,7 +31,11 @@ namespace Samples.Web.HttpApi
         {
             try
             {
-                var result = await _userService.SearchUsersAsync(q, page, PresentationDefaults.PagedDataSize);
+                var request = new ApplicationUserSearchRequest();
+                request.SearchString = q;
+                request.PageSize = page;
+                request.PageSize = PresentationDefaults.PagedDataSize;
+                var result = await _userService.SearchUsersAsync(request);
                 return new JsonResult(result);
             }
             catch (ApplicationException ex)

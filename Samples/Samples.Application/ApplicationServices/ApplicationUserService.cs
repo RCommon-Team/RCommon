@@ -26,27 +26,16 @@ namespace Samples.Application.ApplicationServices
             _objectMapper = objectMapper;
         }
 
-        public async virtual Task<CommandResult<PaginatedListModel<ApplicationUserDto>>> SearchUsersAsync(string searchTerms, int pageIndex, int pageSize)
+        public async virtual Task<CommandResult<ApplicationUserListModel>> SearchUsersAsync(ApplicationUserSearchRequest request)
         {
-            var cmd = new CommandResult<PaginatedListModel<ApplicationUserDto>>(); // We only return serializable Data transfer objects (DTO) from this layer
+            var cmd = new CommandResult<ApplicationUserListModel>(); // We only return serializable Data transfer objects (DTO) from this layer
 
             try
             {
 
-                var userCmd = await _userService.SearchUsersAsync(searchTerms, pageIndex, pageSize);// Perform the work
+                var userCmd = await _userService.SearchUsersAsync(request);// Perform the work
 
-                var userList = _objectMapper.Map<ICollection<ApplicationUserDto>>(userCmd.DataResult.OrderBy(x => x.LastName)); // I would normally write a custom type converter (see below) for this if time allowed
-
-                cmd.DataResult = new PaginatedListModel<ApplicationUserDto>()
-                {
-                    Data = userList,
-                    PageIndex = userCmd.DataResult.PageIndex,
-                    PageSize = userCmd.DataResult.PageSize,
-                    TotalPages = userCmd.DataResult.TotalPages,
-                    TotalCount = userCmd.DataResult.TotalCount,
-                    HasNextPage = userCmd.DataResult.HasNextPage,
-                    HasPreviousPage = userCmd.DataResult.HasPreviousPage
-                };// Map the PaginatedList to a DTO
+                cmd.DataResult = new ApplicationUserListModel(userCmd.DataResult, request);// Map the PaginatedList to a DTO
 
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException
@@ -65,7 +54,8 @@ namespace Samples.Application.ApplicationServices
             }
             catch (Exception ex)
             {
-                throw ex;
+                this.Logger.LogError(ex.Message, ex);
+                throw;
             }
             return cmd;
 

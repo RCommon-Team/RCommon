@@ -17,12 +17,12 @@ namespace Samples.Application.ApplicationServices
         Task<CommandResult<bool>> DeleteDiveLocationAsync(DiveLocationDto diveLocationDto);
         Task<CommandResult<bool>> UpdateDiveLocationAsync(DiveLocationDto diveLocationDto);
 
-        Task<CommandResult<PaginatedListModel<DiveLocationDto>>> GetAllDiveLocationsAsync(int pageIndex, int pageSize);
+        Task<CommandResult<DiveLocationListModel>> GetAllDiveLocationsAsync(DiveLocationSearchRequest request);
 
         Task<CommandResult<ICollection<DiveTypeDto>>> GetAllDiveTypesAsync();
 
         Task<CommandResult<DiveLocationDto>> GetDiveLocationByIdAsync(Guid id);
 
-        Task<CommandResult<PaginatedListModel<DiveLocationDto>>> SearchDiveLocationsAsync(string searchTerms, int pageIndex, int pageSize);
+        Task<CommandResult<DiveLocationListModel>> SearchDiveLocationsAsync(DiveLocationSearchRequest request);
     }
 }

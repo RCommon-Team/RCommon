@@ -1,4 +1,5 @@
 ﻿using RCommon.BusinessEntities;
+using RCommon.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,5 +28,9 @@ namespace RCommon.Persistence.EFCore
         Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default);
         Task UpdateAsync(TEntity entity, CancellationToken token = default);
+        Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending, int? pageIndex, int pageSize = 0,
+            CancellationToken token = default);
+        Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
     }
 }

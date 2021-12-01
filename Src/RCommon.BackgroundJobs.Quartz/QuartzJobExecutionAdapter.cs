@@ -27,7 +27,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Quartz;
 using RCommon.Extensions;
-using RCommon.Json;
+using RCommon.Serialization.Json;
 
 namespace RCommon.BackgroundJobs.Quartz
 {

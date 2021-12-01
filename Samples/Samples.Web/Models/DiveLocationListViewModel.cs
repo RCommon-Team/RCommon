@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Samples.Web.Models
 {
-    public class DiveLocationListModel
+    public class DiveLocationListViewModel
     {
         public string DisplayMessage { get; set; }
 
@@ -34,7 +34,7 @@ namespace Samples.Web.Models
                 }
                 else
                 {
-                    return this.PagedData.PageSize;
+                    return this.PagedData.PageSize.Value;
                 }
 
 
@@ -43,7 +43,7 @@ namespace Samples.Web.Models
 
         public int TotalPages => this.PagedData.TotalPages;
 
-        public PaginatedListModel<DiveLocationDto> PagedData { get; set; }
+        public DiveLocationListModel PagedData { get; set; }
 
         public bool ShowPrevious => this.PagedData.HasPreviousPage;
         public bool ShowNext => this.PagedData.HasNextPage;

@@ -4,6 +4,8 @@ using RCommon.Collections;
 using RCommon.Expressions;
 using RCommon.Models;
 using Samples.Domain.Entities;
+using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Samples.Domain.DomainServices
@@ -21,7 +23,8 @@ namespace Samples.Domain.DomainServices
         /// <param name="pageSize">Size of objects to include in paging</param>
         /// <returns>Returns an object called <see cref="CommandResult{TResult}"/> which encapsulates <see cref="IPaginatedList{T}"/> of type <see cref="DiveLocation"/></returns>
         /// <exception cref="BusinessException">BusinessException wraps all other exceptions.</exception>
-        Task<CommandResult<IPaginatedList<DiveLocation>>> GetAllDiveLocationsAsync(bool includeDetails, int pageIndex, int pageSize);
+        Task<CommandResult<IPaginatedList<DiveLocation>>> GetAllDiveLocationsAsync(bool includeDetails, int pageIndex, int pageSize,
+            Expression<Func<DiveLocation, object>> orderByExpression);
 
         /// <summary>
         /// Deletes the <see cref="DiveLocationDetail"/> record.
@@ -44,6 +47,7 @@ namespace Samples.Domain.DomainServices
         /// <returns>True if success</returns>
         Task<CommandResult<bool>> CreateDiveLocationDetailsAsync(DiveLocationDetail locationDetail);
 
-        Task<CommandResult<IPaginatedList<DiveLocation>>> SearchDiveLocationsAsync(string searchTerms, bool includeDetails, int pageIndex, int pageSize);
+        Task<CommandResult<IPaginatedList<DiveLocation>>> SearchDiveLocationsAsync(string searchTerms, bool includeDetails, int pageIndex, int pageSize, 
+            Expression<Func<DiveLocation, object>> orderByExpression);
     }
 }

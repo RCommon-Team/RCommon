@@ -18,6 +18,7 @@ using RCommon.DataServices;
 using RCommon.BusinessEntities;
 using System.Threading;
 using MediatR;
+using RCommon.Collections;
 
 namespace RCommon.Persistence.NHibernate
 {
@@ -134,6 +135,38 @@ namespace RCommon.Persistence.NHibernate
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
             return await SessionFactory.GetCurrentSession().GetAsync<TEntity>(primaryKey, token);
+        }
+
+        public async override Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
+        {
+            IQueryable<TEntity> query = SessionFactory.GetCurrentSession().Query<TEntity>().Where(specification.Predicate);
+            if (specification.OrderByAscending)
+            {
+                query = query.OrderBy(specification.OrderByExpression);
+            }
+            else
+            {
+                query = query.OrderByDescending(specification.OrderByExpression);
+            }
+            return await Task.FromResult(query
+                .ToPaginatedList(specification.PageIndex, specification.PageSize));
+        }
+
+        public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending, int? pageIndex, int pageSize = 0,
+            CancellationToken token = default)
+        {
+            IQueryable<TEntity> query = SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression);
+            if (orderByAscending)
+            {
+                query = query.OrderBy(orderByExpression);
+            }
+            else
+            {
+                query = query.OrderByDescending(orderByExpression);
+            }
+            return await Task.FromResult(query
+                .ToPaginatedList(pageIndex, pageSize));
         }
 
         public override async Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)

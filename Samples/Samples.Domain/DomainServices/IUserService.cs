@@ -8,6 +8,6 @@ namespace Samples.Domain.DomainServices
 {
     public interface IUserService
     {
-        Task<CommandResult<IPaginatedList<ApplicationUser>>> SearchUsersAsync(string searchTerms, int pageIndex, int pageSize);
+        Task<CommandResult<IPaginatedList<ApplicationUser>>> SearchUsersAsync(SearchPaginatedListRequest request);
     }
 }

@@ -37,6 +37,7 @@ namespace RCommon.Persistence.Dapper
 
             // Dapper Repository
             this.ContainerAdapter.AddGeneric(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(IWriteOnlyRepository<>), typeof(DapperRepository<>));
 
             // Registered DbContexts
             foreach (var dbContext in _dbContextTypes)
