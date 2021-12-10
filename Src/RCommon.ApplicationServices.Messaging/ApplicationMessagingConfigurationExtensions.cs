@@ -23,7 +23,7 @@ namespace RCommon.ApplicationServices.Messaging
 
         public static IRCommonConfiguration AddDisributedUnitOfWorkToMediatorPipeline(this IRCommonConfiguration config)
         {
-            config.ContainerAdapter.AddGeneric(typeof(DistributedUnitOfWorkBehavior<,>), typeof(IPipelineBehavior<,>));
+            config.ContainerAdapter.AddGeneric(typeof(IPipelineBehavior<,>), typeof(DistributedUnitOfWorkBehavior<,>));
             return config;
         }
 
