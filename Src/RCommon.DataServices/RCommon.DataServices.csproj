@@ -12,7 +12,7 @@
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, data services, generic unit of work, unit of work abstractions, transactions, distributed transactions, c#, .NET</PackageTags>
-    <Version>1.0.1.45</Version>
+    <Version>1.0.1.46</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 

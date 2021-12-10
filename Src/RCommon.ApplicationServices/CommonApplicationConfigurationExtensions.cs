@@ -31,19 +31,19 @@ namespace RCommon.Configuration
 
         public static IRCommonConfiguration AddLoggingToMediatorPipeline(this IRCommonConfiguration config)
         {
-            config.ContainerAdapter.AddGeneric(typeof(LoggingBehavior<,>), typeof(IPipelineBehavior<,>));
+            config.ContainerAdapter.AddGeneric(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             return config;
         }
 
         public static IRCommonConfiguration AddValidationToMediatorPipeline(this IRCommonConfiguration config)
         {
-            config.ContainerAdapter.AddGeneric(typeof(ValidatorBehavior<,,>), typeof(IPipelineBehavior<,>));
+            config.ContainerAdapter.AddGeneric(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,,>));
             return config;
         }
 
         public static IRCommonConfiguration AddUnitOfWorkToMediatorPipeline(this IRCommonConfiguration config)
         {
-            config.ContainerAdapter.AddGeneric(typeof(UnitOfWorkBehavior<,>), typeof(IPipelineBehavior<,>));
+            config.ContainerAdapter.AddGeneric(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
             return config;
         }
 
