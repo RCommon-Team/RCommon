@@ -218,6 +218,8 @@ namespace RCommon.Extensions
             return @object.GetType().GetGenericTypeName();
         }
 
+        
+
         /// <summary>
         /// Traverses and object, and it's properties recursively to find any object which matches the type param of <typeparamref name="T"/>
         /// and returns that object into the output collection.

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Core.Extensions
+namespace RCommon.Extensions
 {
     public static class TypeExtensions
     {
