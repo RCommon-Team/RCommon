@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.Behaviors
 {
-    public abstract class ValidatorBehavior<TRequest, TResponse, TException> : IPipelineBehavior<TRequest, TResponse> where TException : GeneralException, new()
+    public abstract class ValidatorBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     {
-        private readonly ILogger<ValidatorBehavior<TRequest, TResponse, TException>> _logger;
+        private readonly ILogger<ValidatorBehavior<TRequest, TResponse>> _logger;
         private readonly IValidator<TRequest>[] _validators;
 
-        public ValidatorBehavior(IValidator<TRequest>[] validators, ILogger<ValidatorBehavior<TRequest, TResponse, TException>> logger)
+        public ValidatorBehavior(IValidator<TRequest>[] validators, ILogger<ValidatorBehavior<TRequest, TResponse>> logger)
         {
             _validators = validators;
             _logger = logger;
@@ -38,8 +38,7 @@ namespace RCommon.ApplicationServices.Behaviors
             {
                 _logger.LogWarning("Validation errors - {CommandType} - Command: {@Command} - Errors: {@ValidationErrors}", typeName, request, failures);
                 string message = $"Command Validation Errors for type {typeof(TRequest).Name}";
-                var ex = Activator.CreateInstance(typeof(TException), new object[] { message, new ValidationException("Validation exception", failures) }) as TException;
-                throw ex;
+                throw new ValidationException("Validation exception", failures);
             }
 
             return await next();
