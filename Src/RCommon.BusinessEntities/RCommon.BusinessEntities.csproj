@@ -12,7 +12,7 @@
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, business entities, business entity abstractions, CRUD helpers, multitenant entities, c#, .NET</PackageTags>
-    <Version>1.0.1.48</Version>
+    <Version>1.0.1.49</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 

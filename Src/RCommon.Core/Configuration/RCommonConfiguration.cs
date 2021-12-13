@@ -94,7 +94,7 @@ namespace RCommon.Configuration
         public IRCommonConfiguration WithDateTimeSystem<T>(Action<SystemTimeOptions> actions) where T : ISystemTime
         {
             this.ContainerAdapter.Services.Configure<SystemTimeOptions>(actions);
-            this.ContainerAdapter.AddTransient<ISystemTime, SystemTime>();
+            this.ContainerAdapter.AddTransient<ISystemTime, T>();
             return this;
         }
 

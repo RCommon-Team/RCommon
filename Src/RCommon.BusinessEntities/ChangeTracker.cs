@@ -10,12 +10,11 @@ namespace RCommon.BusinessEntities
 {
     public class ChangeTracker : IChangeTracker
     {
-        private readonly IMediator _mediator;
         private readonly ICollection<IBusinessEntity> _businessEntities = new List<IBusinessEntity>();
 
-        public ChangeTracker(IMediator mediator)
+        public ChangeTracker()
         {
-            _mediator = mediator;
+            
         }
 
         public void AddEntity(IBusinessEntity entity)

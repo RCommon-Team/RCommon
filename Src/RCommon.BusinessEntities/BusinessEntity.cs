@@ -9,32 +9,18 @@ namespace RCommon.BusinessEntities
 {
     /// <inheritdoc/>
     [Serializable]
-    public abstract class BusinessEntity : IBusinessEntity, INotifyPropertyChanged
+    public abstract class BusinessEntity : IBusinessEntity
     {
         private bool _allowChangeTracking = true;
         public BusinessEntity()
         {
-            this.PropertyChanged += OnPropertyChanged;
+            
         }
 
-        // Not sure this is neccesary.
-        protected void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
-            if (this.AllowChangeTracking)
-            {
-                this.IsChanged = true;
-            }
-        }
-
+        
         public event EventHandler<LocalEventsChangedEventArgs> LocalEventsAdded;
         public event EventHandler<LocalEventsChangedEventArgs> LocalEventsRemoved;
         public event EventHandler<LocalEventsClearedEventArgs> LocalEventsCleared;
-        public event PropertyChangedEventHandler PropertyChanged;
 
 
         /// <inheritdoc/>
@@ -44,6 +30,7 @@ namespace RCommon.BusinessEntities
         }
 
         public abstract object[] GetKeys();
+
         public bool IsChanged { get; set; }
 
         public bool EntityEquals(IBusinessEntity other)
