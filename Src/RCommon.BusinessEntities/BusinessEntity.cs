@@ -31,8 +31,6 @@ namespace RCommon.BusinessEntities
 
         public abstract object[] GetKeys();
 
-        public bool IsChanged { get; set; }
-
         public bool EntityEquals(IBusinessEntity other)
         {
             return this.BinaryEquals(other);
