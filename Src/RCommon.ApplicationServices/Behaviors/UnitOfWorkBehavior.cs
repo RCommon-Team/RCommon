@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Extensions;
-using Serilog.Context;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +36,6 @@ namespace RCommon.ApplicationServices.Behaviors
                 }
 
                 using (var unitOfWork = this._unitOfWorkScopeFactory.Create(TransactionMode.Default))
-                using (LogContext.PushProperty("TransactionContext", this._unitOfWorkManager.CurrentUnitOfWork.TransactionId))
                 {
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})", 
                         this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName, request);

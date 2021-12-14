@@ -17,7 +17,7 @@ namespace Samples.ObjectAccess.EFCore
             builder.ToTable("DiveLocations", "dbo");
             builder.HasKey(x => x.Id).HasName("PK_DiveLocations").IsClustered();
             builder.Ignore(x => x.AllowChangeTracking);
-            builder.Ignore(x => x.IsChanged);
+            //builder.Ignore(x => x.IsChanged);
             builder.Property(x => x.Id).HasColumnName(@"Id").HasColumnType("uniqueidentifier").IsRequired().ValueGeneratedNever();
             builder.Property(x => x.LocationName).HasColumnName(@"LocationName").HasColumnType("nvarchar(255)").IsRequired().HasMaxLength(255);
             builder.Property(x => x.GpsCoordinates).HasColumnName(@"GpsCoordinates").HasColumnType("nvarchar(255)").IsRequired().HasMaxLength(255);

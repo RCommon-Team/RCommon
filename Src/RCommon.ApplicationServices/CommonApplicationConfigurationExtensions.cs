@@ -37,7 +37,7 @@ namespace RCommon.Configuration
 
         public static IRCommonConfiguration AddValidationToMediatorPipeline(this IRCommonConfiguration config)
         {
-            config.ContainerAdapter.AddGeneric(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,,>));
+            config.ContainerAdapter.AddGeneric(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
             return config;
         }
 

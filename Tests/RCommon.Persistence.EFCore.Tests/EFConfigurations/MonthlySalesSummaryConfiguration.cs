@@ -30,7 +30,7 @@ namespace RCommon.Persistence.EFCore.Tests
             builder.ToTable("MonthlySalesSummary", "dbo");
             builder.HasKey(x => new { x.Year, x.Month, x.SalesPersonId }).HasName("PK__MonthlyS__C26E735F2ADBDAB9").IsClustered();
             builder.Ignore(x => x.AllowChangeTracking);
-            builder.Ignore(x => x.IsChanged);
+            //builder.Ignore(x => x.IsChanged);
             builder.Property(x => x.Year).HasColumnName(@"Year").HasColumnType("int").IsRequired().ValueGeneratedNever();
             builder.Property(x => x.Month).HasColumnName(@"Month").HasColumnType("int").IsRequired().ValueGeneratedNever();
             builder.Property(x => x.SalesPersonId).HasColumnName(@"SalesPersonId").HasColumnType("int").IsRequired().ValueGeneratedNever();

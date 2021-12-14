@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.1.49</Version>
+    <Version>1.0.1.50</Version>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
     <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
@@ -27,7 +27,6 @@
   <ItemGroup>
     <PackageReference Include="MassTransit" Version="7.2.4" />
     <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="7.2.4" />
-    <PackageReference Include="Serilog" Version="2.10.0" />
   </ItemGroup>
 
   <ItemGroup>

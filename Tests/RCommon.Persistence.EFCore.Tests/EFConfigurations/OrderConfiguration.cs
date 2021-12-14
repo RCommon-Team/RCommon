@@ -30,7 +30,7 @@ namespace RCommon.Persistence.EFCore.Tests
             builder.ToTable("Orders", "dbo");
             builder.HasKey(x => x.OrderId).HasName("PK__Orders__C3905BAF964CE0E8").IsClustered();
             builder.Ignore(x => x.AllowChangeTracking);
-            builder.Ignore(x => x.IsChanged);
+            //builder.Ignore(x => x.IsChanged);
             builder.Property(x => x.OrderId).HasColumnName(@"OrderID").HasColumnType("int").IsRequired().ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(x => x.OrderDate).HasColumnName(@"OrderDate").HasColumnType("datetime").IsRequired(false);
             builder.Property(x => x.ShipDate).HasColumnName(@"ShipDate").HasColumnType("datetime").IsRequired(false);
