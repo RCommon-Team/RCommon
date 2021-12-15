@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.Behaviors
 {
-    public abstract class ValidatorBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class ValidatorBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     {
         private readonly ILogger<ValidatorBehavior<TRequest, TResponse>> _logger;
         private readonly IValidator<TRequest>[] _validators;
