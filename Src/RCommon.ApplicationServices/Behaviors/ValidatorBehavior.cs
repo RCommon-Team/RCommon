@@ -12,11 +12,12 @@ using System.Threading.Tasks;
 namespace RCommon.ApplicationServices.Behaviors
 {
     public class ValidatorBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<ValidatorBehavior<TRequest, TResponse>> _logger;
-        private readonly IValidator<TRequest>[] _validators;
+        private readonly IEnumerable<IValidator<TRequest>> _validators;
 
-        public ValidatorBehavior(IValidator<TRequest>[] validators, ILogger<ValidatorBehavior<TRequest, TResponse>> logger)
+        public ValidatorBehavior(IEnumerable<IValidator<TRequest>> validators, ILogger<ValidatorBehavior<TRequest, TResponse>> logger)
         {
             _validators = validators;
             _logger = logger;
@@ -28,19 +29,18 @@ namespace RCommon.ApplicationServices.Behaviors
 
             _logger.LogInformation("----- Validating command {CommandType}", typeName);
 
-            var failures = _validators
-                .Select(v => v.Validate(request))
-                .SelectMany(result => result.Errors)
-                .Where(error => error != null)
-                .ToList();
-
-            if (failures.Any())
+            if (_validators.Any())
             {
-                _logger.LogWarning("Validation errors - {CommandType} - Command: {@Command} - Errors: {@ValidationErrors}", typeName, request, failures);
-                string message = $"Command Validation Errors for type {typeof(TRequest).Name}";
-                throw new ValidationException("Validation exception", failures);
+                var context = new ValidationContext<TRequest>(request);
+                var validationResults = await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+                var failures = validationResults.SelectMany(r => r.Errors).Where(f => f != null).ToList();
+                if (failures.Count != 0)
+                {
+                    _logger.LogWarning("Validation errors - {CommandType} - Command: {@Command} - Errors: {@ValidationErrors}", typeName, request, failures);
+                    string message = $"Command Validation Errors for type {typeof(TRequest).Name}";
+                    throw new FluentValidation.ValidationException(message, failures);
+                }
             }
-
             return await next();
         }
     }

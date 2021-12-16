@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.Messaging.Behaviors
 {
-    public class DistributedUnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> 
-        where TRequest : notnull
+    public class DistributedUnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> _logger;
         private readonly IDistributedEventBroker _distributedEventBroker;
