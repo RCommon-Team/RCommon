@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace RCommon.ApplicationServices.Behaviors
 {
     public class UnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<UnitOfWorkBehavior<TRequest, TResponse>> _logger;
         private readonly IUnitOfWorkScopeFactory _unitOfWorkScopeFactory;

@@ -1,12 +1,13 @@
 ﻿
+using MassTransit;
 using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.Messaging
 {
-    public interface IDistributedEventHandler<in TDistributedEvent> : IDistributedEventHandler
+    public interface IDistributedEventHandler<in TDistributedEvent> : IDistributedEventHandler, IConsumer<TDistributedEvent>
         where TDistributedEvent : DistributedEvent
     {
-        Task Handle(TDistributedEvent @event);
+        
     }
 
     public interface IDistributedEventHandler
