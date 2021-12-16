@@ -9,22 +9,22 @@ namespace RCommon.ApplicationServices.Messaging
 {
     public class DistributedEventBroker : IDistributedEventBroker
     {
-        private readonly IPublishEndpoint _pubishEndpoint;
-        private List<IDistributedEvent> _distributedEvents;
+        private readonly IPublishEndpoint _publishEndpoint;
+        private List<object> _distributedEvents;
 
-        public DistributedEventBroker(IPublishEndpoint pubishEndpoint)
+        public DistributedEventBroker(IPublishEndpoint publishEndpoint)
         {
-            _pubishEndpoint = pubishEndpoint;
-            this._distributedEvents = new List<IDistributedEvent>();
+            _publishEndpoint = publishEndpoint;
+            this._distributedEvents = new List<object>();
         }
 
-        public void AddDistributedEvent(IDistributedEvent distributedEvent)
+        public void AddDistributedEvent<T>(T distributedEvent) where T : IDistributedEvent
         {
             Guard.IsNotNull(distributedEvent, "distributedEvent");
             this._distributedEvents.Add(distributedEvent);
         }
 
-        public void RemoveDistributedEvent(IDistributedEvent distributedEvent)
+        public void RemoveDistributedEvent<T>(T distributedEvent) where T : IDistributedEvent
         {
             Guard.IsNotNull(distributedEvent, "distributedEvent");
             this._distributedEvents.Remove(distributedEvent);
@@ -37,9 +37,9 @@ namespace RCommon.ApplicationServices.Messaging
 
         public async Task PublishDistributedEvents(CancellationToken cancellationToken)
         {
-            await _pubishEndpoint.PublishBatch(DistributedEvents, cancellationToken);
+            await _publishEndpoint.PublishBatch(DistributedEvents, cancellationToken);
         }
 
-        public IReadOnlyCollection<IDistributedEvent> DistributedEvents { get => _distributedEvents; }
+        public IReadOnlyCollection<object> DistributedEvents { get => _distributedEvents; }
     }
 }

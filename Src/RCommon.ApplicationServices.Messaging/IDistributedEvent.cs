@@ -1,10 +1,9 @@
-﻿namespace RCommon.ApplicationServices.Messaging
+﻿
+namespace RCommon.ApplicationServices.Messaging
 {
     public interface IDistributedEvent
     {
-        bool Equals(DistributedEvent? other);
-        bool Equals(object? obj);
-        int GetHashCode();
-        string ToString();
+        DateTime CreationDate { get; }
+        Guid Id { get; }
     }
 }
