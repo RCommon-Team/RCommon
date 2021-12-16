@@ -31,7 +31,7 @@ namespace RCommon
             get
             {
                 _httpContextAccessor = _serviceProvider.GetService<IHttpContextAccessor>();
-                return HttpContextAccessor == null ? false : true;
+                return HttpContextAccessor == null || HttpContextAccessor.HttpContext == null ? false : true;
             }
         }
 

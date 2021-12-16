@@ -3,11 +3,11 @@ namespace RCommon.ApplicationServices.Messaging
 {
     public interface IDistributedEventBroker
     {
-        IReadOnlyCollection<IDistributedEvent> DistributedEvents { get; }
+        IReadOnlyCollection<object> DistributedEvents { get; }
 
-        void AddDistributedEvent(IDistributedEvent distributedEvent);
+        void AddDistributedEvent<T>(T distributedEvent) where T : IDistributedEvent;
         void ClearDistributedEvents();
         Task PublishDistributedEvents(CancellationToken cancellationToken);
-        void RemoveDistributedEvent(IDistributedEvent distributedEvent);
+        void RemoveDistributedEvent<T>(T distributedEvent) where T : IDistributedEvent;
     }
 }
