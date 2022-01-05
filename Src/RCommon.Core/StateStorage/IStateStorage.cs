@@ -21,19 +21,10 @@ namespace RCommon.StateStorage
     /// </summary>
     public interface IStateStorage
     {
-        /// <summary>
-        /// Gets the application specific state.
-        /// </summary>
-        IApplicationState Application { get; }
-
-        /// <summary>
-        /// Gets the session specific state.
-        /// </summary>
-        ISessionState Session { get; }
 
         /// <summary>
         /// Gets the thread local / request local specific state.
         /// </summary>
-        IContextState Local { get; }
+        IContextState LocalContext { get; }
     }
 }

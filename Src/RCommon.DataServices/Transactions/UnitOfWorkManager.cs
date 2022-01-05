@@ -41,8 +41,8 @@ namespace RCommon.DataServices.Transactions
             Guard.Against<ArgumentNullException>(transactionManager == null, "transactionManager parameter cannot be null");
             _logger.LogDebug("The transaction manager provider is being set or overriden. Using supplied" +
                                 " trasaction manager provider.");
-            _stateStorage.Local.Remove<IUnitOfWorkTransactionManager>(LocalTransactionManagerKey);
-            _stateStorage.Local.Put(LocalTransactionManagerKey, transactionManager);
+            _stateStorage.LocalContext.Remove<IUnitOfWorkTransactionManager>(LocalTransactionManagerKey);
+            _stateStorage.LocalContext.Put(LocalTransactionManagerKey, transactionManager);
             _currentTransactionManager = transactionManager();
 
         }

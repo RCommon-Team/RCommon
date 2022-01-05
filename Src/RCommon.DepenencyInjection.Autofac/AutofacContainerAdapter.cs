@@ -15,6 +15,8 @@ namespace RCommon.DependencyInjection.Autofac
 
         public IServiceCollection Services => _services;
 
+        
+
         /// <summary>
         /// Default Constructor.
         /// Creates a new instance of the <see cref="AutofacContainerAdapter"/> class.
