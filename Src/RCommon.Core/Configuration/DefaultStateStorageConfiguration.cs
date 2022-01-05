@@ -27,9 +27,7 @@ namespace RCommon.Configuration
     /// </summary>
     public class DefaultStateStorageConfiguration : RCommonConfiguration, IStateStorageConfiguration
     {
-        Type _customSessionType;
         Type _customLocalStateType;
-        Type _customApplicationStateType;
 
         public DefaultStateStorageConfiguration(IContainerAdapter containerAdapter):base(containerAdapter)
         {
