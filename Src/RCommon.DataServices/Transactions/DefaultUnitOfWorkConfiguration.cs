@@ -66,8 +66,8 @@ namespace RCommon.DataServices.Transactions
 
             // Factory for Unit Of Work
             this.ContainerAdapter.AddTransient<IUnitOfWork, UnitOfWork>();
-            this.ContainerAdapter.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
-            this.ContainerAdapter.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
+            /*this.ContainerAdapter.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
+            this.ContainerAdapter.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();*/
 
             // Factory for Unit Of Work Scope
             //containerAdapter.AddTransient<TransactionMode, TransactionMode>();

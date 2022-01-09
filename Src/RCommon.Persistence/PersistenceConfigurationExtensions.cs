@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public static class ObjectAccessConfigurationExtensions
+    public static class PersistenceConfigurationExtensions
     {
 
-        public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration
+        public static IObjectAccessConfiguration WithPersistence<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration
         {
             var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
             config = WithChangeTracking(dataConfiguration);
@@ -20,7 +20,7 @@ namespace RCommon.Persistence
             return dataConfiguration;
         }
 
-        public static IObjectAccessConfiguration WithObjectAccess<T>(this IRCommonConfiguration config, Action<T> actions) 
+        public static IObjectAccessConfiguration WithPersistence<T>(this IRCommonConfiguration config, Action<T> actions) 
             where T : IObjectAccessConfiguration
         {
             

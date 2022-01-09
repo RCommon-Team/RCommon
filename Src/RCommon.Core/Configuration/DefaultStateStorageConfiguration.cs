@@ -27,27 +27,14 @@ namespace RCommon.Configuration
     /// </summary>
     public class DefaultStateStorageConfiguration : RCommonConfiguration, IStateStorageConfiguration
     {
-        Type _customSessionType;
         Type _customLocalStateType;
-        Type _customApplicationStateType;
 
         public DefaultStateStorageConfiguration(IContainerAdapter containerAdapter):base(containerAdapter)
         {
 
         }
 
-        
-
-        /// <summary>
-        /// Instructs RCommon to use a custom <see cref="ISessionState"/> type as the session state storage.
-        /// </summary>
-        /// <typeparam name="T">A type that implements the <see cref="ISessionState"/> interface.</typeparam>
-        /// <returns>The <see cref="DefaultStateStorageConfiguration"/> instance</returns>
-        public DefaultStateStorageConfiguration UseCustomSessionStateOf<T>() where T : ISessionState
-        {
-            _customSessionType = typeof (T);
-            return this;
-        }
+       
 
         /// <summary>
         /// Instructs RCommon to use a custom <see cref="IContextState"/> type as the local state storage.
@@ -60,29 +47,13 @@ namespace RCommon.Configuration
             return this;
         }
 
-        /// <summary>
-        /// Instructs RCommon to use a custom <see cref="IApplicationState"/> type as the application stage storage.
-        /// </summary>
-        /// <typeparam name="T">A type that implements the <see cref="IApplicationState"/> interface.</typeparam>
-        /// <returns>The <see cref="DefaultStateStorageConfiguration"/> instance.</returns>
-        public DefaultStateStorageConfiguration UseCustomApplicationStateOf<T>() where T : IApplicationState
-        {
-            _customApplicationStateType = typeof (T);
-            return this;
-        }
 
         /// <summary>
         /// Called by RCommon <see cref="Configure"/> to configure state storage.
         /// </summary>
         public override void Configure()
         {
-            if (_customSessionType != null)
-                this.ContainerAdapter.AddTransient(typeof(ISessionState), _customSessionType);
-            else
-            {
-                this.ContainerAdapter.AddTransient<ISessionStateSelector, DefaultSessionStateSelector>();
-                this.ContainerAdapter.AddTransient<ISessionState, SessionStateWrapper>();
-            }
+            
 
             if (_customLocalStateType != null)
                 this.ContainerAdapter.AddTransient(typeof(IContextState), _customLocalStateType);
@@ -91,11 +62,6 @@ namespace RCommon.Configuration
                 this.ContainerAdapter.AddTransient<IContextStateSelector, DefaultContextStateSelector>();
                 this.ContainerAdapter.AddTransient<IContextState, ContextStateWrapper>();
             }
-           
-            if (_customApplicationStateType != null)
-                this.ContainerAdapter.AddSingleton(typeof(IApplicationState), _customApplicationStateType);
-            else
-                this.ContainerAdapter.AddSingleton<IApplicationState, ApplicationState>();
 
             this.ContainerAdapter.AddTransient<IStateStorage, StateStorageWrapper>();
         }
