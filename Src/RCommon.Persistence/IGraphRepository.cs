@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RCommon.DataServices;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface IGraphRepository<TEntity>
+    public interface IGraphRepository<TEntity> : INamedDataSource
     {
         Task AttachAsync(TEntity entity, CancellationToken token = default);
 

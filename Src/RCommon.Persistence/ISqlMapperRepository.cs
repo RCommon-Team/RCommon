@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface ISqlMapperRepository<TEntity> : IWriteOnlyRepository<TEntity> , INamedDataSource
+    public interface ISqlMapperRepository<TEntity> : IWriteOnlyRepository<TEntity>
         where TEntity : IBusinessEntity
     {
         public string TableName { get; set; }

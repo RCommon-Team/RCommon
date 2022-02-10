@@ -1,4 +1,5 @@
 ﻿using RCommon.Collections;
+using RCommon.DataServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface IReadOnlyRepository<TEntity> : IQueryable<TEntity>
+    public interface IReadOnlyRepository<TEntity> : IQueryable<TEntity>, INamedDataSource
     {
 
         IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);

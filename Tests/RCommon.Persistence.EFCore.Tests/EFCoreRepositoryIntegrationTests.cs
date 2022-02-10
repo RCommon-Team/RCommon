@@ -89,7 +89,27 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.IsTrue(savedCustomer.FirstName == "Albus");
         }
 
-       
+        [Test]
+        public async Task Can_query_using_paging()
+        {
+
+            for (int i = 0; i < 100; i++)
+            {
+                var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
+            }
+
+            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            repo.DataStoreName = "TestDbContext";
+            //var repo = this.ServiceProvider.GetService<IEFCoreRepository<Customer>>();
+            var customers = await repo
+                    .FindAsync(x => x.FirstName.StartsWith("al"), x => x.LastName, true, 0, 10);
+
+            Assert.IsNotNull(customers);
+            Assert.IsTrue(customers.Count == 10);
+            Assert.IsTrue(customers[4].FirstName == "Albus");
+        }
+
+
 
         [Test]
         public async Task Can_Add_Async()
