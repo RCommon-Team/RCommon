@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface ILinqMapperRepository<TEntity>: IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>, INamedDataSource
+    public interface ILinqMapperRepository<TEntity>: IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>
         where TEntity : IBusinessEntity
     {
     }

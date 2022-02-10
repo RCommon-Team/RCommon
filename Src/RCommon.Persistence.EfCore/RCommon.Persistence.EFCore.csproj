@@ -12,7 +12,7 @@
     <PackageTags>RCommon, generic repository, Entity Framework Core Repository, persistance framework, EF</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
-    <Version>1.0.1.56</Version>
+    <Version>1.0.1.57</Version>
     <PackageIconUrl />
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>

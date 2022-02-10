@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
+using RCommon.Linq;
 using RCommon.TestBase.Entities;
 using System;
 using System.Diagnostics;
@@ -89,7 +90,50 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.IsTrue(savedCustomer.FirstName == "Albus");
         }
 
-       
+        [Test]
+        public async Task Can_query_using_paging()
+        {
+
+            for (int i = 0; i < 100; i++)
+            {
+                var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
+            }
+
+            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            repo.DataStoreName = "TestDbContext";
+            
+            var customers = await repo
+                    .FindAsync(x => x.FirstName.StartsWith("al"), x => x.LastName, true, 1, 10);
+
+            Assert.IsNotNull(customers);
+            Assert.IsTrue(customers.Count == 10);
+            Assert.IsTrue(customers[4].FirstName == "Albus");
+        }
+
+        [Test]
+        public async Task Can_query_using_predicate_builder()
+        {
+
+            for (int i = 0; i < 100; i++)
+            {
+                var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
+            }
+
+            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            repo.DataStoreName = "TestDbContext";
+
+            var predicate = PredicateBuilder.True<Customer>(); // This allows us to build compound expressions
+            predicate.And(x => x.FirstName.StartsWith("al"));
+
+            var customers = await repo
+                    .FindAsync(predicate, x => x.LastName, true, 1, 10);
+
+            Assert.IsNotNull(customers);
+            Assert.IsTrue(customers.Count == 10);
+            Assert.IsTrue(customers[4].FirstName == "Albus");
+        }
+
+
 
         [Test]
         public async Task Can_Add_Async()
