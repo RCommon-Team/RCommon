@@ -11,9 +11,9 @@ namespace Samples.Application.Contracts.Dto
 {
     public record ApplicationUserListModel : PaginatedListModel<ApplicationUser, ApplicationUserDto>
     {
-        public ApplicationUserListModel(IPaginatedList<ApplicationUser> source, PaginatedListRequest paginatedListRequest, int totalCount, int totalPages,
-            bool skipTotal = false, bool skipSort = false) 
-            : base(source, paginatedListRequest, totalCount, totalPages, skipTotal, skipSort)
+        public ApplicationUserListModel(IPaginatedList<ApplicationUser> source, PaginatedListRequest paginatedListRequest, int totalCount, 
+            bool skipSort = false) 
+            : base(source, paginatedListRequest, totalCount, skipSort)
         {
         }
 

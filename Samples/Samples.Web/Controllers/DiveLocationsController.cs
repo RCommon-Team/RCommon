@@ -41,7 +41,7 @@ namespace Samples.Web.Controllers
                 var request = new DiveLocationSearchRequest();
                 request.SearchTerms = searchTerms;
                 request.PageSize = PresentationDefaults.PagedDataSize;
-                request.PageIndex = currentPage.HasValue ? currentPage.Value : 1;
+                request.PageNumber = currentPage.HasValue ? currentPage.Value : 1;
                 if (searchTerms == null)
                 {
                     cmd = await _diveService.GetAllDiveLocationsAsync(request);

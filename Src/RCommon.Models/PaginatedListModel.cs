@@ -25,10 +25,19 @@ namespace RCommon.Models
         {
             PaginateQueryable(source, paginatedListRequest, skipTotal);
         }
-        protected PaginatedListModel(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, int totalCount, int totalPages,
-            bool skipTotal = false, bool skipSort = false)
+
+        /// <summary>
+        /// Accepts <see cref="IPaginatedList{T}"/> and overrides total record count with the total count provided in the parameter. 
+        /// </summary>
+        /// <param name="source">Pre-filtered list of data.</param>
+        /// <param name="paginatedListRequest">Request model that contains populated state date for page number, page size, sort by, etc.</param>
+        /// <param name="totalCount">Total count of records contained by pre-filtered data source. This should be different than the actual record 
+        /// count in <see cref="IPaginatedList{T}"/></param>
+        /// <param name="skipSort">Instructions on whether or not to skip sorting. Default is false</param>
+        /// <remarks></remarks>
+        protected PaginatedListModel(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, int totalCount, bool skipSort = false)
         {
-            PaginateList(source, paginatedListRequest, totalCount, totalPages, skipTotal, skipSort);
+            PaginateList(source, paginatedListRequest, totalCount, skipSort);
         }
 
         private IQueryable<TSource> Sort(IQueryable<TSource> source)
@@ -44,6 +53,22 @@ namespace RCommon.Models
                 : source.OrderBy(this.SortExpression);
         }
 
+        private IList<TSource> Sort(IPaginatedList<TSource> source)
+        {
+            
+            if (this.SortExpression == null)
+            {
+                return source;
+            }
+
+            var sortFunc = this.SortExpression.Compile(); // How much overhead is this?
+
+            var list = SortDirection == SortDirectionEnum.Descending
+                ? source.OrderByDescending(sortFunc).ToList()
+                : source.OrderBy(sortFunc).ToList();
+            return list;
+        }
+
         protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false, bool skipSort = false)
         {
             if (paginatedListRequest == null)
@@ -56,7 +81,7 @@ namespace RCommon.Models
             SortDirection = paginatedListRequest.SortDirection;
 
             PageSize = paginatedListRequest.PageSize;
-            PageIndex = paginatedListRequest.PageIndex;
+            PageNumber = paginatedListRequest.PageNumber;
 
             if (!skipTotal)
             {
@@ -68,14 +93,14 @@ namespace RCommon.Models
 
             if (PageSize.HasValue)
             {
-                query = query.Skip(PageSize.Value * (PageIndex - 1)).Take(PageSize.Value);
+                query = query.Skip(PageSize.Value * (PageNumber - 1)).Take(PageSize.Value);
             }
 
             Items = CastItems(query).ToList();
         }
 
-        protected void PaginateList(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, int totalCount, int totalPages, 
-            bool skipTotal = false, bool skipSort = false)
+        protected void PaginateList(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, int totalCount, 
+            bool skipSort = false)
         {
             if (paginatedListRequest == null)
             {
@@ -87,13 +112,7 @@ namespace RCommon.Models
             SortDirection = paginatedListRequest.SortDirection;
 
             PageSize = paginatedListRequest.PageSize;
-            PageIndex = paginatedListRequest.PageIndex;
-
-            if (!skipTotal)
-            {
-                TotalCount = totalCount;
-                TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0) ?? 1;
-            }
+            PageNumber = paginatedListRequest.PageNumber;
 
             if (totalCount > 0)
             {
@@ -101,14 +120,14 @@ namespace RCommon.Models
                 TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0) ?? 1;
             }
 
-            var query = skipSort ? source.AsQueryable() : Sort(source.AsQueryable());
+            var query = skipSort ? source : Sort(source);
 
-            if (PageSize.HasValue)
+            /*if (PageSize.HasValue) // No need to implement paging as list should contain current view
             {
-                query = query.Skip(PageSize.Value * (PageIndex - 1)).Take(PageSize.Value);
-            }
+                query = query.Skip(PageSize.Value * (PageIndex - 1)).Take(PageSize.Value).ToList();
+            }*/
 
-            Items = CastItems(query).ToList();
+            Items = CastItems(query.AsQueryable()).ToList();
         }
 
         protected abstract IQueryable<TOut> CastItems(IQueryable<TSource> source);
@@ -119,7 +138,7 @@ namespace RCommon.Models
         public List<TOut> Items { get; set; }
 
         public int? PageSize { get; set; }
-        public int PageIndex { get; set; }
+        public int PageNumber { get; set; }
 
         public int TotalPages { get; set; }
         public int TotalCount { get; set; }
@@ -133,7 +152,7 @@ namespace RCommon.Models
         {
             get
             {
-                return (PageIndex > 1);
+                return (PageNumber > 1);
             }
         }
 
@@ -141,7 +160,7 @@ namespace RCommon.Models
         {
             get
             {
-                return (PageIndex < TotalPages);
+                return (PageNumber < TotalPages);
             }
         }
     }

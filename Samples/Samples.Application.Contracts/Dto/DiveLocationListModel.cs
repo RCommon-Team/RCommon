@@ -11,8 +11,8 @@ namespace Samples.Application.Contracts.Dto
 {
     public record DiveLocationListModel : PaginatedListModel<DiveLocation, DiveLocationDto>
     {
-        public DiveLocationListModel(IPaginatedList<DiveLocation> diveLocations, PaginatedListRequest paginatedListRequest, int totalCount, int totalPages,
-            bool skipTotal = false, bool skipSort = false) :base(diveLocations, paginatedListRequest, totalCount, totalPages, skipTotal, skipSort)
+        public DiveLocationListModel(IPaginatedList<DiveLocation> diveLocations, PaginatedListRequest paginatedListRequest, int totalCount, int totalPages, 
+            bool skipSort = false) :base(diveLocations, paginatedListRequest, totalCount, skipSort)
         {
 
         }

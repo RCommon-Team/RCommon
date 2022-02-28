@@ -35,7 +35,7 @@ namespace Samples.Application.ApplicationServices
 
                 var userCmd = await _userService.SearchUsersAsync(request);// Perform the work
 
-                cmd.DataResult = new ApplicationUserListModel(userCmd.DataResult, request, userCmd.DataResult.TotalCount, userCmd.DataResult.PageSize);// Map the PaginatedList to a DTO
+                cmd.DataResult = new ApplicationUserListModel(userCmd.DataResult, request, userCmd.DataResult.TotalCount);// Map the PaginatedList to a DTO
 
             }
             catch (BusinessException ex) // The exception was handled at a lower level if we get BusinessException

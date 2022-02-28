@@ -2,7 +2,7 @@
 {
     public interface IPaginatedListRequest
     {
-        int PageIndex { get; set; }
+        int PageNumber { get; set; }
         int? PageSize { get; set; }
         string SortBy { get; set; }
         SortDirectionEnum SortDirection { get; set; }
