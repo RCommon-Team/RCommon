@@ -7,6 +7,7 @@ using NUnit.Framework;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Linq;
+using RCommon.Persistence.EFCore.Tests.Specifications;
 using RCommon.TestBase.Entities;
 using System;
 using System.Diagnostics;
@@ -91,7 +92,7 @@ namespace RCommon.Persistence.EFCore.Tests
         }
 
         [Test]
-        public async Task Can_query_using_paging()
+        public async Task Can_query_using_paging_with_specific_params()
         {
 
             for (int i = 0; i < 100; i++)
@@ -107,6 +108,56 @@ namespace RCommon.Persistence.EFCore.Tests
 
             Assert.IsNotNull(customers);
             Assert.IsTrue(customers.Count == 10);
+            Assert.IsTrue(customers.PageIndex == 1);
+            Assert.IsTrue(customers.TotalCount == 100);
+            Assert.IsTrue(customers.TotalPages == 10);
+            Assert.IsTrue(customers[4].FirstName == "Albus");
+
+            customers = await repo
+                    .FindAsync(x => x.FirstName.StartsWith("al"), x => x.LastName, true, 2, 10);
+
+            Assert.IsNotNull(customers);
+            Assert.IsTrue(customers.Count == 10);
+            Assert.IsTrue(customers.PageIndex == 2);
+            Assert.IsTrue(customers.TotalCount == 100);
+            Assert.IsTrue(customers.TotalPages == 10);
+            Assert.IsTrue(customers[4].FirstName == "Albus");
+        }
+
+        [Test]
+        public async Task Can_query_using_paging_with_specification()
+        {
+
+            for (int i = 0; i < 100; i++)
+            {
+                var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
+            }
+
+            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            repo.DataStoreName = "TestDbContext";
+
+            var customerSearchSpec = new CustomerSearchSpec("al", x => x.FirstName, true, 1, 10);
+
+            var customers = await repo
+                    .FindAsync(customerSearchSpec);
+
+            Assert.IsNotNull(customers);
+            Assert.IsTrue(customers.Count == 10);
+            Assert.IsTrue(customers.PageIndex == 1);
+            Assert.IsTrue(customers.TotalCount == 100);
+            Assert.IsTrue(customers.TotalPages == 10);
+            Assert.IsTrue(customers[4].FirstName == "Albus");
+
+            customerSearchSpec = new CustomerSearchSpec("al", x => x.FirstName, true, 2, 10);
+
+            customers = await repo
+                    .FindAsync(customerSearchSpec);
+
+            Assert.IsNotNull(customers);
+            Assert.IsTrue(customers.Count == 10);
+            Assert.IsTrue(customers.PageIndex == 2);
+            Assert.IsTrue(customers.TotalCount == 100);
+            Assert.IsTrue(customers.TotalPages == 10);
             Assert.IsTrue(customers[4].FirstName == "Albus");
         }
 

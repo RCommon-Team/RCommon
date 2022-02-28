@@ -223,7 +223,7 @@ namespace Samples.Application.ApplicationServices
                 {
 
                     
-                    cmd.DataResult = new DiveLocationListModel(locationCmd.DataResult, request);
+                    cmd.DataResult = new DiveLocationListModel(locationCmd.DataResult, request, locationCmd.DataResult.TotalCount, locationCmd.DataResult.PageSize);
                     
                 }
                 
@@ -265,7 +265,7 @@ namespace Samples.Application.ApplicationServices
                 else
                 {
                     //cmd.DataResult = _objectMapper.Map<PaginatedList<DiveLocationDto>>(locationCmd.DataResult); // Would need a custom type converter to do this but the in-memory affect would be the same
-                    cmd.DataResult = new DiveLocationListModel(locationCmd.DataResult, request); // Map the PaginatedList to a DTO
+                    cmd.DataResult = new DiveLocationListModel(locationCmd.DataResult, request, locationCmd.DataResult.TotalCount, locationCmd.DataResult.PageSize); // Map the PaginatedList to a DTO
 
                 }
 

@@ -185,7 +185,7 @@
         }
 
         public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
-            bool orderByAscending, int? pageIndex, int pageSize = 0, 
+            bool orderByAscending, int? pageIndex, int pageSize = 1, 
             CancellationToken token = default)
         {
             IQueryable<TEntity> query;

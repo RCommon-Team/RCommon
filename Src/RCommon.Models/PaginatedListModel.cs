@@ -25,9 +25,10 @@ namespace RCommon.Models
         {
             PaginateQueryable(source, paginatedListRequest, skipTotal);
         }
-        protected PaginatedListModel(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false)
+        protected PaginatedListModel(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, int totalCount, int totalPages,
+            bool skipTotal = false, bool skipSort = false)
         {
-            PaginateList(source, paginatedListRequest, skipTotal);
+            PaginateList(source, paginatedListRequest, totalCount, totalPages, skipTotal, skipSort);
         }
 
         private IQueryable<TSource> Sort(IQueryable<TSource> source)
@@ -43,8 +44,7 @@ namespace RCommon.Models
                 : source.OrderBy(this.SortExpression);
         }
 
-        protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false, 
-            int totalRows = 0, bool skipSort = true)
+        protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false, bool skipSort = false)
         {
             if (paginatedListRequest == null)
             {
@@ -64,15 +64,9 @@ namespace RCommon.Models
                 TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0) ?? 1;
             }
 
-            if (totalRows > 0)
-            {
-                TotalCount = totalRows;
-                TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0) ?? 1;
-            }
-
             var query = skipSort ? source : Sort(source);
 
-            if (PageSize.HasValue && totalRows == 0)
+            if (PageSize.HasValue)
             {
                 query = query.Skip(PageSize.Value * (PageIndex - 1)).Take(PageSize.Value);
             }
@@ -80,10 +74,41 @@ namespace RCommon.Models
             Items = CastItems(query).ToList();
         }
 
-        protected void PaginateList(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false,
-            int totalRows = 0, bool skipSort = true)
+        protected void PaginateList(IPaginatedList<TSource> source, PaginatedListRequest paginatedListRequest, int totalCount, int totalPages, 
+            bool skipTotal = false, bool skipSort = false)
         {
-            this.PaginateQueryable(source.AsQueryable(), paginatedListRequest, skipTotal);
+            if (paginatedListRequest == null)
+            {
+                return;
+            }
+            Guard.IsNotNull(source, nameof(source));
+
+            SortBy = paginatedListRequest.SortBy ?? "id";
+            SortDirection = paginatedListRequest.SortDirection;
+
+            PageSize = paginatedListRequest.PageSize;
+            PageIndex = paginatedListRequest.PageIndex;
+
+            if (!skipTotal)
+            {
+                TotalCount = totalCount;
+                TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0) ?? 1;
+            }
+
+            if (totalCount > 0)
+            {
+                TotalCount = totalCount;
+                TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0) ?? 1;
+            }
+
+            var query = skipSort ? source.AsQueryable() : Sort(source.AsQueryable());
+
+            if (PageSize.HasValue)
+            {
+                query = query.Skip(PageSize.Value * (PageIndex - 1)).Take(PageSize.Value);
+            }
+
+            Items = CastItems(query).ToList();
         }
 
         protected abstract IQueryable<TOut> CastItems(IQueryable<TSource> source);
