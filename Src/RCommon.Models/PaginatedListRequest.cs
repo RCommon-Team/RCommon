@@ -8,13 +8,13 @@ namespace RCommon.Models
     {
         public PaginatedListRequest()
         {
-            PageIndex = 1;
+            PageNumber = 1;
             PageSize = 20;
-            SortBy = null;
+            SortBy = "id";
             SortDirection = SortDirectionEnum.None;
         }
 
-        public virtual int PageIndex { get; set; }
+        public virtual int PageNumber { get; set; }
         public virtual int? PageSize { get; set; }
         public virtual string SortBy { get; set; }
         public virtual SortDirectionEnum SortDirection { get; set; }
