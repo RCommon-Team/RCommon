@@ -11,7 +11,6 @@
     <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Models\RCommon.Models.csproj" />
-    <ProjectReference Include="..\Samples.Application.Contracts\Samples.Application.Contracts.csproj" />
     <ProjectReference Include="..\Samples.PublishingService.HttpApi\Samples.PublishingService.HttpApi.csproj" />
   </ItemGroup>
 

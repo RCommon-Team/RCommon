@@ -15,13 +15,6 @@ namespace RCommon.Configuration
     public static class CommonApplicationConfigurationExtensions
     {
 
-        public static IRCommonConfiguration WithCrudHelpers(this IRCommonConfiguration config)
-        {
-            config.ContainerAdapter.AddGeneric(typeof(ICrudBusinessService<>), typeof(CrudBusinessService<>));
-            config.ContainerAdapter.AddGeneric(typeof(ICrudAppService<,>), typeof(CrudAppService<,>));
-            return config;
-        }
-
         public static IRCommonConfiguration WithSmtpEmailServices(this IRCommonConfiguration config, Action<EmailSettings> emailSettings)
         {
             config.ContainerAdapter.Services.Configure<EmailSettings>(emailSettings);
