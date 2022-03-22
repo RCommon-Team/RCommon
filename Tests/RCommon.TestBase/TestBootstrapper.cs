@@ -31,9 +31,9 @@ namespace RCommon.TestBase
 
 
 
-            var config = new ConfigurationBuilder()
+            var builder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            this.Configuration = config.Build();
+            this.Configuration = builder.Build();
 
             services.AddSingleton<ILogger>(TestLogger.Create());
             services.AddSingleton<IConfiguration>(this.Configuration);

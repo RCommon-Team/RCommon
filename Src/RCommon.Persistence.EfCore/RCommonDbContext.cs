@@ -21,6 +21,12 @@ namespace RCommon.Persistence.EFCore
             
         }
 
+        public RCommonDbContext(DbContextOptions options)
+            : base(options)
+        {
+
+        }
+
         public IDbConnection GetDbConnection()
         {
             return base.Database.GetDbConnection();

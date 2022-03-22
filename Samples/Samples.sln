@@ -31,29 +31,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{788A01F9-0510-441A-B05B-0CDA0EE87507}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Web", "Samples.Web\Samples.Web.csproj", "{A54A8DB8-9DBB-4051-AFB0-45872C88C5C2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Application", "Samples.Application\Samples.Application.csproj", "{582CA4AF-3F0E-49E5-8254-F86266BF828A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Application.Contracts", "Samples.Application.Contracts\Samples.Application.Contracts.csproj", "{F593B1A2-2BC1-41D6-A4C8-BF4C9DEBF108}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Domain", "Samples.Domain\Samples.Domain.csproj", "{406073A1-DF53-427D-9A4A-AD1902751612}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.EntityFrameworkCore", "Samples.EntityFrameworkCore\Samples.EntityFrameworkCore.csproj", "{E556EA1D-AAB5-4A8B-8B33-A547F3F3EE6A}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3Tier Architecture", "3Tier Architecture", "{A76795F1-527B-4FA9-90B9-B810E20EBC0F}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation Tier", "Presentation Tier", "{BCAD9CC6-45D5-4FEA-8BF8-934EABDE082A}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{9857A6F0-15AE-47C4-AE46-3A30F55BFDB1}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business Tier", "Business Tier", "{3596506B-3DA8-404B-9B7C-2E1B6BA1CD4D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data Tier", "Data Tier", "{ABB3BFF7-432E-4615-8BEA-03A79BC52A69}"
-	ProjectSection(SolutionItems) = preProject
-		DataTier\Samples.Data.sql = DataTier\Samples.Data.sql
-		DataTier\Samples.Schema.sql = DataTier\Samples.Schema.sql
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ApplicationServices", "..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj", "{77C5C4DB-9D8B-4CE7-824D-C4A8AD3A4056}"
 EndProject
@@ -111,15 +89,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentatio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Consuming Service", "Consuming Service", "{CA146F11-4C0D-4F70-853A-CD71F109715D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.PublishingService.HttpApi", "Samples.PublishingService.HttpApi\Samples.PublishingService.HttpApi.csproj", "{FCEE52D2-60CC-4394-B5F6-7E32717A0C59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.PublishingService.HttpApi", "Samples.PublishingService.HttpApi\Samples.PublishingService.HttpApi.csproj", "{FCEE52D2-60CC-4394-B5F6-7E32717A0C59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ConsumingService.HttpApi", "Samples.ConsumingService.HttpApi\Samples.ConsumingService.HttpApi.csproj", "{2E0AA2F7-DC05-4580-8849-54C8894F2949}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.ConsumingService.HttpApi", "Samples.ConsumingService.HttpApi\Samples.ConsumingService.HttpApi.csproj", "{2E0AA2F7-DC05-4580-8849-54C8894F2949}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ConsumingService.Domain", "Samples.ConsumingService.Domain\Samples.ConsumingService.Domain.csproj", "{E16D527F-DDF7-49DC-8555-6B8AD1B206ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.ConsumingService.Domain", "Samples.ConsumingService.Domain\Samples.ConsumingService.Domain.csproj", "{E16D527F-DDF7-49DC-8555-6B8AD1B206ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.PublishingService.Domain", "Samples.PublishingService.Domain\Samples.PublishingService.Domain.csproj", "{D64F61C7-8CE1-47A3-A542-E5757E2B7959}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.PublishingService.Domain", "Samples.PublishingService.Domain\Samples.PublishingService.Domain.csproj", "{D64F61C7-8CE1-47A3-A542-E5757E2B7959}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.Presentiation.Blazor", "Samples.Presentiation.Blazor\Samples.Presentiation.Blazor.csproj", "{FEEBAEA5-8322-40E1-9F15-AF4AAAB4D15F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Presentiation.Blazor", "Samples.Presentiation.Blazor\Samples.Presentiation.Blazor.csproj", "{FEEBAEA5-8322-40E1-9F15-AF4AAAB4D15F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -163,26 +141,6 @@ Global
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A54A8DB8-9DBB-4051-AFB0-45872C88C5C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A54A8DB8-9DBB-4051-AFB0-45872C88C5C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A54A8DB8-9DBB-4051-AFB0-45872C88C5C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A54A8DB8-9DBB-4051-AFB0-45872C88C5C2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{582CA4AF-3F0E-49E5-8254-F86266BF828A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{582CA4AF-3F0E-49E5-8254-F86266BF828A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{582CA4AF-3F0E-49E5-8254-F86266BF828A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{582CA4AF-3F0E-49E5-8254-F86266BF828A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F593B1A2-2BC1-41D6-A4C8-BF4C9DEBF108}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F593B1A2-2BC1-41D6-A4C8-BF4C9DEBF108}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F593B1A2-2BC1-41D6-A4C8-BF4C9DEBF108}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F593B1A2-2BC1-41D6-A4C8-BF4C9DEBF108}.Release|Any CPU.Build.0 = Release|Any CPU
-		{406073A1-DF53-427D-9A4A-AD1902751612}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{406073A1-DF53-427D-9A4A-AD1902751612}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{406073A1-DF53-427D-9A4A-AD1902751612}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{406073A1-DF53-427D-9A4A-AD1902751612}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E556EA1D-AAB5-4A8B-8B33-A547F3F3EE6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E556EA1D-AAB5-4A8B-8B33-A547F3F3EE6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E556EA1D-AAB5-4A8B-8B33-A547F3F3EE6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E556EA1D-AAB5-4A8B-8B33-A547F3F3EE6A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{77C5C4DB-9D8B-4CE7-824D-C4A8AD3A4056}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{77C5C4DB-9D8B-4CE7-824D-C4A8AD3A4056}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77C5C4DB-9D8B-4CE7-824D-C4A8AD3A4056}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -315,16 +273,7 @@ Global
 		{FB6002E5-0E17-403F-9DFB-482AB7A4E525} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63} = {788A01F9-0510-441A-B05B-0CDA0EE87507}
 		{788A01F9-0510-441A-B05B-0CDA0EE87507} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
-		{A54A8DB8-9DBB-4051-AFB0-45872C88C5C2} = {BCAD9CC6-45D5-4FEA-8BF8-934EABDE082A}
-		{582CA4AF-3F0E-49E5-8254-F86266BF828A} = {BCAD9CC6-45D5-4FEA-8BF8-934EABDE082A}
-		{F593B1A2-2BC1-41D6-A4C8-BF4C9DEBF108} = {9857A6F0-15AE-47C4-AE46-3A30F55BFDB1}
-		{406073A1-DF53-427D-9A4A-AD1902751612} = {3596506B-3DA8-404B-9B7C-2E1B6BA1CD4D}
-		{E556EA1D-AAB5-4A8B-8B33-A547F3F3EE6A} = {3596506B-3DA8-404B-9B7C-2E1B6BA1CD4D}
-		{A76795F1-527B-4FA9-90B9-B810E20EBC0F} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
-		{BCAD9CC6-45D5-4FEA-8BF8-934EABDE082A} = {A76795F1-527B-4FA9-90B9-B810E20EBC0F}
 		{9857A6F0-15AE-47C4-AE46-3A30F55BFDB1} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
-		{3596506B-3DA8-404B-9B7C-2E1B6BA1CD4D} = {A76795F1-527B-4FA9-90B9-B810E20EBC0F}
-		{ABB3BFF7-432E-4615-8BEA-03A79BC52A69} = {A76795F1-527B-4FA9-90B9-B810E20EBC0F}
 		{77C5C4DB-9D8B-4CE7-824D-C4A8AD3A4056} = {2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}
 		{A09E85E5-6453-437F-9D5D-A31972B8D1F3} = {2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}
 		{96BCCE51-CFB8-4A2F-BD94-2B6FBC5E212F} = {2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}
