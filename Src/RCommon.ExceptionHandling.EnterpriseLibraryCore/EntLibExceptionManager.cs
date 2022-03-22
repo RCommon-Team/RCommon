@@ -7,7 +7,6 @@ using Microsoft.Practices.EnterpriseLibrary.Common.Configuration;
 using System.Diagnostics;
 using RCommon.ExceptionHandling;
 using Microsoft.Practices.EnterpriseLibrary.ExceptionHandling.Configuration;
-using AutoMapper.Configuration;
 using RCommon.ExceptionHandling.EnterpriseLibraryCore.Handlers;
 using System.Security;
 
