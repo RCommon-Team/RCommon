@@ -12,7 +12,7 @@
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, data access, object access, dapper, generic repository, repository abstractions, persistance framework</PackageTags>
-    <Version>1.0.1.66</Version>
+    <Version>1.0.1.67</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
