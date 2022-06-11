@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="MediatR" Version="10.0.1" />
-    <PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
+    <PackageReference Include="PropertyChanged.Fody" Version="3.4.1" />
   </ItemGroup>
 
 </Project>
