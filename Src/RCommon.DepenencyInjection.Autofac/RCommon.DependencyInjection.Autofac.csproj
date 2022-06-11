@@ -11,7 +11,7 @@
     <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageTags>RCommon, dependency injection, autofac, di abstractions, c#, .NET</PackageTags>
-    <Version>1.0.1.68</Version>
+    <Version>1.0.1.69</Version>
     <PackageIconUrl />
     <Company>RCommon</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
