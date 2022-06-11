@@ -1,5 +1,4 @@
 ﻿using MassTransit;
-using MassTransit.ExtensionsDependencyInjectionIntegration;
 using MediatR;
 using RCommon.ApplicationServices.Messaging.Behaviors;
 using RCommon.Configuration;
@@ -14,7 +13,7 @@ namespace RCommon.ApplicationServices.Messaging
     public static class ApplicationMessagingConfigurationExtensions
     {
 
-        public static IRCommonConfiguration WithMassTransit(this IRCommonConfiguration config, Action<IServiceCollectionBusConfigurator> massTransitConfig)
+        public static IRCommonConfiguration WithMassTransit(this IRCommonConfiguration config, Action<IBusRegistrationConfigurator> massTransitConfig)
         {
             config.ContainerAdapter.AddScoped<IDistributedEventBroker, DistributedEventBroker>();
             config.ContainerAdapter.Services.AddMassTransit(massTransitConfig);
