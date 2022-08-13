@@ -33,11 +33,6 @@ namespace RCommon.ApplicationServices.Messaging.Behaviors
 
             try
             {
-                if (this._unitOfWorkManager.CurrentUnitOfWork == null)
-                {
-                    return await next();
-                }
-
                 using (var unitOfWork = this._unitOfWorkScopeFactory.Create(TransactionMode.Default))
                 {
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})", 
@@ -57,7 +52,7 @@ namespace RCommon.ApplicationServices.Messaging.Behaviors
 
                 return response;
             }
-            catch (Exception ex)
+            catch (ApplicationException ex)
             {
                 _logger.LogError(ex, "ERROR Handling transaction for {CommandName} ({@Command})", typeName, request);
 
