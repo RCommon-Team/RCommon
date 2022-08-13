@@ -15,8 +15,8 @@ namespace RCommon.Models
     /// delivered to the application layer. This should be an immutable object.
     /// </summary>
     public abstract record PaginatedListModel<TSource, TOut> : IModel
-        where TSource : class, new()
-        where TOut : class, new()
+        where TSource : class
+        where TOut : class
     {
 
         private Expression<Func<TSource, object>> _sortExpression = null;
