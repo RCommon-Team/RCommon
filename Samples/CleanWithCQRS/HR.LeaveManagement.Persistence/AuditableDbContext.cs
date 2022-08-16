@@ -1,5 +1,6 @@
 ﻿using HR.LeaveManagement.Domain.Common;
 using Microsoft.EntityFrameworkCore;
+using RCommon.Persistence.EFCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace HR.LeaveManagement.Persistence
 {
-    public abstract class AuditableDbContext : DbContext
+    public abstract class AuditableDbContext : RCommonDbContext
     {
         public AuditableDbContext(DbContextOptions options) : base(options)
         {

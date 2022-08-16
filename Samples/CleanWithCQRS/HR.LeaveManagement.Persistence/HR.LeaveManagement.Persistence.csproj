@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
   </ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\Src\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Application\HR.LeaveManagement.Application.csproj" />
 	</ItemGroup>
 </Project>

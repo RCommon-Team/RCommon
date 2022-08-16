@@ -2,8 +2,9 @@
 using HR.LeaveManagement.Application.DTOs;
 using HR.LeaveManagement.Application.DTOs.LeaveAllocation;
 using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Queries;
-using HR.LeaveManagement.Application.Contracts.Persistence;
+using HR.LeaveManagement.Domain;
 using MediatR;
+using RCommon.Persistence;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,17 +12,18 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
 {
     public class GetLeaveAllocationDetailRequestHandler : IRequestHandler<GetLeaveAllocationDetailRequest, LeaveAllocationDto>
     {
-        private readonly ILeaveAllocationRepository _leaveAllocationRepository;
+        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
 
-        public GetLeaveAllocationDetailRequestHandler(ILeaveAllocationRepository leaveAllocationRepository, IMapper mapper)
+        public GetLeaveAllocationDetailRequestHandler(IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
         {
             _leaveAllocationRepository = leaveAllocationRepository;
             _mapper = mapper;
         }
         public async Task<LeaveAllocationDto> Handle(GetLeaveAllocationDetailRequest request, CancellationToken cancellationToken)
         {
-            var leaveAllocation = await _leaveAllocationRepository.GetLeaveAllocationWithDetails(request.Id);
+            _leaveAllocationRepository.EagerlyWith(x => x.LeaveType);
+            var leaveAllocation = await _leaveAllocationRepository.FindAsync(request.Id);
             return _mapper.Map<LeaveAllocationDto>(leaveAllocation);
         }
     }

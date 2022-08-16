@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using HR.LeaveManagement.Application.Contracts.Persistence;
+using RCommon.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,9 +10,9 @@ namespace HR.LeaveManagement.Application.DTOs.LeaveRequest.Validators
 {
     public class ILeaveRequestDtoValidator : AbstractValidator<ILeaveRequestDto>
     {
-        private readonly ILeaveTypeRepository _leaveTypeRepository;
+        private readonly IReadOnlyRepository<HR.LeaveManagement.Domain.LeaveType> _leaveTypeRepository;
 
-        public ILeaveRequestDtoValidator(ILeaveTypeRepository leaveTypeRepository)
+        public ILeaveRequestDtoValidator(IReadOnlyRepository<HR.LeaveManagement.Domain.LeaveType> leaveTypeRepository)
         {
             _leaveTypeRepository = leaveTypeRepository;
             RuleFor(p => p.StartDate)
@@ -24,8 +24,8 @@ namespace HR.LeaveManagement.Application.DTOs.LeaveRequest.Validators
             RuleFor(p => p.LeaveTypeId)
                 .GreaterThan(0)
                 .MustAsync(async (id, token) => {
-                    var leaveTypeExists = await _leaveTypeRepository.Exists(id);
-                    return leaveTypeExists;
+                    var leaveTypeExists = await _leaveTypeRepository.GetCountAsync(x=>x.Id == id);
+                    return (leaveTypeExists > 0 ? true : false);
                 })
                 .WithMessage("{PropertyName} does not exist.");
             

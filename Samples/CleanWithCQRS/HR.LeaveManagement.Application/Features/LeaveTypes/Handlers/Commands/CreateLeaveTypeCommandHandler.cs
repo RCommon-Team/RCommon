@@ -2,7 +2,6 @@
 using HR.LeaveManagement.Application.DTOs.LeaveType.Validators;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
-using HR.LeaveManagement.Application.Contracts.Persistence;
 using HR.LeaveManagement.Domain;
 using MediatR;
 using System;
@@ -12,18 +11,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using HR.LeaveManagement.Application.Responses;
 using System.Linq;
+using RCommon.Persistence;
 
 namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
 {
     public class CreateLeaveTypeCommandHandler : IRequestHandler<CreateLeaveTypeCommand, BaseCommandResponse>
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-
-        public CreateLeaveTypeCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IFullFeaturedRepository<LeaveType> _leaveTypeRepository;
+        public CreateLeaveTypeCommandHandler(IMapper mapper, IFullFeaturedRepository<LeaveType> leaveTypeRepository)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _leaveTypeRepository = leaveTypeRepository;
         }
 
         public async Task<BaseCommandResponse> Handle(CreateLeaveTypeCommand request, CancellationToken cancellationToken)
@@ -42,8 +41,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
             {
                 var leaveType = _mapper.Map<LeaveType>(request.LeaveTypeDto);
 
-                leaveType = await _unitOfWork.LeaveTypeRepository.Add(leaveType);
-                await _unitOfWork.Save();
+                await _leaveTypeRepository.AddAsync(leaveType);
+
+                // TODO: may need to get id
 
                 response.Success = true;
                 response.Message = "Creation Successful";

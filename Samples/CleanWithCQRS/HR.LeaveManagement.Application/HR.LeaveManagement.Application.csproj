@@ -13,6 +13,8 @@
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.0" />
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Models\RCommon.Models.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Domain\HR.LeaveManagement.Domain.csproj" />
 	</ItemGroup>
 </Project>

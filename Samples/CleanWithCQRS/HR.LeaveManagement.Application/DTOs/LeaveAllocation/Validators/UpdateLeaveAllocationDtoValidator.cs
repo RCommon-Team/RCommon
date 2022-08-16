@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using HR.LeaveManagement.Application.Contracts.Persistence;
+using RCommon.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,9 +10,9 @@ namespace HR.LeaveManagement.Application.DTOs.LeaveAllocation.Validators
 {
     public class UpdateLeaveAllocationDtoValidator : AbstractValidator<UpdateLeaveAllocationDto>
     {
-        private readonly ILeaveTypeRepository _leaveTypeRepository;
+        private readonly IReadOnlyRepository<Domain.LeaveType> _leaveTypeRepository;
 
-        public UpdateLeaveAllocationDtoValidator(ILeaveTypeRepository leaveTypeRepository)
+        public UpdateLeaveAllocationDtoValidator(IReadOnlyRepository<Domain.LeaveType> leaveTypeRepository)
         {
             _leaveTypeRepository = leaveTypeRepository;
             Include(new ILeaveAllocationDtoValidator(_leaveTypeRepository));

@@ -2,7 +2,6 @@
 using HR.LeaveManagement.Application.DTOs;
 using HR.LeaveManagement.Application.DTOs.LeaveAllocation;
 using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Queries;
-using HR.LeaveManagement.Application.Contracts.Persistence;
 using MediatR;
 using System.Collections.Generic;
 using System.Threading;
@@ -11,17 +10,19 @@ using Microsoft.AspNetCore.Http;
 using HR.LeaveManagement.Application.Contracts.Identity;
 using HR.LeaveManagement.Domain;
 using HR.LeaveManagement.Application.Constants;
+using RCommon.Persistence;
+using System.Collections;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Queries
 {
     public class GetLeaveAllocationListRequestHandler : IRequestHandler<GetLeaveAllocationListRequest, List<LeaveAllocationDto>>
     {
-        private readonly ILeaveAllocationRepository _leaveAllocationRepository;
+        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserService _userService;
 
-        public GetLeaveAllocationListRequestHandler(ILeaveAllocationRepository leaveAllocationRepository,
+        public GetLeaveAllocationListRequestHandler(IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository,
              IMapper mapper,
              IHttpContextAccessor httpContextAccessor,
             IUserService userService)
@@ -36,12 +37,12 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
         {
             var leaveAllocations = new List<LeaveAllocation>();
             var allocations = new List<LeaveAllocationDto>();
-
+            _leaveAllocationRepository.EagerlyWith(x => x.LeaveType);
             if (request.IsLoggedInUser)
             {
                 var userId = _httpContextAccessor.HttpContext.User.FindFirst(
                     q => q.Type == CustomClaimTypes.Uid)?.Value;
-                leaveAllocations = await _leaveAllocationRepository.GetLeaveAllocationsWithDetails(userId);
+                leaveAllocations = await _leaveAllocationRepository.FindAsync(x=>x.EmployeeId == userId) as List<LeaveAllocation>;
 
                 var employee = await _userService.GetEmployee(userId);
                 allocations = _mapper.Map<List<LeaveAllocationDto>>(leaveAllocations);
@@ -52,7 +53,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
             }
             else
             {
-                leaveAllocations = await _leaveAllocationRepository.GetLeaveAllocationsWithDetails();
+                leaveAllocations = await _leaveAllocationRepository.FindAsync(x=>true) as List<LeaveAllocation>;
                 allocations = _mapper.Map<List<LeaveAllocationDto>>(leaveAllocations);
                 foreach (var req in allocations)
                 {

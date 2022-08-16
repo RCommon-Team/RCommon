@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
-using HR.LeaveManagement.Application.Contracts.Persistence;
 using HR.LeaveManagement.Domain;
 using MediatR;
+using RCommon.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,24 +14,23 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
 {
     public class DeleteLeaveTypeCommandHandler : IRequestHandler<DeleteLeaveTypeCommand>
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IFullFeaturedRepository<LeaveType> _leaveTypeRepository;
 
-        public DeleteLeaveTypeCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public DeleteLeaveTypeCommandHandler(IMapper mapper, IFullFeaturedRepository<LeaveType> leaveTypeRepository)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _leaveTypeRepository = leaveTypeRepository;
         }
 
         public async Task<Unit> Handle(DeleteLeaveTypeCommand request, CancellationToken cancellationToken)
         {
-            var leaveType = await _unitOfWork.LeaveTypeRepository.Get(request.Id);
+            var leaveType = await _leaveTypeRepository.FindAsync(request.Id);
 
             if (leaveType == null)
                 throw new NotFoundException(nameof(LeaveType), request.Id);
 
-            await _unitOfWork.LeaveTypeRepository.Delete(leaveType);
-            await _unitOfWork.Save();
+            await _leaveTypeRepository.DeleteAsync(leaveType);
 
             return Unit.Value;
         }

@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using HR.LeaveManagement.Application.Contracts.Persistence;
+using RCommon.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,11 +10,11 @@ namespace HR.LeaveManagement.Application.DTOs.LeaveAllocation.Validators
 {
     public class ILeaveAllocationDtoValidator : AbstractValidator<ILeaveAllocationDto>
     {
-        private readonly ILeaveTypeRepository _leaveTypeRepository;
+        private readonly IReadOnlyRepository<Domain.LeaveType> _leaveTypeRepository;
 
-        public ILeaveAllocationDtoValidator(ILeaveTypeRepository leaveTypeRepository)
+        public ILeaveAllocationDtoValidator(IReadOnlyRepository<HR.LeaveManagement.Domain.LeaveType> leaveTypeRepository)
         {
-            _leaveTypeRepository = leaveTypeRepository;
+            
             RuleFor(p => p.NumberOfDays)
                 .GreaterThan(0).WithMessage("{PropertyName} must greater than {ComparisonValue}");
 
@@ -25,11 +25,11 @@ namespace HR.LeaveManagement.Application.DTOs.LeaveAllocation.Validators
                 .GreaterThan(0)
                 .MustAsync(async (id, token) => 
                 {
-                    var leaveTypeExists = await _leaveTypeRepository.Exists(id);
-                    return leaveTypeExists;
+                    var leaveTypeExists = await _leaveTypeRepository.GetCountAsync(x=>x.Id == id);
+                    return (leaveTypeExists > 0 ? true : false);
                 })
                 .WithMessage("{PropertyName} does not exist.");
-            
+            this._leaveTypeRepository = leaveTypeRepository;
         }
     }
 }
