@@ -4,8 +4,23 @@ using HR.LeaveManagement.Identity;
 using HR.LeaveManagement.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
+using RCommon;
+using RCommon.Configuration;
+using RCommon.DependencyInjection.Microsoft;
+using RCommon.Persistence;
+using RCommon.Persistence.EFCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+AddSwaggerDoc(builder.Services);
+builder.Services.AddControllers();
+
+// Add RCommon services
+ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
+    .WithStateStorage<DefaultStateStorageConfiguration>()
+    .WithPersistence<EFCoreConfiguration>(x => x.
+        UsingDbContext<LeaveManagementDbContext>());
 
 // Add services to the container.
 builder.Services.ConfigureApplicationServices();
@@ -13,8 +28,6 @@ builder.Services.ConfigureInfrastructureServices(builder.Configuration);
 builder.Services.ConfigurePersistenceServices(builder.Configuration);
 builder.Services.ConfigureIdentityServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
-AddSwaggerDoc(builder.Services);
-builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
