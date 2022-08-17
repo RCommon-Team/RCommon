@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using RCommon;
 using RCommon.Configuration;
+using RCommon.DataServices;
+using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection.Microsoft;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
@@ -19,8 +21,11 @@ builder.Services.AddControllers();
 // Add RCommon services
 ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
     .WithStateStorage<DefaultStateStorageConfiguration>()
-    .WithPersistence<EFCoreConfiguration>(x => x.
-        UsingDbContext<LeaveManagementDbContext>());
+    .And<DataServicesConfiguration>(x=> 
+        x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
+    )
+    .WithPersistence<EFCoreConfiguration>(x=> 
+        x.UsingDbContext<LeaveManagementDbContext>());
 
 // Add services to the container.
 builder.Services.ConfigureApplicationServices();
