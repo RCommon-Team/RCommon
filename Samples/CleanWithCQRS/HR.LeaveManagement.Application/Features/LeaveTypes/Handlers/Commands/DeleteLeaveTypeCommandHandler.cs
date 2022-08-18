@@ -21,6 +21,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
         {
             _mapper = mapper;
             _leaveTypeRepository = leaveTypeRepository;
+            this._leaveTypeRepository.DataStoreName = "LeaveManagement";
         }
 
         public async Task<Unit> Handle(DeleteLeaveTypeCommand request, CancellationToken cancellationToken)

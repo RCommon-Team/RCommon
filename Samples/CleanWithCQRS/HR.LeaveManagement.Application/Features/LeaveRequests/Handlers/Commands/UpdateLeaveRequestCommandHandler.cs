@@ -31,6 +31,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             this._leaveRequestRepository = leaveRequestRepository;
             _leaveTypeRepository = leaveTypeRepository;
             _leaveAllocationRepository = leaveAllocationRepository;
+            this._leaveAllocationRepository.DataStoreName = "LeaveManagement";
+            this._leaveTypeRepository.DataStoreName = "LeaveManagement";
+            this._leaveRequestRepository.DataStoreName = "LeaveManagement";
             _mapper = mapper;
         }
 

@@ -11,7 +11,7 @@ namespace HR.LeaveManagement.Persistence.Configurations.Entities
     {
         public void Configure(EntityTypeBuilder<LeaveAllocation> builder)
         {
-            
+            BaseConfiguration.Configure(builder);
         }
     }
 }

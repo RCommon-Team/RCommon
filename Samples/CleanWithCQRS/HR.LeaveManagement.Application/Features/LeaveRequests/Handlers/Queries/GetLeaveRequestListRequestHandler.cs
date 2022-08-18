@@ -31,6 +31,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
             IUserService userService)
         {
             _leaveRequestRepository = leaveRequestRepository;
+            this._leaveRequestRepository.DataStoreName = "LeaveManagement";
             _mapper = mapper;
             this._httpContextAccessor = httpContextAccessor;
             this._userService = userService;

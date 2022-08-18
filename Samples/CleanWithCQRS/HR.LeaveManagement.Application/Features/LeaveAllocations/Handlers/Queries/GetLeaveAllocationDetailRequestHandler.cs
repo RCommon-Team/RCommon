@@ -18,6 +18,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
         public GetLeaveAllocationDetailRequestHandler(IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
         {
             _leaveAllocationRepository = leaveAllocationRepository;
+            this._leaveAllocationRepository.DataStoreName = "LeaveManagement";
             _mapper = mapper;
         }
         public async Task<LeaveAllocationDto> Handle(GetLeaveAllocationDetailRequest request, CancellationToken cancellationToken)

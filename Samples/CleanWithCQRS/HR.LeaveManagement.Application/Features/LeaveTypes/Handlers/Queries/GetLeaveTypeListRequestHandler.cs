@@ -22,6 +22,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries
         public GetLeaveTypeListRequestHandler(IFullFeaturedRepository<LeaveType> leaveTypeRepository, IMapper mapper)
         {
             _leaveTypeRepository = leaveTypeRepository;
+            this._leaveTypeRepository.DataStoreName = "LeaveManagement";
             _mapper = mapper;
         }
 

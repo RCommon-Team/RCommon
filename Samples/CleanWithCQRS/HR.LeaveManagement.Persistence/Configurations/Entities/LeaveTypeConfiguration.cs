@@ -11,6 +11,7 @@ namespace HR.LeaveManagement.Persistence.Configurations.Entities
     {
         public void Configure(EntityTypeBuilder<LeaveType> builder)
         {
+            BaseConfiguration.Configure(builder);
             ////builder.HasData(
             ////    new LeaveType
             ////    {

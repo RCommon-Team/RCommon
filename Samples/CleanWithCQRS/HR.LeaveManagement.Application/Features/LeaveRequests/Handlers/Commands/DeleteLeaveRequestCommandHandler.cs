@@ -22,6 +22,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
         {
             _mapper = mapper;
             this._leaveRequestRepository = leaveRequestRepository;
+            this._leaveRequestRepository.DataStoreName = "LeaveManagement";
         }
 
         public async Task<Unit> Handle(DeleteLeaveRequestCommand request, CancellationToken cancellationToken)

@@ -21,6 +21,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
         public DeleteLeaveAllocationCommandHandler(IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
         {
             this._leaveAllocationRepository = leaveAllocationRepository;
+            this._leaveAllocationRepository.DataStoreName = "LeaveManagement";
             _mapper = mapper;
         }
 
