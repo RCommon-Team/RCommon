@@ -40,7 +40,7 @@ namespace RCommon.Persistence.EFCore.Tests
         private readonly IConfiguration _configuration;
 
 
-        public TestDbContext(IConfiguration configuration)
+        public TestDbContext(DbContextOptions<TestDbContext> options, IConfiguration configuration):base(options)
         {
             _configuration = configuration;
         }
@@ -62,7 +62,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured && _configuration != null)
+            if (_configuration != null)
             {
                 optionsBuilder.UseSqlServer(_configuration.GetConnectionString(@"TestDbContext"));
                 optionsBuilder.UseLoggerFactory(EFUnitTestLoggingFactory)
