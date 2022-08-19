@@ -11,6 +11,7 @@ using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection.Microsoft;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
+using RCommon.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,10 +22,14 @@ builder.Services.AddControllers();
 // Add RCommon services
 ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
     .WithStateStorage<DefaultStateStorageConfiguration>()
-    .And<DataServicesConfiguration>(x=> 
+    .WithClaimsAndPrincipalAccessor()
+    .WithDateTimeSystem<SystemTime>(x => x.Kind = DateTimeKind.Utc)
+    .WithGuidGenerator<SequentialGuidGenerator>(x => x.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
+    .And<DataServicesConfiguration>(x =>
         x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
     )
-    .WithPersistence<EFCoreConfiguration>(x=> 
+    .AddUnitOfWorkToMediatorPipeline()
+    .WithPersistence<EFCoreConfiguration>(x =>
         x.UsingDbContext<LeaveManagementDbContext>());
 
 // Add services to the container.

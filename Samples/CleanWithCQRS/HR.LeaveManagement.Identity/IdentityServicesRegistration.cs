@@ -24,7 +24,7 @@ namespace HR.LeaveManagement.Identity
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
             services.AddDbContext<LeaveManagementIdentityDbContext>(options => 
-                options.UseSqlServer(configuration.GetConnectionString("LeaveManagementIdentityConnectionString"),
+                options.UseSqlServer(configuration.GetConnectionString("LeaveManagementConnectionString"),
                 b => b.MigrationsAssembly(typeof(LeaveManagementIdentityDbContext).Assembly.FullName)));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()

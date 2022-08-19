@@ -14,8 +14,7 @@ namespace RCommon.Security
     public static class SecurityConfigurationExtensions
     {
 
-        public static IRCommonConfiguration WithSecurity<T>(this IRCommonConfiguration config, Action<T> actions)
-            where T : IRCommonConfiguration
+        public static IRCommonConfiguration WithClaimsAndPrincipalAccessor(this IRCommonConfiguration config)
         {
             config.ContainerAdapter.Services.AddTransient<ICurrentPrincipalAccessor, ThreadCurrentPrincipalAccessor>();
             config.ContainerAdapter.Services.AddTransient<ICurrentClient, CurrentClient>();
