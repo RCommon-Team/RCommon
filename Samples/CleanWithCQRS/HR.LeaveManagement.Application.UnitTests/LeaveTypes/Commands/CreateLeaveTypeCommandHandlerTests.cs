@@ -9,6 +9,7 @@ using HR.LeaveManagement.Application.Profiles;
 using HR.LeaveManagement.Application.Responses;
 using HR.LeaveManagement.Domain;
 using Moq;
+using NUnit.Framework;
 using Shouldly;
 using System;
 using System.Collections.Generic;
@@ -16,10 +17,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
 {
+    [TestFixture()]
     public class CreateLeaveTypeCommandHandlerTests
     {
         private readonly IMapper _mapper;
@@ -45,7 +46,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
             };
         }
 
-        [Fact]
+        [Test]
         public async Task Valid_LeaveType_Added()
         {
             var result = await _handler.Handle(new CreateLeaveTypeCommand() { LeaveTypeDto = _leaveTypeDto }, CancellationToken.None);
@@ -57,7 +58,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
             leaveTypes.Count.ShouldBe(4);
         }
 
-        [Fact]
+        [Test]
         public async Task InValid_LeaveType_Added()
         {
             _leaveTypeDto.DefaultDays = -1;

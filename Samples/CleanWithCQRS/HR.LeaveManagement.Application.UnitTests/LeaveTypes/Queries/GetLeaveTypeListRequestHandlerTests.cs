@@ -5,6 +5,7 @@ using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
 using HR.LeaveManagement.Application.Profiles;
 using HR.LeaveManagement.Domain;
 using Moq;
+using NUnit.Framework;
 using Shouldly;
 using System;
 using System.Collections.Generic;
@@ -12,10 +13,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Queries
 {
+    [TestFixture()]
     public class GetLeaveTypeListRequestHandlerTests
     {
         private readonly IMapper _mapper;
@@ -31,7 +32,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Queries
             _mapper = mapperConfig.CreateMapper();
         }
 
-        [Fact]
+        [Test]
         public async Task GetLeaveTypeListTest()
         {
             var handler = new GetLeaveTypeListRequestHandler(null, _mapper);

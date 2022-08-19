@@ -51,7 +51,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
         [Test]
         public void Can_Run_Tests_In_Web_Environment()
         {
-            this.CreateWebRequest();
+            var httpClient = this.CreateMockHttpClient(new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK));
             this.Can_run_BasePolicy();
         }
 
