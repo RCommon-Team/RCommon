@@ -26,7 +26,7 @@ namespace RCommon.Security.Authorization
         public string Code { get; }
 
         /// <summary>
-        /// Creates a new <see cref="AbpAuthorizationException"/> object.
+        /// Creates a new <see cref="AuthorizationException"/> object.
         /// </summary>
         public AuthorizationException()
         {
@@ -34,7 +34,7 @@ namespace RCommon.Security.Authorization
         }
 
         /// <summary>
-        /// Creates a new <see cref="AbpAuthorizationException"/> object.
+        /// Creates a new <see cref="AuthorizationException"/> object.
         /// </summary>
         public AuthorizationException(SerializationInfo serializationInfo, StreamingContext context)
             : base(serializationInfo, context)
@@ -43,7 +43,7 @@ namespace RCommon.Security.Authorization
         }
 
         /// <summary>
-        /// Creates a new <see cref="AbpAuthorizationException"/> object.
+        /// Creates a new <see cref="AuthorizationException"/> object.
         /// </summary>
         /// <param name="message">Exception message</param>
         public AuthorizationException(string message)
