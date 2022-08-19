@@ -4,6 +4,19 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	  <Authors>Reactor2, Jason Webb</Authors>
+	  <Company>RCommon</Company>
+	  <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+	  <Copyright></Copyright>
+	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+	  <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+	  <PackageTags>RCommon, security, identity, claims, principal</PackageTags>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <RepositoryType>GitHub</RepositoryType>
+	  <Version>1.0.1.72</Version>
+	  <PackageIconUrl />
+	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
