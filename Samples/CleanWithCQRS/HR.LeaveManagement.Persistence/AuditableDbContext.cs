@@ -1,6 +1,8 @@
 ﻿using HR.LeaveManagement.Domain.Common;
 using Microsoft.EntityFrameworkCore;
+using RCommon;
 using RCommon.Persistence.EFCore;
+using RCommon.Security.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +13,19 @@ namespace HR.LeaveManagement.Persistence
 {
     public abstract class AuditableDbContext : RCommonDbContext
     {
+        private readonly ICurrentUser _currentUser;
+        private readonly ISystemTime _systemTime;
+        private readonly IGuidGenerator _guidGenerator;
+
+        public AuditableDbContext(ICurrentUser currentUser, ISystemTime systemTime, DbContextOptions options) : base(options)
+        {
+            _currentUser = currentUser;
+            this._systemTime=systemTime;
+        }
+
         public AuditableDbContext(DbContextOptions options) : base(options)
         {
+            
         }
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
@@ -20,13 +33,15 @@ namespace HR.LeaveManagement.Persistence
             foreach (var entry in base.ChangeTracker.Entries<BaseDomainEntity>()
                 .Where(q => q.State == EntityState.Added || q.State == EntityState.Modified))
             {
-                entry.Entity.DateLastModified = DateTime.Now;
-                entry.Entity.LastModifiedBy = "System";
+                string userId = (_currentUser == null || _currentUser.Id == null ? "System" : _currentUser.Id.ToString());
+
+                entry.Entity.DateLastModified = _systemTime.Now;
+                entry.Entity.LastModifiedBy = userId;
 
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.DateCreated = DateTime.Now;
-                    entry.Entity.CreatedBy = "System";
+                    entry.Entity.DateCreated = _systemTime.Now;
+                    entry.Entity.CreatedBy = userId;
                 }
             }
 

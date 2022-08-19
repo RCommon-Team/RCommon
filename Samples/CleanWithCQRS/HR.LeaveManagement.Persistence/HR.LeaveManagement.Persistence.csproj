@@ -15,6 +15,7 @@
   </ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Src\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
+		<ProjectReference Include="..\..\RCommon.Security\RCommon.Security.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Application\HR.LeaveManagement.Application.csproj" />
 	</ItemGroup>
 </Project>

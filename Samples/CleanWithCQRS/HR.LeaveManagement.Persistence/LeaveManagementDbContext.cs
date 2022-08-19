@@ -1,6 +1,8 @@
 ﻿using HR.LeaveManagement.Domain;
 using HR.LeaveManagement.Domain.Common;
 using Microsoft.EntityFrameworkCore;
+using RCommon;
+using RCommon.Security.Users;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,6 +13,12 @@ namespace HR.LeaveManagement.Persistence
 {
     public class LeaveManagementDbContext : AuditableDbContext
     {
+
+        public LeaveManagementDbContext(ICurrentUser currentUser, ISystemTime systemTime, DbContextOptions<LeaveManagementDbContext> options)
+            : base(currentUser, systemTime, options)
+        {
+        }
+
         public LeaveManagementDbContext(DbContextOptions<LeaveManagementDbContext> options)
             : base(options)
         {
