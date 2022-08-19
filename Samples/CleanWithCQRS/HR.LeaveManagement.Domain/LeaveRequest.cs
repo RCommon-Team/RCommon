@@ -7,6 +7,12 @@ namespace HR.LeaveManagement.Domain
 {
     public class LeaveRequest : BaseDomainEntity
     {
+        public LeaveRequest()
+        {
+
+        }
+
+
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public LeaveType LeaveType { get; set; }

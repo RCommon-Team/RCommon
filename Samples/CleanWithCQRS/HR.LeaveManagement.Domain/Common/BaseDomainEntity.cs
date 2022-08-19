@@ -5,11 +5,8 @@ using System.Text;
 
 namespace HR.LeaveManagement.Domain.Common
 {
-    public abstract class BaseDomainEntity : BusinessEntity<int>
+    public abstract class BaseDomainEntity : AuditedEntity<int, string, string>
     {
-        public DateTime DateCreated { get; set; }
-        public string CreatedBy { get; set; }
-        public DateTime LastModifiedDate { get; set; }
-        public string LastModifiedBy { get; set; }
+            
     }
 }

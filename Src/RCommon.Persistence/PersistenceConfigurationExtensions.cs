@@ -31,6 +31,16 @@ namespace RCommon.Persistence
             return dataConfiguration;
         }
 
+        public static IObjectAccessConfiguration AllowPopulationOfAuditedEntity<T>(this IObjectAccessConfiguration config, Action<T> actions)
+            where T : IObjectAccessConfiguration
+        {
+
+            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
+            actions(dataConfiguration);
+            dataConfiguration.Configure();
+            return dataConfiguration;
+        }
+
         /// <summary>
         /// Right now we are always using change tracking due to requirements for publishing entity events and those events being
         /// somewhat tied to Change Tracking.

@@ -15,24 +15,28 @@ namespace HR.LeaveManagement.Persistence
         {
         }
 
-        public virtual async Task<int> SaveChangesAsync(string username = "SYSTEM")
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
             foreach (var entry in base.ChangeTracker.Entries<BaseDomainEntity>()
                 .Where(q => q.State == EntityState.Added || q.State == EntityState.Modified))
             {
-                entry.Entity.LastModifiedDate = DateTime.Now;
-                entry.Entity.LastModifiedBy = username;
+                entry.Entity.DateLastModified = DateTime.Now;
+                entry.Entity.LastModifiedBy = "System";
 
                 if (entry.State == EntityState.Added)
                 {
                     entry.Entity.DateCreated = DateTime.Now;
-                    entry.Entity.CreatedBy = username;
+                    entry.Entity.CreatedBy = "System";
                 }
             }
 
-            var result = await base.SaveChangesAsync();
+            
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
 
-            return result;
+        public override void PersistChanges()
+        {
+            base.PersistChanges();
         }
     }
 }

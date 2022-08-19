@@ -15,6 +15,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Models\RCommon.Models.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Persistence\RCommon.Persistence.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Domain\HR.LeaveManagement.Domain.csproj" />
 	</ItemGroup>
 </Project>

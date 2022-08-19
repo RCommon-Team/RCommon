@@ -4,6 +4,7 @@ using MediatR;
 using RCommon.Extensions;
 using PropertyChanged;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RCommon.BusinessEntities
 {
@@ -39,6 +40,7 @@ namespace RCommon.BusinessEntities
         private List<ILocalEvent> _localEvents;
         public IReadOnlyCollection<ILocalEvent> LocalEvents => _localEvents?.AsReadOnly();
 
+        [NotMapped]
         public bool AllowChangeTracking { get => _allowChangeTracking; set => _allowChangeTracking = value; }
 
         public void AddLocalEvent(ILocalEvent eventItem)
