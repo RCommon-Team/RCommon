@@ -278,24 +278,6 @@ namespace RCommon
             }
         }
 
-        /*[DebuggerStepThrough]
-        public static void IsNotInPast(DateTime argument, string argumentName)
-        {
-            if (argument < Lazy<IClock>SystemTime.Now())
-            {
-                throw new ArgumentOutOfRangeException(argumentName);
-            }
-        }
-
-        [DebuggerStepThrough]
-        public static void IsNotInFuture(DateTime argument, string argumentName)
-        {
-            if (argument > SystemTime.Now())
-            {
-                throw new ArgumentOutOfRangeException(argumentName);
-            }
-        }*/
-
         [DebuggerStepThrough]
         public static void IsNotNegative(TimeSpan argument, string argumentName)
         {

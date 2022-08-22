@@ -268,7 +268,6 @@ namespace RCommon.Persistence.EFCore.Tests
             }
 
             Customer savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.Id == customer.Id);
-            //savedCustomer = _testDataActions.GetCustomerById(customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.Id, customer.Id);

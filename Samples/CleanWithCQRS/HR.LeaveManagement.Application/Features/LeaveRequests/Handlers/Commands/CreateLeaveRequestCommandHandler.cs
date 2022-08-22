@@ -19,13 +19,14 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using HR.LeaveManagement.Application.Constants;
 using RCommon.Persistence;
+using RCommon.Security.Users;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands
 {
     public class CreateLeaveRequestCommandHandler : IRequestHandler<CreateLeaveRequestCommand, BaseCommandResponse>
     {
         private readonly IEmailSender _emailSender;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICurrentUser _currentUser;
         private readonly IMapper _mapper;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
         private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
@@ -36,7 +37,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository,
             IFullFeaturedRepository<LeaveRequest> leaveRequestRepository,
             IEmailSender emailSender,
-            IHttpContextAccessor httpContextAccessor,
+            ICurrentUser currentUser,
             IMapper mapper)
         {
             _leaveTypeRepository = leaveTypeRepository;
@@ -46,7 +47,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             this._leaveTypeRepository.DataStoreName = "LeaveManagement";
             this._leaveRequestRepository.DataStoreName = "LeaveManagement";
             _emailSender = emailSender;
-            this._httpContextAccessor = httpContextAccessor;
+            this._currentUser = currentUser;
             _mapper = mapper;
         }
 
@@ -55,8 +56,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             var response = new BaseCommandResponse();
             var validator = new CreateLeaveRequestDtoValidator(_leaveTypeRepository);
             var validationResult = await validator.ValidateAsync(request.LeaveRequestDto);
-            var userId = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(
-                    q => q.Type == CustomClaimTypes.Uid)?.Value;
+            var userId = _currentUser.FindClaimValue(CustomClaimTypes.Uid);
+            //_httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(
+                    //q => q.Type == CustomClaimTypes.Uid)?.Value;
 
             var allocation = _leaveAllocationRepository.FirstOrDefault(x=>x.EmployeeId == userId && x.LeaveTypeId == request.LeaveRequestDto.LeaveTypeId);
             if(allocation is null)
@@ -93,7 +95,8 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
 
                 try
                 {
-                    var emailAddress = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Email).Value;
+                    var emailAddress = _currentUser.FindClaimValue(ClaimTypes.Email);
+                    //_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Email).Value;
 
                     var email = new Email
                     {
