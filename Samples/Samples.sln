@@ -63,7 +63,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Web", "..\Src\RComm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Authorization.Web", "..\Src\RCommon.Authorization.Web\RCommon.Authorization.Web.csproj", "{E48B660B-BB17-4CB5-9051-E12729C49AD1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Simple Clean Architecture with CQRS", "Simple Clean Architecture with CQRS", "{41744E85-4BE4-4DA4-91B8-0DFA262CB11B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clean Architecture with CQRS", "Clean Architecture with CQRS", "{41744E85-4BE4-4DA4-91B8-0DFA262CB11B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HR.LeaveManagement.API", "CleanWithCQRS\HR.LeaveManagement.API\HR.LeaveManagement.API.csproj", "{06CF93D0-29A4-4739-A681-EB6802A03BD8}"
 EndProject
