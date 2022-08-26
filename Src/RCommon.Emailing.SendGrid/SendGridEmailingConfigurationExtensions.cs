@@ -14,9 +14,9 @@ namespace RCommon
     public static class SendGridEmailingConfigurationExtensions
     {
 
-        public static IRCommonConfiguration WithSendGridEmailServices(this IRCommonConfiguration config, Action<EmailSettings> emailSettings)
+        public static IRCommonConfiguration WithSendGridEmailServices(this IRCommonConfiguration config, Action<SendGridEmailSettings> emailSettings)
         {
-            config.ContainerAdapter.Services.Configure<EmailSettings>(emailSettings);
+            config.ContainerAdapter.Services.Configure<SendGridEmailSettings>(emailSettings);
             config.ContainerAdapter.AddTransient<IEmailService, SendGridEmailService>();
             return config;
         }

@@ -4,7 +4,7 @@ using NUnit.Framework;
 using RCommon.Configuration;
 using RCommon.DependencyInjection.Microsoft;
 using RCommon.Emailing;
-using RCommon.Emailing.Smtp;
+using RCommon.Emailing.SendGrid;
 using RCommon.TestBase;
 using System;
 using System.Collections.Generic;
@@ -22,10 +22,10 @@ namespace RCommon.Tests.Application.Services
         {
             var services = new ServiceCollection();
 
-            services.AddTransient<IEmailService, SmtpEmailService>();
+            services.AddTransient<IEmailService, SendGridEmailService>();
 
             this.InitializeRCommon(services);
-            
+
         }
 
         protected void InitializeRCommon(IServiceCollection services)
@@ -33,15 +33,10 @@ namespace RCommon.Tests.Application.Services
 
 
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
-                .WithSmtpEmailServices(settings =>
-                    {
-                        settings.EnableSsl = true;
-                        settings.From = "you@ytest.com";
-                        settings.Host = "smtp.sendgrid.net";
-                        settings.Password = "yourpassword";
-                        settings.Port = 587;
-                        settings.UserName = "apikey";
-                    });
+                .WithSendGridEmailServices(settings =>
+                {
+                    settings.SendGridApiKey = "apiKey";
+                });
 
 
 
