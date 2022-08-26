@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.ApplicationServices;
-using RCommon.ApplicationServices.Common;
 using RCommon.Configuration;
 using RCommon.DependencyInjection.Microsoft;
+using RCommon.Emailing;
+using RCommon.Emailing.Smtp;
 using RCommon.TestBase;
 using System;
 using System.Collections.Generic;
@@ -16,13 +16,13 @@ using System.Threading.Tasks;
 namespace RCommon.Tests.Application.Services
 {
     [TestFixture]
-    public class EmailServiceIntegration : TestBootstrapper
+    public class SmtpEmailServiceIntegration : TestBootstrapper
     {
-        public EmailServiceIntegration()
+        public SmtpEmailServiceIntegration()
         {
             var services = new ServiceCollection();
 
-            services.AddTransient<IEmailService, EmailService>();
+            services.AddTransient<IEmailService, SmtpEmailService>();
 
             this.InitializeRCommon(services);
             

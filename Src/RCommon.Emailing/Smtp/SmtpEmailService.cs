@@ -9,13 +9,13 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using Microsoft.Extensions.Options;
 
-namespace RCommon.ApplicationServices.Common
+namespace RCommon.Emailing.Smtp
 {
-    public class EmailService : IEmailService
+    public class SmtpEmailService : IEmailService
     {
         public EmailSettings Settings { get; }
 
-        public EmailService(IOptions<EmailSettings> settings)
+        public SmtpEmailService(IOptions<EmailSettings> settings)
         {
             Settings = settings.Value;
         }

@@ -2,24 +2,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.ApplicationServices;
 using RCommon.ApplicationServices.Behaviors;
-using RCommon.ApplicationServices.Common;
 using RCommon.Configuration;
 using RCommon.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.Configuration
+namespace RCommon
 {
-    public static class CommonApplicationConfigurationExtensions
+    public static class ApplicationConfigurationExtensions
     {
 
-        public static IRCommonConfiguration WithSmtpEmailServices(this IRCommonConfiguration config, Action<EmailSettings> emailSettings)
-        {
-            config.ContainerAdapter.Services.Configure<EmailSettings>(emailSettings);
-            config.ContainerAdapter.AddTransient<IEmailService, EmailService>();
-            return config;
-        }
+        
 
         public static IRCommonConfiguration AddLoggingToMediatorPipeline(this IRCommonConfiguration config)
         {
