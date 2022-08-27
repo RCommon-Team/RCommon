@@ -6,7 +6,7 @@ namespace RCommon.Emailing
 {
     public interface IEmailService
     {
-        event EventHandler<EventArgs> EmailSent;
+        event EventHandler<EmailEventArgs> EmailSent;
 
         void SendEmail(MailMessage message);
         Task SendEmailAsync(MailMessage message);

@@ -15,7 +15,7 @@ namespace RCommon.Emailing.SendGrid
     public class SendGridEmailService : IEmailService
     {
 
-        public event EventHandler<EventArgs> EmailSent;
+        public event EventHandler<EmailEventArgs> EmailSent;
 
         public void SendEmail(MailMessage message)
         {
@@ -33,7 +33,7 @@ namespace RCommon.Emailing.SendGrid
         {
             if (EmailSent != null)
             {
-                EmailSent(message, new EventArgs());
+                EmailSent(message, new EmailEventArgs(message));
             }
         }
 

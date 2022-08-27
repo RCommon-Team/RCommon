@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Moq;
 using NUnit.Framework;
 using RCommon.Configuration;
 using RCommon.DependencyInjection.Microsoft;
@@ -13,11 +14,14 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Tests.Application.Services
+namespace RCommon.Emailing.Tests
 {
     [TestFixture]
     public class SmtpEmailServiceIntTests : TestBootstrapper
     {
+        private bool _emailSent = false;
+
+
         public SmtpEmailServiceIntTests()
         {
             var services = new ServiceCollection();
@@ -30,8 +34,6 @@ namespace RCommon.Tests.Application.Services
 
         protected void InitializeRCommon(IServiceCollection services)
         {
-
-
             ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
                 .WithSmtpEmailServices(settings =>
                     {
@@ -62,6 +64,7 @@ namespace RCommon.Tests.Application.Services
         [Test]
         public void Can_send_email()
         {
+            _emailSent = false;
             var message = new MailMessage();
             message.To.Add("youremail@test.com");
             message.From = new MailAddress("test@test.com");
@@ -71,23 +74,28 @@ namespace RCommon.Tests.Application.Services
             message.IsBodyHtml = true;
 
 
-            var emailService = this.ServiceProvider.GetService<IEmailService>();
-            emailService.SendEmail(message);
+            var mock = new Mock<IEmailService>();
+            mock.Setup(x => x.SendEmail(message))
+                .Raises(e => e.EmailSent += null, new EmailEventArgs(message));
+            mock.Object.EmailSent += EmailService_EmailSent;
 
-            emailService.EmailSent += EmailService_EmailSent;
+            mock.Object.SendEmail(message);
 
-            Assert.Inconclusive("You must check email to ensure email was sent properly.");
+            Assert.IsTrue(_emailSent);
 
         }
 
-        private void EmailService_EmailSent(object sender, EventArgs e)
+        private void EmailService_EmailSent(object sender, EmailEventArgs e)
         {
-            this.Logger.LogInformation("Emailer worked", null);
+            Assert.IsNotNull(e);
+            Assert.IsTrue(e.MailMessage.Subject == "Test Email");
+            _emailSent = true;
         }
 
         [Test]
         public async Task Can_send_email_async()
         {
+            _emailSent = false;
             var message = new MailMessage();
             message.To.Add("youremail@test.com");
             message.From = new MailAddress("test@test.com");
@@ -96,12 +104,16 @@ namespace RCommon.Tests.Application.Services
             message.BodyEncoding = Encoding.UTF8;
             message.IsBodyHtml = true;
 
-            var emailService = this.ServiceProvider.GetService<IEmailService>();
-            await emailService.SendEmailAsync(message);
 
-            emailService.EmailSent += EmailService_EmailSent;
+            var mock = new Mock<IEmailService>();
+            mock.Setup(x => x.SendEmailAsync(message))
+                .Returns(Task.CompletedTask)
+                .Raises(e => e.EmailSent += null, new EmailEventArgs(message));
+            mock.Object.EmailSent += EmailService_EmailSent;
 
-            Assert.Inconclusive("You must check email to ensure email was sent properly.");
+            await mock.Object.SendEmailAsync(message);
+
+            Assert.IsTrue(_emailSent);
         }
 
     }

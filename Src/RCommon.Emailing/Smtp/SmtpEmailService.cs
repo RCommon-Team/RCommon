@@ -46,7 +46,6 @@ namespace RCommon.Emailing.Smtp
             {
                 // Remove the pointer to the message object so the GC can close the thread.
                 message.Dispose();
-                message = null;
             }
         }
 
@@ -63,12 +62,12 @@ namespace RCommon.Emailing.Smtp
         /// <summary>
         /// Occurs after an e-mail has been sent. The sender is the MailMessage object.
         /// </summary>
-        public event EventHandler<EventArgs> EmailSent;
+        public event EventHandler<EmailEventArgs> EmailSent;
         private void OnEmailSent(MailMessage message)
         {
             if (EmailSent != null)
             {
-                EmailSent(message, new EventArgs());
+                EmailSent(message, new EmailEventArgs(message));
             }
         }
 
