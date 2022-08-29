@@ -23,18 +23,20 @@ builder.Services.AddControllers();
 ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
     .WithStateStorage<DefaultStateStorageConfiguration>()
     .WithClaimsAndPrincipalAccessor()
-    .WithDateTimeSystem<SystemTime>(x => x.Kind = DateTimeKind.Utc)
-    .WithGuidGenerator<SequentialGuidGenerator>(x => x.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
+    .WithSendGridEmailServices(x => 
+        x.SendGridApiKey = "apiKey")
+    .WithDateTimeSystem<SystemTime>(x => 
+        x.Kind = DateTimeKind.Utc)
+    .WithGuidGenerator<SequentialGuidGenerator>(x => 
+        x.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
     .And<DataServicesConfiguration>(x =>
-        x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()
-    )
+        x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
     .AddUnitOfWorkToMediatorPipeline()
     .WithPersistence<EFCoreConfiguration>(x =>
         x.UsingDbContext<LeaveManagementDbContext>());
 
 // Add services to the container.
 builder.Services.ConfigureApplicationServices();
-builder.Services.ConfigureInfrastructureServices(builder.Configuration);
 builder.Services.ConfigurePersistenceServices(builder.Configuration);
 builder.Services.ConfigureIdentityServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
