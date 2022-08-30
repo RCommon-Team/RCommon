@@ -9,7 +9,7 @@ using RCommon.Security.Users;
 using RCommon.Security.Claims;
 using RCommon.Security.Clients;
 
-namespace RCommon.Security
+namespace RCommon
 {
     public static class SecurityConfigurationExtensions
     {

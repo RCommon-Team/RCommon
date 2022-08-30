@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence
+namespace RCommon
 {
     public static class PersistenceConfigurationExtensions
     {

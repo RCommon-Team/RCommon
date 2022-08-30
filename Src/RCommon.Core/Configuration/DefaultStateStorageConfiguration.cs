@@ -19,7 +19,7 @@ using RCommon.DependencyInjection;
 using RCommon.StateStorage;
 using RCommon.StateStorage.AspNetCore;
 
-namespace RCommon.Configuration
+namespace RCommon
 {
     /// <summary>
     /// Default implementation of <see cref="IStateStorageConfiguration"/> that allows configuring

@@ -5,8 +5,9 @@ using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
 using RCommon.Persistence;
 using NHibernate;
+using RCommon.Persistence.NHibernate;
 
-namespace RCommon.Persistence.NHibernate
+namespace RCommon
 {
     /// <summary>
     /// Implementation of <see cref="IObjectAccessConfiguration"/> that configures RCommon to use NHibernate.

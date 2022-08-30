@@ -17,7 +17,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace RCommon.Configuration
+namespace RCommon
 {
     /// <summary>
     /// Configuration interface exposed by RCommon to configure different services exposed by RCommon.
