@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RCommon.Configuration
+namespace RCommon
 {
 	public interface IServiceConfiguration
 	{

@@ -32,7 +32,7 @@ namespace RCommon.Persistence.EFCore
             return base.Database.GetDbConnection();
         }
 
-        public void PersistChanges()
+        public virtual void PersistChanges()
         {
             AsyncHelper.RunSync(() => this.SaveChangesAsync(true));
         }

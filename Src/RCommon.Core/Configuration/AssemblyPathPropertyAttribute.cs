@@ -18,7 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Configuration
+namespace RCommon
 {
     public class AssemblyPathPropertyAttribute : Attribute
     {

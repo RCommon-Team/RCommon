@@ -31,11 +31,6 @@ namespace RCommon.ApplicationServices.Behaviors
 
             try
             {
-                if (this._unitOfWorkManager.CurrentUnitOfWork == null)
-                {
-                    return await next();
-                }
-
                 using (var unitOfWork = this._unitOfWorkScopeFactory.Create(TransactionMode.Default))
                 {
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})", 

@@ -69,8 +69,8 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_Run_In_Web_Environment()
         {
-            this.CreateWebRequest();
-            
+            var httpClient = this.CreateMockHttpClient(new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK));
+
 
             await this.UnitOfWork_Can_commit();
         }
@@ -268,7 +268,6 @@ namespace RCommon.Persistence.EFCore.Tests
             }
 
             Customer savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.Id == customer.Id);
-            //savedCustomer = _testDataActions.GetCustomerById(customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.Id, customer.Id);

@@ -8,10 +8,10 @@
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <Authors>Reactor2, Jason Webb</Authors>
-    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageTags>RCommon, dependency injection, autofac, di abstractions, c#, .NET</PackageTags>
-    <Version>1.0.1.71</Version>
+    <Version>1.0.1.72</Version>
     <PackageIconUrl />
     <Company>RCommon</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

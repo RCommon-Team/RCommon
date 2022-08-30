@@ -8,12 +8,12 @@
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <Authors>Reactor2, Jason Webb</Authors>
-    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
+    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageTags>RCommon, dependency injection, castle windsor, di abstractions, c#, .NET</PackageTags>
     <PackageIconUrl />
     <Company>RCommon</Company>
-    <Version>1.0.1.71</Version>
+    <Version>1.0.1.72</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 

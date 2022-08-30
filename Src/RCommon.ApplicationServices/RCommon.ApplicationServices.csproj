@@ -7,18 +7,19 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <Description>A lightweight application framework that utilizes abstractions over commonly used patterns to future proof applications.</Description>
-    <Authors>Reactor2, Jason Webb</Authors>
+    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+    <Authors>Jason Webb</Authors>
     <Company>RCommon</Company>
-    <Version>1.0.1.71</Version>
+    <Version>1.0.1.72</Version>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, application services, common application services, email, CRUD helpers, c#, .NET</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.BusinessServices\RCommon.BusinessServices.csproj" />
+    <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
     <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
+    <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
     <ProjectReference Include="..\RCommon.Validation\RCommon.Validation.csproj" />
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>

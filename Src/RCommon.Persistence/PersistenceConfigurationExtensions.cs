@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence
+namespace RCommon
 {
     public static class PersistenceConfigurationExtensions
     {
@@ -26,6 +26,16 @@ namespace RCommon.Persistence
             
             var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
             config = WithChangeTracking(dataConfiguration);
+            actions(dataConfiguration);
+            dataConfiguration.Configure();
+            return dataConfiguration;
+        }
+
+        public static IObjectAccessConfiguration AllowPopulationOfAuditedEntity<T>(this IObjectAccessConfiguration config, Action<T> actions)
+            where T : IObjectAccessConfiguration
+        {
+
+            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
             actions(dataConfiguration);
             dataConfiguration.Configure();
             return dataConfiguration;

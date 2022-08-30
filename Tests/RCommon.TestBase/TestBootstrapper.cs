@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Moq.Protected;
 using RCommon.Configuration;
 using RCommon.DataServices;
 using RCommon.DependencyInjection;
@@ -9,7 +11,10 @@ using RCommon.DependencyInjection.Microsoft;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 
 namespace RCommon.TestBase
@@ -28,14 +33,10 @@ namespace RCommon.TestBase
 
         protected virtual void InitializeBootstrapper(IServiceCollection services)
         {
-
-
-
             var builder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             this.Configuration = builder.Build();
-
-            services.AddSingleton<ILogger>(TestLogger.Create());
+            //services.AddSingleton<ILogger>(TestLogger.Create());
             services.AddSingleton<IConfiguration>(this.Configuration);
             services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
         }
@@ -43,19 +44,33 @@ namespace RCommon.TestBase
 
 
         /// <summary>
-        /// Creates a simple web request so that we can test RCommon in web environment
+        /// This simplifies the process of mocking web requests and testing responses over Http
         /// </summary>
-        protected void CreateWebRequest()
+        /// <param name="mockResponse"></param>
+        /// <returns>Mock HttpClient Factory</returns>
+        /// <remarks>Usage: var mockFactory = this.CreateMockHttpClient(new HttpResponseMessage{StatusCode = HttpStatusCode.InternalServerError};
+        ///                 MyController controller = new MyController(mockFactory.Object);
+        ///                 var result = await controller.GetAllUsers();
+        ///                 Assert.Null(result);
+        ///</remarks>
+        protected Mock<IHttpClientFactory> CreateMockHttpClient(HttpResponseMessage mockResponse)
         {
-            string response = "my test response";
-            TestWebRequest.RegisterPrefix("test", new TestWebRequestCreate());
-            TestWebRequest request = TestWebRequestCreate.CreateTestRequest(response);
+            // we create a mock of IHttpClientFactory
+            var mockFactory = new Mock<IHttpClientFactory>();
 
+            // The MessageHandler is a class that receives an HTTP request and returns an HTTP response.
+            // For this reason, we create a mock of it where we define
+            // the status code and the result
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(mockResponse);
 
-            // DoStuff call the url with a request and then processes the 
-            // response as set above myObject.DoStuff(); 
-            string requestContent = request.ContentAsString();
-            //Assert.AreEqual(expectedRequestContent, requestContent);
+            var client = new HttpClient(mockHttpMessageHandler.Object);
+            // here we define the IHttpClientFactory's CreateClient method 
+            mockFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(client);
+
+            return mockFactory;
         }
 
         public IConfigurationRoot Configuration { get; private set; }

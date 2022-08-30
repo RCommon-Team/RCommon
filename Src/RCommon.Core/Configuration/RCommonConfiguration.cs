@@ -21,7 +21,7 @@ using RCommon.DependencyInjection;
 using MediatR;
 using System.Reflection;
 
-namespace RCommon.Configuration
+namespace RCommon
 {
     ///<summary>
     /// Default implementation of <see cref="IRCommonConfiguration"/> class.

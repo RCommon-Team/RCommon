@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>09f081bb-4302-41b2-bfd9-ffcbade132d2</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="MediatR" Version="10.0.1" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.8">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Src\RCommon.DependencyInjection.Microsoft\RCommon.DependencyInjection.Microsoft.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Emailing.SendGrid\RCommon.Emailing.SendGrid.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
+		<ProjectReference Include="..\HR.LeaveManagement.Application\HR.LeaveManagement.Application.csproj" />
+		<ProjectReference Include="..\HR.LeaveManagement.Persistence\HR.LeaveManagement.Persistence.csproj" />
+		<ProjectReference Include="..\HR.LeaveManagement.Identity\HR.LeaveManagement.Identity.csproj" />
+	</ItemGroup>
+</Project>

@@ -8,8 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using RCommon.DataServices;
 
-namespace RCommon.DataServices
+namespace RCommon
 {
     public class DataServicesConfiguration : RCommonConfiguration, IDataServicesConfiguration
     {

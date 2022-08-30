@@ -4,7 +4,7 @@ using RCommon.Configuration;
 using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection;
 
-namespace RCommon.DataServices
+namespace RCommon
 {
     public interface IDataServicesConfiguration : IServiceConfiguration
     {

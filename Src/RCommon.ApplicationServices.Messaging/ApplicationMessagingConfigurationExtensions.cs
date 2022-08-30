@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using MediatR;
+using RCommon.ApplicationServices.Messaging;
 using RCommon.ApplicationServices.Messaging.Behaviors;
 using RCommon.Configuration;
 using System;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.Messaging
+namespace RCommon
 {
     public static class ApplicationMessagingConfigurationExtensions
     {

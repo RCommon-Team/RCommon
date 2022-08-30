@@ -66,7 +66,7 @@ namespace RCommon.Persistence.Dapper.Tests
         [Test]
         public async Task Can_Run_Tests_In_Web_Environment()
         {
-            this.CreateWebRequest();
+            var httpClient = this.CreateMockHttpClient(new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK));
 
             await this.Can_Add_Async();
             await this.Can_Delete_Async();

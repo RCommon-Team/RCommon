@@ -2,7 +2,7 @@
 
 using RCommon.DependencyInjection;
 
-namespace RCommon.Configuration
+namespace RCommon
 {
     /// <summary>
     /// Interface that can be implemented by classes that provide state configuration for RCommon.

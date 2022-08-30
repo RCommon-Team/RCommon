@@ -3,7 +3,7 @@ using RCommon.Configuration;
 using RCommon.DataServices.Sql;
 using System;
 
-namespace RCommon.Persistence.Dapper
+namespace RCommon
 {
     public interface IDapperConfiguration : IServiceConfiguration
     {
