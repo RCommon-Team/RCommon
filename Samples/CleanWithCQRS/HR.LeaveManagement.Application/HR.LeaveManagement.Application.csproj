@@ -14,6 +14,8 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Emailing.SendGrid\RCommon.Emailing.SendGrid.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Models\RCommon.Models.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Persistence\RCommon.Persistence.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Security\RCommon.Security.csproj" />

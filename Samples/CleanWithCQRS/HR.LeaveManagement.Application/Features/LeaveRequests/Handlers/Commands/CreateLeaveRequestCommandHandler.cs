@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using HR.LeaveManagement.Application.Contracts.Infrastructure;
 using HR.LeaveManagement.Application.Models;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -20,13 +19,18 @@ using System.IdentityModel.Tokens.Jwt;
 using HR.LeaveManagement.Application.Constants;
 using RCommon.Persistence;
 using RCommon.Security.Users;
+using RCommon.Emailing;
+using System.Net.Mail;
+using Microsoft.Extensions.Options;
+using RCommon.Emailing.SendGrid;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands
 {
     public class CreateLeaveRequestCommandHandler : IRequestHandler<CreateLeaveRequestCommand, BaseCommandResponse>
     {
-        private readonly IEmailSender _emailSender;
+        private readonly IEmailService _emailSender;
         private readonly ICurrentUser _currentUser;
+        private readonly IOptions<SendGridEmailSettings> _emailSettings;
         private readonly IMapper _mapper;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
         private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
@@ -36,8 +40,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             IReadOnlyRepository<LeaveType> leaveTypeRepository,
             IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository,
             IFullFeaturedRepository<LeaveRequest> leaveRequestRepository,
-            IEmailSender emailSender,
+            IEmailService emailSender,
             ICurrentUser currentUser,
+            IOptions<SendGridEmailSettings> emailSettings,
             IMapper mapper)
         {
             _leaveTypeRepository = leaveTypeRepository;
@@ -48,6 +53,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             this._leaveRequestRepository.DataStoreName = "LeaveManagement";
             _emailSender = emailSender;
             this._currentUser = currentUser;
+            _emailSettings=emailSettings;
             _mapper = mapper;
         }
 
@@ -98,15 +104,15 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                     var emailAddress = _currentUser.FindClaimValue(ClaimTypes.Email);
                     //_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Email).Value;
 
-                    var email = new Email
+                    var email = new MailMessage(new MailAddress(this._emailSettings.Value.FromEmailDefault, this._emailSettings.Value.FromNameDefault), 
+                        new MailAddress(emailAddress))
                     {
-                        To = emailAddress,
                         Body = $"Your leave request for {request.LeaveRequestDto.StartDate:D} to {request.LeaveRequestDto.EndDate:D} " +
                         $"has been submitted successfully.",
                         Subject = "Leave Request Submitted"
                     };
 
-                    await _emailSender.SendEmail(email);
+                    await _emailSender.SendEmailAsync(email);
                 }
                 catch (Exception ex)
                 {

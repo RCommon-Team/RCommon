@@ -39,6 +39,8 @@ namespace RCommon.Tests.Application.Services
                 .WithSendGridEmailServices(settings =>
                 {
                     settings.SendGridApiKey = "apiKey";
+                    settings.FromNameDefault = "test system";
+                    settings.FromEmailDefault = "test@test.rcommon.com";
                 });
 
 

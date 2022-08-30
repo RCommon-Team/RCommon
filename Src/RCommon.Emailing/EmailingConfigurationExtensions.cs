@@ -13,9 +13,9 @@ namespace RCommon
     public static class EmailingConfigurationExtensions
     {
 
-        public static IRCommonConfiguration WithSmtpEmailServices(this IRCommonConfiguration config, Action<EmailSettings> emailSettings)
+        public static IRCommonConfiguration WithSmtpEmailServices(this IRCommonConfiguration config, Action<SmtpEmailSettings> emailSettings)
         {
-            config.ContainerAdapter.Services.Configure<EmailSettings>(emailSettings);
+            config.ContainerAdapter.Services.Configure<SmtpEmailSettings>(emailSettings);
             config.ContainerAdapter.AddTransient<IEmailService, SmtpEmailService>();
             return config;
         }

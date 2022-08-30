@@ -38,11 +38,12 @@ namespace RCommon.Emailing.Tests
                 .WithSmtpEmailServices(settings =>
                     {
                         settings.EnableSsl = true;
-                        settings.From = "you@ytest.com";
+                        settings.FromEmailDefault = "you@ytest.com";
+                        settings.FromNameDefault = "test system";
                         settings.Host = "smtp.sendgrid.net";
                         settings.Password = "yourpassword";
                         settings.Port = 587;
-                        settings.UserName = "apikey";
+                        settings.UserName = "username";
                     });
 
 

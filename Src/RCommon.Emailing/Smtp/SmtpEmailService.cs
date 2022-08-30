@@ -13,11 +13,11 @@ namespace RCommon.Emailing.Smtp
 {
     public class SmtpEmailService : IEmailService
     {
-        public EmailSettings Settings { get; }
+        private readonly SmtpEmailSettings _settings;
 
-        public SmtpEmailService(IOptions<EmailSettings> settings)
+        public SmtpEmailService(IOptions<SmtpEmailSettings> settings)
         {
-            Settings = settings.Value;
+            _settings=settings.Value;
         }
 
 
@@ -34,10 +34,10 @@ namespace RCommon.Emailing.Smtp
                 message.BodyEncoding = Encoding.UTF8;
                 using (var smtp = new SmtpClient())
                 {
-                    smtp.Credentials = new NetworkCredential(this.Settings.UserName, this.Settings.Password);
-                    smtp.Host = this.Settings.Host;
-                    smtp.Port = this.Settings.Port;
-                    smtp.EnableSsl = this.Settings.EnableSsl;
+                    smtp.Credentials = new NetworkCredential(this._settings.UserName, this._settings.Password);
+                    smtp.Host = this._settings.Host;
+                    smtp.Port = this._settings.Port;
+                    smtp.EnableSsl = this._settings.EnableSsl;
                     smtp.Send(message);
                 }
                 OnEmailSent(message);

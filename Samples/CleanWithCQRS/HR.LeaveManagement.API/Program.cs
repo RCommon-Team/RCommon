@@ -9,6 +9,7 @@ using RCommon.Configuration;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.DependencyInjection.Microsoft;
+using RCommon.Emailing.SendGrid;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
 using RCommon.Security;
@@ -23,8 +24,13 @@ builder.Services.AddControllers();
 ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
     .WithStateStorage<DefaultStateStorageConfiguration>()
     .WithClaimsAndPrincipalAccessor()
-    .WithSendGridEmailServices(x => 
-        x.SendGridApiKey = "apiKey")
+    .WithSendGridEmailServices(x =>
+    {
+        var sendGridSettings = builder.Configuration.Get<SendGridEmailSettings>();
+        x.SendGridApiKey = sendGridSettings.SendGridApiKey;
+        x.FromNameDefault = sendGridSettings.FromNameDefault;
+        x.FromEmailDefault = sendGridSettings.FromEmailDefault;
+    })
     .WithDateTimeSystem<SystemTime>(x => 
         x.Kind = DateTimeKind.Utc)
     .WithGuidGenerator<SequentialGuidGenerator>(x => 

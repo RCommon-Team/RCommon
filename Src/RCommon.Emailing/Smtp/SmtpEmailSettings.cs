@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.Emailing
+namespace RCommon.Emailing.Smtp
 {
-    public class EmailSettings
+    public class SmtpEmailSettings
     {
-        public EmailSettings()
+        public SmtpEmailSettings()
         {
 
         }
@@ -16,6 +16,8 @@ namespace RCommon.Emailing
         public bool EnableSsl { get; set; }
         public int Port { get; set; }
         public string Host { get; set; }
-        public string From { get; set; }
+        public string FromEmailDefault { get; set; }
+        public string FromNameDefault { get; set; }
+
     }
 }
