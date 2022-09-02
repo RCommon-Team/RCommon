@@ -11,15 +11,10 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface ISqlMapperRepository<TEntity> : IWriteOnlyRepository<TEntity>
+    public interface ISqlMapperRepository<TEntity> : IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>
         where TEntity : IBusinessEntity
     {
         public string TableName { get; set; }
-        Task<ICollection<TEntity>> FindAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
-
-        Task<TEntity> FindAsync(string sql, object primaryKey, CommandType commandType = CommandType.Text);
-
-        Task<TEntity> FindSingleOrDefaultAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
-        Task<TEntity> FindSingleOrDefaultAsync(object primaryKey);
+        
     }
 }

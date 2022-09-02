@@ -54,7 +54,7 @@ namespace RCommon
             this.ContainerAdapter.AddGeneric(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(ILinqMapperRepository<>), typeof(EFCoreRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(ILinqRepository<>), typeof(EFCoreRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
         }
 

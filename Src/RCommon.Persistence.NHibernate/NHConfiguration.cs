@@ -29,7 +29,7 @@ namespace RCommon
             this.ContainerAdapter.AddGeneric(typeof(IReadOnlyRepository<>), typeof(NHRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IWriteOnlyRepository<>), typeof(NHRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IGraphRepository<>), typeof(NHRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(ILinqMapperRepository<>), typeof(NHRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(ILinqRepository<>), typeof(NHRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(NHRepository<>));
         }
 

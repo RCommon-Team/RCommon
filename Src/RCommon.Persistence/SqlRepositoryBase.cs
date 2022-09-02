@@ -13,17 +13,18 @@ using RCommon.DataServices.Transactions;
 using RCommon.DataServices.Sql;
 using RCommon.BusinessEntities;
 using System.Threading;
+using RCommon.Collections;
 
 namespace RCommon.Persistence
 {
-    public abstract class SqlMapperRepositoryBase<TEntity> : DisposableResource, ISqlMapperRepository<TEntity>
+    public abstract class SqlRepositoryBase<TEntity> : DisposableResource, ISqlMapperRepository<TEntity>
        where TEntity : class, IBusinessEntity
     {
         private readonly IDataStoreProvider _dataStoreProvider;
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public SqlMapperRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker)
+        public SqlRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker)
         {
             _dataStoreProvider = dataStoreProvider;
             _logger = logger.CreateLogger(this.GetType().Name);
@@ -37,12 +38,19 @@ namespace RCommon.Persistence
 
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
         public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
-        public abstract Task<ICollection<TEntity>> FindAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
-        public abstract Task<TEntity> FindSingleOrDefaultAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
+      
         public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);
-        public abstract Task<TEntity> FindSingleOrDefaultAsync(object primaryKey);
-
-        public abstract Task<TEntity> FindAsync(string sql, object primaryKey, CommandType commandType = CommandType.Text);
+        public abstract Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+        public abstract Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default);
+        public abstract Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default);
+        public abstract Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+        public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+        public abstract Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, bool orderByAscending, int? pageIndex, int pageSize = 0, CancellationToken token = default);
+        public abstract Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
 
         protected internal DbConnection DbConnection
         {

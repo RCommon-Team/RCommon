@@ -10,11 +10,8 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface IReadOnlyRepository<TEntity> : IQueryable<TEntity>, INamedDataSource
+    public interface IReadOnlyRepository<TEntity> : INamedDataSource
     {
-
-        IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
-        IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
 
         Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default);
         Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);

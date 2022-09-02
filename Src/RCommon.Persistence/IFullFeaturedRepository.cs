@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface IFullFeaturedRepository<TEntity> : ILinqMapperRepository<TEntity>, IEagerFetchingRepository<TEntity>, IGraphRepository<TEntity>
+    public interface IFullFeaturedRepository<TEntity> : ILinqRepository<TEntity>, IEagerFetchingRepository<TEntity>, IGraphRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
     }

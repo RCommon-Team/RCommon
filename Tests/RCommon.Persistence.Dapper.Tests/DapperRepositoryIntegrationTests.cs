@@ -72,14 +72,10 @@ namespace RCommon.Persistence.Dapper.Tests
             var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             repo.DataStoreName = "TestDbConnection";
 
-            var savedCustomer = await repo.FindSingleOrDefaultAsync($"select * from customers where id = @Id", new List<Parameter>()
-                {
-                    new Parameter()
-                    { DbType = System.Data.DbType.Int32, Direction = System.Data.ParameterDirection.Input, ParameterName = "ID", Value = customer.Id }
-                });
+            var results = await repo.FindAsync(x => x.FirstName == "Albus");
+            var savedCustomer = results.First();
 
             Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
             Assert.IsTrue(savedCustomer.FirstName == "Albus");
         }
 
