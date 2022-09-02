@@ -1,7 +1,5 @@
 ﻿using Bogus;
-using DapperExtensions;
-using DapperExtensions.Mapper;
-using DapperExtensions.Sql;
+using Dommel;
 using RCommon.TestBase;
 using RCommon.TestBase.Entities;
 using System;
@@ -11,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 
 namespace RCommon.Persistence.Dapper.Tests
 {
@@ -24,15 +21,6 @@ namespace RCommon.Persistence.Dapper.Tests
         {
             _generator = generator;
 
-        }
-
-
-        protected virtual AsyncDatabase GetAsyncDatabase(DbConnection connection, SqlDialectBase sqlDialect)
-        {
-            var config = new DapperExtensionsConfiguration(typeof(PluralizedAutoClassMapper<>), new List<Assembly>(), sqlDialect);
-            var sqlGenerator = new SqlGeneratorImpl(config);
-            var db = new AsyncDatabase(connection, sqlGenerator);
-            return db;
         }
 
         public override async Task<Customer> CreateCustomerAsync()
@@ -54,10 +42,11 @@ namespace RCommon.Persistence.Dapper.Tests
                 .Generate();
             customize(customer);
 
-            using (var db = this.GetAsyncDatabase(this._generator.Context.GetDbConnection(), new SqlServerDialect()))
+            using (var db = this._generator.Context.GetDbConnection())
             {
                 
-                await db.Insert<Customer>(customer, 30);
+                await db.InsertAsync<Customer>(customer);
+                
             }
             return customer;
         }
@@ -83,9 +72,9 @@ namespace RCommon.Persistence.Dapper.Tests
                 .Generate();
             customize(order);
 
-            using (var db = this.GetAsyncDatabase(this._generator.Context.GetDbConnection(), new SqlServerDialect()))
+            using (var db = this._generator.Context.GetDbConnection())
             {
-                await db.Insert<Order>(order, 30);
+                await db.InsertAsync<Order>(order);
             }
 
             return order;
@@ -98,9 +87,9 @@ namespace RCommon.Persistence.Dapper.Tests
                     .RuleFor(x => x.Name, f => f.Commerce.ProductName())
                     .Generate();
 
-            using (var db = this.GetAsyncDatabase(this._generator.Context.GetDbConnection(), new SqlServerDialect()))
+            using (var db = this._generator.Context.GetDbConnection())
             {
-                await db.Insert<Product>(product, 30);
+                await db.InsertAsync<Product>(product);
             }
 
             return product;
@@ -111,10 +100,10 @@ namespace RCommon.Persistence.Dapper.Tests
 
             Customer customer;
 
-            using (var db = this.GetAsyncDatabase(this._generator.Context.GetDbConnection(), new SqlServerDialect()))
+            using (var db = this._generator.Context.GetDbConnection())
             {
                 
-                var data = await db.Connection.GetPageAsync<Customer>(spec, null, 1, 1, null, null, false);
+                var data = await db.GetPagedAsync<Customer>(1, 1);
                 customer = data.First();
             }
 
@@ -126,9 +115,9 @@ namespace RCommon.Persistence.Dapper.Tests
         public async override Task<Order> GetOrderAsync(Func<Order, bool> spec)
         {
             Order order;
-            using (var db = this.GetAsyncDatabase(this._generator.Context.GetDbConnection(), new SqlServerDialect()))
+            using (var db = this._generator.Context.GetDbConnection())
             {
-                var data = await db.Connection.GetPageAsync<Order>(spec, null, 1, 1, null, null, false);
+                var data = await db.GetPagedAsync<Order>(1, 1);
                 order = data.First();
             }
             /*if (order != null)
@@ -139,9 +128,9 @@ namespace RCommon.Persistence.Dapper.Tests
         public async override Task<SalesPerson> GetSalesPersonAsync(Func<SalesPerson, bool> spec)
         {
             SalesPerson salesPerson;
-            using (var db = this.GetAsyncDatabase(this._generator.Context.GetDbConnection(), new SqlServerDialect()))
+            using (var db = this._generator.Context.GetDbConnection())
             {
-                var data = await db.Connection.GetPageAsync<SalesPerson>(spec, null, 1, 1, null, null, false);
+                var data = await db.GetPagedAsync<SalesPerson>(1, 1);
                 salesPerson = data.First();
             }
             /*if (salesPerson != null)

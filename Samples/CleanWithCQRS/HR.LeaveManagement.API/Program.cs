@@ -39,7 +39,7 @@ ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
         x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
     .AddUnitOfWorkToMediatorPipeline()
     .WithPersistence<EFCoreConfiguration>(x =>
-        x.UsingDbContext<LeaveManagementDbContext>());
+        x.AddDbContext<LeaveManagementDbContext>());
 
 // Add services to the container.
 builder.Services.ConfigureApplicationServices();

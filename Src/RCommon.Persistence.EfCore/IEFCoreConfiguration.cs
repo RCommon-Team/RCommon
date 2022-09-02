@@ -11,6 +11,6 @@ namespace RCommon
 {
     public interface IEFCoreConfiguration : IObjectAccessConfiguration
     {
-        IEFCoreConfiguration UsingDbContext<TDbContext>(Action<DbContextOptionsBuilder>? options) where TDbContext : RCommonDbContext;
+        IEFCoreConfiguration AddDbContext<TDbContext>(Action<DbContextOptionsBuilder>? options) where TDbContext : RCommonDbContext;
     }
 }

@@ -59,7 +59,7 @@ namespace RCommon
         }
 
 
-        public IEFCoreConfiguration UsingDbContext<TDbContext>(Action<DbContextOptionsBuilder>? options = null)
+        public IEFCoreConfiguration AddDbContext<TDbContext>(Action<DbContextOptionsBuilder>? options = null)
             where TDbContext : RCommonDbContext
         {
             this.ContainerAdapter.Services.AddDbContext<TDbContext>(options);
