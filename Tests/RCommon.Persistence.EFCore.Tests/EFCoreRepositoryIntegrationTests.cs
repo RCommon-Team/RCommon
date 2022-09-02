@@ -67,15 +67,6 @@ namespace RCommon.Persistence.EFCore.Tests
         }
 
         [Test]
-        public async Task Can_Run_In_Web_Environment()
-        {
-            var httpClient = this.CreateMockHttpClient(new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK));
-
-
-            await this.UnitOfWork_Can_commit();
-        }
-
-        [Test]
         public async Task Can_perform_simple_query()
         {
             var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
@@ -293,7 +284,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 customer.LastName = "Changed";
                 await repo.UpdateAsync(customer);
 
-                
+
             } //Dispose here as scope is not comitted.
 
             Customer savedCustomer = null;

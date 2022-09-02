@@ -36,7 +36,7 @@ namespace RCommon.DataServices.Transactions
             foreach (var item in registeredTypes)
             {
                 item.DataStore.PersistChanges();
-                item.DataStore.Dispose(); // This should be managed through the lifetime of the DI container.
+                //item.DataStore.Dispose(); // This should be managed through the lifetime of the DI container.
             }
 
            _dataStoreProvider.RemoveRegisteredDataStores(this.TransactionId.Value);

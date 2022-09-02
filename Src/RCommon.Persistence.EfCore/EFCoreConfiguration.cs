@@ -35,7 +35,6 @@ namespace RCommon
     /// </summary>
     public class EFCoreConfiguration : RCommonConfiguration, IEFCoreConfiguration
     {
-        private List<string> _dbContextTypes = new List<string>();
 
 
         public EFCoreConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
@@ -57,20 +56,13 @@ namespace RCommon
             this.ContainerAdapter.AddGeneric(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(ILinqMapperRepository<>), typeof(EFCoreRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
-
-            // Registered DbContexts
-            foreach (var dbContext in _dbContextTypes)
-            {
-                this.ContainerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
-            }
         }
 
 
-        public IEFCoreConfiguration UsingDbContext<TDbContext>()
+        public IEFCoreConfiguration UsingDbContext<TDbContext>(Action<DbContextOptionsBuilder>? options = null)
             where TDbContext : RCommonDbContext
         {
-            string dbContext = typeof(TDbContext).AssemblyQualifiedName;
-            _dbContextTypes.Add(dbContext);
+            this.ContainerAdapter.Services.AddDbContext<TDbContext>(options);
 
             return this;
         }

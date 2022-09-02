@@ -32,10 +32,11 @@ namespace RCommon.Persistence.Dapper.Tests
                     x.UsingDefaultExceptionPolicies())
                 .And<DataServicesConfiguration>(x =>
                     x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
-                .And<DapperConfiguration>(x =>
-                    x.UsingDbConnection<TestDbConnection>()
-                    .WithPluralizedClassMapper());
-
+                .WithPersistence<DapperConfiguration>(x =>
+                {
+                    x.UsingDbConnection<TestDbConnection>();
+                    x.WithPluralizedClassMapper();
+                });
             
 
             this.ServiceProvider = services.BuildServiceProvider();

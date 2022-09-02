@@ -45,7 +45,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
             _entityDeleteActions.ForEach(x => x(_context));
             _context.SaveChanges();
-            _context.Dispose();
+            //_context.Dispose();
         }
 
     }

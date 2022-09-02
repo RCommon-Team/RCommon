@@ -36,7 +36,7 @@ namespace RCommon.TestBase
             var builder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             this.Configuration = builder.Build();
-            //services.AddSingleton<ILogger>(TestLogger.Create());
+            services.AddSingleton<ILogger>(TestLogger.Create());
             services.AddSingleton<IConfiguration>(this.Configuration);
             services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
         }

@@ -5,7 +5,7 @@ using System;
 
 namespace RCommon
 {
-    public interface IDapperConfiguration : IServiceConfiguration
+    public interface IDapperConfiguration : IObjectAccessConfiguration
     {
         IDapperConfiguration UsingDbConnection<TDbConnection>() where TDbConnection : IRDbConnection;
 
