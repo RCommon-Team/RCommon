@@ -17,6 +17,9 @@ namespace RCommon.Persistence
         public string TableName { get; set; }
         Task<ICollection<TEntity>> FindAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
 
+        Task<TEntity> FindAsync(string sql, object primaryKey, CommandType commandType = CommandType.Text);
+
         Task<TEntity> FindSingleOrDefaultAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
+        Task<TEntity> FindSingleOrDefaultAsync(object primaryKey);
     }
 }

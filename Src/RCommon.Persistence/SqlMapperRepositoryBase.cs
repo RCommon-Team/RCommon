@@ -40,8 +40,11 @@ namespace RCommon.Persistence
         public abstract Task<ICollection<TEntity>> FindAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
         public abstract Task<TEntity> FindSingleOrDefaultAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text);
         public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);
+        public abstract Task<TEntity> FindSingleOrDefaultAsync(object primaryKey);
 
-        protected internal IDbConnection DbConnection
+        public abstract Task<TEntity> FindAsync(string sql, object primaryKey, CommandType commandType = CommandType.Text);
+
+        protected internal DbConnection DbConnection
         {
             get
             {

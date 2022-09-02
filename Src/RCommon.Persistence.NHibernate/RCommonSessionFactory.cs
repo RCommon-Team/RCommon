@@ -9,6 +9,7 @@ using NHibernate.Dialect;
 using NHibernate.Driver;
 using NHibernate.Mapping.ByCode;
 using System.Data;
+using System.Data.Common;
 
 namespace RCommon.Persistence.NHibernate
 {
@@ -52,7 +53,7 @@ namespace RCommon.Persistence.NHibernate
             return this.SessionFactory.OpenSession();
 		}
 
-        public IDbConnection GetDbConnection()
+        public DbConnection GetDbConnection()
         {
             return this.OpenSession().Connection;
         }

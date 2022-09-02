@@ -64,19 +64,6 @@ namespace RCommon.Persistence.Dapper.Tests
         }
 
         [Test]
-        public async Task Can_Run_Tests_In_Web_Environment()
-        {
-            var httpClient = this.CreateMockHttpClient(new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK));
-
-            await this.Can_Add_Async();
-            await this.Can_Delete_Async();
-            await this.Can_perform_simple_query();
-            await this.Can_Update_Async();
-            await this.UnitOfWork_Can_commit();
-            await this.UnitOfWork_can_commit_multiple_db_operations();
-        }
-
-        [Test]
         public async Task Can_perform_simple_query()
         {
 

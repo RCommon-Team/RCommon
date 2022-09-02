@@ -25,7 +25,7 @@ namespace RCommon.DataServices.Sql
 
         }
 
-        public IDbConnection GetDbConnection()
+        public DbConnection GetDbConnection()
         {
             
             

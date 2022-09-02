@@ -8,7 +8,6 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 using RCommon.Extensions;
 using DapperExtensions.Mapper;
 using RCommon.Persistence;
@@ -78,6 +77,7 @@ namespace RCommon
         public IDapperConfiguration WithPluralizedClassMapper()
         {
             DapperExtensions.DapperExtensions.DefaultMapper = typeof(PluralizedAutoClassMapper<>);
+
             return this;
         }
 

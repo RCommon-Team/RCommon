@@ -15,9 +15,10 @@ using System.ComponentModel;
 using System.Data.Common;
 using RCommon.BusinessEntities;
 using DapperExtensions;
-using DapperSqlMapperExtensions = Dapper.Contrib.Extensions;
 using System.Threading;
 using MediatR;
+using DapperExtensions.Sql;
+using DapperExtensions.Mapper;
 
 namespace RCommon.Persistence.Dapper
 {
@@ -35,21 +36,31 @@ namespace RCommon.Persistence.Dapper
 
 
 
+        protected virtual AsyncDatabase GetAsyncDatabase(DbConnection connection, SqlDialectBase sqlDialect)
+        {
+            var config = new DapperExtensionsConfiguration(typeof(PluralizedAutoClassMapper<>), new List<Assembly>(), sqlDialect);
+            var sqlGenerator = new SqlGeneratorImpl(config);
+            var db = new AsyncDatabase(connection, sqlGenerator);
+            return db;
+        }
+
+
+
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
 
-            using (var connection = this.DbConnection)
+            using (var db = this.GetAsyncDatabase(this.DbConnection, new SqlServerDialect()))
             {
                 try
                 {
-                    if (connection.State == ConnectionState.Closed)
+                    if (db.Connection.State == ConnectionState.Closed)
                     {
-                        connection.Open();
+                        db.Connection.Open();
                     }
 
                     entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
-                    await connection.InsertAsync(entity);
+                    await db.Insert(entity, 30);
                     this.SaveChanges();
 
                 }
@@ -59,30 +70,30 @@ namespace RCommon.Persistence.Dapper
                 }
                 finally
                 {
-                    if (connection.State == ConnectionState.Open)
+                    if (db.Connection.State == ConnectionState.Open)
                     {
-                        connection.Close();
+                        db.Connection.Close();
                     }
                 }
-                
+
             }
         }
 
-       
+
         public override async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
-            using (var connection = this.DbConnection)
+            using (var db = this.GetAsyncDatabase(this.DbConnection, new SqlServerDialect()))
             {
                 try
                 {
-                    if (connection.State == ConnectionState.Closed)
+                    if (db.Connection.State == ConnectionState.Closed)
                     {
-                        connection.Open();
+                        db.Connection.Open();
                     }
 
                     entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
-                    await connection.DeleteAsync(entity);
+                    await db.Delete(entity, 30);
                     this.SaveChanges();
                 }
                 catch (Exception)
@@ -91,32 +102,32 @@ namespace RCommon.Persistence.Dapper
                 }
                 finally
                 {
-                    if (connection.State == ConnectionState.Open)
+                    if (db.Connection.State == ConnectionState.Open)
                     {
-                        connection.Close();
+                        db.Connection.Close();
                     }
                 }
 
             }
         }
 
-        
+
 
         public override async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
 
-            using (var connection = this.DbConnection)
+            using (var db = this.GetAsyncDatabase(this.DbConnection, new SqlServerDialect()))
             {
                 try
                 {
-                    if (connection.State == ConnectionState.Closed)
+                    if (db.Connection.State == ConnectionState.Closed)
                     {
-                        connection.Open();
+                        db.Connection.Open();
                     }
 
                     entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
-                    await connection.UpdateAsync(entity);
+                    await db.Update(entity, 30, false);
                     this.SaveChanges();
                 }
                 catch (Exception)
@@ -125,45 +136,62 @@ namespace RCommon.Persistence.Dapper
                 }
                 finally
                 {
-                    if (connection.State == ConnectionState.Open)
+                    if (db.Connection.State == ConnectionState.Open)
                     {
-                        connection.Close();
+                        db.Connection.Close();
                     }
                 }
             }
         }
 
-        public override async Task<ICollection<TEntity>> FindAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text)
+        public override async Task<ICollection<TEntity>> FindAsync(string sql, IList<RCommon.DataServices.Sql.Parameter> dbParams, CommandType commandType = CommandType.Text)
         {
-            
-            using (var connection = this.DbConnection)
+
+            using (var db = this.GetAsyncDatabase(this.DbConnection, new SqlServerDialect()))
             {
                 var parameters = new DynamicParameters();
                 foreach (var p in dbParams)
                 {
                     parameters.Add(p.ParameterName, p.Value, p.DbType, p.Direction, p.Size);
                 }
-                
-                var query = await connection.QueryAsync<TEntity>(sql, parameters, commandType: commandType);
+                var query = await db.Connection.QueryAsync<TEntity>(sql, parameters, commandType: commandType);
                 return query.ToList();
             }
         }
 
-        public async Task<TEntity> FindAsync(string sql, object primaryKey, CommandType commandType = CommandType.Text)
+        public async Task<TEntity> FindAsync(object primaryKey)
         {
-            using (var connection = this.DbConnection)
+            using (var db = this.GetAsyncDatabase(this.DbConnection, new SqlServerDialect()))
             {
-               
-                return await connection.QuerySingleOrDefaultAsync<TEntity>(sql, primaryKey, commandType: commandType);
+
+                return await db.Get<TEntity>(primaryKey, 30);
             }
         }
 
-        public override async Task<TEntity> FindSingleOrDefaultAsync(string sql, IList<Parameter> dbParams, CommandType commandType = CommandType.Text)
+        public override async Task<TEntity> FindSingleOrDefaultAsync(object primaryKey)
         {
-            using (var connection = this.DbConnection)
+            using (var db = this.GetAsyncDatabase(this.DbConnection, new SqlServerDialect()))
+            {
+
+                return await db.Get<TEntity>(primaryKey, 30);
+            }
+        }
+
+        public override async Task<TEntity> FindAsync(string sql, object primaryKey, CommandType commandType = CommandType.Text)
+        {
+            using (var db = this.GetAsyncDatabase(this.DbConnection, new SqlServerDialect()))
+            {
+               
+                return await db.Connection.QuerySingleOrDefaultAsync<TEntity>(sql, primaryKey, commandType: commandType);
+            }
+        }
+
+        public override async Task<TEntity> FindSingleOrDefaultAsync(string sql, IList<RCommon.DataServices.Sql.Parameter> dbParams, CommandType commandType = CommandType.Text)
+        {
+            using (var db = this.GetAsyncDatabase(this.DbConnection, new SqlServerDialect()))
             {
                 
-                return await connection.QuerySingleOrDefaultAsync<TEntity>(sql, dbParams, commandType: commandType);
+                return await db.Connection.QuerySingleOrDefaultAsync<TEntity>(sql, dbParams, commandType: commandType);
             }
         }
 

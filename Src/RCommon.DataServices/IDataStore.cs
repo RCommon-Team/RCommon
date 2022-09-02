@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace RCommon.DataServices
 
         void PersistChanges();
 
-        IDbConnection GetDbConnection();
+        DbConnection GetDbConnection();
     }
 
 }

@@ -38,6 +38,8 @@ namespace RCommon.BusinessEntities
         }
 
         private List<ILocalEvent> _localEvents;
+
+        [NotMapped]
         public IReadOnlyCollection<ILocalEvent> LocalEvents => _localEvents?.AsReadOnly();
 
         [NotMapped]
