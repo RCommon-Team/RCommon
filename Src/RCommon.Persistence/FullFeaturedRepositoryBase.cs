@@ -171,8 +171,8 @@ namespace RCommon.Persistence
         public abstract Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default);
         public abstract Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         public abstract Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default);
-        public abstract Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default);
-        public abstract Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default);
+        public abstract Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         public abstract Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default);
         public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);

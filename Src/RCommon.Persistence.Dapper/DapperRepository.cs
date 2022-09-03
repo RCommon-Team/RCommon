@@ -195,44 +195,126 @@ namespace RCommon.Persistence.Dapper
             }
         }
 
-        public override async Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
+        public override async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await using (var db = this.DbConnection)
+            {
+                try
+                {
+                    if (db.State == ConnectionState.Closed)
+                    {
+                        await db.OpenAsync();
+                    }
+
+                    var results = await db.CountAsync(selectSpec.Predicate);
+                    return results;
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (db.State == ConnectionState.Open)
+                    {
+                        await db.CloseAsync();
+                    }
+                }
+            }
         }
 
-        public override async Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public override async Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await using (var db = this.DbConnection)
+            {
+                try
+                {
+                    if (db.State == ConnectionState.Closed)
+                    {
+                        await db.OpenAsync();
+                    }
+
+                    var results = await db.CountAsync(expression);
+                    return results;
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (db.State == ConnectionState.Open)
+                    {
+                        await db.CloseAsync();
+                    }
+                }
+            }
         }
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await using (var db = this.DbConnection)
+            {
+                try
+                {
+                    if (db.State == ConnectionState.Closed)
+                    {
+                        await db.OpenAsync();
+                    }
+
+                    var results = await db.SelectAsync(expression, cancellationToken: token);
+                    return results.SingleOrDefault();;
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (db.State == ConnectionState.Open)
+                    {
+                        await db.CloseAsync();
+                    }
+                }
+            }
         }
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await FindSingleOrDefaultAsync(specification, token);
         }
 
         public override async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await using (var db = this.DbConnection)
+            {
+                try
+                {
+                    if (db.State == ConnectionState.Closed)
+                    {
+                        await db.OpenAsync();
+                    }
+
+                    var results = await db.AnyAsync(expression);
+                    return results;
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (db.State == ConnectionState.Open)
+                    {
+                        await db.CloseAsync();
+                    }
+                }
+            }
         }
 
         public override async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, bool orderByAscending, int? pageIndex, int pageSize = 0, CancellationToken token = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
-        {
-            throw new NotImplementedException();
+            return await this.AnyAsync(specification.Predicate, token);
         }
 
         protected void SaveChanges()
