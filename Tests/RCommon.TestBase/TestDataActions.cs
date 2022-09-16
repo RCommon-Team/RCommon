@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace RCommon.TestBase
 {
-    public abstract class TestDataActionsBase
+    public static class TestDataActions
     {
 
-        public virtual Customer CreateCustomerStub(Action<Customer> customize)
+        public static Customer CreateCustomerStub(Action<Customer> customize)
         {
             var customer = new Faker<Customer>()
                 .RuleFor(x => x.City, f => f.Address.City())
@@ -26,12 +26,12 @@ namespace RCommon.TestBase
             return customer;
         }
 
-        public virtual Customer CreateCustomerStub()
+        public static Customer CreateCustomerStub()
         {
             return CreateCustomerStub(x => { });
         }
 
-        public virtual Order CreateOrderStub()
+        public static Order CreateOrderStub()
         {
             var order = new Faker<Order>()
                 .RuleFor(x => x.OrderDate, f => f.Date.Past(2))
@@ -40,7 +40,7 @@ namespace RCommon.TestBase
             return order;
         }
 
-        public OrderItem CreateOrderItemStub(Action<OrderItem> customize)
+        public static OrderItem CreateOrderItemStub(Action<OrderItem> customize)
         {
 
             var orderItem = new Faker<OrderItem>()
@@ -52,16 +52,14 @@ namespace RCommon.TestBase
             return orderItem;
         }
 
-        public abstract Task<Customer> CreateCustomerAsync();
-
-        public abstract Task<Customer> CreateCustomerAsync(Action<Customer> customize);
-        public abstract Task<Order> CreateOrderAsync();
-        public abstract Task<Order> CreateOrderForCustomerAsync(Customer customer);
-        public abstract Task<Order> CreateOrderAsync(Action<Order> customize);
-
-        public abstract Task<Product> CreateProductAsync();
-        public abstract Task<Customer> GetCustomerAsync(Func<Customer, bool> spec);
-        public abstract Task<Order> GetOrderAsync(Func<Order, bool> spec);
-        public abstract Task<SalesPerson> GetSalesPersonAsync(Func<SalesPerson, bool> spec);
+        
+        public static Product CreateProductStub()
+        {
+            var product = new Faker<Product>()
+                    .RuleFor(x => x.Description, f => f.Commerce.ProductMaterial())
+                    .RuleFor(x => x.Name, f => f.Commerce.ProductName())
+                    .Generate();
+            return product;
+        }
     }
 }

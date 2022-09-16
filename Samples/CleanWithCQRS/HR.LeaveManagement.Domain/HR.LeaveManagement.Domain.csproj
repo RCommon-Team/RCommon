@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Src\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
     <ProjectReference Include="..\..\..\Src\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\..\Src\RCommon.Persistence\RCommon.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

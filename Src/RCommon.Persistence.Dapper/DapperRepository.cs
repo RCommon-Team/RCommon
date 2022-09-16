@@ -50,7 +50,7 @@ namespace RCommon.Persistence.Dapper
 
                     entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
-                    await db.InsertAsync(entity);
+                    await db.InsertAsync(entity, cancellationToken: token);
                     this.SaveChanges();
 
                 }
@@ -83,7 +83,7 @@ namespace RCommon.Persistence.Dapper
 
                     entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
-                    await db.DeleteAsync(entity);
+                    await db.DeleteAsync(entity, cancellationToken: token);
                     this.SaveChanges();
                 }
                 catch (Exception)
@@ -117,7 +117,7 @@ namespace RCommon.Persistence.Dapper
 
                     entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
-                    await db.UpdateAsync(entity);
+                    await db.UpdateAsync(entity, cancellationToken: token);
                     this.SaveChanges();
                 }
                 catch (Exception)

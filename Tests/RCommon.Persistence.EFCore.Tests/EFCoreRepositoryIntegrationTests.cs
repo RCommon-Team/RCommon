@@ -8,8 +8,10 @@ using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Linq;
 using RCommon.Persistence.EFCore.Tests.Specifications;
+using RCommon.TestBase;
 using RCommon.TestBase.Entities;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -20,8 +22,6 @@ namespace RCommon.Persistence.EFCore.Tests
     public class EFCoreRepositoryIntegrationTests : EFCoreTestBase
 
     {
-        private EFTestData _testData;
-        private EFTestDataActions _testDataActions;
         private IDataStoreProvider _dataStoreProvider;
         
 
@@ -29,8 +29,8 @@ namespace RCommon.Persistence.EFCore.Tests
         {
             var services = new ServiceCollection();
 
-            services.AddTransient<IFullFeaturedRepository<Customer>, EFCoreRepository<Customer>>();
-            services.AddTransient<IFullFeaturedRepository<Order>, EFCoreRepository<Order>>();
+            //services.AddTransient<IFullFeaturedRepository<Customer>, EFCoreRepository<Customer>>();
+            //services.AddTransient<IFullFeaturedRepository<Order>, EFCoreRepository<Order>>();
             this.InitializeRCommon(services);
         }
         
@@ -48,12 +48,6 @@ namespace RCommon.Persistence.EFCore.Tests
         {
             //_context = this.ServiceProvider.GetService<RCommonDbContext>();
             this.Logger.LogInformation("Beginning New Test Setup", null);
-
-            // Setup the context
-            _dataStoreProvider = this.ServiceProvider.GetService<IDataStoreProvider>();
-            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
-            _testData = new EFTestData(context);
-            _testDataActions = new EFTestDataActions(_testData);
         }
 
         [TearDown]
@@ -61,20 +55,27 @@ namespace RCommon.Persistence.EFCore.Tests
         {
             this.Logger.LogInformation("Tearing down Test", null);
 
-            await _testData.ResetContext();
-            //_testData.Dispose();
-            _dataStoreProvider.RemoveRegisteredDataStores(_testData.GetType(), Guid.Empty);
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            repo.ResetDatabase();
+            
+            _dataStoreProvider.RemoveRegisteredDataStores(context.GetType(), Guid.Empty);
         }
 
         [Test]
         public async Task Can_perform_simple_query()
         {
-            var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
+            var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            var testData = new List<Customer>();
+            testData.Add(customer);
+            repo.PersistSeedData(testData);
 
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
-            //var repo = this.ServiceProvider.GetService<IEFCoreRepository<Customer>>();
-            var savedCustomer = await repo
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
+            
+            var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
 
             Assert.IsNotNull(savedCustomer);
@@ -85,16 +86,21 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_query_using_paging_with_specific_params()
         {
-
+            var testData = new List<Customer>();
             for (int i = 0; i < 100; i++)
             {
-                var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
+                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
+                testData.Add(customer);
             }
 
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
             
-            var customers = await repo
+            var customers = await customerRepo
                     .FindAsync(x => x.FirstName.StartsWith("al"), x => x.LastName, true, 1, 10);
 
             Assert.IsNotNull(customers);
@@ -104,7 +110,7 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.IsTrue(customers.TotalPages == 10);
             Assert.IsTrue(customers[4].FirstName == "Albus");
 
-            customers = await repo
+            customers = await customerRepo
                     .FindAsync(x => x.FirstName.StartsWith("al"), x => x.LastName, true, 2, 10);
 
             Assert.IsNotNull(customers);
@@ -119,17 +125,23 @@ namespace RCommon.Persistence.EFCore.Tests
         public async Task Can_query_using_paging_with_specification()
         {
 
+            var testData = new List<Customer>();
             for (int i = 0; i < 100; i++)
             {
-                var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
+                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
+                testData.Add(customer);
             }
 
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
 
             var customerSearchSpec = new CustomerSearchSpec("al", x => x.FirstName, true, 1, 10);
 
-            var customers = await repo
+            var customers = await customerRepo
                     .FindAsync(customerSearchSpec);
 
             Assert.IsNotNull(customers);
@@ -141,7 +153,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
             customerSearchSpec = new CustomerSearchSpec("al", x => x.FirstName, true, 2, 10);
 
-            customers = await repo
+            customers = await customerRepo
                     .FindAsync(customerSearchSpec);
 
             Assert.IsNotNull(customers);
@@ -156,18 +168,24 @@ namespace RCommon.Persistence.EFCore.Tests
         public async Task Can_query_using_predicate_builder()
         {
 
+            var testData = new List<Customer>();
             for (int i = 0; i < 100; i++)
             {
-                var customer = await _testDataActions.CreateCustomerAsync(x => x.FirstName = "Albus");
+                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
+                testData.Add(customer);
             }
 
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
 
             var predicate = PredicateBuilder.True<Customer>(); // This allows us to build compound expressions
             predicate.And(x => x.FirstName.StartsWith("al"));
 
-            var customers = await repo
+            var customers = await customerRepo
                     .FindAsync(predicate, x => x.LastName, true, 1, 10);
 
             Assert.IsNotNull(customers);
@@ -180,17 +198,24 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_Add_Async()
         {
+            var testData = new List<Customer>();
+
             // Generate Test Data
-            Customer customer = _testDataActions.CreateCustomerStub(x=>x.FirstName = "Severnus");
+            Customer customer = TestDataActions.CreateCustomerStub(x=>x.FirstName = "Severnus");
+            testData.Add(customer);
+
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            repo.PersistSeedData(testData);
 
 
             // Start Test
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
-            await repo.AddAsync(customer);
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
+            await customerRepo.AddAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = await _testDataActions.GetCustomerAsync(x=>x.FirstName == "Severnus");
+            savedCustomer = await repo.Context.Set<Customer>().FirstAsync(x=>x.FirstName == "Severnus");
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
@@ -201,18 +226,25 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_Update_Async()
         {
+            var testData = new List<Customer>();
+
             // Generate Test Data
-            Customer customer = await _testDataActions.CreateCustomerAsync();
+            Customer customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Severnus");
+            testData.Add(customer);
+
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            repo.PersistSeedData(testData);
 
             // Start Test
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
             customer.FirstName = "Darth";
             customer.LastName = "Vader";
-            await repo.UpdateAsync(customer);
+            await customerRepo.UpdateAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = await _testDataActions.GetCustomerAsync(x=>x.Id == customer.Id);
+            savedCustomer = await repo.Context.Set<Customer>().FirstAsync(x =>x.Id == customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
@@ -223,17 +255,23 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_Delete_Async()
         {
-            // Generate Test Data
+            var testData = new List<Customer>();
 
-            Customer customer = await _testDataActions.CreateCustomerAsync();
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub();
+            testData.Add(customer);
+
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            repo.PersistSeedData(testData);
 
             // Start Test
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            repo.DataStoreName = "TestDbContext";
-            await repo.DeleteAsync(customer);
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
+            await customerRepo.DeleteAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = await _testDataActions.GetCustomerAsync(x=>x.Id == customer.Id);
+            savedCustomer = await repo.Context.Set<Customer>().FirstAsync(x=>x.Id == customer.Id);
 
             Assert.IsNull(savedCustomer);
 
@@ -296,8 +334,8 @@ namespace RCommon.Persistence.EFCore.Tests
         public async Task UnitOfWork_nested_commit_works()
         {
             // Generate Test Data
-            var customer = _testDataActions.CreateCustomerStub();
-            var order = _testDataActions.CreateOrderStub();
+            var customer = TestDataActions.CreateCustomerStub();
+            var order = TestDataActions.CreateOrderStub();
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
@@ -339,7 +377,7 @@ namespace RCommon.Persistence.EFCore.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
 
-            Customer customer = _testDataActions.CreateCustomerStub();
+            Customer customer = TestDataActions.CreateCustomerStub();
             var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
 
             this.Logger.LogInformation("Starting initial UnitOfWorkScope from " + MethodBase.GetCurrentMethod(), null);
