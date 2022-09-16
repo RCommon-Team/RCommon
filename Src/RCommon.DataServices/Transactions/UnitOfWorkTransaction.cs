@@ -124,7 +124,7 @@ namespace RCommon.DataServices.Transactions
                 _logger.LogInformation("All scopes have signalled a commit on transaction {0}. Flushing unit of work and comitting attached TransactionScope.", _transactionId);
                 try
                 {
-                    _unitOfWork.Flush();
+                    _unitOfWork.Flush(true); // Persists
                     _transaction.Complete();
                 }
                 finally
@@ -146,6 +146,7 @@ namespace RCommon.DataServices.Transactions
 
             scope.ScopeComitting -= OnScopeCommitting;
             scope.ScopeRollingback -= OnScopeRollingBack;
+            _unitOfWork.Flush(false); // Clears Registered Data Stores
             scope.Complete();
             _attachedScopes.Remove(scope);
             Dispose();

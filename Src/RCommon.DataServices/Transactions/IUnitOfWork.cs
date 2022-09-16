@@ -13,7 +13,7 @@ namespace RCommon.DataServices.Transactions
         /// <summary>
         /// Flushes the changes made in the unit of work to the data store.
         /// </summary>
-        void Flush();
+        void Flush(bool allowPersist);
 
         Nullable<Guid> TransactionId { get; set; }
 

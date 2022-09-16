@@ -40,6 +40,16 @@ namespace RCommon.TestBase
             return order;
         }
 
+        public static Order CreateOrderStub(Action<Order> customize)
+        {
+            var order = new Faker<Order>()
+                .RuleFor(x => x.OrderDate, f => f.Date.Past(2))
+                .RuleFor(x => x.ShipDate, f => f.Date.Past(2))
+                .Generate();
+            customize(order);
+            return order;
+        }
+
         public static OrderItem CreateOrderItemStub(Action<OrderItem> customize)
         {
 
