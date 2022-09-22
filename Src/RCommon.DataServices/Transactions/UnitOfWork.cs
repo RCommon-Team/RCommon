@@ -28,15 +28,18 @@ namespace RCommon.DataServices.Transactions
             _serviceProvider = serviceProvider;
         }
 
-        public void Flush()
+        public void Flush(bool allowPersist)
         {
             Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
             var registeredTypes = this._dataStoreProvider.GetRegisteredDataStores(x => x.TransactionId == this.TransactionId);
-
+            
             foreach (var item in registeredTypes)
             {
-                item.DataStore.PersistChanges();
-                item.DataStore.Dispose(); // This should be managed through the lifetime of the DI container.
+                if (allowPersist)
+                {
+                    item.DataStore.PersistChanges();
+                }
+                //item.DataStore.Dispose(); // This should be managed through the lifetime of the DI container.
             }
 
            _dataStoreProvider.RemoveRegisteredDataStores(this.TransactionId.Value);

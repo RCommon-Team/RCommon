@@ -169,12 +169,12 @@ namespace RCommon.Persistence.NHibernate
                 .ToPaginatedList(pageIndex, pageSize));
         }
 
-        public override async Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
+        public override async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
             return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(selectSpec.Predicate).CountAsync(token);
         }
 
-        public override async Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public override async Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await SessionFactory.GetCurrentSession().Query<TEntity>().Where(expression).CountAsync(token);
         }

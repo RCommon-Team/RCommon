@@ -5,19 +5,18 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using RCommon.Extensions;
 
 namespace RCommon.DataServices.Sql
 {
     public class RDbConnection : DisposableResource, IRDbConnection
     {
-        private readonly string _providerInvariantName;
-        private readonly string _connectionString;
+        private readonly IOptions<RDbConnectionOptions> _options;
 
-        public RDbConnection(string providerInvariantName, string connectionString)
+        public RDbConnection(IOptions<RDbConnectionOptions> options)
         {
-            _providerInvariantName = providerInvariantName;
-            _connectionString = connectionString;
+            _options=options;
         }
 
         public RDbConnection()
@@ -25,14 +24,16 @@ namespace RCommon.DataServices.Sql
 
         }
 
-        public IDbConnection GetDbConnection()
+        public DbConnection GetDbConnection()
         {
+            Guard.Against<RDbConnectionException>(this._options == null, "No options configured for this RDbConnection");
+            Guard.Against<RDbConnectionException>(this._options.Value == null, "No options configured for this RDbConnection");
+            Guard.Against<RDbConnectionException>(this._options.Value.DbFactory == null, "You must configured a DbProviderFactory for this RDbConnection");
+            Guard.Against<RDbConnectionException>(this._options.Value.ConnectionString.IsNullOrEmpty(), "You must configure a conneciton string for this RDbConnection");
+
+            var connection = this._options.Value.DbFactory.CreateConnection();
+            connection.ConnectionString = this._options.Value.ConnectionString;
             
-            
-            var factory = DbProviderFactories.GetFactory(_providerInvariantName);
-            
-            var connection = factory.CreateConnection();
-            connection.ConnectionString = _connectionString;
             return connection;
         }
 

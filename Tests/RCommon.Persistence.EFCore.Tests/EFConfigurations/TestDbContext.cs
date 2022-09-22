@@ -45,6 +45,10 @@ namespace RCommon.Persistence.EFCore.Tests
             _configuration = configuration;
         }
 
+        public TestDbContext(DbContextOptions<TestDbContext> options)
+            : base(options)
+        {
+        }
 
 
         public DbSet<Customer> Customers { get; set; } // Customers

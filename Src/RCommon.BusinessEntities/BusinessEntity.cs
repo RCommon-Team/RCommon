@@ -15,7 +15,7 @@ namespace RCommon.BusinessEntities
         private bool _allowChangeTracking = true;
         public BusinessEntity()
         {
-            
+            _localEvents = _localEvents ?? new List<ILocalEvent>();
         }
 
         
@@ -38,6 +38,8 @@ namespace RCommon.BusinessEntities
         }
 
         private List<ILocalEvent> _localEvents;
+
+        [NotMapped]
         public IReadOnlyCollection<ILocalEvent> LocalEvents => _localEvents?.AsReadOnly();
 
         [NotMapped]
@@ -45,7 +47,6 @@ namespace RCommon.BusinessEntities
 
         public void AddLocalEvent(ILocalEvent eventItem)
         {
-            _localEvents = _localEvents ?? new List<ILocalEvent>();
             _localEvents.Add(eventItem);
             this.OnLocalEventsAdded(new LocalEventsChangedEventArgs(this, eventItem));
         }

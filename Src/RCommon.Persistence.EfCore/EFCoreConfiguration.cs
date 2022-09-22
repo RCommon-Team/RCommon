@@ -35,7 +35,6 @@ namespace RCommon
     /// </summary>
     public class EFCoreConfiguration : RCommonConfiguration, IEFCoreConfiguration
     {
-        private List<string> _dbContextTypes = new List<string>();
 
 
         public EFCoreConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
@@ -55,22 +54,17 @@ namespace RCommon
             this.ContainerAdapter.AddGeneric(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(ILinqMapperRepository<>), typeof(EFCoreRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(ILinqRepository<>), typeof(EFCoreRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
-
-            // Registered DbContexts
-            foreach (var dbContext in _dbContextTypes)
-            {
-                this.ContainerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
-            }
         }
 
 
-        public IEFCoreConfiguration UsingDbContext<TDbContext>()
+        public IEFCoreConfiguration AddDbContext<TDbContext>(Action<DbContextOptionsBuilder>? options = null)
             where TDbContext : RCommonDbContext
         {
-            string dbContext = typeof(TDbContext).AssemblyQualifiedName;
-            _dbContextTypes.Add(dbContext);
+            // TODO: Should this be a factory so that we don't interfere with other uses of this DbContext?
+            // Transient due to RCommon DataStoreProvider storing as scoped
+            this.ContainerAdapter.Services.AddDbContext<TDbContext>(options, ServiceLifetime.Transient); 
 
             return this;
         }

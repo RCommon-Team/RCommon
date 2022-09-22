@@ -42,13 +42,15 @@ namespace RCommon.Persistence.EFCore.Tests
                 .WithPersistence<EFCoreConfiguration>(x => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
-                    x.UsingDbContext<TestDbContext>();
+                    x.AddDbContext<TestDbContext>(ef =>
+                    {
+                        ef.UseSqlServer(
+                        this.Configuration.GetConnectionString("TestDbContext"));
+                    });
                 });
 
-            
-
             this.ServiceProvider = services.BuildServiceProvider();
-            this.Logger = this.ServiceProvider.GetService<ILogger>();
+            this.Logger = this.ServiceProvider.GetService<ILogger<EFCoreTestBase>>();
 
             Debug.WriteLine($"Total Services Registered: {services.Count}");
             foreach (var service in services)

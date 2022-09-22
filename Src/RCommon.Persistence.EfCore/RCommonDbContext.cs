@@ -6,6 +6,7 @@ using RCommon.DataServices;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +28,7 @@ namespace RCommon.Persistence.EFCore
 
         }
 
-        public IDbConnection GetDbConnection()
+        public DbConnection GetDbConnection()
         {
             return base.Database.GetDbConnection();
         }

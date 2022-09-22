@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence.EFCore.Tests.Specifications
+namespace RCommon.TestBase.Specifications
 {
     public class CustomerSearchSpec : PagedSpecification<Customer>
     {

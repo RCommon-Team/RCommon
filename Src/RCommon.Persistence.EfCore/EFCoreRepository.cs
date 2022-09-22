@@ -135,12 +135,12 @@
             return queryable;
         }
 
-        public async override Task<int> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
+        public async override Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
             return await this.FindCore(selectSpec.Predicate).CountAsync(token);
         }
 
-        public async override Task<int> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public async override Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await this.FindCore(expression).CountAsync(token);
         }
