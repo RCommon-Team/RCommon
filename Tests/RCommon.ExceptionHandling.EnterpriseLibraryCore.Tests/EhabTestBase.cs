@@ -29,7 +29,7 @@ namespace RCommon.ExceptionHandling.EnterpriseLibraryCore.Tests
 
 
             this.ServiceProvider = services.BuildServiceProvider();
-            this.Logger = this.ServiceProvider.GetService<ILogger>();
+            this.Logger = this.ServiceProvider.GetService<ILogger<EhabTestBase>>();
 
             Debug.WriteLine($"Total Services Registered: {services.Count}");
             foreach (var service in services)
