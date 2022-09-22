@@ -12,7 +12,7 @@ namespace RCommon.Persistence.Dapper.Tests
 
         public TestDbConnection(IOptions<RDbConnectionOptions> options) : base(options)
         {
-
+            
         }
     }
 }

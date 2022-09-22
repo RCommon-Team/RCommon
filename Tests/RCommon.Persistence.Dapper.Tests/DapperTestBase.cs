@@ -48,13 +48,13 @@ namespace RCommon.Persistence.Dapper.Tests
                     {
                         mappings.AddMap(new CustomerMap());
                         mappings.ForDommel();
-                        
                     });
                 });
+
             
 
             this.ServiceProvider = services.BuildServiceProvider();
-            this.Logger = this.ServiceProvider.GetService<ILogger>();
+            this.Logger = this.ServiceProvider.GetService<ILogger<DapperTestBase>>();
 
             // Retrieve the installed providers and factories.
             DataTable table = DbProviderFactories.GetFactoryClasses();

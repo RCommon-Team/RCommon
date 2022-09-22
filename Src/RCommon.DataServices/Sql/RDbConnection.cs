@@ -30,9 +30,10 @@ namespace RCommon.DataServices.Sql
             Guard.Against<RDbConnectionException>(this._options.Value == null, "No options configured for this RDbConnection");
             Guard.Against<RDbConnectionException>(this._options.Value.DbFactory == null, "You must configured a DbProviderFactory for this RDbConnection");
             Guard.Against<RDbConnectionException>(this._options.Value.ConnectionString.IsNullOrEmpty(), "You must configure a conneciton string for this RDbConnection");
-            
+
             var connection = this._options.Value.DbFactory.CreateConnection();
             connection.ConnectionString = this._options.Value.ConnectionString;
+            
             return connection;
         }
 

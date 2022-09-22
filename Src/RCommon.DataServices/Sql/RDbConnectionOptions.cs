@@ -16,5 +16,5 @@ namespace RCommon.DataServices.Sql
 
         public DbProviderFactory DbFactory { get; set; }
         public string ConnectionString { get; set; }
-    }
+	}
 }

@@ -7,9 +7,9 @@ using NUnit.Framework;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Linq;
-using RCommon.Persistence.EFCore.Tests.Specifications;
 using RCommon.TestBase;
 using RCommon.TestBase.Entities;
+using RCommon.TestBase.Specifications;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,9 +28,6 @@ namespace RCommon.Persistence.EFCore.Tests
         public EFCoreRepositoryIntegrationTests() : base()
         {
             var services = new ServiceCollection();
-
-            //services.AddTransient<IFullFeaturedRepository<Customer>, EFCoreRepository<Customer>>();
-            //services.AddTransient<IFullFeaturedRepository<Order>, EFCoreRepository<Order>>();
             this.InitializeRCommon(services);
         }
         
@@ -39,7 +36,6 @@ namespace RCommon.Persistence.EFCore.Tests
         public void InitialSetup()
         {
             this.Logger.LogInformation("Beginning Onetime setup", null);
-            //this.ContainerAdapter.Register<DbContext, TestDbContext>(typeof(TestDbContext).AssemblyQualifiedName);
             _dataStoreProvider = this.ServiceProvider.GetService<IDataStoreProvider>();
 
         }
@@ -47,7 +43,6 @@ namespace RCommon.Persistence.EFCore.Tests
         [SetUp]
         public void Setup()
         {
-            //_context = this.ServiceProvider.GetService<RCommonDbContext>();
             this.Logger.LogInformation("Beginning New Test Setup", null);
         }
 
@@ -61,6 +56,7 @@ namespace RCommon.Persistence.EFCore.Tests
             repo.ResetDatabase();
             
             _dataStoreProvider.RemoveRegisteredDataStores(context.GetType(), Guid.Empty);
+            await Task.CompletedTask;
         }
 
         [Test]
@@ -217,6 +213,40 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
             Assert.IsTrue(savedCustomer.Id > 0);
+
+        }
+
+        [Test]
+        public async Task Can_Add_Graph_Async()
+        {
+            var testData = new List<Customer>();
+
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub(x =>
+            {
+                x.FirstName = "Severnus";
+
+                var orders = new List<Order>();
+                orders.Add(TestDataActions.CreateOrderStub());
+                x.Orders = orders;
+
+            });
+            testData.Add(customer);
+
+
+            // Start Test
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
+            customerRepo.EagerlyWith(x => x.Orders);
+            await customerRepo.AddAsync(customer);
+
+            Customer savedCustomer = null;
+            savedCustomer = await customerRepo.FirstAsync(x => x.FirstName == "Severnus");
+
+            Assert.IsNotNull(savedCustomer);
+            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
+            Assert.IsTrue(savedCustomer.Id > 0);
+            Assert.IsTrue(savedCustomer.Orders.Count == 1);
 
         }
 

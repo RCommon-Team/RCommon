@@ -50,7 +50,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 });
 
             this.ServiceProvider = services.BuildServiceProvider();
-            this.Logger = this.ServiceProvider.GetService<ILogger>();
+            this.Logger = this.ServiceProvider.GetService<ILogger<EFCoreTestBase>>();
 
             Debug.WriteLine($"Total Services Registered: {services.Count}");
             foreach (var service in services)

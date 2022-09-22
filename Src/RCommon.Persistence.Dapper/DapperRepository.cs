@@ -261,9 +261,9 @@ namespace RCommon.Persistence.Dapper
                     {
                         await db.OpenAsync();
                     }
-
-                    var results = await db.SelectAsync(expression, cancellationToken: token);
-                    return results.SingleOrDefault();;
+;
+                    var result = await db.FirstOrDefaultAsync(expression, cancellationToken: token);
+                    return result;
                 }
                 catch (Exception)
                 {

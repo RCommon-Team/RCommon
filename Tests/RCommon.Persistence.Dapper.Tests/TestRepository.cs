@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dommel;
+using RCommon.TestBase.Entities;
 
 namespace RCommon.Persistence.Dapper.Tests
 {
@@ -31,10 +32,10 @@ namespace RCommon.Persistence.Dapper.Tests
 
 		public void ResetDatabase()
         {
-            //_context.Database.ExecuteSqlInterpolated($"DELETE OrderItems");
-            //_context.Database.ExecuteSqlInterpolated($"DELETE Products");
-            //_context.Database.ExecuteSqlInterpolated($"DELETE Orders");
-            //_context.Database.ExecuteSqlInterpolated($"DELETE Customers");
+            _db.DeleteAll<OrderItem>();
+            _db.DeleteAll<Product>(); 
+            _db.DeleteAll<Order>(); 
+            _db.DeleteAll<Customer>(); 
         }
 
         public void CleanUpSeedData()
@@ -45,19 +46,18 @@ namespace RCommon.Persistence.Dapper.Tests
             }
         }
 
-        public async Task PersistSeedData<T>(IList<T> testData)
-            where T : BusinessEntity
+        public async Task<List<int>> PersistSeedData<T>(IList<T> testData)
+            where T : BusinessEntity<int>
         {
-            await using (var db = this.Db)
+            var returnIds = new List<int>();
+            foreach (var item in testData)
             {
-
-            }
-                foreach (var item in testData)
-            {
-                await this.Db.InsertAsync<T>(item);
+                var objectId = await this.Db.InsertAsync<T>(item);
+                int id = Convert.ToInt32(objectId);
+                returnIds.Add(id);
                 this.EntityDeleteActions.Add(x => x.DeleteAsync<T>(item));
             }
-
+            return returnIds;
         }
 
     }

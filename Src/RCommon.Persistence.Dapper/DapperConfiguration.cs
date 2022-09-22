@@ -36,6 +36,7 @@ namespace RCommon
             // Dapper Repository
             this.ContainerAdapter.AddGeneric(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
             this.ContainerAdapter.AddGeneric(typeof(IWriteOnlyRepository<>), typeof(DapperRepository<>));
+            this.ContainerAdapter.AddGeneric(typeof(IReadOnlyRepository<>), typeof(DapperRepository<>));
 
         }
 

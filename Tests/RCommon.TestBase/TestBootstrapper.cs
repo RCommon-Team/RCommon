@@ -16,13 +16,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Serilog;
 
 namespace RCommon.TestBase
 {
     public abstract class TestBootstrapper
     {
         private ServiceProvider _serviceProvider;
-        private ILogger _logger;
+        private Microsoft.Extensions.Logging.ILogger _logger;
 
         static object _configureLock = new object();
 
@@ -36,9 +37,8 @@ namespace RCommon.TestBase
             var builder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             this.Configuration = builder.Build();
-            services.AddSingleton<ILogger>(TestLogger.Create());
             services.AddSingleton<IConfiguration>(this.Configuration);
-            services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
+            services.AddLogging(x => x.AddSerilog(SerilogBootstrapper.BuildLoggerConfig(this.Configuration).CreateLogger(), dispose: true));
         }
 
 
@@ -75,6 +75,6 @@ namespace RCommon.TestBase
 
         public IConfigurationRoot Configuration { get; private set; }
         public ServiceProvider ServiceProvider { get => _serviceProvider; set => _serviceProvider = value; }
-        public ILogger Logger { get => _logger; set => _logger = value; }
+        public Microsoft.Extensions.Logging.ILogger Logger { get => _logger; set => _logger = value; }
     }
 }
