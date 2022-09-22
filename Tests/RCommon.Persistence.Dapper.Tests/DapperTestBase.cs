@@ -47,6 +47,7 @@ namespace RCommon.Persistence.Dapper.Tests
                     dapper.AddFluentMappings(mappings =>
                     {
                         mappings.AddMap(new CustomerMap());
+                        mappings.AddMap(new SalesPersonMap());
                         mappings.ForDommel();
                     });
                 });

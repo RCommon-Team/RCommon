@@ -30,6 +30,22 @@ namespace RCommon.TestBase
         {
             return CreateCustomerStub(x => { });
         }
+        public static SalesPerson CreateSalesPersonStub(Action<SalesPerson> customize)
+        {
+            var customer = new Faker<SalesPerson>()
+                .RuleFor(x => x.FirstName, f => f.Name.FirstName())
+                .RuleFor(x => x.LastName, f => f.Name.LastName())
+                .RuleFor(x => x.SalesQuota, f => f.Random.Float())
+                .RuleFor(x => x.SalesYtd, f => f.Random.Decimal())
+                .Generate();
+            customize(customer);
+            return customer;
+        }
+
+        public static SalesPerson CreateSalesPersonStub()
+        {
+            return CreateSalesPersonStub(x => { });
+        }
 
         public static Order CreateOrderStub()
         {
