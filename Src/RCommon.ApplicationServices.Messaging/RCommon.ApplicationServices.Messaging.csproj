@@ -5,20 +5,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.1.72</Version>
+    <Version>1.0.1.73</Version>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
     <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <PackageIcon>rcommon-icon.png</PackageIcon>
     <PackageTags>RCommon, application services, messaging, masstransit extensions, distributed events</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\RCommon.Core\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon.Core\rcommon-icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

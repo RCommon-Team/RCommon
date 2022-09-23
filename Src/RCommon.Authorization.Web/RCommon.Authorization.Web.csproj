@@ -6,16 +6,16 @@
     <Company>Reactor2, Jason Webb</Company>
     <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <PackageIcon>rcommon-icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, Authorization, Web, Framework</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.0.1.72</Version>
+    <Version>1.0.1.73</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\RCommon.Core\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon.Core\rcommon-icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

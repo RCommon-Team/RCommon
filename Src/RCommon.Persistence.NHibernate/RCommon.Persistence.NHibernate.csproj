@@ -11,9 +11,9 @@
     <PackageTags>RCommon, NHibernate, Generic Repository, object access, data access. persistance framework</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <PackageIcon>rcommon-icon.png</PackageIcon>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <Version>1.0.1.72</Version>
+    <Version>1.0.1.73</Version>
     <PackageIconUrl />
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
@@ -21,8 +21,8 @@
   <ItemGroup>
     <PackageReference Include="FluentNHibernate" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
-    <PackageReference Include="NHibernate" Version="5.3.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
+    <PackageReference Include="NHibernate" Version="5.3.13" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\RCommon.Core\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon.Core\rcommon-icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

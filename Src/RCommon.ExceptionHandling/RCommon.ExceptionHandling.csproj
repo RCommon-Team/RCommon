@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <PackageIcon>rcommon-icon.png</PackageIcon>
     <PackageIconUrl />
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
@@ -11,7 +11,7 @@
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, exception handling, exception handling abstractions, c#, .NET</PackageTags>
-    <Version>1.0.1.72</Version>
+    <Version>1.0.1.73</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\RCommon.Core\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon.Core\rcommon-icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
