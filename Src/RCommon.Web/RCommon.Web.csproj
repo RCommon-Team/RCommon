@@ -8,14 +8,14 @@
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, Web, Application, Framework</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageIcon>reactor2-icon-darkbg-small.jpg</PackageIcon>
+    <PackageIcon>rcommon-icon.png</PackageIcon>
     <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-    <Version>1.0.1.72</Version>
+    <Version>1.0.1.73</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\RCommon.Core\reactor2-icon-darkbg-small.jpg">
+    <None Include="..\RCommon.Core\rcommon-icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.22.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.23.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
