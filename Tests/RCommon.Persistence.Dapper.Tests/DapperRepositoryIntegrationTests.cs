@@ -83,6 +83,26 @@ namespace RCommon.Persistence.Dapper.Tests
             Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
         }
 
+        [Test]
+        public async Task Can_use_default_data_store()
+        {
+            var customer = TestDataActions.CreateCustomerStub();
+            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var repo = new TestRepository(context.GetDbConnection());
+            var testData = new List<Customer>();
+            testData.Add(customer);
+            var ids = await repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+
+            var savedCustomer = await customerRepo
+                    .FindAsync(ids.First());
+
+            Assert.IsNotNull(savedCustomer);
+            Assert.IsTrue(savedCustomer.Id == ids.First());
+            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
+        }
+
 
         [Test]
         public async Task Can_Add_Async()

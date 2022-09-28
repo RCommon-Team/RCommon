@@ -39,13 +39,17 @@ namespace RCommon.Persistence.EFCore.Tests
                     x.UsingDefaultExceptionPolicies())
                 .And<DataServicesConfiguration>(x =>
                     x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()) // Everything releated to transaction management. Powerful stuff happens here.
-                .WithPersistence<EFCoreConfiguration>(x => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .WithPersistence<EFCoreConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
-                    x.AddDbContext<TestDbContext>(ef =>
+                    ef.AddDbContext<TestDbContext>(ef =>
                     {
                         ef.UseSqlServer(
                         this.Configuration.GetConnectionString("TestDbContext"));
+                    });
+                    ef.SetDefaultDataStore(dataStore =>
+                    {
+                        dataStore.DefaultDataStoreName = "TestDbContext";
                     });
                 });
 

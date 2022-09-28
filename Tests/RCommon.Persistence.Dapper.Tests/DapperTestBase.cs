@@ -50,6 +50,10 @@ namespace RCommon.Persistence.Dapper.Tests
                         mappings.AddMap(new SalesPersonMap());
                         mappings.ForDommel();
                     });
+                    dapper.SetDefaultDataStore(dataStore =>
+                    {
+                        dataStore.DefaultDataStoreName = "TestDbConnection";
+                    });
                 });
 
             

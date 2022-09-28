@@ -37,11 +37,13 @@ namespace RCommon
         /// </summary>
         /// <param name="config">Instance of <see cref="IRCommonConfiguration"/>passed in.</param>
         /// <returns>Updated instance of <see cref="IRCommonConfiguration"/>RCommon Configuration</returns>
-        private static IRCommonConfiguration WithChangeTracking(this IObjectAccessConfiguration config)
+        private static IObjectAccessConfiguration WithChangeTracking(this IObjectAccessConfiguration config)
         {
             config.ContainerAdapter.AddScoped<IChangeTracker, ChangeTracker>();
             return config;
         }
+
+
 
     }
 }

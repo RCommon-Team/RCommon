@@ -28,8 +28,8 @@ namespace RCommon.Persistence.Dapper
         private readonly IMediator _mediator;
 
         public DapperRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
-            IChangeTracker changeTracker, IMediator mediator)
-            : base(dataStoreProvider, logger, unitOfWorkManager, changeTracker)
+            IChangeTracker changeTracker, IMediator mediator, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            : base(dataStoreProvider, logger, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
             _mediator = mediator;
         }

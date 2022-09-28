@@ -15,10 +15,12 @@
 #endregion
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RCommon.BusinessEntities;
 using RCommon.Collections;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
+using RCommon.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -36,11 +38,18 @@ namespace RCommon.Persistence
     public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IFullFeaturedRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        public FullFeaturedRepositoryBase(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker)
+        public FullFeaturedRepositoryBase(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager, 
+            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
             DataStoreProvider = dataStoreProvider;
             UnitOfWorkManager = unitOfWorkManager;
             ChangeTracker = changeTracker;
+
+            if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
+                && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
+            {
+                this.DataStoreName = defaultDataStoreOptions.Value.DefaultDataStoreName;
+            }
         }
 
         /// <summary>
