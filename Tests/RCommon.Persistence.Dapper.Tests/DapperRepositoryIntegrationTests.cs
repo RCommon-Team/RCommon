@@ -63,7 +63,7 @@ namespace RCommon.Persistence.Dapper.Tests
         }
 
         [Test]
-        public async Task Can_perform_simple_query()
+        public async Task Can_Find_Async_By_Primary_Key()
         {
             var customer = TestDataActions.CreateCustomerStub();
             var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
@@ -81,6 +81,100 @@ namespace RCommon.Persistence.Dapper.Tests
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.Id == ids.First());
             Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
+        }
+
+        [Test]
+        public async Task Can_Find_Single_Async_With_Expression()
+        {
+            var customer = TestDataActions.CreateCustomerStub(x => x.ZipCode = "30062");
+            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var repo = new TestRepository(context.GetDbConnection());
+            var testData = new List<Customer>();
+            testData.Add(customer);
+            var ids = await repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbConnection";
+
+            var savedCustomer = await customerRepo
+                    .FindSingleOrDefaultAsync(x=>x.ZipCode == "30062");
+
+            Assert.IsNotNull(savedCustomer);
+            Assert.IsTrue(savedCustomer.Id == ids.First());
+            Assert.IsTrue(savedCustomer.ZipCode == customer.ZipCode);
+        }
+
+        [Test]
+        public async Task Can_Find_Async_With_Expression()
+        {
+            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var repo = new TestRepository(context.GetDbConnection());
+            var testData = new List<Customer>();
+
+            for (int i = 0; i < 10; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.LastName = "Potter");
+                testData.Add(customer);
+            }
+            
+            var ids = await repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbConnection";
+
+            var savedCustomers = await customerRepo
+                    .FindAsync(x=> x.LastName == "Potter");
+
+            Assert.IsNotNull(savedCustomers);
+            Assert.IsTrue(savedCustomers.Count() == 10);
+        }
+
+     
+        [Test]
+        public async Task Can_Get_Count_Async_With_Expression()
+        {
+            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var repo = new TestRepository(context.GetDbConnection());
+            var testData = new List<Customer>();
+
+            for (int i = 0; i < 10; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.LastName = "Dumbledore");
+                testData.Add(customer);
+            }
+
+            var ids = await repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+
+            var count = await customerRepo
+                    .GetCountAsync(x => x.LastName == "Dumbledore");
+
+            Assert.IsNotNull(count);
+            Assert.IsTrue(count == 10);
+        }
+
+        [Test]
+        public async Task Can_Get_Any_Async_With_Expression()
+        {
+            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var repo = new TestRepository(context.GetDbConnection());
+            var testData = new List<Customer>();
+
+            for (int i = 0; i < 10; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.City = "Hollywood");
+                testData.Add(customer);
+            }
+
+            var ids = await repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+
+            var canFind = await customerRepo
+                    .AnyAsync(x => x.City == "Hollywood");
+
+            Assert.IsTrue(canFind);
         }
 
         [Test]
