@@ -4,6 +4,7 @@
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using RCommon;
     using RCommon.BusinessEntities;
     using RCommon.Collections;
@@ -49,8 +50,8 @@
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
         public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager
-            , IMediator mediator, IChangeTracker changeTracker) 
-            : base(dataStoreProvider, unitOfWorkManager, changeTracker)
+            , IMediator mediator, IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
+            : base(dataStoreProvider, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
             this._mediator = mediator;

@@ -14,6 +14,8 @@ using RCommon.DataServices.Sql;
 using RCommon.BusinessEntities;
 using System.Threading;
 using RCommon.Collections;
+using Microsoft.Extensions.Options;
+using RCommon.Extensions;
 
 namespace RCommon.Persistence
 {
@@ -24,12 +26,19 @@ namespace RCommon.Persistence
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public SqlRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker)
+        public SqlRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
+            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
             _dataStoreProvider = dataStoreProvider;
             _logger = logger.CreateLogger(this.GetType().Name);
             _unitOfWorkManager = unitOfWorkManager;
             ChangeTracker = changeTracker;
+
+            if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null 
+                && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
+            {
+                this.DataStoreName = defaultDataStoreOptions.Value.DefaultDataStoreName;
+            }
         }
 
 

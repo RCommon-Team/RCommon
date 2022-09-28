@@ -9,7 +9,6 @@ namespace RCommon
     /// </summary>
     public interface IObjectAccessConfiguration : IRCommonConfiguration
     {
-
-       
+        IObjectAccessConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options);
     }
 }

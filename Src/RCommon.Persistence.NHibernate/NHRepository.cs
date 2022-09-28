@@ -19,6 +19,7 @@ using RCommon.BusinessEntities;
 using System.Threading;
 using MediatR;
 using RCommon.Collections;
+using Microsoft.Extensions.Options;
 
 namespace RCommon.Persistence.NHibernate
 {
@@ -40,8 +41,9 @@ namespace RCommon.Persistence.NHibernate
         /// Default Constructor.
         /// Creates a new instance of the <see cref="NHRepository{TEntity}"/> class.
         /// </summary>
-        public NHRepository(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, IMediator mediator)
-            : base(dataStoreProvider, unitOfWorkManager, changeTracker)
+        public NHRepository(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, 
+            IMediator mediator, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            : base(dataStoreProvider, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
             _mediator = mediator;
         }

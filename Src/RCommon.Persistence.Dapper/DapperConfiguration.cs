@@ -58,5 +58,10 @@ namespace RCommon
             return this;
         }
 
+        public IObjectAccessConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
+        {
+            this.ContainerAdapter.Services.Configure(options);
+            return this;
+        }
     }
 }

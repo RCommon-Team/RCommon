@@ -81,6 +81,26 @@ namespace RCommon.Persistence.EFCore.Tests
         }
 
         [Test]
+        public async Task Can_use_default_data_store()
+        {
+            var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
+            var context = _dataStoreProvider.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
+            var testData = new List<Customer>();
+            testData.Add(customer);
+            repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+
+            var savedCustomer = await customerRepo
+                    .FindAsync(customer.Id);
+
+            Assert.IsNotNull(savedCustomer);
+            Assert.IsTrue(savedCustomer.Id == customer.Id);
+            Assert.IsTrue(savedCustomer.FirstName == "Albus");
+        }
+
+        [Test]
         public async Task Can_query_using_paging_with_specific_params()
         {
             var testData = new List<Customer>();
