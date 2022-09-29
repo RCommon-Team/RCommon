@@ -16,11 +16,13 @@
 // ReSharper disable UsePatternMatching
 #pragma warning disable 1591    //  Ignore "Missing XML Comment" warning
 
+using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using RCommon.BusinessEntities;
 using RCommon.DataServices;
 using RCommon.TestBase;
 using RCommon.TestBase.Entities;
@@ -40,7 +42,8 @@ namespace RCommon.Persistence.EFCore.Tests
         private readonly IConfiguration _configuration;
 
 
-        public TestDbContext(DbContextOptions<TestDbContext> options, IConfiguration configuration):base(options)
+        public TestDbContext(DbContextOptions<TestDbContext> options, IConfiguration configuration, 
+            IChangeTracker changeTracker, IMediator mediator) : base(options, changeTracker, mediator)
         {
             _configuration = configuration;
         }

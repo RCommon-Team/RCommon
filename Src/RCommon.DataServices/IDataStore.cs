@@ -11,8 +11,8 @@ namespace RCommon.DataServices
     { 
 
         void PersistChanges();
-
         DbConnection GetDbConnection();
+
     }
 
 }

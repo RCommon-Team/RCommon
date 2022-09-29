@@ -43,12 +43,12 @@ namespace RCommon.Tests
                         () => 1 != 1, "Guard check with lambda"
                     );
 	        }
-	        catch (ArgumentNullException ex)
+	        catch (ArgumentNullException)
 	        {
 		
 		        Assert.Fail();
 	        }
-            catch(Exception ex)
+            catch(Exception)
             {
 
             }
@@ -70,11 +70,11 @@ namespace RCommon.Tests
             {
                 Guard.TypeOf<InvalidOperationException>(new InvalidOperationException(), "Guard check with TypeOf");
             }
-            catch(InvalidOperationException ex)
+            catch(InvalidOperationException)
             {
                 Assert.Fail();
             }
-            catch(Exception ex)
+            catch(Exception)
             {
 
             }

@@ -40,7 +40,7 @@ namespace HR.LeaveManagement.MVC.Controllers
         // GET: LeaveTypesController/Create
         public async Task<ActionResult> Create()
         {
-            return View();
+            return await Task.FromResult(View());
         }
 
         // POST: LeaveTypesController/Create

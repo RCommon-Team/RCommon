@@ -453,7 +453,7 @@ namespace RCommon.Persistence.Dapper.Tests
             var savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
             var savedSalesPerson = await repo2.FindSingleOrDefaultAsync(x => x.FirstName == salesPerson.FirstName);
             Assert.IsNull(savedCustomer);
-            Assert.IsNull(salesPerson);
+            Assert.IsNull(savedSalesPerson);
         }
 
         [Test]

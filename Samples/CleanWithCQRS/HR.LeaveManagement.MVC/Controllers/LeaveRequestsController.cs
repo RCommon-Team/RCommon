@@ -85,7 +85,7 @@ namespace leave_management.Controllers
                 await _leaveRequestService.ApproveLeaveRequest(id, approved);
                 return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return RedirectToAction(nameof(Index));
             }

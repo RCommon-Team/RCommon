@@ -1,6 +1,8 @@
 ﻿using HR.LeaveManagement.Domain.Common;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RCommon;
+using RCommon.BusinessEntities;
 using RCommon.Persistence.EFCore;
 using RCommon.Security.Users;
 using System;
@@ -15,17 +17,19 @@ namespace HR.LeaveManagement.Persistence
     {
         private readonly ICurrentUser _currentUser;
         private readonly ISystemTime _systemTime;
-        private readonly IGuidGenerator _guidGenerator;
 
-        public AuditableDbContext(ICurrentUser currentUser, ISystemTime systemTime, DbContextOptions options) : base(options)
+        public AuditableDbContext(DbContextOptions options, ICurrentUser currentUser, ISystemTime systemTime, 
+            IChangeTracker changeTracker, IMediator mediator) 
+            : base(options, changeTracker, mediator)
         {
             _currentUser = currentUser;
-            this._systemTime=systemTime;
+            this._systemTime = systemTime;
         }
 
-        public AuditableDbContext(DbContextOptions options) : base(options)
+        public AuditableDbContext(DbContextOptions options)
+            : base(options)
         {
-            
+
         }
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
