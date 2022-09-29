@@ -14,7 +14,7 @@
 	  <PackageTags>RCommon, emailing, sendgrid</PackageTags>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <RepositoryType>GitHub</RepositoryType>
-	  <Version>1.0.1.74</Version>
+	  <Version>1.0.1.75</Version>
 	  <PackageIconUrl />
 	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>

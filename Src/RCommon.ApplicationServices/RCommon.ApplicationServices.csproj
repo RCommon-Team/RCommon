@@ -10,7 +10,7 @@
     <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <Authors>Jason Webb</Authors>
     <Company>RCommon</Company>
-    <Version>1.0.1.74</Version>
+    <Version>1.0.1.75</Version>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, application services, common application services, email, CRUD helpers, c#, .NET</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
