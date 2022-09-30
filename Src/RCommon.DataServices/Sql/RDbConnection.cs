@@ -5,7 +5,9 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.Extensions.Options;
+using RCommon.BusinessEntities;
 using RCommon.Extensions;
 
 namespace RCommon.DataServices.Sql
@@ -13,15 +15,14 @@ namespace RCommon.DataServices.Sql
     public class RDbConnection : DisposableResource, IRDbConnection
     {
         private readonly IOptions<RDbConnectionOptions> _options;
+        private readonly IChangeTracker _changeTracker;
+        private readonly IMediator _mediator;
 
-        public RDbConnection(IOptions<RDbConnectionOptions> options)
+        public RDbConnection(IOptions<RDbConnectionOptions> options, IChangeTracker changeTracker, IMediator mediator)
         {
             _options=options;
-        }
-
-        public RDbConnection()
-        {
-
+            this._changeTracker = changeTracker;
+            this._mediator = mediator;
         }
 
         public DbConnection GetDbConnection()
@@ -38,8 +39,8 @@ namespace RCommon.DataServices.Sql
         }
 
         public void PersistChanges()
-        { 
-
+        {
+            this._changeTracker.TrackedEntities.PublishLocalEvents(this._mediator);
             // Nothing to do here because this is a SQL Connection
             return;
         }

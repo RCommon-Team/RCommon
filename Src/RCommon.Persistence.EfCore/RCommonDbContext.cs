@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using RCommon.BusinessEntities;
 using RCommon.Core.Threading;
 using RCommon.DataServices;
 using System;
@@ -15,11 +16,14 @@ namespace RCommon.Persistence.EFCore
 {
     public abstract class RCommonDbContext : DbContext, IDataStore
     {
+        private readonly IChangeTracker _changeTracker;
+        private readonly IMediator _mediator;
 
-        public RCommonDbContext()
-            : base()
+        public RCommonDbContext(DbContextOptions options, IChangeTracker changeTracker, IMediator mediator)
+            : base(options)
         {
-            
+            this._changeTracker = changeTracker;
+            this._mediator = mediator;
         }
 
         public RCommonDbContext(DbContextOptions options)
@@ -27,6 +31,8 @@ namespace RCommon.Persistence.EFCore
         {
 
         }
+
+        
 
         public DbConnection GetDbConnection()
         {
@@ -41,6 +47,7 @@ namespace RCommon.Persistence.EFCore
 
         public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
+            this._changeTracker.TrackedEntities.PublishLocalEvents(this._mediator);
             return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
     }

@@ -13,6 +13,7 @@ using RCommon.Emailing.SendGrid;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
 using RCommon.Security;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,19 +32,23 @@ ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
         x.FromNameDefault = sendGridSettings.FromNameDefault;
         x.FromEmailDefault = sendGridSettings.FromEmailDefault;
     })
-    .WithDateTimeSystem<SystemTime>(x => 
+    .WithDateTimeSystem<SystemTime>(x =>
         x.Kind = DateTimeKind.Utc)
-    .WithGuidGenerator<SequentialGuidGenerator>(x => 
+    .WithGuidGenerator<SequentialGuidGenerator>(x =>
         x.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
     .And<DataServicesConfiguration>(x =>
         x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
     .AddUnitOfWorkToMediatorPipeline()
     .WithPersistence<EFCoreConfiguration>(x =>
-        x.AddDbContext<LeaveManagementDbContext>());
+        x.AddDbContext<LeaveManagementDbContext>(options =>
+        {
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("LeaveManagementConnectionString"));
+        })
+     );
 
 // Add services to the container.
 builder.Services.ConfigureApplicationServices();
-builder.Services.ConfigurePersistenceServices(builder.Configuration);
 builder.Services.ConfigureIdentityServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 

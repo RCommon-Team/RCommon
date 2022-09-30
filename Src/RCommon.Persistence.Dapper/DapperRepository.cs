@@ -25,21 +25,18 @@ namespace RCommon.Persistence.Dapper
     public class DapperRepository<TEntity> : SqlRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        private readonly IMediator _mediator;
 
         public DapperRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
-            IChangeTracker changeTracker, IMediator mediator, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
             : base(dataStoreProvider, logger, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
-            _mediator = mediator;
+            this.Logger = logger.CreateLogger(this.GetType().Name);
         }
-
-
 
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
 
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -50,12 +47,13 @@ namespace RCommon.Persistence.Dapper
 
                     entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
+                    this.DispatchEvents();
                     await db.InsertAsync(entity, cancellationToken: token);
-                    this.SaveChanges();
 
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.AddAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -72,7 +70,7 @@ namespace RCommon.Persistence.Dapper
 
         public override async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -83,11 +81,12 @@ namespace RCommon.Persistence.Dapper
 
                     entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
+                    this.DispatchEvents();
                     await db.DeleteAsync(entity, cancellationToken: token);
-                    this.SaveChanges();
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.DeleteAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -106,7 +105,7 @@ namespace RCommon.Persistence.Dapper
         public override async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
 
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -117,11 +116,12 @@ namespace RCommon.Persistence.Dapper
 
                     entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
                     this.ChangeTracker.AddEntity(entity);
+                    this.DispatchEvents();
                     await db.UpdateAsync(entity, cancellationToken: token);
-                    this.SaveChanges();
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.UpdateAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -141,7 +141,7 @@ namespace RCommon.Persistence.Dapper
 
         public override async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -153,8 +153,9 @@ namespace RCommon.Persistence.Dapper
                     var results = await db.SelectAsync(expression, cancellationToken: token);
                     return results.ToList();
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.FindAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -169,7 +170,7 @@ namespace RCommon.Persistence.Dapper
 
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -181,8 +182,9 @@ namespace RCommon.Persistence.Dapper
                     var result = await db.GetAsync<TEntity>(primaryKey, cancellationToken: token);
                     return result;
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.FindAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -197,7 +199,7 @@ namespace RCommon.Persistence.Dapper
 
         public override async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -209,8 +211,9 @@ namespace RCommon.Persistence.Dapper
                     var results = await db.CountAsync(selectSpec.Predicate);
                     return results;
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.GetCountAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -225,7 +228,7 @@ namespace RCommon.Persistence.Dapper
 
         public override async Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -237,8 +240,9 @@ namespace RCommon.Persistence.Dapper
                     var results = await db.CountAsync(expression);
                     return results;
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.GetCountAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -253,7 +257,7 @@ namespace RCommon.Persistence.Dapper
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -265,8 +269,9 @@ namespace RCommon.Persistence.Dapper
                     var result = await db.FirstOrDefaultAsync(expression, cancellationToken: token);
                     return result;
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.FindSingleOrDefaultAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -286,7 +291,7 @@ namespace RCommon.Persistence.Dapper
 
         public override async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            await using (var db = this.DbConnection)
+            await using (var db = this.DataStore.GetDbConnection())
             {
                 try
                 {
@@ -298,8 +303,9 @@ namespace RCommon.Persistence.Dapper
                     var results = await db.AnyAsync(expression);
                     return results;
                 }
-                catch (Exception)
+                catch (ApplicationException exception)
                 {
+                    this.Logger.LogError(exception, "Error in {0}.AnyAsync while executing on the DbConnection.", this.GetType().FullName);
                     throw;
                 }
                 finally
@@ -317,11 +323,24 @@ namespace RCommon.Persistence.Dapper
             return await this.AnyAsync(specification.Predicate, token);
         }
 
-        protected void SaveChanges()
+        protected void DispatchEvents()
         {
-            // We are not actually persisting anything since that is handled by the client
-            // , but we need to publish events.
-            this.ChangeTracker.TrackedEntities.PublishLocalEvents(_mediator);
+            try
+            {
+                if (this.UnitOfWorkManager.CurrentUnitOfWork == null)
+                {
+                    Guard.Against<NullReferenceException>(this.DataStore == null, "DataStore is null");
+                    this.DataStore.PersistChanges(); // This dispatches the events
+                    this.DataStoreProvider.RemoveRegisteredDataStores(this.DataStore.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
+                }
+            }
+            catch (ApplicationException exception)
+            {
+                this.Logger.LogError(exception, "Error in {0}.DispatchEvents while executing on the Context.", this.GetType().FullName);
+                throw;
+            }
         }
+
+        
     }
 }

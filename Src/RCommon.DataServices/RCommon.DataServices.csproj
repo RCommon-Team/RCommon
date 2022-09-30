@@ -12,11 +12,12 @@
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, data services, generic unit of work, unit of work abstractions, transactions, distributed transactions, c#, .NET</PackageTags>
-    <Version>1.0.1.74</Version>
+    <Version>1.0.1.75</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 

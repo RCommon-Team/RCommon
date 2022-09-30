@@ -35,9 +35,6 @@
     {
         private readonly List<string> _includes;
         private readonly Dictionary<Type, object> _objectSets;
-        private readonly IMediator _mediator;
-
-        //private DbSet<TEntity> _objectSet;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
 
@@ -49,14 +46,12 @@
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager
-            , IMediator mediator, IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
+        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
+            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
             : base(dataStoreProvider, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
-            this._mediator = mediator;
             this._includes = new List<string>();
-            //this._objectSet = null;
             this._repositoryQuery = null;
             this._tracking = true;
             this._objectSets = new Dictionary<Type, object>();
@@ -125,13 +120,12 @@
             try
             {
                 Guard.Against<NullReferenceException>(this.RepositoryQuery == null, "RepositoryQuery is null");
-
                 queryable = this.RepositoryQuery.Where<TEntity>(expression);
             }
             catch (ApplicationException exception)
             {
-                this.Logger.LogError(exception, "Error in Repository.FindCore: " + base.GetType().ToString() + " while executing a query on the Context.", expression);
-                throw new RepositoryException("Error in Repository: " + base.GetType().ToString() + " while executing a query on the Context.", exception.GetBaseException());
+                this.Logger.LogError(exception, "Error in {0}.FindCore while executing a query on the Context.", this.GetType().FullName);
+                throw;
             }
             return queryable;
         }
@@ -221,7 +215,7 @@
             return await this.FindCore(specification.Predicate).AnyAsync(token);
         }
 
-        protected internal DbContext ObjectContext
+        protected internal RCommonDbContext ObjectContext
         {
             get
             {
@@ -239,12 +233,21 @@
         private async Task<int> SaveAsync(CancellationToken token = default)
         {
             int affected = 0;
-            if (this.UnitOfWorkManager.CurrentUnitOfWork == null)
+            try
             {
-                this.ChangeTracker.TrackedEntities.PublishLocalEvents(_mediator);
-                affected = await this.ObjectContext.SaveChangesAsync(true, token);
-                this.DataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
+                if (this.UnitOfWorkManager.CurrentUnitOfWork == null)
+                {
+                    Guard.Against<NullReferenceException>(this.ObjectContext == null, "DbContext is null");
+                    affected = await this.ObjectContext.SaveChangesAsync(true, token); // This will dispatch the local events
+                    this.DataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
+                }
             }
+            catch (ApplicationException exception)
+            {
+                this.Logger.LogError(exception, "Error in {0}.SaveAsync while executing on the Context.", this.GetType().FullName);
+                throw;
+            }
+            
             return affected;
         }
 
@@ -254,15 +257,13 @@
         {
             get
             {
-
                 return this.ObjectContext.Set<TEntity>();
             }
         }
 
         public override bool Tracking
         {
-            get =>
-                this._tracking;
+            get => this._tracking;
             set
             {
                 this._tracking = value;
@@ -287,7 +288,7 @@
                 // Start Eagerloading
                 if (this._includes.Count > 0)
                 {
-                    Action<string> action = null;
+                    Action<string>? action = null;
                     if (action == null)
                     {
                         action = delegate (string m) {

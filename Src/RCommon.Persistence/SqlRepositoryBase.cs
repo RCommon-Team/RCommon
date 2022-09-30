@@ -22,16 +22,12 @@ namespace RCommon.Persistence
     public abstract class SqlRepositoryBase<TEntity> : DisposableResource, ISqlMapperRepository<TEntity>
        where TEntity : class, IBusinessEntity
     {
-        private readonly IDataStoreProvider _dataStoreProvider;
-        private readonly ILogger _logger;
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
 
         public SqlRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
             IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            _dataStoreProvider = dataStoreProvider;
-            _logger = logger.CreateLogger(this.GetType().Name);
-            _unitOfWorkManager = unitOfWorkManager;
+            DataStoreProvider = dataStoreProvider;
+            UnitOfWorkManager = unitOfWorkManager;
             ChangeTracker = changeTracker;
 
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null 
@@ -59,20 +55,23 @@ namespace RCommon.Persistence
         public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
 
-        protected internal DbConnection DbConnection
+        protected internal RDbConnection DataStore
         {
             get
             {
-                var uow = this._unitOfWorkManager.CurrentUnitOfWork;
+                var uow = this.UnitOfWorkManager.CurrentUnitOfWork;
                 if (uow != null)
                 {
-                    return this._dataStoreProvider.GetDataStore<RDbConnection>(uow.TransactionId.Value, this.DataStoreName).GetDbConnection();
+                    return this.DataStoreProvider.GetDataStore<RDbConnection>(uow.TransactionId.Value, this.DataStoreName);
 
                 }
-                return this._dataStoreProvider.GetDataStore<RDbConnection>(this.DataStoreName).GetDbConnection();
+                return this.DataStoreProvider.GetDataStore<RDbConnection>(this.DataStoreName);
             }
         }
 
+        public IDataStoreProvider DataStoreProvider { get; }
+        public ILogger Logger { get; set; }
+        public IUnitOfWorkManager UnitOfWorkManager { get; }
         public IChangeTracker ChangeTracker { get; }
     }
 
