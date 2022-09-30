@@ -9,7 +9,8 @@ namespace RCommon
 {
     public class PagedSpecification<T> : Specification<T>, IPagedSpecification<T>
     {
-        public PagedSpecification(Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderByExpression, bool orderByAscending, int pageIndex, int pageSize) : base(predicate)
+        public PagedSpecification(Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderByExpression, 
+            bool orderByAscending, int pageIndex, int pageSize) : base(predicate)
         {
             OrderByExpression = orderByExpression;
             OrderByAscending = orderByAscending;

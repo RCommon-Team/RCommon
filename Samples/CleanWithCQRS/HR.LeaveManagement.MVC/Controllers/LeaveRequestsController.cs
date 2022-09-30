@@ -75,6 +75,12 @@ namespace leave_management.Controllers
             return View(model);
         }
 
+        public async Task<ActionResult> MyLeave()
+        {
+            var model = await _leaveRequestService.GetUserLeaveRequests();
+            return View(model);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]

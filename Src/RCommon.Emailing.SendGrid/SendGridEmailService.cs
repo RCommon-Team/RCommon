@@ -23,7 +23,7 @@ namespace RCommon.Emailing.SendGrid
         }
 
         private readonly SendGridClient _client;
-
+        
         public SendGridEmailService(IOptions<SendGridEmailSettings> settings, ILogger<SendGridEmailService> logger) 
         { 
             _client = new SendGridClient(settings.Value.SendGridApiKey); 
