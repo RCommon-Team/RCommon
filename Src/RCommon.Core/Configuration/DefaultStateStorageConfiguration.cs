@@ -15,7 +15,7 @@
 #endregion
 
 using System;
-using RCommon.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using RCommon.StateStorage;
 using RCommon.StateStorage.AspNetCore;
 
@@ -29,12 +29,10 @@ namespace RCommon
     {
         Type _customLocalStateType;
 
-        public DefaultStateStorageConfiguration(IContainerAdapter containerAdapter):base(containerAdapter)
+        public DefaultStateStorageConfiguration(IServiceCollection services):base(services)
         {
 
         }
-
-       
 
         /// <summary>
         /// Instructs RCommon to use a custom <see cref="IContextState"/> type as the local state storage.
@@ -56,14 +54,14 @@ namespace RCommon
             
 
             if (_customLocalStateType != null)
-                this.ContainerAdapter.AddTransient(typeof(IContextState), _customLocalStateType);
+                this.Services.AddTransient(typeof(IContextState), _customLocalStateType);
             else
             {
-                this.ContainerAdapter.AddTransient<IContextStateSelector, DefaultContextStateSelector>();
-                this.ContainerAdapter.AddTransient<IContextState, ContextStateWrapper>();
+                this.Services.AddTransient<IContextStateSelector, DefaultContextStateSelector>();
+                this.Services.AddTransient<IContextState, ContextStateWrapper>();
             }
 
-            this.ContainerAdapter.AddTransient<IStateStorage, StateStorageWrapper>();
+            this.Services.AddTransient<IStateStorage, StateStorageWrapper>();
         }
     }
 }

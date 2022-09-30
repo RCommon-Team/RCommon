@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
-    <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon.ExceptionHandling\RCommon.ExceptionHandling.csproj" />
     <ProjectReference Include="..\RCommon.Validation\RCommon.Validation.csproj" />
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />

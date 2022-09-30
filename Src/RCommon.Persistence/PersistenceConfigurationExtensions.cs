@@ -1,6 +1,4 @@
 ﻿using RCommon.BusinessEntities;
-using RCommon.Configuration;
-using RCommon.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
