@@ -1,5 +1,7 @@
 
 
+using RCommon.StateStorage;
+
 namespace RCommon
 {
     /// <summary>
@@ -7,6 +9,6 @@ namespace RCommon
     /// </summary>
     public interface IStateStorageConfiguration
     {
-        void Configure();
+        IContextStateSelector ContextStateSelector { get; set; }
     }
 }

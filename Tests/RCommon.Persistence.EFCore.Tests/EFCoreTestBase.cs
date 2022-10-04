@@ -32,11 +32,11 @@ namespace RCommon.Persistence.EFCore.Tests
         {
 
             base.InitializeBootstrapper(services);
-
-            ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
-                .WithStateStorage<DefaultStateStorageConfiguration>()
-                .And<EhabExceptionHandlingConfiguration>(x =>
-                    x.UsingDefaultExceptionPolicies())
+            services.AddRCommon()
+                .WithStateStorage(new StateStorageConfiguration(), null)
+                .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
+                .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
+           
                 .And<DataServicesConfiguration>(x =>
                     x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()) // Everything releated to transaction management. Powerful stuff happens here.
                 .WithPersistence<EFCoreConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack

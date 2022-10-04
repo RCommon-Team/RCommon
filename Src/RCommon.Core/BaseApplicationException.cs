@@ -24,8 +24,6 @@ namespace RCommon
         private string windowsIdentity;
         private DateTime createdDateTime = DateTime.Now;
 
-        //private static ResourceManager resourceManager = new ResourceManager(typeof(BaseApplicationException).Namespace + ".ManagerText", Assembly.GetAssembly(typeof(BaseApplicationException)));
-
         // Collection provided to store any extra information associated with the exception.
         private NameValueCollection additionalInformation = new NameValueCollection();
 
