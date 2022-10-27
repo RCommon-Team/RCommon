@@ -1,25 +1,8 @@
-﻿#region license
-//Copyright 2010 Ritesh Rao 
-
-//Licensed under the Apache License, Version 2.0 (the "License"); 
-//you may not use this file except in compliance with the License. 
-//You may obtain a copy of the License at 
-
-//http://www.apache.org/licenses/LICENSE-2.0 
-
-//Unless required by applicable law or agreed to in writing, software 
-//distributed under the License is distributed on an "AS IS" BASIS, 
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-//See the License for the specific language governing permissions and 
-//limitations under the License. 
-#endregion
-
-using System;
+﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon;
-using RCommon.DependencyInjection;
 using MediatR;
 using System.Reflection;
+using RCommon.StateStorage;
 
 namespace RCommon
 {
@@ -28,98 +11,72 @@ namespace RCommon
     ///</summary>
     public class RCommonConfiguration : IRCommonConfiguration
     {
-        private readonly IContainerAdapter _containerAdapter;
-        public IContainerAdapter ContainerAdapter => _containerAdapter;
+        public IServiceCollection Services { get; }
 
-        ///<summary>
-        /// Default Constructor.
-        /// Creates a new instance of the <see cref="RCommonConfiguration"/>  class.
-        ///</summary>
-        ///<param name="containerAdapter">An instance of <see cref="IContainerAdapter"/> that can be
-        /// used to register components.</param>
-        public RCommonConfiguration(IContainerAdapter containerAdapter)
+        private bool _stateConfigured = false;
+        private bool _guidConfigured = false;
+        private bool _dateTimeConfigured = false;
+
+        public RCommonConfiguration(IServiceCollection services)
         {
-            Guard.Against<NullReferenceException>(containerAdapter == null, "IContainerAdapter cannot be null");
-            _containerAdapter = containerAdapter;
+            Guard.Against<NullReferenceException>(services == null, "IServiceCollection cannot be null");
+            Services = services;
+
+            this.Services.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>(); // Required to figure out if Web app or not
+            this.Services.AddMediatR(Assembly.GetEntryAssembly()); // MediaR is a first class citizen in the RCommon Framework
         }
 
-        /// <summary>
-        /// Configure RCommon state storage using a <see cref="IStateStorageConfiguration"/> instance.
-        /// </summary>
-        /// <typeparam name="T">A <see cref="IStateStorageConfiguration"/> type that can be used to configure
-        /// state storage services exposed by RCommon.
-        /// </typeparam>
-        /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithStateStorage<T>() where T : IStateStorageConfiguration
+       
+        
+        public IRCommonConfiguration WithStateStorage(IStateStorageConfiguration stateStorage, Action<IStateStorageConfiguration> actions)
         {
-            var configuration = (T) Activator.CreateInstance(typeof (T), new object[] { this.ContainerAdapter });
-            configuration.Configure();
+            Guard.Against<RCommonConfigurationException>(this._stateConfigured, 
+                "State Storage has already been configured once. You cannot configure multiple times");
+
+            actions(stateStorage);
+
+            Guard.Against<RCommonConfigurationException>(stateStorage.ContextStateSelector == null,
+                "You must set the ContextStateSelector property when configuring IStateStorageConfiguration");
+
+            this.Services.AddTransient(typeof(IContextStateSelector), stateStorage.ContextStateSelector.GetType());
+            this.Services.AddTransient<IContextState, ContextStateWrapper>();
+            this.Services.AddTransient<IStateStorage, StateStorageWrapper>();
+            this._stateConfigured = true;
             return this;
         }
 
-        /// <summary>
-        /// Configure RCommon state storage using a <see cref="IStateStorageConfiguration"/> instance.
-        /// </summary>
-        /// <typeparam name="T">A <see cref="IStateStorageConfiguration"/> type that can be used to configure
-        /// state storage services exposed by RCommon.
-        /// </typeparam>
-        /// <param name="actions">An <see cref="Action{T}"/> delegate that can be used to perform
-        /// custom actions on the <see cref="IStateStorageConfiguration"/> instance.</param>
-        /// <returns><see cref="IRCommonConfiguration"/></returns>
-        public IRCommonConfiguration WithStateStorage<T>(Action<T> actions) where T : IStateStorageConfiguration
+        public IRCommonConfiguration WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)
         {
-            var configuration = (T) Activator.CreateInstance(typeof (T), new object[] { this.ContainerAdapter });
-            actions(configuration);
-            configuration.Configure();
+            Guard.Against<RCommonConfigurationException>(this._guidConfigured,
+                "Guid Generator has already been configured once. You cannot configure multiple times");
+            this.Services.Configure<SequentialGuidGeneratorOptions>(actions);
+            this.Services.AddTransient<IGuidGenerator, SequentialGuidGenerator>();
+            this._guidConfigured = true;
             return this;
         }
 
-        public IRCommonConfiguration WithGuidGenerator<T>(Action<SequentialGuidGeneratorOptions> actions) where T : IGuidGenerator
+        public IRCommonConfiguration WithSimpleGuidGenerator()
         {
-            this.ContainerAdapter.Services.Configure<SequentialGuidGeneratorOptions>(actions);
-            this.ContainerAdapter.AddTransient<IGuidGenerator, T>();
+            Guard.Against<RCommonConfigurationException>(this._guidConfigured,
+                "Guid Generator has already been configured once. You cannot configure multiple times");
+            this.Services.AddTransient<IGuidGenerator, SimpleGuidGenerator>();
+            this._guidConfigured = true;
             return this;
         }
 
-        public IRCommonConfiguration WithGuidGenerator<T>() where T : IGuidGenerator
+        public IRCommonConfiguration WithDateTimeSystem(Action<SystemTimeOptions> actions)
         {
-            if (typeof(T) == typeof(SequentialGuidGenerator))
-            {
-                this.ContainerAdapter.Services.Configure<SequentialGuidGeneratorOptions>(x=>x.GetDefaultSequentialGuidType());
-            }
-            this.ContainerAdapter.AddTransient<IGuidGenerator, T>();
+            Guard.Against<RCommonConfigurationException>(this._dateTimeConfigured,
+                "Date/Time System has already been configured once. You cannot configure multiple times");
+            this.Services.Configure<SystemTimeOptions>(actions);
+            this.Services.AddTransient<ISystemTime, SystemTime>();
+            this._dateTimeConfigured = true;
             return this;
         }
 
-        public IRCommonConfiguration WithDateTimeSystem<T>(Action<SystemTimeOptions> actions) where T : ISystemTime
+        public virtual IServiceCollection Configure()
         {
-            this.ContainerAdapter.Services.Configure<SystemTimeOptions>(actions);
-            this.ContainerAdapter.AddTransient<ISystemTime, T>();
-            return this;
-        }
-
-
-        public IRCommonConfiguration And<T>() where T : IServiceConfiguration
-        {
-            var configuration = (T)Activator.CreateInstance(typeof(T), new object[] { this.ContainerAdapter });
-            configuration.Configure();
-            return this;
-        }
-
-        public IRCommonConfiguration And<T>(Action<T> actions) where T : IServiceConfiguration
-        {
-            var configuration = (T)Activator.CreateInstance(typeof(T), new object[] { this.ContainerAdapter });
-            actions(configuration);
-            configuration.Configure();
-            return this;
-        }
-
-        public virtual void Configure()
-        {
-            _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
-
-            // MediaR is a first class citizen in the RCommon Framework
-            _containerAdapter.Services.AddMediatR(Assembly.GetEntryAssembly());
+            return this.Services;
         }
     }
 }

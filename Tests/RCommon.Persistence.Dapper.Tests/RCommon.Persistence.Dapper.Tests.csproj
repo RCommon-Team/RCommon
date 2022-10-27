@@ -27,8 +27,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
-    <ProjectReference Include="..\..\Src\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
-    <ProjectReference Include="..\..\Src\RCommon.ExceptionHandling.EnterpriseLibraryCore\RCommon.ExceptionHandling.EnterpriseLibraryCore.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Persistence.Dapper\RCommon.Persistence.Dapper.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RCommon.Configuration;
 using RCommon.Persistence.EFCore;
 using System;
 using System.Collections.Generic;

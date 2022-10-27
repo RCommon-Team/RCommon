@@ -18,23 +18,35 @@ using System;
 using System.ComponentModel;
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.Configuration;
 using RCommon.DataServices.Transactions;
-using RCommon.DependencyInjection;
 
 namespace RCommon.DataServices.Transactions
 {
     ///<summary>
     /// Implementation of <see cref="IUnitOfWorkConfiguration"/>.
     ///</summary>
-    public class DefaultUnitOfWorkConfiguration : RCommonConfiguration, IUnitOfWorkConfiguration
+    public class DefaultUnitOfWorkConfiguration : IUnitOfWorkConfiguration
     {
-        bool _autoCompleteScope = false;
-        IsolationLevel _defaultIsolation = IsolationLevel.ReadCommitted;
+        private bool _autoCompleteScope = false;
+        private IsolationLevel _defaultIsolation = IsolationLevel.ReadCommitted;
 
-        public DefaultUnitOfWorkConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
+        public DefaultUnitOfWorkConfiguration(IServiceCollection services)
         {
-            
+            // Transaction Management
+            services.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
+            services.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
+            UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
+            UnitOfWorkSettings.DefaultIsolation = _defaultIsolation;
+
+            // Factory for Unit Of Work
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
+            services.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
+
+            // Factory for Unit Of Work Scope
+            //containerAdapter.AddTransient<TransactionMode, TransactionMode>();
+            services.AddTransient<IUnitOfWorkScope, UnitOfWorkScope>();
+            services.AddTransient<IUnitOfWorkScopeFactory, UnitOfWorkScopeFactory>();
         }
 
         /// <summary>
@@ -50,29 +62,10 @@ namespace RCommon.DataServices.Transactions
         /// Sets the default isolation level used by <see cref="UnitOfWorkScope"/>.
         /// </summary>
         /// <param name="isolationLevel"></param>
-        public IUnitOfWorkConfiguration WithDefaultIsolation(IsolationLevel isolationLevel)
+        public IUnitOfWorkConfiguration UseDefaultIsolation(IsolationLevel isolationLevel)
         {
             _defaultIsolation = isolationLevel;
             return this;
-        }
-
-        public override void Configure()
-        {
-            // Transaction Management
-            this.ContainerAdapter.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
-            this.ContainerAdapter.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
-            UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
-            UnitOfWorkSettings.DefaultIsolation = _defaultIsolation;
-
-            // Factory for Unit Of Work
-            this.ContainerAdapter.AddTransient<IUnitOfWork, UnitOfWork>();
-            this.ContainerAdapter.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
-            this.ContainerAdapter.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
-
-            // Factory for Unit Of Work Scope
-            //containerAdapter.AddTransient<TransactionMode, TransactionMode>();
-            this.ContainerAdapter.AddTransient<IUnitOfWorkScope, UnitOfWorkScope>();
-            this.ContainerAdapter.AddTransient<IUnitOfWorkScopeFactory, UnitOfWorkScopeFactory>();
         }
     }
 }

@@ -2,8 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using RCommon.Configuration;
-using RCommon.DependencyInjection.Microsoft;
 using RCommon.Emailing;
 using RCommon.Emailing.SendGrid;
 using RCommon.TestBase;
@@ -35,7 +33,7 @@ namespace RCommon.Tests.Application.Services
         protected void InitializeRCommon(IServiceCollection services)
         {
 
-            ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
+            services.AddRCommon()
                 .WithSendGridEmailServices(settings =>
                 {
                     settings.SendGridApiKey = "apiKey";

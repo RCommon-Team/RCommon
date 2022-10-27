@@ -5,11 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RCommon.ApplicationServices;
-using RCommon.Configuration;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
-using RCommon.DependencyInjection.Microsoft;
-using RCommon.ExceptionHandling.EnterpriseLibraryCore;
 using RCommon.Persistence.Dapper.Tests.Configurations;
 using RCommon.TestBase;
 using System;
@@ -21,6 +18,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace RCommon.Persistence.Dapper.Tests
 {
@@ -32,10 +30,13 @@ namespace RCommon.Persistence.Dapper.Tests
 
             base.InitializeBootstrapper(services);
 
-            ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
-                .WithStateStorage<DefaultStateStorageConfiguration>()
-                .And<DataServicesConfiguration>(x =>
-                    x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
+            services.AddRCommon()
+                .WithStateStorage(new StateStorageConfiguration(), null)
+                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>(unitOfWork =>
+                {
+                    unitOfWork.UseDefaultIsolation(System.Transactions.IsolationLevel.ReadCommitted);
+                    unitOfWork.AutoCompleteScope();
+                }) // Everything releated to transaction management.
                 .WithPersistence<DapperConfiguration>(dapper =>
                 {
                     

@@ -20,10 +20,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.Configuration;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
-using RCommon.DependencyInjection;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
 using RCommon.StateStorage;
@@ -33,29 +31,21 @@ namespace RCommon
     /// <summary>
     /// Implementation of <see cref="IEFCoreConfiguration"/> for Entity Framework.
     /// </summary>
-    public class EFCoreConfiguration : RCommonConfiguration, IEFCoreConfiguration
+    public class EFCoreConfiguration : IEFCoreConfiguration
     {
+        private readonly IServiceCollection _services;
 
-
-        public EFCoreConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
+        public EFCoreConfiguration(IServiceCollection services)
         {
-
-        }
-
-
-        /// <summary>
-        /// Called by RCommon <see cref="Configure"/> to configure data providers.
-        /// </summary>
-        public override void Configure()
-        {
+            _services = services ?? throw new ArgumentNullException(nameof(services));
 
             // EF Core Repository
-            this.ContainerAdapter.AddGeneric(typeof(IFullFeaturedRepository<>), typeof(EFCoreRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(ILinqRepository<>), typeof(EFCoreRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
+            services.AddTransient(typeof(IFullFeaturedRepository<>), typeof(EFCoreRepository<>));
+            services.AddTransient(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
+            services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
+            services.AddTransient(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
+            services.AddTransient(typeof(ILinqRepository<>), typeof(EFCoreRepository<>));
+            services.AddTransient(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
         }
 
 
@@ -64,14 +54,14 @@ namespace RCommon
         {
             // TODO: Should this be a factory so that we don't interfere with other uses of this DbContext?
             // Transient due to RCommon DataStoreProvider storing as scoped
-            this.ContainerAdapter.Services.AddDbContext<TDbContext>(options, ServiceLifetime.Transient); 
+            this._services.AddDbContext<TDbContext>(options, ServiceLifetime.Transient); 
 
             return this;
         }
 
         public IObjectAccessConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
-            this.ContainerAdapter.Services.Configure(options);
+            this._services.Configure(options);
             return this;
         }
     }

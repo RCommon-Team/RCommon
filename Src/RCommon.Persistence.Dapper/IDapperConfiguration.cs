@@ -1,5 +1,4 @@
-﻿using RCommon.Configuration;
-using RCommon.DataServices.Sql;
+﻿using RCommon.DataServices.Sql;
 using System;
 
 namespace RCommon

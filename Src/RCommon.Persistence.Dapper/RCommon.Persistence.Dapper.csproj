@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.DependencyInjection\RCommon.DependencyInjection.csproj" />
     <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
