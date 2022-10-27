@@ -3,10 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RCommon.Configuration;
 using RCommon.DataServices;
-using RCommon.DependencyInjection;
-using RCommon.DependencyInjection.Microsoft;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,9 +11,9 @@ using System.Text;
 using Microsoft.Extensions.Logging.Console;
 using System.Transactions;
 using RCommon.TestBase;
-using RCommon.ExceptionHandling.EnterpriseLibraryCore;
 using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
+using RCommon.StateStorage;
 
 namespace RCommon.Persistence.EFCore.Tests
 {
@@ -36,9 +33,11 @@ namespace RCommon.Persistence.EFCore.Tests
                 .WithStateStorage(new StateStorageConfiguration(), null)
                 .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
                 .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
-           
-                .And<DataServicesConfiguration>(x =>
-                    x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>()) // Everything releated to transaction management. Powerful stuff happens here.
+                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>(unitOfWork =>
+                {
+                    unitOfWork.UseDefaultIsolation(IsolationLevel.ReadCommitted);
+                    unitOfWork.AutoCompleteScope();
+                }) // Everything releated to transaction management. Powerful stuff happens here.
                 .WithPersistence<EFCoreConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here

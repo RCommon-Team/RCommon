@@ -1,4 +1,5 @@
-﻿using RCommon.BusinessEntities;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RCommon.BusinessEntities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,8 @@ namespace RCommon
 
         public static IObjectAccessConfiguration WithPersistence<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration
         {
-            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
-            config = WithChangeTracking(dataConfiguration);
-            dataConfiguration.Configure();
+            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.Services });
+            config = WithChangeTracking(config);
             return dataConfiguration;
         }
 
@@ -22,10 +22,9 @@ namespace RCommon
             where T : IObjectAccessConfiguration
         {
             
-            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.ContainerAdapter });
-            config = WithChangeTracking(dataConfiguration);
+            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.Services });
+            config = WithChangeTracking(config);
             actions(dataConfiguration);
-            dataConfiguration.Configure();
             return dataConfiguration;
         }
 
@@ -35,9 +34,9 @@ namespace RCommon
         /// </summary>
         /// <param name="config">Instance of <see cref="IRCommonConfiguration"/>passed in.</param>
         /// <returns>Updated instance of <see cref="IRCommonConfiguration"/>RCommon Configuration</returns>
-        private static IObjectAccessConfiguration WithChangeTracking(this IObjectAccessConfiguration config)
+        private static IRCommonConfiguration WithChangeTracking(this IRCommonConfiguration config)
         {
-            config.ContainerAdapter.AddScoped<IChangeTracker, ChangeTracker>();
+            config.Services.AddScoped<IChangeTracker, ChangeTracker>();
             return config;
         }
 

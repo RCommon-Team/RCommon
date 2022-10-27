@@ -5,15 +5,14 @@ using HR.LeaveManagement.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using RCommon;
-using RCommon.Configuration;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
-using RCommon.DependencyInjection.Microsoft;
 using RCommon.Emailing.SendGrid;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
 using RCommon.Security;
 using Microsoft.EntityFrameworkCore;
+using System.Transactions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +21,8 @@ AddSwaggerDoc(builder.Services);
 builder.Services.AddControllers();
 
 // Add RCommon services
-ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
-    .WithStateStorage<DefaultStateStorageConfiguration>()
+builder.Services.AddRCommon()
+    .WithStateStorage(new StateStorageConfiguration(), null)
     .WithClaimsAndPrincipalAccessor()
     .WithSendGridEmailServices(x =>
     {
@@ -32,12 +31,13 @@ ConfigureRCommon.Using(new DotNetCoreContainerAdapter(builder.Services))
         x.FromNameDefault = sendGridSettings.FromNameDefault;
         x.FromEmailDefault = sendGridSettings.FromEmailDefault;
     })
-    .WithDateTimeSystem<SystemTime>(x =>
-        x.Kind = DateTimeKind.Utc)
-    .WithGuidGenerator<SequentialGuidGenerator>(x =>
-        x.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
-    .And<DataServicesConfiguration>(x =>
-        x.WithUnitOfWork<DefaultUnitOfWorkConfiguration>())
+    .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
+    .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
+    .WithUnitOfWork<DefaultUnitOfWorkConfiguration>(unitOfWork =>
+    {
+        unitOfWork.UseDefaultIsolation(IsolationLevel.ReadCommitted);
+        unitOfWork.AutoCompleteScope();
+    }) // Everything releated to transaction management.
     .AddUnitOfWorkToMediatorPipeline()
     .WithPersistence<EFCoreConfiguration>(x =>
         x.AddDbContext<LeaveManagementDbContext>(options =>

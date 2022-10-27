@@ -2,8 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using RCommon.Configuration;
-using RCommon.DependencyInjection.Microsoft;
 using RCommon.Emailing;
 using RCommon.Emailing.Smtp;
 using RCommon.TestBase;
@@ -34,7 +32,7 @@ namespace RCommon.Emailing.Tests
 
         protected void InitializeRCommon(IServiceCollection services)
         {
-            ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
+            services.AddRCommon()
                 .WithSmtpEmailServices(settings =>
                     {
                         settings.EnableSsl = true;

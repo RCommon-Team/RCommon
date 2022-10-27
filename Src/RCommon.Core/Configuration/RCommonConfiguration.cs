@@ -66,7 +66,7 @@ namespace RCommon
 
         public IRCommonConfiguration WithDateTimeSystem(Action<SystemTimeOptions> actions)
         {
-            Guard.Against<RCommonConfigurationException>(this._guidConfigured,
+            Guard.Against<RCommonConfigurationException>(this._dateTimeConfigured,
                 "Date/Time System has already been configured once. You cannot configure multiple times");
             this.Services.Configure<SystemTimeOptions>(actions);
             this.Services.AddTransient<ISystemTime, SystemTime>();

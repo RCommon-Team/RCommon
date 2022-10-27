@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RCommon.Configuration;
 using RCommon.Emailing;
 using RCommon.Emailing.SendGrid;
 using RCommon.Emailing.Smtp;
@@ -16,8 +15,8 @@ namespace RCommon
 
         public static IRCommonConfiguration WithSendGridEmailServices(this IRCommonConfiguration config, Action<SendGridEmailSettings> emailSettings)
         {
-            config.ContainerAdapter.Services.Configure<SendGridEmailSettings>(emailSettings);
-            config.ContainerAdapter.AddTransient<IEmailService, SendGridEmailService>();
+            config.Services.Configure<SendGridEmailSettings>(emailSettings);
+            config.Services.AddTransient<IEmailService, SendGridEmailService>();
             return config;
         }
     }

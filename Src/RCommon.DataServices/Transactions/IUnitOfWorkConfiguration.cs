@@ -1,5 +1,4 @@
-﻿using RCommon.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +7,7 @@ using System.Transactions;
 
 namespace RCommon.DataServices.Transactions
 {
-    public interface IUnitOfWorkConfiguration : IServiceConfiguration
+    public interface IUnitOfWorkConfiguration
     {
         /// <summary>
         /// Sets <see cref="UnitOfWorkScope"/> instances to auto complete when disposed.
@@ -19,7 +18,7 @@ namespace RCommon.DataServices.Transactions
         /// Sets the default isolation level used by <see cref="UnitOfWorkScope"/>.
         /// </summary>
         /// <param name="isolationLevel"></param>
-        IUnitOfWorkConfiguration WithDefaultIsolation(IsolationLevel isolationLevel);
+        IUnitOfWorkConfiguration UseDefaultIsolation(IsolationLevel isolationLevel);
 
     }
 }

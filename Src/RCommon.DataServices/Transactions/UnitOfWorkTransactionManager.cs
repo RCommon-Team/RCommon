@@ -20,7 +20,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RCommon.DependencyInjection;
 using RCommon.Extensions;
 
 namespace RCommon.DataServices.Transactions

@@ -1,7 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using RCommon.Configuration;
 using RCommon.DataServices.Sql;
-using RCommon.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -15,29 +13,21 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace RCommon
 {
-    public class DapperConfiguration : RCommonConfiguration, IDapperConfiguration
+    public class DapperConfiguration : IDapperConfiguration
     {
+        private readonly IServiceCollection _services;
         private List<string> _dbContextTypes = new List<string>();
 
 
-        public DapperConfiguration(IContainerAdapter containerAdapter) : base(containerAdapter)
+        public DapperConfiguration(IServiceCollection services)
         {
+            _services = services ?? throw new ArgumentNullException(nameof(services));
 
-        }
-
-
-        /// <summary>
-        /// Called by RCommon <see cref="Configure"/> to configure data providers.
-        /// </summary>
-        /// <param name="containerAdapter">The <see cref="IContainerAdapter"/> instance that allows
-        /// registering components.</param>
-        public override void Configure()
-        {
             // Dapper Repository
-            this.ContainerAdapter.AddGeneric(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(IWriteOnlyRepository<>), typeof(DapperRepository<>));
-            this.ContainerAdapter.AddGeneric(typeof(IReadOnlyRepository<>), typeof(DapperRepository<>));
-
+            services.AddTransient(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
+            services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(DapperRepository<>));
+            services.AddTransient(typeof(IReadOnlyRepository<>), typeof(DapperRepository<>));
+            
         }
 
 
@@ -46,21 +36,15 @@ namespace RCommon
         {
             Guard.Against<RDbConnectionException>(options == null, "You must configure the options for the RDbConnection for it to be useful");
             var dbContext = typeof(TDbConnection).AssemblyQualifiedName;
-            this.ContainerAdapter.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
-            this.ContainerAdapter.Services.Configure(options);
-
-            // See: https://blog.bitscry.com/2020/06/01/creating-a-dbconnectionfactory/
-            // We don't need to register the Db factory but leaving this just in case.
-            // var settings = new RDbConnectionOptions();
-            //options(settings);
-            //DbProviderFactories.RegisterFactory(settings.Name, settings.DbFactory);
+            this._services.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
+            this._services.Configure(options);
 
             return this;
         }
 
         public IObjectAccessConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
-            this.ContainerAdapter.Services.Configure(options);
+            this._services.Configure(options);
             return this;
         }
     }

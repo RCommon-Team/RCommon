@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RCommon.Configuration;
 using RCommon.Emailing;
 using RCommon.Emailing.Smtp;
 using System;
@@ -15,8 +14,8 @@ namespace RCommon
 
         public static IRCommonConfiguration WithSmtpEmailServices(this IRCommonConfiguration config, Action<SmtpEmailSettings> emailSettings)
         {
-            config.ContainerAdapter.Services.Configure<SmtpEmailSettings>(emailSettings);
-            config.ContainerAdapter.AddTransient<IEmailService, SmtpEmailService>();
+            config.Services.Configure<SmtpEmailSettings>(emailSettings);
+            config.Services.AddTransient<IEmailService, SmtpEmailService>();
             return config;
         }
     }
