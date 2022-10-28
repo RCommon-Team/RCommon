@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RCommon.StateStorage;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -19,19 +18,19 @@ namespace RCommon.DataServices.Transactions
     public class UnitOfWork : DisposableResource, IUnitOfWork
     {
         private bool _disposed;
-        private readonly IDataStoreProvider _dataStoreProvider;
+        private readonly IDataStoreRegistry _dataStoreRegistry;
         private readonly IServiceProvider _serviceProvider;
 
-        public UnitOfWork(IDataStoreProvider dataStoreProvider, IServiceProvider serviceProvider)
+        public UnitOfWork(IDataStoreRegistry dataStoreRegistry, IServiceProvider serviceProvider)
         {
-            this._dataStoreProvider = dataStoreProvider;
+            this._dataStoreRegistry = dataStoreRegistry;
             _serviceProvider = serviceProvider;
         }
 
         public void Flush(bool allowPersist)
         {
             Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
-            var registeredTypes = this._dataStoreProvider.GetRegisteredDataStores(x => x.TransactionId == this.TransactionId);
+            var registeredTypes = this._dataStoreRegistry.GetRegisteredDataStores(x => x.TransactionId == this.TransactionId);
             
             foreach (var item in registeredTypes)
             {
@@ -42,7 +41,7 @@ namespace RCommon.DataServices.Transactions
                 //item.DataStore.Dispose(); // This should be managed through the lifetime of the DI container.
             }
 
-           _dataStoreProvider.RemoveRegisteredDataStores(this.TransactionId.Value);
+            _dataStoreRegistry.RemoveRegisteredDataStores(this.TransactionId.Value);
         }
 
 

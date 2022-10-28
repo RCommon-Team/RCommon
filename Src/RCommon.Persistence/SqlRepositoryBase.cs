@@ -23,10 +23,10 @@ namespace RCommon.Persistence
        where TEntity : class, IBusinessEntity
     {
 
-        public SqlRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
+        public SqlRepositoryBase(IDataStoreRegistry dataStoreRegistry, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
             IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            DataStoreProvider = dataStoreProvider;
+            DataStoreRegistry = dataStoreRegistry;
             UnitOfWorkManager = unitOfWorkManager;
             ChangeTracker = changeTracker;
 
@@ -59,17 +59,11 @@ namespace RCommon.Persistence
         {
             get
             {
-                var uow = this.UnitOfWorkManager.CurrentUnitOfWork;
-                if (uow != null)
-                {
-                    return this.DataStoreProvider.GetDataStore<RDbConnection>(uow.TransactionId.Value, this.DataStoreName);
-
-                }
-                return this.DataStoreProvider.GetDataStore<RDbConnection>(this.DataStoreName);
+                return this.DataStoreRegistry.GetDataStore<RDbConnection>(this.DataStoreName);
             }
         }
 
-        public IDataStoreProvider DataStoreProvider { get; }
+        public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
         public IUnitOfWorkManager UnitOfWorkManager { get; }
         public IChangeTracker ChangeTracker { get; }

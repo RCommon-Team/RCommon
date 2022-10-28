@@ -26,9 +26,9 @@ namespace RCommon.Persistence.Dapper
         where TEntity : class, IBusinessEntity
     {
 
-        public DapperRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
+        public DapperRepository(IDataStoreRegistry dataStoreRegistry, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
             IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreProvider, logger, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+            : base(dataStoreRegistry, logger, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
         }

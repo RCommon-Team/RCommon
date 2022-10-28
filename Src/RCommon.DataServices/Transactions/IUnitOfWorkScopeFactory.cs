@@ -6,6 +6,5 @@ namespace RCommon.DataServices.Transactions
     {
         IUnitOfWorkScope Create();
         IUnitOfWorkScope Create(TransactionMode mode);
-        IUnitOfWorkScope Create(TransactionMode mode, Action<IUnitOfWorkScope> customize);
     }
 }

@@ -38,10 +38,10 @@ namespace RCommon.Persistence
     public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IFullFeaturedRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        public FullFeaturedRepositoryBase(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager, 
+        public FullFeaturedRepositoryBase(IDataStoreRegistry dataStoreRegistry, IUnitOfWorkManager unitOfWorkManager, 
             IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            DataStoreProvider = dataStoreProvider;
+            DataStoreRegistry = dataStoreRegistry;
             UnitOfWorkManager = unitOfWorkManager;
             ChangeTracker = changeTracker;
 
@@ -193,7 +193,7 @@ namespace RCommon.Persistence
         public abstract Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
 
         public abstract bool Tracking { get; set; }
-        public IDataStoreProvider DataStoreProvider { get; }
+        public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
         public IUnitOfWorkManager UnitOfWorkManager { get; }
         public IChangeTracker ChangeTracker { get; }

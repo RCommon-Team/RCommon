@@ -52,9 +52,7 @@ namespace RCommon
         public IEFCoreConfiguration AddDbContext<TDbContext>(Action<DbContextOptionsBuilder>? options = null)
             where TDbContext : RCommonDbContext
         {
-            // TODO: Should this be a factory so that we don't interfere with other uses of this DbContext?
-            // Transient due to RCommon DataStoreProvider storing as scoped
-            this._services.AddDbContext<TDbContext>(options, ServiceLifetime.Transient); 
+            this._services.AddDbContext<TDbContext>(options, ServiceLifetime.Scoped); 
 
             return this;
         }

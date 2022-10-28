@@ -34,7 +34,6 @@ namespace RCommon.DataServices.Transactions
         {
             // Transaction Management
             services.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
-            services.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
             UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
             UnitOfWorkSettings.DefaultIsolation = _defaultIsolation;
 

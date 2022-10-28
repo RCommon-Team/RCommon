@@ -46,9 +46,9 @@
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
+        public EFCoreRepository(IDataStoreRegistry dataStoreRegistry, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
             IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
-            : base(dataStoreProvider, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+            : base(dataStoreRegistry, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
             this._includes = new List<string>();
@@ -219,14 +219,7 @@
         {
             get
             {
-                var uow = this.UnitOfWorkManager.CurrentUnitOfWork;
-                if (uow != null)
-                {
-
-                    return this.DataStoreProvider.GetDataStore<RCommonDbContext>(uow.TransactionId.Value, this.DataStoreName);
-
-                }
-                return this.DataStoreProvider.GetDataStore<RCommonDbContext>(this.DataStoreName);
+                return this.DataStoreRegistry.GetDataStore<RCommonDbContext>(this.DataStoreName);
             }
         }
 
@@ -239,7 +232,6 @@
                 {
                     Guard.Against<NullReferenceException>(this.ObjectContext == null, "DbContext is null");
                     affected = await this.ObjectContext.SaveChangesAsync(true, token); // This will dispatch the local events
-                    this.DataStoreProvider.RemoveRegisteredDataStores(this.ObjectContext.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
                 }
             }
             catch (ApplicationException exception)

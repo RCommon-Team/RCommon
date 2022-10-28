@@ -1,39 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Transactions;
 
 namespace RCommon.DataServices.Transactions
 {
     public class UnitOfWorkScopeFactory : IUnitOfWorkScopeFactory
     {
+        private readonly IUnitOfWorkScope _unitOfWorkScope;
 
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
-
-        public UnitOfWorkScopeFactory(IUnitOfWorkManager unitOfWorkManager) //TODO: IUnitOfWorkManager should subscribe to UnitOfWorkFactory.OnScopeCreated
+        public UnitOfWorkScopeFactory(IUnitOfWorkScope unitOfWorkScope)
         {
-            this._unitOfWorkManager = unitOfWorkManager;
+            _unitOfWorkScope=unitOfWorkScope;
         }
 
         public IUnitOfWorkScope Create()
         {
-            var scope = new UnitOfWorkScope(_unitOfWorkManager);
-            _unitOfWorkManager.CurrentTransactionManager.EnlistScope(scope, TransactionMode.Default); //TODO: Probably should be event driven so we don't violate SRP
-            return scope;
+            _unitOfWorkScope.Begin(TransactionMode.Default);
+            return _unitOfWorkScope;
         }
 
-        public IUnitOfWorkScope Create(TransactionMode mode)
+        public IUnitOfWorkScope Create(TransactionMode transactionMode)
         {
-            var scope = new UnitOfWorkScope(_unitOfWorkManager);
-            _unitOfWorkManager.CurrentTransactionManager.EnlistScope(scope, mode); //TODO: Probably should be event driven so we don't violate SRP
-            return scope;
+            _unitOfWorkScope.Begin(transactionMode);
+            return _unitOfWorkScope;
         }
 
-        public IUnitOfWorkScope Create(TransactionMode mode, Action<IUnitOfWorkScope> customize)
+        public IUnitOfWorkScope Create(TransactionMode transactionMode, IsolationLevel isolationLevel)
         {
-            var scope = new UnitOfWorkScope(_unitOfWorkManager);
-            customize(scope);
-            _unitOfWorkManager.CurrentTransactionManager.EnlistScope(scope, mode); // TODO: Probably should be event driven so we don't violate SRP
-            return scope;
+            _unitOfWorkScope.Begin(transactionMode, isolationLevel);
+            return _unitOfWorkScope;
         }
     }
 }

@@ -33,12 +33,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 .WithStateStorage(new StateStorageConfiguration(), null)
                 .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
                 .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
-                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>(unitOfWork =>
-                {
-                    unitOfWork.UseDefaultIsolation(IsolationLevel.ReadCommitted);
-                    unitOfWork.AutoCompleteScope();
-                }) // Everything releated to transaction management. Powerful stuff happens here.
-                .WithPersistence<EFCoreConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
                     ef.AddDbContext<TestDbContext>(ef =>
@@ -50,6 +45,10 @@ namespace RCommon.Persistence.EFCore.Tests
                     {
                         dataStore.DefaultDataStoreName = "TestDbContext";
                     });
+                }, unitOfWork => 
+                {
+                    unitOfWork.UseDefaultIsolation(IsolationLevel.ReadCommitted);
+                    unitOfWork.AutoCompleteScope();
                 });
 
             this.ServiceProvider = services.BuildServiceProvider();

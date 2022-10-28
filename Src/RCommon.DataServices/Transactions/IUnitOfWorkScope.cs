@@ -15,6 +15,7 @@
 #endregion
 
 using System;
+using System.Transactions;
 
 namespace RCommon.DataServices.Transactions
 {
@@ -33,6 +34,16 @@ namespace RCommon.DataServices.Transactions
         event Action<IUnitOfWorkScope> ScopeRollingback;
 
         /// <summary>
+        /// Event fired when scope is beginning
+        /// </summary>
+        event Action<IUnitOfWorkScope> ScopeBeginning;
+
+        /// <summary>
+        /// Event fired when scope is completed
+        /// </summary>
+        event Action<IUnitOfWorkScope> ScopeCompleted;
+
+        /// <summary>
         /// Gets the unique Id of the <see cref="UnitOfWorkScope"/>.
         /// </summary>
         /// <value>A <see cref="Guid"/> representing the unique Id of the scope.</value>
@@ -44,9 +55,16 @@ namespace RCommon.DataServices.Transactions
         void Commit();
 
         /// <summary>
-        /// Marks the scope as completed.
-        /// Used for internally by RCommon and should not be used by consumers.
+        /// Begins the transaction in the scope
         /// </summary>
-        void Complete();
+        /// <param name="transactionMode"></param>
+        /// <param name="isolationLevel"></param>
+        void Begin(TransactionMode transactionMode = TransactionMode.Default, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
+
+        /// <summary>
+        /// Begins the transaction in the scope
+        /// </summary>
+        /// <param name="transactionMode"></param>
+        void Begin(TransactionMode transactionMode = TransactionMode.Default);
     }
 }
