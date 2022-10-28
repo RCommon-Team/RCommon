@@ -33,7 +33,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
         }
         public async Task<LeaveRequestDto> Handle(GetLeaveRequestDetailRequest request, CancellationToken cancellationToken)
         {
-            _leaveRequestRepository.EagerlyWith(x => x.LeaveType);
+            _leaveRequestRepository.Include(x => x.LeaveType);
             var leaveRequest = _mapper.Map<LeaveRequestDto>(await _leaveRequestRepository.FindAsync(request.Id));
             leaveRequest.Employee = await _userService.GetEmployee(leaveRequest.RequestingEmployeeId);
             return leaveRequest;

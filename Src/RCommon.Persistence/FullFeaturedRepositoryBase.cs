@@ -160,7 +160,7 @@ namespace RCommon.Persistence
 
         protected abstract void ApplyFetchingStrategy(Expression[] paths);
 
-        public IEagerFetchingRepository<TEntity> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions)
+        public IEagerFetchingRepository<TEntity> Include(Action<EagerFetchingStrategy<TEntity>> strategyActions)
         {
             EagerFetchingStrategy<TEntity> strategy = new EagerFetchingStrategy<TEntity>();
             strategyActions(strategy);
@@ -168,7 +168,7 @@ namespace RCommon.Persistence
             return this;
         }
 
-        public IEagerFetchingRepository<TEntity> EagerlyWith(Expression<Func<TEntity, object>> path)
+        public IEagerFetchingRepository<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
             Expression<Func<TEntity, object>>[] expressionArray = new Expression<Func<TEntity, object>>[] { path };
             this.ApplyFetchingStrategy((Expression[])expressionArray);

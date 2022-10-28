@@ -259,7 +259,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
             // Start Test
             var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            customerRepo.EagerlyWith(x => x.Orders);
+            customerRepo.Include(x => x.Orders);
             await customerRepo.AddAsync(customer);
 
             Customer savedCustomer = null;
@@ -332,16 +332,19 @@ namespace RCommon.Persistence.EFCore.Tests
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
-            var repo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(context);
 
             // Start Test
             using (var scope = scopeFactory.Create())
             {
-                await repo.AddAsync(customer);
+                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+
+                await customerRepo.AddAsync(customer);
                 scope.Commit();
             }
 
-            Customer savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.Id == customer.Id);
+            Customer savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.Id, customer.Id);
@@ -606,8 +609,8 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task UnitOfWork_rollback_does_not_rollback_supressed_scope()
         {
-            var customer = new Customer { FirstName = "Joe", LastName = "Data" };
-            var order = new Order { OrderDate = DateTime.Now, ShipDate = DateTime.Now };
+            var customer = TestDataActions.CreateCustomerStub();
+            var order = TestDataActions.CreateOrderStub();
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
@@ -660,8 +663,7 @@ namespace RCommon.Persistence.EFCore.Tests
             repo.PersistSeedData(testData);
 
             var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            customerRepo.EagerlyWith(x => x.Orders);
-            customerRepo.DataStoreName = "TestDbContext";
+            customerRepo.Include(x => x.Orders);
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 

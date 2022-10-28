@@ -9,9 +9,9 @@ namespace RCommon.Persistence
     public interface IEagerFetchingRepository<TEntity> : INamedDataSource
     {
 
-        IEagerFetchingRepository<TEntity> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions);
+        IEagerFetchingRepository<TEntity> Include(Action<EagerFetchingStrategy<TEntity>> strategyActions);
 
-        IEagerFetchingRepository<TEntity> EagerlyWith(Expression<Func<TEntity, object>> path);
+        IEagerFetchingRepository<TEntity> Include(Expression<Func<TEntity, object>> path);
 
     }
 }
