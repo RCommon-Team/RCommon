@@ -34,7 +34,7 @@ namespace RCommon.Persistence.Dapper.Tests
                 .WithPersistence<DapperConfiguration, DefaultUnitOfWorkConfiguration>(dapper =>
                 {
                     
-                    dapper.AddDbConnection<TestDbConnection>(db =>
+                    dapper.AddDbConnection<TestDbConnection>("TestDbConnection", db =>
                     {
                         db.DbFactory = SqlClientFactory.Instance;
                         db.ConnectionString = this.Configuration.GetConnectionString("TestDbConnection");

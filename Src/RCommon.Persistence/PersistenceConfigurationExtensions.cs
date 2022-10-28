@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCommon.BusinessEntities;
+using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,11 @@ namespace RCommon
             where TObjectAccess : IObjectAccessConfiguration
             where TUnitOfWork : IUnitOfWorkConfiguration
         {
-            
+            // Data Store Management
+            StaticDataStore.DataStores = new System.Collections.Concurrent.ConcurrentDictionary<string, Type>();
+            config.Services.AddSingleton<IDataStoreRegistry, StaticDataStoreRegistry>();
+
+            // Object Access and Unit of Work Configurations 
             var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { config.Services });
             objectAccessActions(dataConfiguration);
             var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { config.Services });

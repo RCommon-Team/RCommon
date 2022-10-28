@@ -36,7 +36,7 @@ builder.Services.AddRCommon()
     .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
     {
         // Add all the DbContexts here
-        ef.AddDbContext<LeaveManagementDbContext>(options =>
+        ef.AddDbContext<LeaveManagementDbContext>("LeaveManagementConnectionString", options =>
         {
             options.UseSqlServer(
                 builder.Configuration.GetConnectionString("LeaveManagementConnectionString"));

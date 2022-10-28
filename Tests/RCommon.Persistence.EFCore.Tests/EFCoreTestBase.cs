@@ -34,7 +34,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
-                    ef.AddDbContext<TestDbContext>(ef =>
+                    ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
                     {
                         ef.UseSqlServer(
                         this.Configuration.GetConnectionString("TestDbContext"));
@@ -47,7 +47,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 {
                     unitOfWork.SetOptions(options =>
                     {
-                        options.AutoCompleteScope = true;
+                        options.AutoCompleteScope = false;
                         options.DefaultIsolation = IsolationLevel.ReadCommitted;
                     });
                 });

@@ -14,8 +14,6 @@ namespace RCommon.DataServices.Transactions
             this.DataStores = new ConcurrentDictionary<Guid, IDataStore>();
         }
 
-        public ConcurrentDictionary<Guid, IDataStore> DataStores { get; }
-
         public bool EnlistDataStore(Guid transactionId, IDataStore dataStore)
         {
             var dataStoreValue = this.DataStores.GetOrAdd(transactionId, dataStore);
@@ -48,5 +46,7 @@ namespace RCommon.DataServices.Transactions
             }
             return true;
         }
+
+        public ConcurrentDictionary<Guid, IDataStore> DataStores { get; }
     }
 }

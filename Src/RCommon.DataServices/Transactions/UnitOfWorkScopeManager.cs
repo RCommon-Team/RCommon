@@ -29,6 +29,7 @@ namespace RCommon.DataServices.Transactions
         private void OnUnitOfWorkScopeCompleted(IUnitOfWorkScope unitOfWorkScope)
         {
             this.EnlistedTransactions.TryRemove(unitOfWorkScope.TransactionId, out _);
+            this._logger.LogDebug("UnitOfWorkScope {0} Removed from enlisted transactions", unitOfWorkScope.TransactionId);
         }
 
         private void OnUnitOfWorkScopeBeginning(IUnitOfWorkScope unitOfWorkScope)
@@ -57,6 +58,7 @@ namespace RCommon.DataServices.Transactions
             if (disposing)
             {
                 this.EnlistedTransactions.Clear();
+                this._logger.LogDebug("UnitOfWorkScopeManager has removed all enlisted transactions");
                 this._disposed = true;
             }
         }

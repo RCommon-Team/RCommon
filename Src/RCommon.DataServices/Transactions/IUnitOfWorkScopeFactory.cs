@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Transactions;
 
 namespace RCommon.DataServices.Transactions
 {
@@ -6,5 +7,6 @@ namespace RCommon.DataServices.Transactions
     {
         IUnitOfWorkScope Create();
         IUnitOfWorkScope Create(TransactionMode mode);
+        IUnitOfWorkScope Create(TransactionMode transactionMode, IsolationLevel isolationLevel);
     }
 }

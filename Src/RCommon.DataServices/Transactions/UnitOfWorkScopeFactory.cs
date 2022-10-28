@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Transactions;
@@ -7,29 +8,32 @@ namespace RCommon.DataServices.Transactions
 {
     public class UnitOfWorkScopeFactory : IUnitOfWorkScopeFactory
     {
-        private readonly IUnitOfWorkScope _unitOfWorkScope;
+        private readonly IServiceProvider _serviceProvider;
 
-        public UnitOfWorkScopeFactory(IUnitOfWorkScope unitOfWorkScope)
+        public UnitOfWorkScopeFactory(IServiceProvider serviceProvider)
         {
-            _unitOfWorkScope=unitOfWorkScope;
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         public IUnitOfWorkScope Create()
         {
-            _unitOfWorkScope.Begin(TransactionMode.Default);
-            return _unitOfWorkScope;
+            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWorkScope>();
+            unitOfWorkScope.Begin(TransactionMode.Default);
+            return unitOfWorkScope;
         }
 
         public IUnitOfWorkScope Create(TransactionMode transactionMode)
         {
-            _unitOfWorkScope.Begin(transactionMode);
-            return _unitOfWorkScope;
+            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWorkScope>();
+            unitOfWorkScope.Begin(transactionMode);
+            return unitOfWorkScope;
         }
 
         public IUnitOfWorkScope Create(TransactionMode transactionMode, IsolationLevel isolationLevel)
         {
-            _unitOfWorkScope.Begin(transactionMode, isolationLevel);
-            return _unitOfWorkScope;
+            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWorkScope>();
+            unitOfWorkScope.Begin(transactionMode, isolationLevel);
+            return unitOfWorkScope;
         }
     }
 }

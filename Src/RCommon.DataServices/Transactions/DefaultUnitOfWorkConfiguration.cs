@@ -32,19 +32,12 @@ namespace RCommon.DataServices.Transactions
         public DefaultUnitOfWorkConfiguration(IServiceCollection services)
         {
             // Data Store Management
-            services.AddMemoryCache();
-            services.AddSingleton<IDataStoreRegistry, CachedDataStoreRegistry>();
             services.AddScoped<IDataStoreEnlistmentProvider, ScopedDataStoreEnlistmentProvider>();
 
             // Transaction Management
             services.AddScoped<IUnitOfWorkManager, UnitOfWorkScopeManager>();
 
-            // Factory for Unit Of Work
-            services.AddTransient<Func<IUnitOfWorkScope>>(x => () => x.GetService<IUnitOfWorkScope>());
-            services.AddTransient<ICommonFactory<IUnitOfWorkScope>, CommonFactory<IUnitOfWorkScope>>();
-
             // Factory for Unit Of Work Scope
-            //containerAdapter.AddTransient<TransactionMode, TransactionMode>();
             services.AddTransient<IUnitOfWorkScope, UnitOfWorkScope>();
             services.AddTransient<IUnitOfWorkScopeFactory, UnitOfWorkScopeFactory>();
             _services = services;

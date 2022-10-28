@@ -26,8 +26,8 @@ namespace RCommon.DataServices.Transactions
         public event Action<IUnitOfWorkScope> ScopeBeginning;
         public event Action<IUnitOfWorkScope> ScopeCompleted;
 
-        public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, IGuidGenerator guidGenerator, 
-            ILogger<UnitOfWorkScope> logger, IOptions<UnitOfWorkSettings> unitOfWorkSettings)
+        public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
+            IGuidGenerator guidGenerator, ILogger<UnitOfWorkScope> logger, IOptions<UnitOfWorkSettings> unitOfWorkSettings)
         {
             _unitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
             _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
@@ -64,9 +64,9 @@ namespace RCommon.DataServices.Transactions
         {
             Guard.Against<ObjectDisposedException>(_disposed,
                 "Cannot commit a disposed UnitOfWorkScope instance.");
-            Guard.Against<InvalidOperationException>(_completed,
+            Guard.Against<UnitOfWorkException>(_completed,
                 "This unit of work scope has been marked completed. A child scope participating in the " +
-                "transaction has rolledback and the transaction aborted. The parent scope cannot be commit.");
+                "transaction has rolledback and the transaction aborted. The parent scope cannot be commited.");
 
             
             _commitAttempted = true;
@@ -75,7 +75,7 @@ namespace RCommon.DataServices.Transactions
 
         private void OnBegin()
         {
-            Guard.Against<InvalidOperationException>(_started, 
+            Guard.Against<UnitOfWorkException> (_started, 
                 "This unit of work scope has already started and cannot begin again as it would disrupt the state of the current transaction.");
             
             _started = true;
@@ -130,6 +130,11 @@ namespace RCommon.DataServices.Transactions
         {
             Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
             var dataStores = this._dataStoreEnlistmentProvider.GetEnlistedDataStores(this.TransactionId);
+
+            if (dataStores.Count == 0)
+            {
+                throw new UnitOfWorkException("There were no enlisted data sources to persist changes against. This can happen when your repository is not enlisting data sources or if you instantiate repositories outside of a UnitOfWorkScope");
+            }
 
             foreach (var item in dataStores)
             {

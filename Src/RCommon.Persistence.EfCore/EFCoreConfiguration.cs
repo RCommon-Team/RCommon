@@ -22,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
+using RCommon.Extensions;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
 
@@ -48,9 +49,15 @@ namespace RCommon
         }
 
 
-        public IEFCoreConfiguration AddDbContext<TDbContext>(Action<DbContextOptionsBuilder>? options = null)
+        public IEFCoreConfiguration AddDbContext<TDbContext>(string dataStoreName, Action<DbContextOptionsBuilder>? options = null)
             where TDbContext : RCommonDbContext
         {
+            Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
+            
+            if (!StaticDataStore.DataStores.TryAdd(dataStoreName, typeof(TDbContext)))
+            {
+                throw new UnsupportedDataStoreException($"The StaticDataStore refused to add the new DataStore name: {dataStoreName} of type: {typeof(TDbContext).AssemblyQualifiedName}");
+            }
             this._services.AddDbContext<TDbContext>(options, ServiceLifetime.Scoped); 
 
             return this;
