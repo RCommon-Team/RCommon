@@ -32,6 +32,7 @@ namespace RCommon.DataServices.Transactions
         public DefaultUnitOfWorkConfiguration(IServiceCollection services)
         {
             // Data Store Management
+            services.AddMemoryCache();
             services.AddSingleton<IDataStoreRegistry, CachedDataStoreRegistry>();
             services.AddScoped<IDataStoreEnlistmentProvider, ScopedDataStoreEnlistmentProvider>();
 
