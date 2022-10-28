@@ -331,7 +331,6 @@ namespace RCommon.Persistence.Dapper
                 {
                     Guard.Against<NullReferenceException>(this.DataStore == null, "DataStore is null");
                     this.DataStore.PersistChanges(); // This dispatches the events
-                    this.DataStoreProvider.RemoveRegisteredDataStores(this.DataStore.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
                 }
             }
             catch (ApplicationException exception)

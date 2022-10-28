@@ -38,12 +38,17 @@ namespace RCommon.Persistence
     public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IFullFeaturedRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        public FullFeaturedRepositoryBase(IDataStoreRegistry dataStoreRegistry, IUnitOfWorkManager unitOfWorkManager, 
-            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+
+        private string _dataStoreName;
+        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
+
+        public FullFeaturedRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
+            IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            DataStoreRegistry = dataStoreRegistry;
-            UnitOfWorkManager = unitOfWorkManager;
-            ChangeTracker = changeTracker;
+            DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
+            _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
+            UnitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
+            ChangeTracker = changeTracker ?? throw new ArgumentNullException(nameof(changeTracker));
 
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
                 && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
@@ -119,7 +124,6 @@ namespace RCommon.Persistence
             get { return RepositoryQuery.Provider; }
         }
 
-        public string DataStoreName { get; set; }
 
 
         
@@ -197,5 +201,16 @@ namespace RCommon.Persistence
         public ILogger Logger { get; set; }
         public IUnitOfWorkManager UnitOfWorkManager { get; }
         public IChangeTracker ChangeTracker { get; }
+        public string DataStoreName 
+        { 
+            get => _dataStoreName; 
+            set
+            {
+                _dataStoreName = value;
+                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
+                this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWork.TransactionId, dataStore);
+
+            }  
+        }
     }
 }

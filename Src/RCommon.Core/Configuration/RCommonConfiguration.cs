@@ -12,7 +12,6 @@ namespace RCommon
     {
         public IServiceCollection Services { get; }
 
-        private bool _stateConfigured = false;
         private bool _guidConfigured = false;
         private bool _dateTimeConfigured = false;
 

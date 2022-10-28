@@ -13,40 +13,34 @@ namespace RCommon.DataServices.Transactions
         private bool _commitAttempted = false;
         private bool _completed = false;
         private bool _started = false;
-        private readonly Guid _scopeId;
+        private readonly IUnitOfWorkManager _unitOfWorkManager;
+        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
+        private readonly Guid _transactionId;
         private readonly IGuidGenerator _guidGenerator;
         private readonly ILogger<UnitOfWorkScope> _logger;
         private TransactionScope _transactionScope;
         private readonly UnitOfWorkSettings _unitOfWorkSettings;
 
-        /// <summary>
-        /// Event fired when the scope is comitting.
-        /// </summary>
         public event Action<IUnitOfWorkScope> ScopeComitting;
-
-        /// <summary>
-        /// Event fired when the scope is rollingback.
-        /// </summary>
         public event Action<IUnitOfWorkScope> ScopeRollingback;
-
-        /// <summary>
-        /// Event fired when the scope is beginning
-        /// </summary>
         public event Action<IUnitOfWorkScope> ScopeBeginning;
-
-        /// <summary>
-        /// Event fired when the scope is completed
-        /// </summary>
         public event Action<IUnitOfWorkScope> ScopeCompleted;
 
-        public UnitOfWorkScope(IGuidGenerator guidGenerator, ILogger<UnitOfWorkScope> logger, IOptions<UnitOfWorkSettings> unitOfWorkSettings)
+        public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, IGuidGenerator guidGenerator, 
+            ILogger<UnitOfWorkScope> logger, IOptions<UnitOfWorkSettings> unitOfWorkSettings)
         {
-            _guidGenerator = guidGenerator;
-            _logger = logger;
-            _scopeId = _guidGenerator.Create();
+            _unitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
+            _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
+            _guidGenerator = guidGenerator ?? throw new ArgumentNullException(nameof(guidGenerator));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _transactionId = _guidGenerator.Create();
             _unitOfWorkSettings = unitOfWorkSettings.Value;
+
+            _unitOfWorkManager.EnlistUnitOfWork(this);
             
         }
+
+        
 
 
         public void Begin(TransactionMode transactionMode, 
@@ -85,7 +79,7 @@ namespace RCommon.DataServices.Transactions
                 "This unit of work scope has already started and cannot begin again as it would disrupt the state of the current transaction.");
             
             _started = true;
-            _logger.LogInformation("UnitOfWorkScope {0} Beginning.", _scopeId);
+            _logger.LogInformation("UnitOfWorkScope {0} Beginning.", this.TransactionId);
             if (ScopeBeginning != null)
             {
                 ScopeBeginning(this);
@@ -97,11 +91,13 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         private void OnCommit()
         {
-            _logger.LogInformation("UnitOfWorkScope {0} Comitting.", _scopeId);
+            _logger.LogInformation("UnitOfWorkScope {0} Comitting.", this.TransactionId);
             if (ScopeComitting != null)
             {
                 ScopeComitting(this);
             }
+            this.Flush(true);
+            _dataStoreEnlistmentProvider.RemoveEnlistedDataStores(this.TransactionId);
             _transactionScope.Complete();
             OnComplete();
             
@@ -110,7 +106,7 @@ namespace RCommon.DataServices.Transactions
         private void OnComplete()
         {
             _completed = true;
-            _logger.LogInformation("UnitOfWorkScope {0} Completed.", _scopeId);
+            _logger.LogInformation("UnitOfWorkScope {0} Completed.", this.TransactionId);
             if (ScopeCompleted != null)
             {
                 ScopeCompleted(this);
@@ -122,20 +118,35 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         private void OnRollback()
         {
-            _logger.LogInformation("UnitOfWorkScope {0} Rolling Back.", _scopeId);
+            _logger.LogInformation("UnitOfWorkScope {0} Rolling Back.", this.TransactionId);
             if (ScopeRollingback != null)
             {
                 ScopeRollingback(this);
             }
+            _dataStoreEnlistmentProvider.RemoveEnlistedDataStores(this.TransactionId);
+        }
+
+        private void Flush(bool allowPersist)
+        {
+            Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
+            var dataStores = this._dataStoreEnlistmentProvider.GetEnlistedDataStores(this.TransactionId);
+
+            foreach (var item in dataStores)
+            {
+                if (allowPersist)
+                {
+                    item.PersistChanges();
+                }
+            }
         }
 
         /// <summary>
-        /// Gets the unique Id of the <see cref="UnitOfWorkScope"/>.
+        /// Gets the unique Transaction Id of the <see cref="UnitOfWorkScope"/>.
         /// </summary>
-        /// <value>A <see cref="Guid"/> representing the unique Id of the scope.</value>
-        public Guid ScopeId
+        /// <value>A <see cref="Guid"/> representing the unique Id of the Transaction.</value>
+        public Guid TransactionId
         {
-            get { return _scopeId; }
+            get { return _transactionId; }
         }
 
         /// <summary>
@@ -173,7 +184,7 @@ namespace RCommon.DataServices.Transactions
                     ScopeComitting = null;
                     ScopeRollingback = null;
                     _disposed = true;
-                    _logger.LogInformation("UnitOfWorkScope {0} Disposed.", _scopeId);
+                    _logger.LogDebug("UnitOfWorkScope {0} Disposed.", this.TransactionId);
                 }
             }
         }

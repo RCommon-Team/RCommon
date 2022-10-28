@@ -13,7 +13,6 @@ using System.Transactions;
 using RCommon.TestBase;
 using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
-using RCommon.StateStorage;
 
 namespace RCommon.Persistence.EFCore.Tests
 {
@@ -30,7 +29,6 @@ namespace RCommon.Persistence.EFCore.Tests
 
             base.InitializeBootstrapper(services);
             services.AddRCommon()
-                .WithStateStorage(new StateStorageConfiguration(), null)
                 .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
                 .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
                 .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
@@ -47,8 +45,11 @@ namespace RCommon.Persistence.EFCore.Tests
                     });
                 }, unitOfWork => 
                 {
-                    unitOfWork.UseDefaultIsolation(IsolationLevel.ReadCommitted);
-                    unitOfWork.AutoCompleteScope();
+                    unitOfWork.SetOptions(options =>
+                    {
+                        options.AutoCompleteScope = true;
+                        options.DefaultIsolation = IsolationLevel.ReadCommitted;
+                    });
                 });
 
             this.ServiceProvider = services.BuildServiceProvider();

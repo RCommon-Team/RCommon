@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace RCommon.DataServices
 {
-    public class InMemoryDataStoreRegistry : IDataStoreRegistry
+    public class CachedDataStoreRegistry : IDataStoreRegistry
     {
         private readonly IMemoryCache _memoryCache;
-        private readonly ILogger<InMemoryDataStoreRegistry> _logger;
+        private readonly ILogger<CachedDataStoreRegistry> _logger;
         private readonly IServiceProvider _serviceProvider;
 
-        public InMemoryDataStoreRegistry(IMemoryCache memoryCache, ILogger<InMemoryDataStoreRegistry> logger, IServiceProvider serviceProvider)
+        public CachedDataStoreRegistry(IMemoryCache memoryCache, ILogger<CachedDataStoreRegistry> logger, IServiceProvider serviceProvider)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -37,6 +37,21 @@ namespace RCommon.DataServices
             {
 
                 TDataStore dataStore = (TDataStore) this._serviceProvider.GetService(Type.GetType(dataStoreTypeName));
+                return dataStore;
+            }
+            else
+            {
+                throw new UnsupportedDataStoreException($"A Data Store with the name of: {dataStoreName} and type of: {dataStoreTypeName} was not registered or found");
+            }
+        }
+
+        public IDataStore GetDataStore(string dataStoreName)
+        {
+            string dataStoreTypeName;
+            if (this._memoryCache.TryGetValue(dataStoreName, out dataStoreTypeName))
+            {
+
+                var dataStore = (IDataStore)this._serviceProvider.GetService(Type.GetType(dataStoreTypeName));
                 return dataStore;
             }
             else

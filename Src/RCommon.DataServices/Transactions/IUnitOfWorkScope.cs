@@ -47,7 +47,7 @@ namespace RCommon.DataServices.Transactions
         /// Gets the unique Id of the <see cref="UnitOfWorkScope"/>.
         /// </summary>
         /// <value>A <see cref="Guid"/> representing the unique Id of the scope.</value>
-        Guid ScopeId { get; }
+        Guid TransactionId { get; }
 
         ///<summary>
         /// Commits the current running transaction in the scope.

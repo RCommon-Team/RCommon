@@ -46,9 +46,10 @@
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(IDataStoreRegistry dataStoreRegistry, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
-            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
-            : base(dataStoreRegistry, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+        public EFCoreRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, 
+            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
+            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
             this._includes = new List<string>();
@@ -230,7 +231,6 @@
             {
                 if (this.UnitOfWorkManager.CurrentUnitOfWork == null)
                 {
-                    Guard.Against<NullReferenceException>(this.ObjectContext == null, "DbContext is null");
                     affected = await this.ObjectContext.SaveChangesAsync(true, token); // This will dispatch the local events
                 }
             }

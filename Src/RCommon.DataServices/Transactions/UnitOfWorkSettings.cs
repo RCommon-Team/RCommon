@@ -23,6 +23,13 @@ namespace RCommon.DataServices.Transactions
     ///</summary>
     public class UnitOfWorkSettings
     {
+        public UnitOfWorkSettings()
+        {
+            this.DefaultIsolation = IsolationLevel.ReadCommitted;
+            this.AutoCompleteScope = false;
+        }
+
+
         /// <summary>
         /// Gets the default <see cref="IsolationLevel"/>.
         /// </summary>
