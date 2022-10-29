@@ -648,7 +648,6 @@ namespace RCommon.Persistence.EFCore.Tests
             var testData = new List<Customer>();
 
             // Generate Test Data
-
             var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
             var repo = new TestRepository(context);
             repo.PersistSeedData(testData);
