@@ -26,9 +26,7 @@ namespace RCommon.DataServices.Transactions
     public static class TransactionScopeHelper
     {
 
-        
-
-        public static TransactionScope CreateScope(ILogger<UnitOfWorkTransactionManager> logger, IsolationLevel isolationLevel, TransactionMode txMode)
+        public static TransactionScope CreateScope(ILogger<UnitOfWorkScope> logger, IsolationLevel isolationLevel, TransactionMode txMode)
         {
             if (txMode == TransactionMode.New)
             {

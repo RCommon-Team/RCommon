@@ -38,12 +38,17 @@ namespace RCommon.Persistence
     public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IFullFeaturedRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        public FullFeaturedRepositoryBase(IDataStoreProvider dataStoreProvider, IUnitOfWorkManager unitOfWorkManager, 
-            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+
+        private string _dataStoreName;
+        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
+
+        public FullFeaturedRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
+            IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            DataStoreProvider = dataStoreProvider;
-            UnitOfWorkManager = unitOfWorkManager;
-            ChangeTracker = changeTracker;
+            DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
+            _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
+            UnitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
+            ChangeTracker = changeTracker ?? throw new ArgumentNullException(nameof(changeTracker));
 
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
                 && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
@@ -119,7 +124,6 @@ namespace RCommon.Persistence
             get { return RepositoryQuery.Provider; }
         }
 
-        public string DataStoreName { get; set; }
 
 
         
@@ -156,7 +160,7 @@ namespace RCommon.Persistence
 
         protected abstract void ApplyFetchingStrategy(Expression[] paths);
 
-        public IEagerFetchingRepository<TEntity> EagerlyWith(Action<EagerFetchingStrategy<TEntity>> strategyActions)
+        public IEagerFetchingRepository<TEntity> Include(Action<EagerFetchingStrategy<TEntity>> strategyActions)
         {
             EagerFetchingStrategy<TEntity> strategy = new EagerFetchingStrategy<TEntity>();
             strategyActions(strategy);
@@ -164,7 +168,7 @@ namespace RCommon.Persistence
             return this;
         }
 
-        public IEagerFetchingRepository<TEntity> EagerlyWith(Expression<Func<TEntity, object>> path)
+        public IEagerFetchingRepository<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
             Expression<Func<TEntity, object>>[] expressionArray = new Expression<Func<TEntity, object>>[] { path };
             this.ApplyFetchingStrategy((Expression[])expressionArray);
@@ -193,9 +197,24 @@ namespace RCommon.Persistence
         public abstract Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
 
         public abstract bool Tracking { get; set; }
-        public IDataStoreProvider DataStoreProvider { get; }
+        public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
         public IUnitOfWorkManager UnitOfWorkManager { get; }
         public IChangeTracker ChangeTracker { get; }
+        public string DataStoreName 
+        { 
+            get => _dataStoreName; 
+            set
+            {
+                _dataStoreName = value;
+                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
+
+                // Enlist Data Stores that are participating in transactions
+                if (this.UnitOfWorkManager.CurrentUnitOfWork != null)
+                {
+                    this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWork.TransactionId, dataStore);
+                }
+            }  
+        }
     }
 }

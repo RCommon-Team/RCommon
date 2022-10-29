@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCommon.BusinessEntities;
+using RCommon.DataServices;
+using RCommon.DataServices.Transactions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,20 +13,46 @@ namespace RCommon
     public static class PersistenceConfigurationExtensions
     {
 
-        public static IObjectAccessConfiguration WithPersistence<T>(this IRCommonConfiguration config) where T: IObjectAccessConfiguration
+        public static IObjectAccessConfiguration WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonConfiguration config) 
+            where TObjectAccess: IObjectAccessConfiguration
+            where TUnitOfWork : IUnitOfWorkConfiguration
         {
-            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.Services });
-            config = WithChangeTracking(config);
-            return dataConfiguration;
+            return WithPersistence<TObjectAccess, TUnitOfWork>(config, x => { }, x => { });
         }
 
-        public static IObjectAccessConfiguration WithPersistence<T>(this IRCommonConfiguration config, Action<T> actions) 
-            where T : IObjectAccessConfiguration
+        public static IObjectAccessConfiguration WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonConfiguration config,
+            Action<TObjectAccess> objectAccessActions)
+            where TObjectAccess : IObjectAccessConfiguration
+            where TUnitOfWork : IUnitOfWorkConfiguration
         {
-            
-            var dataConfiguration = (T)Activator.CreateInstance(typeof(T), new object[] { config.Services });
+
+            return WithPersistence<TObjectAccess, TUnitOfWork>(config, objectAccessActions, x => { });
+        }
+
+        public static IObjectAccessConfiguration WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonConfiguration config,
+            Action<TUnitOfWork> uniOfWorkActions)
+            where TObjectAccess : IObjectAccessConfiguration
+            where TUnitOfWork : IUnitOfWorkConfiguration
+        {
+
+            return WithPersistence<TObjectAccess, TUnitOfWork>(config, x => { }, uniOfWorkActions);
+        }
+
+        public static IObjectAccessConfiguration WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonConfiguration config, 
+            Action<TObjectAccess> objectAccessActions, Action<TUnitOfWork> unitOfWorkActions)
+            where TObjectAccess : IObjectAccessConfiguration
+            where TUnitOfWork : IUnitOfWorkConfiguration
+        {
+            // Data Store Management
+            StaticDataStore.DataStores = new System.Collections.Concurrent.ConcurrentDictionary<string, Type>();
+            config.Services.AddSingleton<IDataStoreRegistry, StaticDataStoreRegistry>();
+
+            // Object Access and Unit of Work Configurations 
+            var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { config.Services });
+            objectAccessActions(dataConfiguration);
+            var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { config.Services });
+            unitOfWorkActions(unitOfWorkConfiguration);
             config = WithChangeTracking(config);
-            actions(dataConfiguration);
             return dataConfiguration;
         }
 

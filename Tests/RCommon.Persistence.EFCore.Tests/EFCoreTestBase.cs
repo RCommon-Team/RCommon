@@ -13,7 +13,6 @@ using System.Transactions;
 using RCommon.TestBase;
 using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
-using RCommon.StateStorage;
 
 namespace RCommon.Persistence.EFCore.Tests
 {
@@ -30,18 +29,12 @@ namespace RCommon.Persistence.EFCore.Tests
 
             base.InitializeBootstrapper(services);
             services.AddRCommon()
-                .WithStateStorage(new StateStorageConfiguration(), null)
                 .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
                 .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
-                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>(unitOfWork =>
-                {
-                    unitOfWork.UseDefaultIsolation(IsolationLevel.ReadCommitted);
-                    unitOfWork.AutoCompleteScope();
-                }) // Everything releated to transaction management. Powerful stuff happens here.
-                .WithPersistence<EFCoreConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
-                    ef.AddDbContext<TestDbContext>(ef =>
+                    ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
                     {
                         ef.UseSqlServer(
                         this.Configuration.GetConnectionString("TestDbContext"));
@@ -49,6 +42,13 @@ namespace RCommon.Persistence.EFCore.Tests
                     ef.SetDefaultDataStore(dataStore =>
                     {
                         dataStore.DefaultDataStoreName = "TestDbContext";
+                    });
+                }, unitOfWork => 
+                {
+                    unitOfWork.SetOptions(options =>
+                    {
+                        options.AutoCompleteScope = false;
+                        options.DefaultIsolation = IsolationLevel.ReadCommitted;
                     });
                 });
 

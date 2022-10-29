@@ -31,16 +31,10 @@ namespace RCommon.Persistence.Dapper.Tests
             base.InitializeBootstrapper(services);
 
             services.AddRCommon()
-                .WithStateStorage(new StateStorageConfiguration(), null)
-                .WithUnitOfWork<DefaultUnitOfWorkConfiguration>(unitOfWork =>
-                {
-                    unitOfWork.UseDefaultIsolation(System.Transactions.IsolationLevel.ReadCommitted);
-                    unitOfWork.AutoCompleteScope();
-                }) // Everything releated to transaction management.
-                .WithPersistence<DapperConfiguration>(dapper =>
+                .WithPersistence<DapperConfiguration, DefaultUnitOfWorkConfiguration>(dapper =>
                 {
                     
-                    dapper.AddDbConnection<TestDbConnection>(db =>
+                    dapper.AddDbConnection<TestDbConnection>("TestDbConnection", db =>
                     {
                         db.DbFactory = SqlClientFactory.Instance;
                         db.ConnectionString = this.Configuration.GetConnectionString("TestDbConnection");
@@ -54,6 +48,13 @@ namespace RCommon.Persistence.Dapper.Tests
                     dapper.SetDefaultDataStore(dataStore =>
                     {
                         dataStore.DefaultDataStoreName = "TestDbConnection";
+                    });
+                }, unitOfWork =>
+                {
+                    unitOfWork.SetOptions(options =>
+                    {
+                        options.AutoCompleteScope = true;
+                        options.DefaultIsolation = System.Transactions.IsolationLevel.ReadCommitted;
                     });
                 });
 

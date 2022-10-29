@@ -21,17 +21,24 @@ namespace RCommon.DataServices.Transactions
     ///<summary>
     /// Contains settings for RCommon unit of work.
     ///</summary>
-    public static class UnitOfWorkSettings
+    public class UnitOfWorkSettings
     {
+        public UnitOfWorkSettings()
+        {
+            this.DefaultIsolation = IsolationLevel.ReadCommitted;
+            this.AutoCompleteScope = false;
+        }
+
+
         /// <summary>
         /// Gets the default <see cref="IsolationLevel"/>.
         /// </summary>
-        public static IsolationLevel DefaultIsolation { get; set; }
+        public IsolationLevel DefaultIsolation { get; set; }
 
         /// <summary>
         /// Gets a boolean value indicating weather to auto complete
         /// <see cref="UnitOfWorkScope"/> instances.
         /// </summary>
-        public static bool AutoCompleteScope { get; set; }
+        public bool AutoCompleteScope { get; set; }
     }
 }

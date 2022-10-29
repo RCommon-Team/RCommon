@@ -41,7 +41,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
         {
             var leaveRequests = new List<LeaveRequest>();
             var requests = new List<LeaveRequestListDto>();
-            _leaveRequestRepository.EagerlyWith(x => x.LeaveType);
+            _leaveRequestRepository.Include(x => x.LeaveType);
 
             if (request.IsLoggedInUser)
             {

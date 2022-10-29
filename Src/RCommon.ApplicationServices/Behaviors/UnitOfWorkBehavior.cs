@@ -24,7 +24,7 @@ namespace RCommon.ApplicationServices.Behaviors
             _logger = logger ?? throw new ArgumentException(nameof(ILogger));
         }
 
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var response = default(TResponse);
             var typeName = request.GetGenericTypeName();
@@ -33,17 +33,17 @@ namespace RCommon.ApplicationServices.Behaviors
             {
                 using (var unitOfWork = this._unitOfWorkScopeFactory.Create(TransactionMode.Default))
                 {
-                    _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})", 
+                    _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})",
                         this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName, request);
 
                     response = await next();
 
-                    _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}", 
+                    _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
                         this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName);
 
                     unitOfWork.Commit();
                 }
-                
+
 
                 return response;
             }

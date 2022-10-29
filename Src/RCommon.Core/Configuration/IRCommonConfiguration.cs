@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RCommon.StateStorage;
 using System;
 
 namespace RCommon
@@ -12,6 +11,5 @@ namespace RCommon
         IRCommonConfiguration WithDateTimeSystem(Action<SystemTimeOptions> actions);
         IRCommonConfiguration WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions);
         IRCommonConfiguration WithSimpleGuidGenerator();
-        IRCommonConfiguration WithStateStorage(IStateStorageConfiguration stateStorage, Action<IStateStorageConfiguration> actions);
     }
 }

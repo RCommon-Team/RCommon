@@ -19,14 +19,11 @@ namespace RCommon.Persistence
     public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>
        where TEntity : IBusinessEntity
     {
-
-        private readonly IDataStoreProvider _dataStoreProvider;
         private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public LinqRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager)
+        public LinqRepositoryBase(ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager)
         {
-            _dataStoreProvider = dataStoreProvider;
             _logger = logger.CreateLogger(this.GetType().Name);
             _unitOfWorkManager = unitOfWorkManager;
         }

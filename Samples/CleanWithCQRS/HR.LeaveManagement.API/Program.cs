@@ -22,7 +22,6 @@ builder.Services.AddControllers();
 
 // Add RCommon services
 builder.Services.AddRCommon()
-    .WithStateStorage(new StateStorageConfiguration(), null)
     .WithClaimsAndPrincipalAccessor()
     .WithSendGridEmailServices(x =>
     {
@@ -33,19 +32,27 @@ builder.Services.AddRCommon()
     })
     .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
     .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
-    .WithUnitOfWork<DefaultUnitOfWorkConfiguration>(unitOfWork =>
-    {
-        unitOfWork.UseDefaultIsolation(IsolationLevel.ReadCommitted);
-        unitOfWork.AutoCompleteScope();
-    }) // Everything releated to transaction management.
     .AddUnitOfWorkToMediatorPipeline()
-    .WithPersistence<EFCoreConfiguration>(x =>
-        x.AddDbContext<LeaveManagementDbContext>(options =>
+    .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+    {
+        // Add all the DbContexts here
+        ef.AddDbContext<LeaveManagementDbContext>("LeaveManagementConnectionString", options =>
         {
             options.UseSqlServer(
                 builder.Configuration.GetConnectionString("LeaveManagementConnectionString"));
-        })
-     );
+        });
+        ef.SetDefaultDataStore(dataStore =>
+        {
+            dataStore.DefaultDataStoreName = "LeaveManagementConnectionString";
+        });
+    }, unitOfWork =>
+    {
+        unitOfWork.SetOptions(options =>
+        {
+            options.AutoCompleteScope = true;
+            options.DefaultIsolation = IsolationLevel.ReadCommitted;
+        });
+    });
 
 // Add services to the container.
 builder.Services.ConfigureApplicationServices();

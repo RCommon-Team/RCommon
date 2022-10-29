@@ -22,13 +22,17 @@ namespace RCommon.Persistence
     public abstract class SqlRepositoryBase<TEntity> : DisposableResource, ISqlMapperRepository<TEntity>
        where TEntity : class, IBusinessEntity
     {
+        private string _dataStoreName;
+        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
 
-        public SqlRepositoryBase(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
-            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+        public SqlRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, 
+            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            DataStoreProvider = dataStoreProvider;
-            UnitOfWorkManager = unitOfWorkManager;
-            ChangeTracker = changeTracker;
+            DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
+            _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
+            UnitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
+            ChangeTracker = changeTracker ?? throw new ArgumentNullException(nameof(changeTracker));
 
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null 
                 && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
@@ -39,7 +43,6 @@ namespace RCommon.Persistence
 
 
         public string TableName { get; set; }
-        public string DataStoreName { get; set; }
 
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
         public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
@@ -59,17 +62,27 @@ namespace RCommon.Persistence
         {
             get
             {
-                var uow = this.UnitOfWorkManager.CurrentUnitOfWork;
-                if (uow != null)
-                {
-                    return this.DataStoreProvider.GetDataStore<RDbConnection>(uow.TransactionId.Value, this.DataStoreName);
-
-                }
-                return this.DataStoreProvider.GetDataStore<RDbConnection>(this.DataStoreName);
+                return this.DataStoreRegistry.GetDataStore<RDbConnection>(this.DataStoreName);
             }
         }
 
-        public IDataStoreProvider DataStoreProvider { get; }
+        public string DataStoreName
+        {
+            get => _dataStoreName;
+            set
+            {
+                _dataStoreName = value;
+                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
+
+                // Enlist Data Stores that are participating in transactions
+                if (this.UnitOfWorkManager.CurrentUnitOfWork != null)
+                {
+                    this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWork.TransactionId, dataStore);
+                }
+            }
+        }
+
+        public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
         public IUnitOfWorkManager UnitOfWorkManager { get; }
         public IChangeTracker ChangeTracker { get; }

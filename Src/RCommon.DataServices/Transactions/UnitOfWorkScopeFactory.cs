@@ -1,39 +1,39 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Transactions;
 
 namespace RCommon.DataServices.Transactions
 {
     public class UnitOfWorkScopeFactory : IUnitOfWorkScopeFactory
     {
+        private readonly IServiceProvider _serviceProvider;
 
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
-
-        public UnitOfWorkScopeFactory(IUnitOfWorkManager unitOfWorkManager) //TODO: IUnitOfWorkManager should subscribe to UnitOfWorkFactory.OnScopeCreated
+        public UnitOfWorkScopeFactory(IServiceProvider serviceProvider)
         {
-            this._unitOfWorkManager = unitOfWorkManager;
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         public IUnitOfWorkScope Create()
         {
-            var scope = new UnitOfWorkScope(_unitOfWorkManager);
-            _unitOfWorkManager.CurrentTransactionManager.EnlistScope(scope, TransactionMode.Default); //TODO: Probably should be event driven so we don't violate SRP
-            return scope;
+            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWorkScope>();
+            unitOfWorkScope.Begin(TransactionMode.Default);
+            return unitOfWorkScope;
         }
 
-        public IUnitOfWorkScope Create(TransactionMode mode)
+        public IUnitOfWorkScope Create(TransactionMode transactionMode)
         {
-            var scope = new UnitOfWorkScope(_unitOfWorkManager);
-            _unitOfWorkManager.CurrentTransactionManager.EnlistScope(scope, mode); //TODO: Probably should be event driven so we don't violate SRP
-            return scope;
+            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWorkScope>();
+            unitOfWorkScope.Begin(transactionMode);
+            return unitOfWorkScope;
         }
 
-        public IUnitOfWorkScope Create(TransactionMode mode, Action<IUnitOfWorkScope> customize)
+        public IUnitOfWorkScope Create(TransactionMode transactionMode, IsolationLevel isolationLevel)
         {
-            var scope = new UnitOfWorkScope(_unitOfWorkManager);
-            customize(scope);
-            _unitOfWorkManager.CurrentTransactionManager.EnlistScope(scope, mode); // TODO: Probably should be event driven so we don't violate SRP
-            return scope;
+            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWorkScope>();
+            unitOfWorkScope.Begin(transactionMode, isolationLevel);
+            return unitOfWorkScope;
         }
     }
 }

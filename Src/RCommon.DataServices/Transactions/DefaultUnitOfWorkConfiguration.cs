@@ -27,44 +27,25 @@ namespace RCommon.DataServices.Transactions
     ///</summary>
     public class DefaultUnitOfWorkConfiguration : IUnitOfWorkConfiguration
     {
-        private bool _autoCompleteScope = false;
-        private IsolationLevel _defaultIsolation = IsolationLevel.ReadCommitted;
+        private readonly IServiceCollection _services;
 
         public DefaultUnitOfWorkConfiguration(IServiceCollection services)
         {
-            // Transaction Management
-            services.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
-            services.AddTransient<IUnitOfWorkTransactionManager, UnitOfWorkTransactionManager>();
-            UnitOfWorkSettings.AutoCompleteScope = _autoCompleteScope;
-            UnitOfWorkSettings.DefaultIsolation = _defaultIsolation;
+            // Data Store Management
+            services.AddScoped<IDataStoreEnlistmentProvider, ScopedDataStoreEnlistmentProvider>();
 
-            // Factory for Unit Of Work
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
-            services.AddTransient<Func<IUnitOfWork>>(x => () => x.GetService<IUnitOfWork>());
-            services.AddTransient<ICommonFactory<IUnitOfWork>, CommonFactory<IUnitOfWork>>();
+            // Transaction Management
+            services.AddScoped<IUnitOfWorkManager, UnitOfWorkScopeManager>();
 
             // Factory for Unit Of Work Scope
-            //containerAdapter.AddTransient<TransactionMode, TransactionMode>();
             services.AddTransient<IUnitOfWorkScope, UnitOfWorkScope>();
             services.AddTransient<IUnitOfWorkScopeFactory, UnitOfWorkScopeFactory>();
+            _services = services;
         }
 
-        /// <summary>
-        /// Sets <see cref="UnitOfWorkScope"/> instances to auto complete when disposed.
-        /// </summary>
-        public IUnitOfWorkConfiguration AutoCompleteScope()
+        public IUnitOfWorkConfiguration SetOptions(Action<UnitOfWorkSettings> unitOfWorkOptions)
         {
-            _autoCompleteScope = true;
-            return this;
-        }
-
-        /// <summary>
-        /// Sets the default isolation level used by <see cref="UnitOfWorkScope"/>.
-        /// </summary>
-        /// <param name="isolationLevel"></param>
-        public IUnitOfWorkConfiguration UseDefaultIsolation(IsolationLevel isolationLevel)
-        {
-            _defaultIsolation = isolationLevel;
+            this._services.Configure<UnitOfWorkSettings>(unitOfWorkOptions);
             return this;
         }
     }

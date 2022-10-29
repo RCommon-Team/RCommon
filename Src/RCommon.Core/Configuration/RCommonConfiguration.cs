@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using MediatR;
 using System.Reflection;
-using RCommon.StateStorage;
 
 namespace RCommon
 {
@@ -13,7 +12,6 @@ namespace RCommon
     {
         public IServiceCollection Services { get; }
 
-        private bool _stateConfigured = false;
         private bool _guidConfigured = false;
         private bool _dateTimeConfigured = false;
 
@@ -22,27 +20,7 @@ namespace RCommon
             Guard.Against<NullReferenceException>(services == null, "IServiceCollection cannot be null");
             Services = services;
 
-            this.Services.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>(); // Required to figure out if Web app or not
             this.Services.AddMediatR(Assembly.GetEntryAssembly()); // MediaR is a first class citizen in the RCommon Framework
-        }
-
-       
-        
-        public IRCommonConfiguration WithStateStorage(IStateStorageConfiguration stateStorage, Action<IStateStorageConfiguration> actions)
-        {
-            Guard.Against<RCommonConfigurationException>(this._stateConfigured, 
-                "State Storage has already been configured once. You cannot configure multiple times");
-
-            actions(stateStorage);
-
-            Guard.Against<RCommonConfigurationException>(stateStorage.ContextStateSelector == null,
-                "You must set the ContextStateSelector property when configuring IStateStorageConfiguration");
-
-            this.Services.AddTransient(typeof(IContextStateSelector), stateStorage.ContextStateSelector.GetType());
-            this.Services.AddTransient<IContextState, ContextStateWrapper>();
-            this.Services.AddTransient<IStateStorage, StateStorageWrapper>();
-            this._stateConfigured = true;
-            return this;
         }
 
         public IRCommonConfiguration WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)

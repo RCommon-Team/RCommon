@@ -5,6 +5,6 @@ namespace RCommon
 {
     public interface IDapperConfiguration : IObjectAccessConfiguration
     {
-        IDapperConfiguration AddDbConnection<TDbConnection>(Action<RDbConnectionOptions> options) where TDbConnection : IRDbConnection;
+        IDapperConfiguration AddDbConnection<TDbConnection>(string dataStoreName, Action<RDbConnectionOptions> options) where TDbConnection : IRDbConnection;
     }
 }

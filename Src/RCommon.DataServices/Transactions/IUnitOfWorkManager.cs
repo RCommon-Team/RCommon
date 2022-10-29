@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Concurrent;
 
 namespace RCommon.DataServices.Transactions
 {
     public interface IUnitOfWorkManager
     {
-        IUnitOfWorkTransactionManager CurrentTransactionManager { get; }
-        IUnitOfWork CurrentUnitOfWork { get; }
+        IUnitOfWorkScope CurrentUnitOfWork { get; }
+        ConcurrentDictionary<Guid, IUnitOfWorkScope> EnlistedTransactions { get; }
 
-        void SetTransactionManagerProvider(Func<IUnitOfWorkTransactionManager> transactionManager);
+        bool EnlistUnitOfWork(IUnitOfWorkScope unitOfWorkScope);
     }
 }

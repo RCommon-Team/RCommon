@@ -26,9 +26,10 @@ namespace RCommon.Persistence.Dapper
         where TEntity : class, IBusinessEntity
     {
 
-        public DapperRepository(IDataStoreProvider dataStoreProvider, ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, 
-            IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreProvider, logger, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+        public DapperRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, 
+            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            : base(dataStoreRegistry, dataStoreEnlistmentProvider, logger, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
         }
@@ -331,7 +332,6 @@ namespace RCommon.Persistence.Dapper
                 {
                     Guard.Against<NullReferenceException>(this.DataStore == null, "DataStore is null");
                     this.DataStore.PersistChanges(); // This dispatches the events
-                    this.DataStoreProvider.RemoveRegisteredDataStores(this.DataStore.GetType(), Guid.Empty); // Remove any instance of this type so a fresh instance is used next time
                 }
             }
             catch (ApplicationException exception)

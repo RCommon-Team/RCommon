@@ -21,7 +21,7 @@ namespace RCommon.Persistence.Dapper.Tests
     [TestFixture()]
     public class DapperRepositoryIntegrationTests : DapperTestBase
     {
-        private IDataStoreProvider _dataStoreProvider;
+        private IDataStoreRegistry _dataStoreRegistry;
 
         public DapperRepositoryIntegrationTests() : base()
         {
@@ -35,9 +35,9 @@ namespace RCommon.Persistence.Dapper.Tests
         public void InitialSetup()
         {
             this.Logger.LogInformation("Beginning Onetime setup");
-            _dataStoreProvider = this.ServiceProvider.GetService<IDataStoreProvider>();
+            _dataStoreRegistry = this.ServiceProvider.GetService<IDataStoreRegistry>();
 
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             repo.ResetDatabase();
 
@@ -54,11 +54,9 @@ namespace RCommon.Persistence.Dapper.Tests
         {
             this.Logger.LogInformation("Tearing down Test");
 
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             repo.ResetDatabase();
-
-            _dataStoreProvider.RemoveRegisteredDataStores(context.GetType(), Guid.Empty);
             await Task.CompletedTask;
         }
 
@@ -66,7 +64,7 @@ namespace RCommon.Persistence.Dapper.Tests
         public async Task Can_Find_Async_By_Primary_Key()
         {
             var customer = TestDataActions.CreateCustomerStub();
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             var testData = new List<Customer>();
             testData.Add(customer);
@@ -87,7 +85,7 @@ namespace RCommon.Persistence.Dapper.Tests
         public async Task Can_Find_Single_Async_With_Expression()
         {
             var customer = TestDataActions.CreateCustomerStub(x => x.ZipCode = "30062");
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             var testData = new List<Customer>();
             testData.Add(customer);
@@ -107,7 +105,7 @@ namespace RCommon.Persistence.Dapper.Tests
         [Test]
         public async Task Can_Find_Async_With_Expression()
         {
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             var testData = new List<Customer>();
 
@@ -133,7 +131,7 @@ namespace RCommon.Persistence.Dapper.Tests
         [Test]
         public async Task Can_Get_Count_Async_With_Expression()
         {
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             var testData = new List<Customer>();
 
@@ -157,7 +155,7 @@ namespace RCommon.Persistence.Dapper.Tests
         [Test]
         public async Task Can_Get_Any_Async_With_Expression()
         {
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             var testData = new List<Customer>();
 
@@ -181,7 +179,7 @@ namespace RCommon.Persistence.Dapper.Tests
         public async Task Can_use_default_data_store()
         {
             var customer = TestDataActions.CreateCustomerStub();
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             var testData = new List<Customer>();
             testData.Add(customer);
@@ -231,7 +229,7 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Severnus");
             testData.Add(customer);
 
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             var ids = await repo.PersistSeedData(testData);
 
@@ -262,7 +260,7 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
             testData.Add(customer);
 
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             var ids = await repo.PersistSeedData(testData);
             var id = ids.First();
@@ -315,7 +313,7 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
             testData.Add(customer);
 
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
+            var context = _dataStoreRegistry.GetDataStore<RDbConnection>("TestDbConnection");
             var repo = new TestRepository(context.GetDbConnection());
             await repo.PersistSeedData(testData);
 

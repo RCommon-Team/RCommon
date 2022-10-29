@@ -38,7 +38,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
         {
             var leaveAllocations = new List<LeaveAllocation>();
             var allocations = new List<LeaveAllocationDto>();
-            _leaveAllocationRepository.EagerlyWith(x => x.LeaveType);
+            _leaveAllocationRepository.Include(x => x.LeaveType);
             if (request.IsLoggedInUser)
             {
                 var userId = _httpContextAccessor.HttpContext.User.FindFirst(
