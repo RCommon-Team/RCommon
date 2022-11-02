@@ -10,37 +10,37 @@ namespace RCommon.DataServices.Transactions
     {
         private bool _disposed = false;
         private ILogger<UnitOfWorkScopeManager> _logger;
-        private IUnitOfWorkScope _currentUnitOfWork;
+        private IUnitOfWork _currentUnitOfWork;
 
 
         public UnitOfWorkScopeManager(ILogger<UnitOfWorkScopeManager> logger)
         {
             _logger = logger;
-            this.EnlistedTransactions = new ConcurrentDictionary<Guid, IUnitOfWorkScope>();
+            this.EnlistedTransactions = new ConcurrentDictionary<Guid, IUnitOfWork>();
         }
 
-        public bool EnlistUnitOfWork(IUnitOfWorkScope unitOfWorkScope)
+        public bool EnlistUnitOfWork(IUnitOfWork unitOfWorkScope)
         {
             unitOfWorkScope.ScopeBeginning += OnUnitOfWorkScopeBeginning;
             unitOfWorkScope.ScopeCompleted += OnUnitOfWorkScopeCompleted;
             return this.EnlistedTransactions.TryAdd(unitOfWorkScope.TransactionId, unitOfWorkScope);
         }
 
-        private void OnUnitOfWorkScopeCompleted(IUnitOfWorkScope unitOfWorkScope)
+        private void OnUnitOfWorkScopeCompleted(IUnitOfWork unitOfWorkScope)
         {
             this.EnlistedTransactions.TryRemove(unitOfWorkScope.TransactionId, out _);
             this._logger.LogDebug("UnitOfWorkScope {0} Removed from enlisted transactions", unitOfWorkScope.TransactionId);
         }
 
-        private void OnUnitOfWorkScopeBeginning(IUnitOfWorkScope unitOfWorkScope)
+        private void OnUnitOfWorkScopeBeginning(IUnitOfWork unitOfWorkScope)
         {
             this._currentUnitOfWork = unitOfWorkScope;
         }
 
         /// <summary>
-        /// Gets the current <see cref="IUnitOfWorkScope"/> instance.
+        /// Gets the current <see cref="IUnitOfWork"/> instance.
         /// </summary>
-        public IUnitOfWorkScope CurrentUnitOfWork
+        public IUnitOfWork CurrentUnitOfWork
         {
             get
             {
@@ -48,7 +48,7 @@ namespace RCommon.DataServices.Transactions
             }
         }
 
-        public ConcurrentDictionary<Guid, IUnitOfWorkScope> EnlistedTransactions { get; }
+        public ConcurrentDictionary<Guid, IUnitOfWork> EnlistedTransactions { get; }
 
         protected override void Dispose(bool disposing)
         {

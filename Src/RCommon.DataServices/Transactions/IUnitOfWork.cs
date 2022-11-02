@@ -21,27 +21,27 @@ namespace RCommon.DataServices.Transactions
 {
     ///<summary>
     ///</summary>
-    public interface IUnitOfWorkScope : IDisposable, IAsyncDisposable
+    public interface IUnitOfWork : IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Event fired when the scope is comitting.
         /// </summary>
-        event Action<IUnitOfWorkScope> ScopeComitting;
+        event Action<IUnitOfWork> ScopeComitting;
 
         /// <summary>
         /// Event fired when the scope is rollingback.
         /// </summary>
-        event Action<IUnitOfWorkScope> ScopeRollingback;
+        event Action<IUnitOfWork> ScopeRollingback;
 
         /// <summary>
         /// Event fired when scope is beginning
         /// </summary>
-        event Action<IUnitOfWorkScope> ScopeBeginning;
+        event Action<IUnitOfWork> ScopeBeginning;
 
         /// <summary>
         /// Event fired when scope is completed
         /// </summary>
-        event Action<IUnitOfWorkScope> ScopeCompleted;
+        event Action<IUnitOfWork> ScopeCompleted;
 
         /// <summary>
         /// Gets the unique Id of the <see cref="UnitOfWorkScope"/>.

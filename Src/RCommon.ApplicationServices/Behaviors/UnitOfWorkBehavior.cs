@@ -13,13 +13,13 @@ namespace RCommon.ApplicationServices.Behaviors
         where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<UnitOfWorkBehavior<TRequest, TResponse>> _logger;
-        private readonly IUnitOfWorkScopeFactory _unitOfWorkScopeFactory;
+        private readonly IUnitOfWorkFactory _unitOfWorkScopeFactory;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public UnitOfWorkBehavior(IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
+        public UnitOfWorkBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
             ILogger<UnitOfWorkBehavior<TRequest, TResponse>> logger)
         {
-            _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkScopeFactory));
+            _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkFactory));
             _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 
             _logger = logger ?? throw new ArgumentException(nameof(ILogger));
         }

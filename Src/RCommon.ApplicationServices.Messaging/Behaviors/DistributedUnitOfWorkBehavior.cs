@@ -14,13 +14,13 @@ namespace RCommon.ApplicationServices.Messaging.Behaviors
     {
         private readonly ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> _logger;
         private readonly IDistributedEventBroker _distributedEventBroker;
-        private readonly IUnitOfWorkScopeFactory _unitOfWorkScopeFactory;
+        private readonly IUnitOfWorkFactory _unitOfWorkScopeFactory;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public DistributedUnitOfWorkBehavior(IUnitOfWorkScopeFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
+        public DistributedUnitOfWorkBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
             ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> logger, IDistributedEventBroker distributedEventBroker)
         {
-            _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkScopeFactory));
+            _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkFactory));
             _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 
             _logger = logger ?? throw new ArgumentException(nameof(ILogger));
             _distributedEventBroker = distributedEventBroker;

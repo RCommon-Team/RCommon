@@ -7,7 +7,7 @@ using System.Transactions;
 
 namespace RCommon.DataServices.Transactions
 {
-    public class UnitOfWorkScope : DisposableResource, IUnitOfWorkScope
+    public class UnitOfWorkScope : DisposableResource, IUnitOfWork
     {
         private bool _disposed = false;
         private bool _commitAttempted = false;
@@ -21,10 +21,10 @@ namespace RCommon.DataServices.Transactions
         private TransactionScope _transactionScope;
         private readonly UnitOfWorkSettings _unitOfWorkSettings;
 
-        public event Action<IUnitOfWorkScope> ScopeComitting;
-        public event Action<IUnitOfWorkScope> ScopeRollingback;
-        public event Action<IUnitOfWorkScope> ScopeBeginning;
-        public event Action<IUnitOfWorkScope> ScopeCompleted;
+        public event Action<IUnitOfWork> ScopeComitting;
+        public event Action<IUnitOfWork> ScopeRollingback;
+        public event Action<IUnitOfWork> ScopeBeginning;
+        public event Action<IUnitOfWork> ScopeCompleted;
 
         public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
             IGuidGenerator guidGenerator, ILogger<UnitOfWorkScope> logger, IOptions<UnitOfWorkSettings> unitOfWorkSettings)
