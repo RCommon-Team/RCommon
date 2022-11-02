@@ -13,19 +13,31 @@ using RCommon.DataServices.Transactions;
 using RCommon.DataServices.Sql;
 using System.Threading;
 using RCommon.Collections;
+using Microsoft.Extensions.Options;
+using RCommon.Extensions;
 
 namespace RCommon.Persistence
 {
     public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>
        where TEntity : IBusinessEntity
     {
-        private readonly ILogger _logger;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
+        private string _dataStoreName;
+        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
 
-        public LinqRepositoryBase(ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager)
+        public LinqRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
+            IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            _logger = logger.CreateLogger(this.GetType().Name);
-            _unitOfWorkManager = unitOfWorkManager;
+            DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
+            _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
+            UnitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
+            ChangeTracker = changeTracker ?? throw new ArgumentNullException(nameof(changeTracker));
+
+            if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
+                && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
+            {
+                this.DataStoreName = defaultDataStoreOptions.Value.DefaultDataStoreName;
+            }
         }
 
 
@@ -97,7 +109,6 @@ namespace RCommon.Persistence
         }
 
 
-        public string DataStoreName { get; set; }
         public abstract IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
@@ -133,6 +144,25 @@ namespace RCommon.Persistence
             }
         }
 
+        public IDataStoreRegistry DataStoreRegistry { get; }
+        public ILogger Logger { get; set; }
+        public IUnitOfWorkManager UnitOfWorkManager { get; }
+        public IChangeTracker ChangeTracker { get; }
+        public string DataStoreName
+        {
+            get => _dataStoreName;
+            set
+            {
+                _dataStoreName = value;
+                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
+
+                // Enlist Data Stores that are participating in transactions
+                if (this.UnitOfWorkManager.CurrentUnitOfWork != null)
+                {
+                    this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWork.TransactionId, dataStore);
+                }
+            }
+        }
     }
 
 }

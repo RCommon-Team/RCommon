@@ -20,11 +20,10 @@ namespace RCommon.Persistence.Linq2Db
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
 
-            // EF Core Repository
-            //services.AddTransient(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
-            //services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
-            //services.AddTransient(typeof(ILinqRepository<>), typeof(EFCoreRepository<>));
-            //services.AddTransient(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
+            // Linq2Db Repository
+            services.AddTransient(typeof(IReadOnlyRepository<>), typeof(Linq2DbRepository<>));
+            services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(Linq2DbRepository<>));
+            services.AddTransient(typeof(ILinqRepository<>), typeof(Linq2DbRepository<>));
         }
 
 

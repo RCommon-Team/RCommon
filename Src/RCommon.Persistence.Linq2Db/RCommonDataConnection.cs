@@ -19,7 +19,8 @@ namespace RCommon.Persistence.Linq2Db
         private readonly IChangeTracker _changeTracker;
         private readonly IMediator _mediator;
 
-        public RCommonDataConnection(IChangeTracker changeTracker, IMediator mediator, IOptions<LinqToDBConnectionOptions> linq2DbOptions):base()
+        public RCommonDataConnection(IChangeTracker changeTracker, IMediator mediator, IOptions<LinqToDBConnectionOptions> linq2DbOptions)
+            :base()
         {
             var options = linq2DbOptions ?? throw new ArgumentNullException(nameof(linq2DbOptions));
             _linq2DbOptions = linq2DbOptions.Value ?? throw new ArgumentNullException(nameof(linq2DbOptions.Value));

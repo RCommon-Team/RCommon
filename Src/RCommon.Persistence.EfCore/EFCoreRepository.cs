@@ -30,7 +30,7 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity> : GraphRepositoryBase<TEntity>, IEFCoreRepository<TEntity>
+    public class EFCoreRepository<TEntity> : GraphRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
         private readonly List<string> _includes;

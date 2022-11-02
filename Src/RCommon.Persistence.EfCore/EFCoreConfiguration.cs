@@ -42,8 +42,8 @@ namespace RCommon
             // EF Core Repository
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
-            services.AddTransient(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(ILinqRepository<>), typeof(EFCoreRepository<>));
+            services.AddTransient(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
         }
 
 
