@@ -40,12 +40,10 @@ namespace RCommon
             _services = services ?? throw new ArgumentNullException(nameof(services));
 
             // EF Core Repository
-            services.AddTransient(typeof(IFullFeaturedRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(ILinqRepository<>), typeof(EFCoreRepository<>));
-            services.AddTransient(typeof(IEagerFetchingRepository<>), typeof(EFCoreRepository<>));
         }
 
 

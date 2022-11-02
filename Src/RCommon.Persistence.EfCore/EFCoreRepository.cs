@@ -30,7 +30,7 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity>
+    public class EFCoreRepository<TEntity> : GraphRepositoryBase<TEntity>, IEFCoreRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
         private readonly List<string> _includes;
@@ -76,18 +76,6 @@
         public IQueryable<TEntity> CreateQuery()
         {
             return this.ObjectSet.AsQueryable<TEntity>();
-        }
-
-        public override async Task AttachAsync(TEntity entity, CancellationToken token = default)
-        {
-            this.ObjectContext.Attach<TEntity>(entity);
-            await this.SaveAsync(token);
-        }
-
-        public override async Task DetachAsync(TEntity entity, CancellationToken token = default)
-        {
-            this.ObjectContext.Entry<TEntity>(entity).State = EntityState.Detached;
-            await this.SaveAsync(token);
         }
 
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)

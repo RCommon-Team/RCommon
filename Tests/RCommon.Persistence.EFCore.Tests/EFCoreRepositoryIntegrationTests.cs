@@ -74,7 +74,7 @@ namespace RCommon.Persistence.EFCore.Tests
             testData.Add(customer);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customerRepo.DataStoreName = "TestDbContext";
             
             var savedCustomer = await customerRepo
@@ -95,7 +95,7 @@ namespace RCommon.Persistence.EFCore.Tests
             testData.Add(customer);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
@@ -119,7 +119,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var repo = new TestRepository(context);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             
             var customers = await customerRepo
                     .FindAsync(x => x.FirstName.StartsWith("li"), x => x.LastName, true, 1, 10);
@@ -157,7 +157,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var repo = new TestRepository(context);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
             var customerSearchSpec = new CustomerSearchSpec("ba", x => x.FirstName, true, 1, 10);
 
@@ -199,7 +199,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var repo = new TestRepository(context);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
             var predicate = PredicateBuilder.True<Customer>(); // This allows us to build compound expressions
             predicate.And(x => x.FirstName.StartsWith("Ho"));
@@ -225,7 +225,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             await customerRepo.AddAsync(customer);
 
             Customer savedCustomer = null;
@@ -258,7 +258,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customerRepo.Include(x => x.Orders);
             await customerRepo.AddAsync(customer);
 
@@ -286,7 +286,7 @@ namespace RCommon.Persistence.EFCore.Tests
             repo.PersistSeedData(testData);
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customer.FirstName = "Darth";
             customer.LastName = "Vader";
             await customerRepo.UpdateAsync(customer);
@@ -314,7 +314,7 @@ namespace RCommon.Persistence.EFCore.Tests
             repo.PersistSeedData(testData);
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             await customerRepo.DeleteAsync(customer);
 
             Customer savedCustomer = null;
@@ -338,7 +338,7 @@ namespace RCommon.Persistence.EFCore.Tests
             // Start Test
             using (var scope = scopeFactory.Create())
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
                 await customerRepo.AddAsync(customer);
                 scope.Commit();
@@ -366,7 +366,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
             using (var scope = scopeFactory.Create())
             {
@@ -395,12 +395,12 @@ namespace RCommon.Persistence.EFCore.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
                 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
                     await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
@@ -436,7 +436,7 @@ namespace RCommon.Persistence.EFCore.Tests
             this.Logger.LogInformation("Starting initial UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
                 this.Logger.LogInformation("Adding New Customer from first UnitOfWorkScope ", customer);
                 await customerRepo.AddAsync(customer);
@@ -444,7 +444,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 this.Logger.LogInformation("Starting new UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
                 using (var scope2 = scopeFactory.Create(TransactionMode.New))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
 
                     this.Logger.LogInformation("Adding New Order from first UnitOfWorkScope ", order);
                     await orderRepo.AddAsync(order);
@@ -480,12 +480,12 @@ namespace RCommon.Persistence.EFCore.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
                     await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
@@ -512,8 +512,8 @@ namespace RCommon.Persistence.EFCore.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            var salesPersonRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<SalesPerson>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
 
             try
             {
@@ -552,8 +552,8 @@ namespace RCommon.Persistence.EFCore.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-                var salesPersonRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<SalesPerson>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
 
                 await customerRepo.AddAsync(customer);
                 await salesPersonRepo.AddAsync(salesPerson);
@@ -587,8 +587,8 @@ namespace RCommon.Persistence.EFCore.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-                var salesPersonRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<SalesPerson>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
 
                 await customerRepo.AddAsync(customer);
                 await salesPersonRepo.AddAsync(salesPerson);
@@ -620,12 +620,12 @@ namespace RCommon.Persistence.EFCore.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Supress))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
                     await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
@@ -661,7 +661,7 @@ namespace RCommon.Persistence.EFCore.Tests
             }
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customerRepo.Include(x => x.Orders);
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);

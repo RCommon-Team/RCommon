@@ -15,9 +15,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
     public class DeleteLeaveTypeCommandHandler : IRequestHandler<DeleteLeaveTypeCommand>
     {
         private readonly IMapper _mapper;
-        private readonly IFullFeaturedRepository<LeaveType> _leaveTypeRepository;
+        private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
 
-        public DeleteLeaveTypeCommandHandler(IMapper mapper, IFullFeaturedRepository<LeaveType> leaveTypeRepository)
+        public DeleteLeaveTypeCommandHandler(IMapper mapper, IGraphRepository<LeaveType> leaveTypeRepository)
         {
             _mapper = mapper;
             _leaveTypeRepository = leaveTypeRepository;

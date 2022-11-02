@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace RCommon.Persistence.EFCore
 {
     public interface IEFCoreRepository<TEntity> : IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>, 
-        IGraphRepository<TEntity>, IEagerFetchingRepository<TEntity>, ILinqRepository<TEntity>
-        where TEntity : IBusinessEntity
+        IGraphRepository<TEntity>, ILinqRepository<TEntity>
+        where TEntity : class, IBusinessEntity
     {
 
         

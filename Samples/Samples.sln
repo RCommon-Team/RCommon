@@ -71,6 +71,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Emailing.Tests", ".
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Emailing.SendGrid.Tests", "..\Tests\RCommon.Emailing.SendGrid.Tests\RCommon.Emailing.SendGrid.Tests.csproj", "{02314B28-8C8C-4341-8D3B-598FEA8CFF8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Persistence.Linq2Db", "..\Src\RCommon.Persistence.Linq2Db\RCommon.Persistence.Linq2Db.csproj", "{2B494844-B218-43B8-9FC3-9D0B2BC22BD6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -193,6 +195,10 @@ Global
 		{02314B28-8C8C-4341-8D3B-598FEA8CFF8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02314B28-8C8C-4341-8D3B-598FEA8CFF8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02314B28-8C8C-4341-8D3B-598FEA8CFF8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B494844-B218-43B8-9FC3-9D0B2BC22BD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B494844-B218-43B8-9FC3-9D0B2BC22BD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B494844-B218-43B8-9FC3-9D0B2BC22BD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B494844-B218-43B8-9FC3-9D0B2BC22BD6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -229,6 +235,7 @@ Global
 		{D8206662-51A8-4407-8B0D-8E5F53A73F19} = {2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}
 		{338D0653-63A9-401E-AC2C-2804BC7FEE1D} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{02314B28-8C8C-4341-8D3B-598FEA8CFF8E} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
+		{2B494844-B218-43B8-9FC3-9D0B2BC22BD6} = {2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

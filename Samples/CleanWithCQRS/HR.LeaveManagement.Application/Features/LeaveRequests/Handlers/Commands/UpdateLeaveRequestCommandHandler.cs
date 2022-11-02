@@ -17,15 +17,15 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
 {
     public class UpdateLeaveRequestCommandHandler : IRequestHandler<UpdateLeaveRequestCommand, Unit>
     {
-        private readonly IFullFeaturedRepository<LeaveRequest> _leaveRequestRepository;
+        private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
-        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
+        private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
 
         public UpdateLeaveRequestCommandHandler(
-            IFullFeaturedRepository<LeaveRequest> leaveRequestRepository,
+            IGraphRepository<LeaveRequest> leaveRequestRepository,
             IReadOnlyRepository<LeaveType> leaveTypeRepository,
-            IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository,
+            IGraphRepository<LeaveAllocation> leaveAllocationRepository,
              IMapper mapper)
         {
             this._leaveRequestRepository = leaveRequestRepository;

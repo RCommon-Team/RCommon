@@ -15,9 +15,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
 {
     public class DeleteLeaveRequestCommandHandler : IRequestHandler<DeleteLeaveRequestCommand>
     {
-        private readonly IFullFeaturedRepository<LeaveRequest> _leaveRequestRepository;
+        private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
 
-        public DeleteLeaveRequestCommandHandler(IFullFeaturedRepository<LeaveRequest> leaveRequestRepository)
+        public DeleteLeaveRequestCommandHandler(IGraphRepository<LeaveRequest> leaveRequestRepository)
         {
             this._leaveRequestRepository = leaveRequestRepository;
             this._leaveRequestRepository.DataStoreName = "LeaveManagement";

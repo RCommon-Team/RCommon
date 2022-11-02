@@ -30,7 +30,7 @@ namespace RCommon.Persistence
 
 
         /// <summary>
-        /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="FullFeaturedRepositoryBase{TEntity}"/> 
+        /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="GraphRepositoryBase{TEntity}"/> 
         /// to execute Linq queries.
         /// </summary>
         /// <value>A <see cref="IQueryable{TEntity}"/> instance.</value>

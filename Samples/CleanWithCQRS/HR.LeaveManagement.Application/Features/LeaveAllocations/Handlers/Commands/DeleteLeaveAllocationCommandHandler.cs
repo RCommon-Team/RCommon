@@ -15,10 +15,10 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
 {
     public class DeleteLeaveAllocationCommandHandler : IRequestHandler<DeleteLeaveAllocationCommand>
     {
-        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
+        private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
 
-        public DeleteLeaveAllocationCommandHandler(IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
+        public DeleteLeaveAllocationCommandHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
         {
             this._leaveAllocationRepository = leaveAllocationRepository;
             this._leaveAllocationRepository.DataStoreName = "LeaveManagement";

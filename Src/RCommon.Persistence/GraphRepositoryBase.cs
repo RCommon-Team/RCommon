@@ -35,14 +35,14 @@ namespace RCommon.Persistence
     /// A base class for implementors of <see cref="IRepository{TEntity}"/>.
     ///</summary>
     ///<typeparam name="TEntity"></typeparam>
-    public abstract class FullFeaturedRepositoryBase<TEntity> : DisposableResource, IFullFeaturedRepository<TEntity>
+    public abstract class GraphRepositoryBase<TEntity> : DisposableResource, IGraphRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
 
         private string _dataStoreName;
         private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
 
-        public FullFeaturedRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
+        public GraphRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
             IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
             DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
@@ -58,7 +58,7 @@ namespace RCommon.Persistence
         }
 
         /// <summary>
-        /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="FullFeaturedRepositoryBase{TEntity}"/> 
+        /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="GraphRepositoryBase{TEntity}"/> 
         /// to execute Linq queries.
         /// </summary>
         /// <value>A <see cref="IQueryable{TEntity}"/> instance.</value>
@@ -125,26 +125,6 @@ namespace RCommon.Persistence
         }
 
 
-
-        
-
-
-        /// <summary>
-        /// Attaches a detached entity, previously detached via the method.
-        /// </summary>
-        /// <param name="entity">The entity instance to attach back to the repository.</param>
-        /// <param name="token">Cancellation Token</param>
-        public abstract Task AttachAsync(TEntity entity, CancellationToken token = default);
-
-        /// <summary>
-        /// Detaches an entity.
-        /// </summary>
-        /// <param name="entity">Entity to detach from the repository</param>
-        /// <param name="token">Cancellation Token</param>
-        /// <returns>Task</returns>
-        public abstract Task DetachAsync(TEntity entity, CancellationToken token = default);
-
-
         /// <summary>
         /// Querries the repository based on the provided specification and returns results that
         /// are only satisfied by the specification.
@@ -160,7 +140,7 @@ namespace RCommon.Persistence
 
         protected abstract void ApplyFetchingStrategy(Expression[] paths);
 
-        public IEagerFetchingRepository<TEntity> Include(Action<EagerFetchingStrategy<TEntity>> strategyActions)
+        public IGraphRepository<TEntity> Include(Action<EagerFetchingStrategy<TEntity>> strategyActions)
         {
             EagerFetchingStrategy<TEntity> strategy = new EagerFetchingStrategy<TEntity>();
             strategyActions(strategy);
@@ -168,7 +148,7 @@ namespace RCommon.Persistence
             return this;
         }
 
-        public IEagerFetchingRepository<TEntity> Include(Expression<Func<TEntity, object>> path)
+        public IGraphRepository<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
             Expression<Func<TEntity, object>>[] expressionArray = new Expression<Func<TEntity, object>>[] { path };
             this.ApplyFetchingStrategy((Expression[])expressionArray);

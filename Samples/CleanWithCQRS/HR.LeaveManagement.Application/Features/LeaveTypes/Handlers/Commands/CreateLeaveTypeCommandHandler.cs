@@ -18,8 +18,8 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
     public class CreateLeaveTypeCommandHandler : IRequestHandler<CreateLeaveTypeCommand, BaseCommandResponse>
     {
         private readonly IMapper _mapper;
-        private readonly IFullFeaturedRepository<LeaveType> _leaveTypeRepository;
-        public CreateLeaveTypeCommandHandler(IMapper mapper, IFullFeaturedRepository<LeaveType> leaveTypeRepository)
+        private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
+        public CreateLeaveTypeCommandHandler(IMapper mapper, IGraphRepository<LeaveType> leaveTypeRepository)
         {
             _mapper = mapper;
             _leaveTypeRepository = leaveTypeRepository;

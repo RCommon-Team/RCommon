@@ -20,12 +20,12 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
 {
     public class GetLeaveRequestListRequestHandler : IRequestHandler<GetLeaveRequestListRequest, List<LeaveRequestListDto>>
     {
-        private readonly IFullFeaturedRepository<LeaveRequest> _leaveRequestRepository;
+        private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserService _userService;
 
-        public GetLeaveRequestListRequestHandler(IFullFeaturedRepository<LeaveRequest> leaveRequestRepository,
+        public GetLeaveRequestListRequestHandler(IGraphRepository<LeaveRequest> leaveRequestRepository,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
             IUserService userService)
