@@ -5,9 +5,9 @@ namespace RCommon.DataServices.Transactions
 {
     public interface IUnitOfWorkManager
     {
-        IUnitOfWorkScope CurrentUnitOfWork { get; }
-        ConcurrentDictionary<Guid, IUnitOfWorkScope> EnlistedTransactions { get; }
+        IUnitOfWork CurrentUnitOfWork { get; }
+        ConcurrentDictionary<Guid, IUnitOfWork> EnlistedTransactions { get; }
 
-        bool EnlistUnitOfWork(IUnitOfWorkScope unitOfWorkScope);
+        bool EnlistUnitOfWork(IUnitOfWork unitOfWorkScope);
     }
 }

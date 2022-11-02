@@ -331,7 +331,7 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
             var repo = new TestRepository(context);
 
@@ -365,7 +365,7 @@ namespace RCommon.Persistence.EFCore.Tests
             repo.PersistSeedData(testData);
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
 
             using (var scope = scopeFactory.Create())
@@ -389,7 +389,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var order = TestDataActions.CreateOrderStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
             var repo = new TestRepository(context);
 
@@ -425,7 +425,7 @@ namespace RCommon.Persistence.EFCore.Tests
             this.Logger.LogInformation("Generating Test Data for: {0}", MethodBase.GetCurrentMethod());
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             Customer customer = TestDataActions.CreateCustomerStub();
             Order order = TestDataActions.CreateOrderStub();
@@ -474,7 +474,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var order = TestDataActions.CreateOrderStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
             var repo = new TestRepository(context);
 
@@ -510,7 +510,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var repo = new TestRepository(context);
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
             var salesPersonRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<SalesPerson>>();
@@ -548,7 +548,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var repo = new TestRepository(context);
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
@@ -580,7 +580,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
             var repo = new TestRepository(context);
@@ -613,7 +613,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var order = TestDataActions.CreateOrderStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
             var repo = new TestRepository(context);

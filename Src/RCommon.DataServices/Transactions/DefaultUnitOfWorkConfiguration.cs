@@ -38,8 +38,8 @@ namespace RCommon.DataServices.Transactions
             services.AddScoped<IUnitOfWorkManager, UnitOfWorkScopeManager>();
 
             // Factory for Unit Of Work Scope
-            services.AddTransient<IUnitOfWorkScope, UnitOfWorkScope>();
-            services.AddTransient<IUnitOfWorkScopeFactory, UnitOfWorkScopeFactory>();
+            services.AddTransient<IUnitOfWork, UnitOfWorkScope>();
+            services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
             _services = services;
         }
 

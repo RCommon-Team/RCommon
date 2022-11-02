@@ -285,7 +285,7 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
 
             // Start Test
@@ -318,7 +318,7 @@ namespace RCommon.Persistence.Dapper.Tests
             await repo.PersistSeedData(testData);
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             customerRepo.DataStoreName = "TestDbConnection";
 
@@ -344,7 +344,7 @@ namespace RCommon.Persistence.Dapper.Tests
             var salesPerson = TestDataActions.CreateSalesPersonStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             repo.DataStoreName = "TestDbConnection";
 
@@ -381,7 +381,7 @@ namespace RCommon.Persistence.Dapper.Tests
             this.Logger.LogInformation("Generating Test Data for: {0}", MethodBase.GetCurrentMethod());
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             var customer = TestDataActions.CreateCustomerStub();
             var salesPerson = TestDataActions.CreateSalesPersonStub();
@@ -429,7 +429,7 @@ namespace RCommon.Persistence.Dapper.Tests
             var salesPerson = TestDataActions.CreateSalesPersonStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             repo.DataStoreName = "TestDbConnection";
@@ -461,7 +461,7 @@ namespace RCommon.Persistence.Dapper.Tests
             var salesPerson = TestDataActions.CreateSalesPersonStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
@@ -495,7 +495,7 @@ namespace RCommon.Persistence.Dapper.Tests
             var salesPerson = TestDataActions.CreateSalesPersonStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             repo.DataStoreName = "TestDbConnection";
@@ -530,7 +530,7 @@ namespace RCommon.Persistence.Dapper.Tests
             var salesPerson = TestDataActions.CreateSalesPersonStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             repo.DataStoreName = "TestDbConnection";
@@ -563,7 +563,7 @@ namespace RCommon.Persistence.Dapper.Tests
             var salesPerson = TestDataActions.CreateSalesPersonStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             repo.DataStoreName = "TestDbConnection";
