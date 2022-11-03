@@ -26,12 +26,12 @@ namespace RCommon.Persistence
         private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
 
         public LinqRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
             DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
             _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
             UnitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
-            ChangeTracker = changeTracker ?? throw new ArgumentNullException(nameof(changeTracker));
+            EventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
 
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
                 && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
@@ -147,7 +147,7 @@ namespace RCommon.Persistence
         public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
         public IUnitOfWorkManager UnitOfWorkManager { get; }
-        public IChangeTracker ChangeTracker { get; }
+        public IEventTracker EventTracker { get; }
         public string DataStoreName
         {
             get => _dataStoreName;

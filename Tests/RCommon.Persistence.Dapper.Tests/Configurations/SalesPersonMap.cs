@@ -21,7 +21,7 @@ namespace RCommon.Persistence.Dapper.Tests.Configurations
                 .SetGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Identity);
             Map(x => x.Department).Ignore();
             Map(x => x.LocalEvents).Ignore();
-            Map(x => x.AllowChangeTracking).Ignore();
+            Map(x => x.AllowEventTracking).Ignore();
         }
     }
 }

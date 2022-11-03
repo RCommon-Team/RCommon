@@ -2,7 +2,7 @@
 
 namespace RCommon.BusinessEntities
 {
-    public interface IChangeTracker
+    public interface IEventTracker
     {
         ICollection<IBusinessEntity> TrackedEntities { get; }
 

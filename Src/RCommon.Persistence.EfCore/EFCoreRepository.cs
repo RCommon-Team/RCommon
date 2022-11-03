@@ -47,9 +47,9 @@
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
         public EFCoreRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, 
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
-            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
             this._includes = new List<string>();
@@ -82,7 +82,7 @@
         {
             await this.ObjectSet.AddAsync(entity, token);
             entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
             await this.SaveAsync(token);
         }
 
@@ -91,7 +91,7 @@
         {
             this.ObjectSet.Remove(entity);
             entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
             await this.SaveAsync();
         }
 
@@ -99,7 +99,7 @@
         {
             this.ObjectSet.Update(entity);
             entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
             await this.SaveAsync(token);
         }
 

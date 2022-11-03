@@ -27,9 +27,9 @@ namespace RCommon.Persistence.Dapper
     {
 
         public DapperRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, 
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreRegistry, dataStoreEnlistmentProvider, logger, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+            : base(dataStoreRegistry, dataStoreEnlistmentProvider, logger, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
         }
@@ -47,7 +47,7 @@ namespace RCommon.Persistence.Dapper
                     }
 
                     entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
-                    this.ChangeTracker.AddEntity(entity);
+                    this.EventTracker.AddEntity(entity);
                     this.DispatchEvents();
                     await db.InsertAsync(entity, cancellationToken: token);
 
@@ -81,7 +81,7 @@ namespace RCommon.Persistence.Dapper
                     }
 
                     entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
-                    this.ChangeTracker.AddEntity(entity);
+                    this.EventTracker.AddEntity(entity);
                     this.DispatchEvents();
                     await db.DeleteAsync(entity, cancellationToken: token);
                 }
@@ -116,7 +116,7 @@ namespace RCommon.Persistence.Dapper
                     }
 
                     entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
-                    this.ChangeTracker.AddEntity(entity);
+                    this.EventTracker.AddEntity(entity);
                     this.DispatchEvents();
                     await db.UpdateAsync(entity, cancellationToken: token);
                 }

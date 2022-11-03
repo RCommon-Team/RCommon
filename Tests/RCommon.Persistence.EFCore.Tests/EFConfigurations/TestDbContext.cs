@@ -43,7 +43,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
 
         public TestDbContext(DbContextOptions<TestDbContext> options, IConfiguration configuration, 
-            IChangeTracker changeTracker, IMediator mediator) : base(options, changeTracker, mediator)
+            IEventTracker eventTracker, IMediator mediator) : base(options, eventTracker, mediator)
         {
             _configuration = configuration;
         }

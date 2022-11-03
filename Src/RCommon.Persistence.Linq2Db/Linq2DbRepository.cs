@@ -20,9 +20,9 @@ namespace RCommon.Persistence.Linq2Db
     {
 
         public Linq2DbRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker,
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker,
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
-            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
         }
@@ -67,7 +67,7 @@ namespace RCommon.Persistence.Linq2Db
         {
             await this.DataConnection.InsertAsync(entity, token: token);
             entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
         }
 
         public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
@@ -84,7 +84,7 @@ namespace RCommon.Persistence.Linq2Db
         {
             await this.DataConnection.DeleteAsync(entity);
             entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
         }
 
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
@@ -167,7 +167,7 @@ namespace RCommon.Persistence.Linq2Db
         {
             await this.DataConnection.UpdateAsync(entity, token: token);
             entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
         }
     }
 }

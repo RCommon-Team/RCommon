@@ -8,6 +8,6 @@ namespace RCommon.BusinessEntities
 {
     public interface ITrackedEntity
     {
-        bool AllowChangeTracking { get; set; }
+        bool AllowEventTracking { get; set; }
     }
 }

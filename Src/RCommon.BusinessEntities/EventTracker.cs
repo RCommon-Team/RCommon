@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.BusinessEntities
 {
-    public class ChangeTracker : IChangeTracker
+    public class EventTracker : IEventTracker
     {
         private readonly ICollection<IBusinessEntity> _businessEntities = new List<IBusinessEntity>();
 
-        public ChangeTracker()
+        public EventTracker()
         {
             
         }
@@ -21,8 +21,11 @@ namespace RCommon.BusinessEntities
         {
             Guard.Against<ArgumentNullException>(entity == null, $"Entity of type {entity.GetType().AssemblyQualifiedName} cannot be null");
 
-            entity.AllowChangeTracking = true;
-            _businessEntities.Add(entity);
+            if (entity.AllowEventTracking)
+            {
+                _businessEntities.Add(entity);
+            }
+            
         }
 
         public ICollection<IBusinessEntity> TrackedEntities { get => _businessEntities; }
