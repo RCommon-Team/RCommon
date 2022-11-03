@@ -155,12 +155,12 @@ namespace RCommon.Persistence.Linq2Db
 
         public async override Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await this.GetCountAsync(selectSpec.Predicate, token);
         }
 
         public async override Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await this.ObjectSet.CountAsync(expression, token);
         }
 
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)

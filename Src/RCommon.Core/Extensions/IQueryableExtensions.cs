@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using RCommon.Linq;
 using RCommon.Collections;
+using System.Threading.Tasks;
 
 namespace RCommon.Extensions
 {
@@ -45,15 +46,6 @@ namespace RCommon.Extensions
             else
                 return source;
         }
-
-        /*public static IEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, Boolean> predicate)
-        {
-            foreach (TSource element in source)
-            {
-                if (predicate(element))
-                    yield return element;
-            }
-        }*/
 
         public static IQueryable<TSource> WhereLike<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, string>> valueSelector, string value)
         {
