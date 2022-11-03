@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+<ItemGroup>
+	<PackageReference Include="Bogus" Version="34.0.2" />
+	<PackageReference Include="linq2db.SqlServer" Version="4.3.0" />
+	<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+	<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+	<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
+	<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+	<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+	<PackageReference Include="Moq" Version="4.18.2" />
+	<PackageReference Include="nunit" Version="3.13.3" />
+	<PackageReference Include="NUnit3TestAdapter" Version="4.3.0" />
+	<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.Persistence.Linq2Db\RCommon.Persistence.Linq2Db.csproj" />
+    <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
+  </ItemGroup>
+
+</Project>

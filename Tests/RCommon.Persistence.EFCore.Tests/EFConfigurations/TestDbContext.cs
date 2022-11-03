@@ -35,7 +35,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.EFCore.Tests
 {
-    public class TestDbContext : RCommonDbContext, ITestDbContext
+    public class TestDbContext : RCommonDbContext
     {
 
 
