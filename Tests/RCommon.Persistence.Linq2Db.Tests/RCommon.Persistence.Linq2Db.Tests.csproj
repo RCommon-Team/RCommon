@@ -25,5 +25,10 @@
     <ProjectReference Include="..\..\Src\RCommon.Persistence.Linq2Db\RCommon.Persistence.Linq2Db.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

@@ -46,20 +46,17 @@ namespace RCommon.Persistence.Linq2Db.Tests
         }
 
         [TearDown]
-        public async Task TearDown()
+        public void TearDown()
         {
             this.Logger.LogInformation("Tearing down Test");
-
-            await Task.CompletedTask;
         }
 
         [OneTimeTearDown]
-        public async Task OneTimeTearDown()
+        public void OneTimeTearDown()
         {
-            var context = _dataStoreRegistry.GetDataStore<TestDataConnection>("TestDbContext");
+            var context = _dataStoreRegistry.GetDataStore<TestDataConnection>("TestDataConnection");
             var repo = new TestRepository(context);
             repo.ResetDatabase();
-            await Task.CompletedTask;
         }
 
         [Test]
@@ -72,7 +69,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             testData.Add(customer);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
             customerRepo.DataStoreName = "TestDbContext";
 
             var savedCustomer = await customerRepo
@@ -93,7 +90,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             testData.Add(customer);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
@@ -117,7 +114,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var repo = new TestRepository(context);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
             var customers = await customerRepo
                     .FindAsync(x => x.FirstName.StartsWith("li"), x => x.LastName, true, 1, 10);
@@ -155,7 +152,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var repo = new TestRepository(context);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
             var customerSearchSpec = new CustomerSearchSpec("ba", x => x.FirstName, true, 1, 10);
 
@@ -197,7 +194,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var repo = new TestRepository(context);
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
             var predicate = PredicateBuilder.True<Customer>(); // This allows us to build compound expressions
             predicate.And(x => x.FirstName.StartsWith("Ho"));
@@ -223,7 +220,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
             await customerRepo.AddAsync(customer);
 
             Customer savedCustomer = null;
@@ -256,8 +253,9 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
-            customerRepo.Include(x => x.Orders);
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+            throw new NotImplementedException("Fix below statement");
+            //customerRepo.Include(x => x.Orders);
             await customerRepo.AddAsync(customer);
 
             Customer savedCustomer = null;
@@ -284,7 +282,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             repo.PersistSeedData(testData);
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
             customer.FirstName = "Darth";
             customer.LastName = "Vader";
             await customerRepo.UpdateAsync(customer);
@@ -312,7 +310,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             repo.PersistSeedData(testData);
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
             await customerRepo.DeleteAsync(customer);
 
             Customer savedCustomer = null;
@@ -336,7 +334,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             // Start Test
             using (var scope = scopeFactory.Create())
             {
-                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
                 await customerRepo.AddAsync(customer);
                 scope.Commit();
@@ -364,7 +362,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
             using (var scope = scopeFactory.Create())
             {
@@ -393,12 +391,12 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<ILinqRepository<Order>>();
                     await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
@@ -434,7 +432,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             this.Logger.LogInformation("Starting initial UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
                 this.Logger.LogInformation("Adding New Customer from first UnitOfWorkScope ", customer);
                 await customerRepo.AddAsync(customer);
@@ -442,7 +440,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
                 this.Logger.LogInformation("Starting new UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
                 using (var scope2 = scopeFactory.Create(TransactionMode.New))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<ILinqRepository<Order>>();
 
                     this.Logger.LogInformation("Adding New Order from first UnitOfWorkScope ", order);
                     await orderRepo.AddAsync(order);
@@ -478,12 +476,12 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<ILinqRepository<Order>>();
                     await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
@@ -510,8 +508,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
-            var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+            var salesPersonRepo = this.ServiceProvider.GetService<ILinqRepository<SalesPerson>>();
 
             try
             {
@@ -550,8 +548,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
-                var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
+                var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+                var salesPersonRepo = this.ServiceProvider.GetService<ILinqRepository<SalesPerson>>();
 
                 await customerRepo.AddAsync(customer);
                 await salesPersonRepo.AddAsync(salesPerson);
@@ -585,8 +583,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
-                var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
+                var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+                var salesPersonRepo = this.ServiceProvider.GetService<ILinqRepository<SalesPerson>>();
 
                 await customerRepo.AddAsync(customer);
                 await salesPersonRepo.AddAsync(salesPerson);
@@ -618,12 +616,12 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Supress))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<ILinqRepository<Order>>();
                     await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
@@ -659,8 +657,9 @@ namespace RCommon.Persistence.Linq2Db.Tests
             }
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
-            customerRepo.Include(x => x.Orders);
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+            throw new NotImplementedException("Fix below statement");
+            //customerRepo.Include(x => x.Orders);
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 

@@ -15,17 +15,16 @@ namespace RCommon.Persistence.Linq2Db
 {
     public class RCommonDataConnection : DataConnection, IDataStore
     {
-        private readonly LinqToDBConnectionOptions _linq2DbOptions;
         private readonly IEventTracker _eventTracker;
         private readonly IMediator _mediator;
 
-        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, IOptions<LinqToDBConnectionOptions> linq2DbOptions)
-            :base()
+        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, IOptions<Linq2DbOptions> linq2DbOptions)
+            :base(linq2DbOptions.Value.Settings)
         {
             var options = linq2DbOptions ?? throw new ArgumentNullException(nameof(linq2DbOptions));
-            _linq2DbOptions = linq2DbOptions.Value ?? throw new ArgumentNullException(nameof(linq2DbOptions.Value));
             _eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            
         }
 
         public DbConnection GetDbConnection()

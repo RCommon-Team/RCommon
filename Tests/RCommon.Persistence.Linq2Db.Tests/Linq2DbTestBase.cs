@@ -37,7 +37,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
                 .WithPersistence<Linq2DbConfiguration, DefaultUnitOfWorkConfiguration>(linq2Db => 
                 {
                     // Add all the DbContexts here
-                    linq2Db.AddDataConnection<TestDataConnection>("TestDataConnection", options => CreateLinq2DbBuilder());
+                    linq2Db.AddDataConnection<TestDataConnection>("TestDataConnection", options => CreateLinq2DbOptions());
                     linq2Db.SetDefaultDataStore(dataStore =>
                     {
                         dataStore.DefaultDataStoreName = "TestDataConnection";
@@ -63,7 +63,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
         }
 
-        private LinqToDBConnectionOptionsBuilder CreateLinq2DbBuilder()
+        private Linq2DbOptions CreateLinq2DbOptions()
         {
             // create options builder
             var builder = new LinqToDBConnectionOptionsBuilder();
@@ -71,7 +71,10 @@ namespace RCommon.Persistence.Linq2Db.Tests
             // configure connection string
             builder.UseSqlServer(this.Configuration.GetConnectionString("TestDataConnection"));
             builder.UseMappingSchema(CreateMappingSchema());
-            return builder;
+            var settings = builder.Build();
+            var options = new Linq2DbOptions();
+            options.Settings = settings;
+            return options;
         }
 
         private MappingSchema CreateMappingSchema()

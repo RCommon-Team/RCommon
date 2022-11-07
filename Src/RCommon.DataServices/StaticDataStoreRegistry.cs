@@ -17,10 +17,11 @@ namespace RCommon.DataServices
         }
 
 
-        public TDataStore GetDataStore<TDataStore>(string dataStoreName) 
+        public TDataStore GetDataStore<TDataStore>(string dataStoreName)
             where TDataStore : IDataStore
         {
-            return (TDataStore) this._serviceProvider.GetService(StaticDataStore.DataStores.Where(x=>x.Key == dataStoreName).FirstOrDefault().Value); 
+            var dataStore = this._serviceProvider.GetService(StaticDataStore.DataStores.Where(x => x.Key == dataStoreName).FirstOrDefault().Value);
+            return (TDataStore) dataStore; 
         }
 
         public IDataStore GetDataStore(string dataStoreName)
