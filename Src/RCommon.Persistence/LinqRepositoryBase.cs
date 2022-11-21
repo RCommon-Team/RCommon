@@ -154,11 +154,11 @@ namespace RCommon.Persistence
             set
             {
                 _dataStoreName = value;
-                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
 
                 // Enlist Data Stores that are participating in transactions
                 if (this.UnitOfWorkManager.CurrentUnitOfWork != null)
                 {
+                    var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
                     this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWork.TransactionId, dataStore);
                 }
             }
