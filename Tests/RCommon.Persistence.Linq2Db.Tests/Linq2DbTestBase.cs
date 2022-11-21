@@ -1,6 +1,7 @@
 ﻿using LinqToDB.Configuration;
 using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.Mapping;
+using LinqToDB.Tools;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,8 +37,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
                 .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
                 .WithPersistence<Linq2DbConfiguration, DefaultUnitOfWorkConfiguration>(linq2Db => 
                 {
-                    // Add all the DbContexts here
-                    linq2Db.AddDataConnection<TestDataConnection>("TestDataConnection", options => CreateLinq2DbOptions());
+                // Add all the DbContexts here
+                linq2Db.AddDataConnection<TestDataConnection>("TestDataConnection", options => CreateLinqToDBConnectionOptions());
                     linq2Db.SetDefaultDataStore(dataStore =>
                     {
                         dataStore.DefaultDataStoreName = "TestDataConnection";
@@ -51,6 +52,9 @@ namespace RCommon.Persistence.Linq2Db.Tests
                     });
                 });
 
+            //services.AddSingleton<MappingSchema>(x => this.CreateMappingSchema());
+            services.AddSingleton<LinqToDBConnectionOptions>(x => CreateLinqToDBConnectionOptions());
+
             this.ServiceProvider = services.BuildServiceProvider();
             this.Logger = this.ServiceProvider.GetService<ILogger<Linq2DbTestBase>>();
 
@@ -63,7 +67,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
         }
 
-        private Linq2DbOptions CreateLinq2DbOptions()
+        private LinqToDBConnectionOptions CreateLinqToDBConnectionOptions()
         {
             // create options builder
             var builder = new LinqToDBConnectionOptionsBuilder();
@@ -71,10 +75,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             // configure connection string
             builder.UseSqlServer(this.Configuration.GetConnectionString("TestDataConnection"));
             builder.UseMappingSchema(CreateMappingSchema());
-            var settings = builder.Build();
-            var options = new Linq2DbOptions();
-            options.Settings = settings;
-            return options;
+            return new LinqToDBConnectionOptions(builder);
         }
 
         private MappingSchema CreateMappingSchema()
@@ -89,10 +90,37 @@ namespace RCommon.Persistence.Linq2Db.Tests
             builder.Entity<Customer>()
                 .HasTableName("Customers")
                 .HasSchemaName("dbo")
-                .HasIdentity(x => x.Id)
-                .HasPrimaryKey(x => x.Id)
                 .Ignore(x => x.AllowEventTracking)
-                .Association(e => e.Orders, customer => customer.Id, order => order.CustomerId);
+                .Association(e => e.Orders, customer => customer.Id, order => order.CustomerId)
+                .Property(x => x.Id).HasColumnName("CustomerId").IsIdentity();
+
+            builder.Entity<Department>()
+                .HasTableName("Departments")
+                .HasSchemaName("dbo")
+                .Ignore(x => x.AllowEventTracking)
+                .Association(e => e.SalesPersons, department => department.Id, salesPerson => salesPerson.DepartmentId)
+                .Property(x => x.Id).IsIdentity();
+
+            builder.Entity<OrderItem>()
+                .HasTableName("OrderItems")
+                .HasSchemaName("dbo")
+                .Ignore(x => x.AllowEventTracking)
+                .Association(e => e.Order, orderItem => orderItem.OrderId, order => order.OrderId)
+                .Property(x => x.OrderItemId).IsIdentity();
+
+            builder.Entity<Order>()
+                .HasTableName("Orders")
+                .HasSchemaName("dbo")
+                .Ignore(x => x.AllowEventTracking)
+                .Association(e => e.OrderItems, order => order.OrderId, orderItem => orderItem.OrderId)
+                .Property(x => x.OrderId).IsIdentity();
+
+            builder.Entity<Product>()
+                .HasTableName("Products")
+                .HasSchemaName("dbo")
+                .Ignore(x => x.AllowEventTracking)
+                .Association(e => e.OrderItems, product => product.ProductId, orderItem => orderItem.ProductId)
+                .Property(x => x.ProductId).IsIdentity();
 
             return mappingSchema;
         }

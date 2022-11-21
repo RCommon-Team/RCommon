@@ -18,8 +18,8 @@ namespace RCommon.Persistence.Linq2Db
         private readonly IEventTracker _eventTracker;
         private readonly IMediator _mediator;
 
-        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, IOptions<Linq2DbOptions> linq2DbOptions)
-            :base(linq2DbOptions.Value.Settings)
+        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, LinqToDBConnectionOptions linq2DbOptions)
+            :base(linq2DbOptions)
         {
             var options = linq2DbOptions ?? throw new ArgumentNullException(nameof(linq2DbOptions));
             _eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));

@@ -70,7 +70,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             repo.PersistSeedData(testData);
 
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
-            customerRepo.DataStoreName = "TestDbContext";
+            customerRepo.DataStoreName = "TestDataConnection";
 
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
@@ -135,6 +135,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             Assert.IsTrue(customers.TotalCount == 100);
             Assert.IsTrue(customers.TotalPages == 10);
             Assert.IsTrue(customers[4].FirstName == "Lisa");
+
+            repo.CleanUpSeedData();
         }
 
         [Test]
@@ -177,6 +179,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             Assert.IsTrue(customers.TotalCount == 100);
             Assert.IsTrue(customers.TotalPages == 10);
             Assert.IsTrue(customers[4].FirstName == "Bart");
+
+            repo.CleanUpSeedData();
         }
 
         [Test]
@@ -205,6 +209,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             Assert.IsNotNull(customers);
             Assert.IsTrue(customers.Count == 10);
             Assert.IsTrue(customers[4].FirstName == "Homer");
+
+            repo.CleanUpSeedData();
         }
 
 

@@ -12,6 +12,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using LinqToDB.Tools;
+using LinqToDB.Data;
+using DataExtensions = LinqToDB.Tools.DataExtensions;
 
 namespace RCommon.Persistence.Linq2Db
 {
@@ -101,6 +104,7 @@ namespace RCommon.Persistence.Linq2Db
         {
             //TODO: implement FindASync(object primaryKey)
             throw new NotImplementedException();
+            //DataExtensions.RetrieveIdentity<TEntity>(IEnumerable<TEntity>
         }
 
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)

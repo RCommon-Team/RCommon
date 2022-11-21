@@ -140,6 +140,8 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.IsTrue(customers.TotalCount == 100);
             Assert.IsTrue(customers.TotalPages == 10);
             Assert.IsTrue(customers[4].FirstName == "Lisa");
+
+            repo.CleanUpSeedData();
         }
 
         [Test]
@@ -182,6 +184,8 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.IsTrue(customers.TotalCount == 100);
             Assert.IsTrue(customers.TotalPages == 10);
             Assert.IsTrue(customers[4].FirstName == "Bart");
+
+            repo.CleanUpSeedData();
         }
 
         [Test]

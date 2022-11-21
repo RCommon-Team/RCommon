@@ -10,6 +10,7 @@
 <ItemGroup>
 	<PackageReference Include="Bogus" Version="34.0.2" />
 	<PackageReference Include="linq2db.SqlServer" Version="4.3.0" />
+	<PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
 	<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
 	<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
 	<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />

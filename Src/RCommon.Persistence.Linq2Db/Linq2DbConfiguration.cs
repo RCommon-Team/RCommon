@@ -27,7 +27,7 @@ namespace RCommon.Persistence.Linq2Db
         }
 
 
-        public ILinq2DbConfiguration AddDataConnection<TDataConnection>(string dataStoreName, Action<Linq2DbOptions> options)
+        public ILinq2DbConfiguration AddDataConnection<TDataConnection>(string dataStoreName, Func<IServiceProvider, LinqToDBConnectionOptions> options)
             where TDataConnection : RCommonDataConnection
         {
             Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
@@ -38,7 +38,8 @@ namespace RCommon.Persistence.Linq2Db
                 throw new UnsupportedDataStoreException($"The StaticDataStore refused to add the new DataStore name: {dataStoreName} of type: {typeof(TDataConnection).AssemblyQualifiedName}");
             }
 
-            this._services.Configure(options);
+            //this._services.Configure(options);
+            _services.AddSingleton<LinqToDBConnectionOptions>(options);
             _services.AddScoped<TDataConnection>();
             return this;
         }
