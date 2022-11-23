@@ -3,21 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Linq.Expressions;
-using RCommon.Expressions;
 
 namespace RCommon.Extensions
 {
     public static class ExpressionExtensions
     {
-        public static Expression<TDelegate> Expand<TDelegate>(this Expression<TDelegate> expr)
-        {
-            return (Expression<TDelegate>)new ExpressionExpander().Visit(expr);
-        }
-
-        public static Expression Expand(this Expression expr)
-        {
-            return new ExpressionExpander().Visit(expr);
-        }
 
         public static TResult Invoke<TResult>(this Expression<Func<TResult>> expr)
         {

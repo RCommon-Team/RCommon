@@ -21,6 +21,8 @@ namespace RCommon.Persistence.Linq2Db
     public class Linq2DbRepository<TEntity> : LinqRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
+        private IQueryable<TEntity> _repositoryQuery;
+        private ILoadWithQueryable<TEntity, object> _includableQueryable;
 
         public Linq2DbRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
             ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker,
@@ -28,10 +30,10 @@ namespace RCommon.Persistence.Linq2Db
             : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
+            this._repositoryQuery = null;
+            this._includableQueryable = null;
         }
 
-
-        protected override IQueryable<TEntity> RepositoryQuery => this.ObjectSet.AsQueryable<TEntity>();
 
         protected internal RCommonDataConnection DataConnection
         {
@@ -46,6 +48,37 @@ namespace RCommon.Persistence.Linq2Db
             get
             {
                 return this.DataConnection.GetTable<TEntity>();
+            }
+        }
+
+        public override IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path)
+        {
+            this._includableQueryable = this.RepositoryQuery.LoadWith(path);
+            return this;
+        }
+
+        public override IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
+        {
+            this._repositoryQuery = this._includableQueryable.ThenLoad(path);
+            return this;
+        }
+
+
+        protected override IQueryable<TEntity> RepositoryQuery
+        {
+            get
+            {
+                if (this._repositoryQuery == null)
+                {
+                    this._repositoryQuery = this.ObjectSet.AsQueryable<TEntity>();
+                }
+                
+                // Start Eagerloading
+                if (this._includableQueryable != null)
+                {
+                    this._repositoryQuery = this._includableQueryable;
+                }
+                return this._repositoryQuery;
             }
         }
 

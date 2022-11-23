@@ -90,12 +90,6 @@ namespace RCommon.Extensions
             return stringType.GetMethod(methodName, new Type[] { stringType });
         }
 
-        public static IQueryable<T> AsExpandable<T>(this IQueryable<T> query)
-        {
-            if (query is ExpandableQuery<T>) return (ExpandableQuery<T>)query;
-            return new ExpandableQuery<T>(query);
-        }
-
         public static IPaginatedList<T> ToPaginatedList<T>(this IQueryable<T> source, int? pageIndex, int pageSize)
         {
             Guard.IsNotNegativeOrZero(pageSize, "pageSize");

@@ -18,10 +18,9 @@ using RCommon.Extensions;
 
 namespace RCommon.Persistence
 {
-    public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>
+    public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>, IEagerLoadableQueryable<TEntity>
        where TEntity : IBusinessEntity
     {
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
         private string _dataStoreName;
         private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
 
@@ -109,6 +108,19 @@ namespace RCommon.Persistence
         }
 
 
+        /// <summary>
+        /// Querries the repository based on the provided specification and returns results that
+        /// are only satisfied by the specification.
+        /// </summary>
+        /// <param name="specification">A <see cref="ISpecification{TEntity}"/> instnace used to filter results
+        /// that only satisfy the specification.</param>
+        /// <returns>A <see cref="IEnumerable{TEntity}"/> that can be used to enumerate over the results
+        /// of the query.</returns>
+        public IEnumerable<TEntity> Query(ISpecification<TEntity> specification)
+        {
+            return RepositoryQuery.Where(specification.Predicate).AsQueryable();
+        }
+
         public abstract IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
@@ -123,26 +135,15 @@ namespace RCommon.Persistence
         public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default);
         public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
         public abstract Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int? pageIndex, int pageSize = 0,
             CancellationToken token = default);
         public abstract Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
 
-        protected internal IDbConnection DbConnection
-        {
-            get
-            {
+        public abstract IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path);
 
-                /*if (this._unitOfWorkManager.CurrentUnitOfWork != null)
-                {
-
-                    return this._dataStoreProvider.GetDataStore<RDbConnection>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName).GetSqlDbConnection("", "");
-
-                }
-                return this._dataStoreProvider.GetDataStore<ISqlConnectionManager>(this.DataStoreName).GetSqlDbConnection("", "");*/
-                return null;
-            }
-        }
+        public abstract IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path);
 
         public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
@@ -154,11 +155,11 @@ namespace RCommon.Persistence
             set
             {
                 _dataStoreName = value;
+                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
 
                 // Enlist Data Stores that are participating in transactions
                 if (this.UnitOfWorkManager.CurrentUnitOfWork != null)
                 {
-                    var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
                     this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWork.TransactionId, dataStore);
                 }
             }
