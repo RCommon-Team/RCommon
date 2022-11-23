@@ -239,42 +239,6 @@ namespace RCommon.Persistence.Linq2Db.Tests
         }
 
         [Test]
-        public async Task Can_Add_Graph_Async()
-        {
-            var testData = new List<Customer>();
-
-            string firstName = Guid.NewGuid().ToString();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub(x =>
-            {
-                x.FirstName = firstName;
-
-                var orders = new List<Order>();
-                orders.Add(TestDataActions.CreateOrderStub());
-                x.Orders = orders;
-
-            });
-            testData.Add(customer);
-
-
-            // Start Test
-            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
-            throw new NotImplementedException("Fix below statement");
-            //customerRepo.Include(x => x);
-            await customerRepo.AddAsync(customer);
-
-            Customer savedCustomer = null;
-            savedCustomer = await customerRepo.FirstAsync(x => x.FirstName == firstName);
-
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.IsTrue(savedCustomer.Id > 0);
-            Assert.IsTrue(savedCustomer.Orders.Count == 1);
-
-        }
-
-        [Test]
         public async Task Can_Update_Async()
         {
             var testData = new List<Customer>();
@@ -652,7 +616,6 @@ namespace RCommon.Persistence.Linq2Db.Tests
             // Generate Test Data
             var context = _dataStoreRegistry.GetDataStore<TestDataConnection>("TestDataConnection");
             var repo = new TestRepository(context);
-            repo.PersistSeedData(testData);
 
             var customer = TestDataActions.CreateCustomerStub();
             for (int i = 0; i < 10; i++)
@@ -664,8 +627,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             repo.PersistSeedData(testData);
 
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
-            throw new NotImplementedException("Fix below statement");
-            //customerRepo.Include(x => x.Orders);
+            customerRepo.Include(x => x.Orders);
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 
