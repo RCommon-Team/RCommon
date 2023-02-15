@@ -60,7 +60,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
         }
 
         [Test]
-        public async Task Can_perform_simple_query()
+         public async Task Can_perform_simple_query()
         {
             var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
             var context = _dataStoreRegistry.GetDataStore<TestDataConnection>("TestDataConnection");
@@ -272,21 +272,26 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var testData = new List<Customer>();
 
             // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
+            var firstName = Guid.NewGuid().ToString();
+            Customer customer = TestDataActions.CreateCustomerStub(x =>
+            {
+                x.FirstName = firstName;
+            });
             testData.Add(customer);
 
             var context = _dataStoreRegistry.GetDataStore<TestDataConnection>("TestDataConnection");
             var repo = new TestRepository(context);
             repo.PersistSeedData(testData);
 
+            customer = await repo.Context.Customers.FirstAsync(x => x.FirstName == firstName);
+
             // Start Test
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
             await customerRepo.DeleteAsync(customer);
 
-            Customer savedCustomer = null;
-            savedCustomer = repo.Context.Customers.Where(x=>x.Id == customer.Id).First();
+            int count = await repo.Context.Customers.CountAsync(x => x.FirstName == firstName);
 
-            Assert.IsNull(savedCustomer);
+            Assert.IsTrue(count == 0);
 
         }
 
