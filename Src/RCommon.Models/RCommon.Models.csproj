@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>rcommon-icon.png</PackageIcon>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, dto models, model validation, eto, model abstractions, c#, .NET</PackageTags>
-    <Version>1.0.1.75</Version>
+    <Version>1.0.2.0</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 

@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Version>1.0.1.75</Version>
+    <TargetFramework>net7.0</TargetFramework>
+    <Version>1.0.2.0</Version>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
-    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
@@ -20,14 +20,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
+    <PackageReference Include="MediatR" Version="12.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
     <PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
   </ItemGroup>
 

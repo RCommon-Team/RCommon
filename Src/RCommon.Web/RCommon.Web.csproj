@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Company>Reactor2, Jason Webb</Company>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
@@ -9,8 +9,8 @@
     <PackageTags>RCommon, Web, Application, Framework</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIcon>rcommon-icon.png</PackageIcon>
-    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-    <Version>1.0.1.75</Version>
+    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+    <Version>1.0.2.0</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
@@ -23,8 +23,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.23.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.27.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.1.75</Version>
+    <Version>1.0.2.0</Version>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
-    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="8.0.6" />
+    <PackageReference Include="MassTransit" Version="8.0.12" />
   </ItemGroup>
 
   <ItemGroup>

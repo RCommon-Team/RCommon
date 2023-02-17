@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>rcommon-icon.png</PackageIcon>
     <PackageIconUrl />
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <Authors>Reactor2, Jason Webb</Authors>
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, data access, object access, dapper, generic repository, repository abstractions, persistance framework</PackageTags>
-    <Version>1.0.1.75</Version>
+    <Version>1.0.2.0</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
@@ -20,7 +20,7 @@
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Dapper.FluentMap.Dommel" Version="2.0.0" />
     <PackageReference Include="Dommel" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Company>Reactor2, Jason Webb</Company>
-    <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
     <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
     <PackageIcon>rcommon-icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, Authorization, Web, Framework</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.0.1.75</Version>
+    <Version>1.0.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
   </ItemGroup>
 
 </Project>
