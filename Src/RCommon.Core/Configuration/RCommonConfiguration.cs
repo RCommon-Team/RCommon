@@ -119,7 +119,7 @@ namespace RCommon
             _containerAdapter.AddTransient<IEnvironmentAccessor, EnvironmentAccessor>();
 
             // MediaR is a first class citizen in the RCommon Framework
-            _containerAdapter.Services.AddMediatR(Assembly.GetEntryAssembly());
+            _containerAdapter.Services.AddMediatR(x=> x.RegisterServicesFromAssembly(Assembly.GetEntryAssembly()));
         }
     }
 }
