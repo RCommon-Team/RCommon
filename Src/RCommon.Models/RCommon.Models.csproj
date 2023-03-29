@@ -12,7 +12,7 @@
     <Company>RCommon</Company>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>RCommon, dto models, model validation, eto, model abstractions, c#, .NET</PackageTags>
-    <Version>1.0.2.0</Version>
+    <Version>1.0.2.1</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
