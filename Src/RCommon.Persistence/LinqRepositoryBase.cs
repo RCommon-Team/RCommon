@@ -18,7 +18,7 @@ using RCommon.Extensions;
 
 namespace RCommon.Persistence
 {
-    public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>, IEagerLoadableQueryable<TEntity>
+    public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>
        where TEntity : IBusinessEntity
     {
         private string _dataStoreName;

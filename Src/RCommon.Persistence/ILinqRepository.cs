@@ -11,7 +11,8 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface ILinqRepository<TEntity>: IQueryable<TEntity>, IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>
+    public interface ILinqRepository<TEntity>: IQueryable<TEntity>, IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>, 
+        IEagerLoadableQueryable<TEntity>
         where TEntity : IBusinessEntity
     {
         IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);

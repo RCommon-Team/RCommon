@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface IEagerLoadableQueryable<TEntity> where TEntity : IBusinessEntity
+    public interface IEagerLoadableQueryable<TEntity> : IQueryable<TEntity>, IReadOnlyRepository<TEntity>
+        where TEntity : IBusinessEntity
     {
         IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path);
     }

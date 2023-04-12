@@ -20,7 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RCommon.TestBase.Entities;
 
-namespace RCommon.Persistence.EFCore.Tests
+namespace RCommon.TestBase.Data
 {
     // OrderItems
     public partial class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>

@@ -13,6 +13,7 @@ using System.Transactions;
 using RCommon.TestBase;
 using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
+using RCommon.TestBase.Data;
 
 namespace RCommon.Persistence.EFCore.Tests
 {

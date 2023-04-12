@@ -622,22 +622,23 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var context = _dataStoreRegistry.GetDataStore<TestDataConnection>("TestDataConnection");
             var repo = new TestRepository(context);
 
-            var customer = TestDataActions.CreateCustomerStub();
+            var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = Guid.NewGuid().ToString());
+            testData.Add(customer);
             for (int i = 0; i < 10; i++)
             {
                 var order = TestDataActions.CreateOrderStub(x => x.Customer = customer);
                 customer.Orders.Add(order);
-                testData.Add(customer);
             }
+            
             repo.PersistSeedData(testData);
 
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
-            customerRepo.Include(x => x.Orders);
-            var savedCustomer = await customerRepo
-                    .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
+            //customerRepo.Include(x => x.Orders);
+            var savedCustomer = await customerRepo.Include(x=>x.Orders)
+                    .FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
 
             Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
+            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
             Assert.IsTrue(savedCustomer.Orders != null);
             Assert.IsTrue(savedCustomer.Orders.Count == 10);
         }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface IGraphRepository<TEntity> : ILinqRepository<TEntity>
+    public interface IGraphRepository<TEntity> : ILinqRepository<TEntity>, IEagerLoadableQueryable<TEntity>
         where TEntity : class, IBusinessEntity
     {
 

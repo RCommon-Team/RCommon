@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence.EFCore.Tests.EFConfigurations
+namespace RCommon.TestBase.Data.EFConfigurations
 {
     public class TestDbContextFactory : IDesignTimeDbContextFactory<TestDbContext>
     {

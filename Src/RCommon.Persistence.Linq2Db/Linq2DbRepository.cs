@@ -108,7 +108,7 @@ namespace RCommon.Persistence.Linq2Db
 
         public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await this.ObjectSet.AnyAsync(expression, token: token);
+            return await this.RepositoryQuery.AnyAsync(expression, token: token);
         }
 
         public async override Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
@@ -182,7 +182,7 @@ namespace RCommon.Persistence.Linq2Db
 
         public async override Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await this.ObjectSet.SingleOrDefaultAsync(expression, token);
+            return await this.RepositoryQuery.SingleOrDefaultAsync(expression, token);
         }
 
         public async override Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
@@ -197,7 +197,7 @@ namespace RCommon.Persistence.Linq2Db
 
         public async override Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await this.ObjectSet.CountAsync(expression, token);
+            return await this.RepositoryQuery.CountAsync(expression, token);
         }
 
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)

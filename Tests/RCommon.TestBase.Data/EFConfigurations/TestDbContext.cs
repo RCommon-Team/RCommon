@@ -24,6 +24,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RCommon.BusinessEntities;
 using RCommon.DataServices;
+using RCommon.Persistence.EFCore;
 using RCommon.TestBase;
 using RCommon.TestBase.Entities;
 using System;
@@ -33,7 +34,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence.EFCore.Tests
+namespace RCommon.TestBase.Data
 {
     public class TestDbContext : RCommonDbContext
     {

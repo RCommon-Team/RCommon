@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace RCommon.Persistence.EFCore.Tests.Migrations
+namespace RCommon.TestBase.Data.Migrations
 {
     public partial class InitialCreate : Migration
     {

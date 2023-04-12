@@ -1,6 +1,7 @@
 ﻿
 using Bogus;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -8,6 +9,7 @@ using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Linq;
 using RCommon.TestBase;
+using RCommon.TestBase.Data;
 using RCommon.TestBase.Entities;
 using RCommon.TestBase.Specifications;
 using System;
@@ -37,7 +39,6 @@ namespace RCommon.Persistence.EFCore.Tests
         public void InitialSetup()
         {
             this.Logger.LogInformation("Beginning Onetime setup");
-            _dataStoreRegistry = this.ServiceProvider.GetService<IDataStoreRegistry>();
 
         }
 
@@ -67,12 +68,9 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_perform_simple_query()
         {
-            var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            var testData = new List<Customer>();
-            testData.Add(customer);
-            repo.PersistSeedData(testData);
+
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Perform_Simple_Query();
 
             var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customerRepo.DataStoreName = "TestDbContext";
@@ -88,12 +86,8 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_use_default_data_store()
         {
-            var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Happy");
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            var testData = new List<Customer>();
-            testData.Add(customer);
-            repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Use_Default_DataStore();
 
             var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 

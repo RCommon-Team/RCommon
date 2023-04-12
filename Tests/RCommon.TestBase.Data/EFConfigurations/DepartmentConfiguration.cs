@@ -20,20 +20,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RCommon.TestBase.Entities;
 
-namespace RCommon.Persistence.EFCore.Tests
+namespace RCommon.TestBase.Data
 {
-    // SalesTerritory
-    public partial class SalesTerritoryConfiguration : IEntityTypeConfiguration<SalesTerritory>
+    // Departments
+    public partial class DepartmentConfiguration : IEntityTypeConfiguration<Department>
     {
-        public void Configure(EntityTypeBuilder<SalesTerritory> builder)
+        public void Configure(EntityTypeBuilder<Department> builder)
         {
-            builder.ToTable("SalesTerritory", "dbo");
-            builder.HasKey(x => x.Id).HasName("PK__SalesTer__3214EC071C7A3190").IsClustered();
+            builder.ToTable("Departments", "dbo");
+            builder.HasKey(x => x.Id).HasName("PK__Departme__3214EC07CB60603A").IsClustered();
             builder.Ignore(x => x.AllowEventTracking);
             //builder.Ignore(x => x.IsChanged);
             builder.Property(x => x.Id).HasColumnName(@"Id").HasColumnType("int").IsRequired().ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(x => x.Name).HasColumnName(@"Name").HasColumnType("nvarchar(255)").IsRequired(false).HasMaxLength(255);
-            builder.Property(x => x.Description).HasColumnName(@"Description").HasColumnType("nvarchar(255)").IsRequired(false).HasMaxLength(255);
 
         }
     }

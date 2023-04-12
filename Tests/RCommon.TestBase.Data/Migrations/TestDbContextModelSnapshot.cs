@@ -3,19 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using RCommon.Persistence.EFCore.Tests;
+using RCommon.TestBase.Data;
 
 #nullable disable
 
-namespace RCommon.Persistence.EFCore.Tests.Migrations
+namespace RCommon.TestBase.Data.Migrations
 {
     [DbContext(typeof(TestDbContext))]
-    [Migration("20220830040850_InitialCreate")]
-    partial class InitialCreate
+    partial class TestDbContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
