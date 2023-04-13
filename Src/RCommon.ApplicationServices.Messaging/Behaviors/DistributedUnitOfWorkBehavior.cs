@@ -46,9 +46,14 @@ namespace RCommon.ApplicationServices.Messaging.Behaviors
                     unitOfWork.Commit();
                 }
 
+                _logger.LogInformation("----- Publishing distributed events via MassTransit for transaction {UnitOfWorkTransactionId} for {CommandName}",
+                    this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName);
+
                 //Perform MassTransit publish events
                 await _distributedEventBroker.PublishDistributedEvents(cancellationToken);
 
+                _logger.LogInformation("----- Published distributed events via MassTransit for transaction {UnitOfWorkTransactionId} for {CommandName}",
+                    this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName);
 
                 return response;
             }
