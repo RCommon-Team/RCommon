@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	  <Authors>Reactor2, Jason Webb</Authors>
 	  <Company>RCommon</Company>
-	  <Description>A cohesive set of .NET 6 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+	  <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
 	  <Copyright></Copyright>
 	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
 	  <PackageIcon>rcommon-icon.png</PackageIcon>
@@ -14,7 +14,7 @@
 	  <PackageTags>RCommon, emailing, smtp</PackageTags>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <RepositoryType>GitHub</RepositoryType>
-	  <Version>1.0.1.75</Version>
+	  <Version>1.0.2.1</Version>
 	  <PackageIconUrl />
 	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
