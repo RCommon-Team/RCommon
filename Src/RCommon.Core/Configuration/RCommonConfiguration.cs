@@ -20,7 +20,7 @@ namespace RCommon
             Guard.Against<NullReferenceException>(services == null, "IServiceCollection cannot be null");
             Services = services;
 
-            this.Services.AddMediatR(Assembly.GetEntryAssembly()); // MediaR is a first class citizen in the RCommon Framework
+            this.Services.AddMediatR(x => x.RegisterServicesFromAssembly(Assembly.GetEntryAssembly())); // MediaR is a first class citizen in the RCommon Framework
         }
 
         public IRCommonConfiguration WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)
