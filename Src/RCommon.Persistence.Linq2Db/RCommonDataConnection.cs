@@ -1,4 +1,5 @@
-﻿using LinqToDB.Configuration;
+﻿using LinqToDB;
+using LinqToDB.Configuration;
 using LinqToDB.Data;
 using MediatR;
 using Microsoft.Extensions.Options;
@@ -18,8 +19,8 @@ namespace RCommon.Persistence.Linq2Db
         private readonly IEventTracker _eventTracker;
         private readonly IMediator _mediator;
 
-        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, LinqToDBConnectionOptions linq2DbOptions)
-            :base(linq2DbOptions)
+        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, DataOptions<RCommonDataConnection> linq2DbOptions)
+            :base(linq2DbOptions.Options)
         {
             var options = linq2DbOptions ?? throw new ArgumentNullException(nameof(linq2DbOptions));
             _eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
@@ -29,7 +30,7 @@ namespace RCommon.Persistence.Linq2Db
 
         public DbConnection GetDbConnection()
         {
-            return this.GetDbConnection();
+            return this.Connection;
         }
 
         public void PersistChanges()

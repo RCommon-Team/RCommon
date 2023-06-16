@@ -1,4 +1,5 @@
-﻿using LinqToDB.Configuration;
+﻿using LinqToDB;
+using LinqToDB.Configuration;
 using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.Mapping;
 using LinqToDB.Tools;
@@ -35,10 +36,16 @@ namespace RCommon.Persistence.Linq2Db.Tests
             services.AddRCommon()
                 .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
                 .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
-                .WithPersistence<Linq2DbConfiguration, DefaultUnitOfWorkConfiguration>(linq2Db => 
+                .WithPersistence<Linq2DbConfiguration, DefaultUnitOfWorkConfiguration>(objectAccessActions: linq2Db =>
                 {
-                // Add all the DbContexts here
-                linq2Db.AddDataConnection<TestDataConnection>("TestDataConnection", options => CreateLinqToDBConnectionOptions());
+                    // Add all the DbContexts here
+                    linq2Db.AddDataConnection<TestDataConnection>("TestDataConnection", (provider, options) =>
+                    {
+                        return options
+                            .UseSqlServer(this.Configuration.GetConnectionString("TestDataConnection"))
+                            .UseMappingSchema(CreateMappingSchema());
+
+                    });
                     linq2Db.SetDefaultDataStore(dataStore =>
                     {
                         dataStore.DefaultDataStoreName = "TestDataConnection";
@@ -53,7 +60,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
                 });
 
             //services.AddSingleton<MappingSchema>(x => this.CreateMappingSchema());
-            services.AddSingleton<LinqToDBConnectionOptions>(x => CreateLinqToDBConnectionOptions());
+            //services.AddSingleton<LinqToDBConnectionOptions>(x => CreateLinqToDBConnectionOptions());
 
             this.ServiceProvider = services.BuildServiceProvider();
             this.Logger = this.ServiceProvider.GetService<ILogger<Linq2DbTestBase>>();
@@ -67,25 +74,17 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
         }
 
-        private LinqToDBConnectionOptions CreateLinqToDBConnectionOptions()
-        {
-            // create options builder
-            var builder = new LinqToDBConnectionOptionsBuilder();
-
-            // configure connection string
-            builder.UseSqlServer(this.Configuration.GetConnectionString("TestDataConnection"));
-            builder.UseMappingSchema(CreateMappingSchema());
-            return new LinqToDBConnectionOptions(builder);
-        }
-
         private MappingSchema CreateMappingSchema()
         {
             // IMPORTANT: configure mapping schema instance only once
             // and use it with all your connections that need those mappings
             // Never create new mapping schema for each connection as
             // it will seriously harm performance https://linq2db.github.io/#fluent-configuration
+
             var mappingSchema = new MappingSchema();
-            var builder = mappingSchema.GetFluentMappingBuilder();
+            var builder = new FluentMappingBuilder(mappingSchema);
+            
+            
 
             builder.Entity<Customer>()
                 .HasTableName("Customers")
@@ -121,7 +120,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
                 .Ignore(x => x.AllowEventTracking)
                 .Association(e => e.OrderItems, product => product.ProductId, orderItem => orderItem.ProductId)
                 .Property(x => x.ProductId).IsIdentity();
-
+            
+            builder.Build();
             return mappingSchema;
         }
 

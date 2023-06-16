@@ -1,4 +1,6 @@
-﻿using LinqToDB.Configuration;
+﻿using LinqToDB;
+using LinqToDB.Configuration;
+using LinqToDB.AspNet;
 using LinqToDB.Mapping;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.DataServices;
@@ -27,7 +29,7 @@ namespace RCommon.Persistence.Linq2Db
         }
 
 
-        public ILinq2DbConfiguration AddDataConnection<TDataConnection>(string dataStoreName, Func<IServiceProvider, LinqToDBConnectionOptions> options)
+        public ILinq2DbConfiguration AddDataConnection<TDataConnection>(string dataStoreName, Func<IServiceProvider, DataOptions, DataOptions> options)
             where TDataConnection : RCommonDataConnection
         {
             Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
@@ -39,8 +41,9 @@ namespace RCommon.Persistence.Linq2Db
             }
 
             //this._services.Configure(options);
-            _services.AddSingleton<LinqToDBConnectionOptions>(options);
-            _services.AddScoped<TDataConnection>();
+            _services.AddLinqToDBContext<TDataConnection>(options);
+            //_services.AddSingleton<DataOptions>(options);
+            //_services.AddScoped<TDataConnection>();
             return this;
         }
 
@@ -51,7 +54,7 @@ namespace RCommon.Persistence.Linq2Db
             // Never create new mapping schema for each connection as
             // it will seriously harm performance
             var mappingSchema = new MappingSchema();
-            var builder = mappingSchema.GetFluentMappingBuilder();
+            var builder = new FluentMappingBuilder(mappingSchema);
             options(builder);
             return this;
         }
