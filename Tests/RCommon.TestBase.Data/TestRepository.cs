@@ -29,6 +29,7 @@ namespace RCommon.TestBase.Data
         {
             _dataStoreRegistry = serviceProvider.GetService<IDataStoreRegistry>();
             _context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
+            _entityDeleteActions = new List<Action<DbContext>>();
         }
 
         public DbContext Context

@@ -109,8 +109,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 testData.Add(customer);
             }
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
             repo.PersistSeedData(testData);
 
             var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
@@ -149,8 +148,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 testData.Add(customer);
             }
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
             repo.PersistSeedData(testData);
 
             var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
@@ -193,8 +191,7 @@ namespace RCommon.Persistence.EFCore.Tests
                 testData.Add(customer);
             }
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
             repo.PersistSeedData(testData);
 
             var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
@@ -279,8 +276,7 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
             testData.Add(customer);
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
             repo.PersistSeedData(testData);
 
             // Start Test
@@ -307,8 +303,8 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
             testData.Add(customer);
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            //var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
+            var repo = new TestRepository(this.ServiceProvider);
             repo.PersistSeedData(testData);
 
             // Start Test
@@ -330,8 +326,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Start Test
             using (var scope = scopeFactory.Create())
@@ -358,8 +353,7 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
             testData.Add(customer);
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
             repo.PersistSeedData(testData);
 
             // Setup required services
@@ -388,8 +382,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
@@ -428,8 +421,7 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
             Order order = TestDataActions.CreateOrderStub();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             this.Logger.LogInformation("Starting initial UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
             using (var scope = scopeFactory.Create(TransactionMode.Default))
@@ -473,8 +465,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
@@ -504,8 +495,7 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
             SalesPerson salesPerson = TestDataActions.CreateSalesPersonStub();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
@@ -542,8 +532,7 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer customer = TestDataActions.CreateCustomerStub();
             SalesPerson salesPerson = TestDataActions.CreateSalesPersonStub();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
@@ -580,8 +569,7 @@ namespace RCommon.Persistence.EFCore.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
@@ -613,8 +601,7 @@ namespace RCommon.Persistence.EFCore.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
@@ -646,8 +633,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var testData = new List<Customer>();
 
             // Generate Test Data
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
             repo.PersistSeedData(testData);
 
             var customer = TestDataActions.CreateCustomerStub();
