@@ -47,18 +47,6 @@ namespace RCommon.Persistence.Linq2Db
             return this;
         }
 
-        public ILinq2DbConfiguration AddFluentMappings(Action<FluentMappingBuilder> options)
-        {
-            // IMPORTANT: configure mapping schema instance only once
-            // and use it with all your connections that need those mappings
-            // Never create new mapping schema for each connection as
-            // it will seriously harm performance
-            var mappingSchema = new MappingSchema();
-            var builder = new FluentMappingBuilder(mappingSchema);
-            options(builder);
-            return this;
-        }
-
         public IObjectAccessConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
             this._services.Configure(options);
