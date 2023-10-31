@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
 using RCommon.BusinessEntities;
 using RCommon.DataServices;
 using RCommon.Extensions;
@@ -86,6 +87,109 @@ namespace RCommon.TestBase.Data
         {
             var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Happy");
             var testData = new List<Customer>();
+            testData.Add(customer);
+            this.PersistSeedData(testData);
+            return customer;
+        }
+
+        public List<Customer> Prepare_Can_query_using_paging_with_specific_params()
+        {
+            var testData = new List<Customer>();
+            for (int i = 0; i < 100; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Lisa");
+                testData.Add(customer);
+            }
+            this.PersistSeedData(testData);
+            return testData;
+        }
+
+        public List<Customer> Prepare_Can_query_using_paging_with_specification()
+        {
+
+            var testData = new List<Customer>();
+            for (int i = 0; i < 100; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Bart");
+                testData.Add(customer);
+            }
+            this.PersistSeedData(testData);
+            return testData;
+
+        }
+
+        public List<Customer> Prepare_Can_query_using_predicate_builder()
+        {
+
+            var testData = new List<Customer>();
+            for (int i = 0; i < 100; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Homer");
+                testData.Add(customer);
+            }
+            this.PersistSeedData(testData);
+            return testData;
+
+        }
+
+        public Customer Prepare_Can_Add_Async()
+        {
+            var testData = new List<Customer>();
+
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Severnus");
+            testData.Add(customer);
+            return customer;
+        }
+
+        public Customer Prepare_Can_Add_Graph_Async()
+        {
+            var testData = new List<Customer>();
+
+            string firstName = Guid.NewGuid().ToString();
+
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub(x =>
+            {
+                x.FirstName = firstName;
+
+                var orders = new List<Order>();
+                orders.Add(TestDataActions.CreateOrderStub());
+                x.Orders = orders;
+
+            });
+            testData.Add(customer);
+            return customer;
+        }
+
+        public Customer Prepare_Can_Update_Async()
+        {
+            var testData = new List<Customer>();
+
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub();
+            testData.Add(customer);
+            this.PersistSeedData(testData);
+            return customer;
+        }
+
+        public Customer Prepare_Can_Delete_Async()
+        {
+            var testData = new List<Customer>();
+
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub();
+            testData.Add(customer);
+            this.PersistSeedData(testData);
+            return customer;
+        }
+
+        public Customer Prepare_UnitOfWork_Can_Rollback()
+        {
+            var testData = new List<Customer>();
+
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub();
             testData.Add(customer);
             this.PersistSeedData(testData);
             return customer;

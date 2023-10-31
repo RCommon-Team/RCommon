@@ -31,6 +31,10 @@ namespace RCommon.Persistence.Dapper.Tests
             base.InitializeBootstrapper(services);
 
             services.AddRCommon()
+                .WithSequentialGuidGenerator(guidOptions =>
+                {
+                    guidOptions.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString;
+                })
                 .WithPersistence<DapperConfiguration, DefaultUnitOfWorkConfiguration>(dapper =>
                 {
                     

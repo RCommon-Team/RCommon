@@ -7,6 +7,7 @@ using RCommon.DataServices.Sql;
 using RCommon.DataServices.Transactions;
 using RCommon.Linq;
 using RCommon.TestBase;
+using RCommon.TestBase.Data;
 using RCommon.TestBase.Entities;
 using RCommon.TestBase.Specifications;
 using System;
@@ -199,12 +200,8 @@ namespace RCommon.Persistence.Dapper.Tests
         [Test]
         public async Task Can_Add_Async()
         {
-            var testData = new List<Customer>();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
-            testData.Add(customer);
-
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Add_Async();
 
             // Start Test
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
