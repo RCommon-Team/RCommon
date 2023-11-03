@@ -235,7 +235,7 @@ namespace RCommon.TestBase.Data
             var testData = new List<Customer>();
 
             // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
+            Customer customer = TestDataActions.CreateCustomerStub(x => x.City = "Terabithia");
             testData.Add(customer);
             this.PersistSeedData(testData);
             return customer;

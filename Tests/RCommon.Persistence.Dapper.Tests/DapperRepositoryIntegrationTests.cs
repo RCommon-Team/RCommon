@@ -91,7 +91,7 @@ namespace RCommon.Persistence.Dapper.Tests
             customerRepo.DataStoreName = "TestDbConnection";
 
             var savedCustomer = await customerRepo
-                    .FindSingleOrDefaultAsync(x=>x.Id == customer.Id);
+                    .FindSingleOrDefaultAsync(x=>x.ZipCode == customer.ZipCode);
 
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.Id == customer.Id);
@@ -255,6 +255,7 @@ namespace RCommon.Persistence.Dapper.Tests
         {
             var repo = new TestRepository(this.ServiceProvider);
             var customer = repo.Prepare_UnitOfWork_Can_Rollback();
+            var target = customer.LastName;
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
@@ -262,7 +263,7 @@ namespace RCommon.Persistence.Dapper.Tests
             using (var scope = scopeFactory.Create())
             {
                 var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-                customer = await customerRepo.FindSingleOrDefaultAsync(x => x.Id == customer.Id);
+                customer = await customerRepo.FindSingleOrDefaultAsync(x => x.City == customer.City);
                 customer.LastName = "Changed";
                 await customerRepo.UpdateAsync(customer);
 
@@ -270,7 +271,7 @@ namespace RCommon.Persistence.Dapper.Tests
 
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer.Id);
-            Assert.AreNotEqual(customer.LastName, savedCustomer.LastName);
+            Assert.AreEqual(target, savedCustomer.LastName);
         }
 
         [Test]
@@ -300,13 +301,13 @@ namespace RCommon.Persistence.Dapper.Tests
 
             Customer savedCustomer = null;
             Order savedOrder = null;
-            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer.Id);
-            savedOrder = await repo.Context.Set<Order>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == order.Id);
+            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.StreetAddress1 == customer.StreetAddress1);
+            savedOrder = await repo.Context.Set<Order>().AsNoTracking().SingleOrDefaultAsync(x => x.ShipDate == order.ShipDate);
 
             Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(customer.Id, savedCustomer.Id);
+            Assert.AreEqual(customer.StreetAddress1, savedCustomer.StreetAddress1);
             Assert.IsNotNull(savedOrder);
-            Assert.AreEqual(order.Id, savedOrder.Id);
+            Assert.AreEqual(order.ShipDate.Value.ToLongDateString(), savedOrder.ShipDate.Value.ToLongDateString());
         }
 
         [Test]

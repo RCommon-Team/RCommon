@@ -15,7 +15,7 @@ namespace RCommon.Persistence.Dapper.Tests.Configurations
         public CustomerMap()
         {
             ToTable("Customers", "dbo");
-            
+            this.
             Map(x => x.Id).ToColumn("CustomerID", false)
                 .IsIdentity()
                 .IsKey()

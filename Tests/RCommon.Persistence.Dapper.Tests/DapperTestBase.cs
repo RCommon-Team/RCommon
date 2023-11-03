@@ -79,7 +79,7 @@ namespace RCommon.Persistence.Dapper.Tests
                 {
                     unitOfWork.SetOptions(options =>
                     {
-                        options.AutoCompleteScope = true;
+                        options.AutoCompleteScope = false;
                         options.DefaultIsolation = System.Transactions.IsolationLevel.ReadCommitted;
                     });
                 });

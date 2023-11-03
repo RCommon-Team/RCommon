@@ -256,35 +256,26 @@ namespace RCommon.Persistence.Dapper
             }
         }
 
+        /// <summary>
+        /// Gets the single returned value based on the expression passed in. 
+        /// </summary>
+        /// <param name="expression">Custom Expression</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Value matching expression criteria.</returns>
+        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            await using (var db = this.DataStore.GetDbConnection())
-            {
-                try
-                {
-                    if (db.State == ConnectionState.Closed)
-                    {
-                        await db.OpenAsync();
-                    }
-;
-                    var result = await db.FirstOrDefaultAsync(expression, cancellationToken: token);
-                    return result;
-                }
-                catch (ApplicationException exception)
-                {
-                    this.Logger.LogError(exception, "Error in {0}.FindSingleOrDefaultAsync while executing on the DbConnection.", this.GetType().FullName);
-                    throw;
-                }
-                finally
-                {
-                    if (db.State == ConnectionState.Open)
-                    {
-                        await db.CloseAsync();
-                    }
-                }
-            }
+            var result =  await FindAsync(expression, token);
+            return result.SingleOrDefault();
         }
 
+        /// <summary>
+        /// Gets the single returned value based on the expression passed in. 
+        /// </summary>
+        /// <param name="specification">Custom Specification</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Value matching specification expression criteria.</returns>
+        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindSingleOrDefaultAsync(specification, token);
