@@ -11,5 +11,8 @@ namespace RCommon
         IRCommonConfiguration WithDateTimeSystem(Action<SystemTimeOptions> actions);
         IRCommonConfiguration WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions);
         IRCommonConfiguration WithSimpleGuidGenerator();
+        IRCommonConfiguration WithCommonFactory<TService, TImplementation>()
+            where TService : class
+            where TImplementation : class, TService;
     }
 }

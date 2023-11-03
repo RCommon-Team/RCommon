@@ -1,5 +1,4 @@
 ﻿using Dapper.FluentMap.Dommel.Mapping;
-using Dapper.FluentMap.Mapping;
 using RCommon.TestBase.Entities;
 using System;
 using System.Collections.Generic;
@@ -9,18 +8,17 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Dapper.Tests.Configurations
 {
-    public class CustomerMap : DommelEntityMap<Customer>
+    public class OrderMap : DommelEntityMap<Order>
     {
 
-        public CustomerMap()
+        public OrderMap()
         {
-            ToTable("Customers", "dbo");
-            
-            Map(x => x.Id).ToColumn("CustomerID", false)
+            ToTable("Orders", "dbo");
+            Map(x => x.Id).ToColumn("OrderID", false)
                 .IsIdentity()
                 .IsKey()
                 .SetGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Identity);
-            Map(x => x.Orders).Ignore();
+            Map(x => x.Customer).Ignore();
             Map(x => x.LocalEvents).Ignore();
             Map(x => x.AllowEventTracking).Ignore();
         }

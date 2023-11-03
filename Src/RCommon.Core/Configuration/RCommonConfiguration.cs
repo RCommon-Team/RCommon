@@ -52,6 +52,16 @@ namespace RCommon
             return this;
         }
 
+        public IRCommonConfiguration WithCommonFactory<TService, TImplementation>()
+            where TService : class
+            where TImplementation : class, TService
+        {
+            this.Services.AddTransient<TService, TImplementation>();
+            this.Services.AddScoped<Func<TService>>(x => () => x.GetService<TService>());
+            this.Services.AddScoped<ICommonFactory<TService>, CommonFactory<TService>>();
+            return this;
+        }
+
         public virtual IServiceCollection Configure()
         {
             return this.Services;

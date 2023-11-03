@@ -18,14 +18,5 @@ namespace RCommon
             config.Configure();
             return config;
         }
-
-        public static void AddCommonFactory<TService, TImplementation>(this IServiceCollection services)
-            where TService : class
-            where TImplementation : class, TService
-        {
-            services.AddTransient<TService, TImplementation>();
-            services.AddScoped<Func<TService>>(x => () => x.GetService<TService>());
-            services.AddScoped<ICommonFactory<TService>, CommonFactory<TService>>();
-        }
     }
 }

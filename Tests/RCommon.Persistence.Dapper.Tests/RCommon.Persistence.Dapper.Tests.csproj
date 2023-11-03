@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Persistence.Dapper\RCommon.Persistence.Dapper.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj" />
     <ProjectReference Include="..\RCommon.TestBase.Data\RCommon.TestBase.Data.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>

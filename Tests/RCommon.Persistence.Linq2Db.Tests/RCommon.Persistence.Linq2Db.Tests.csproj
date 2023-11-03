@@ -24,6 +24,7 @@
 </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Src\RCommon.Persistence.Linq2Db\RCommon.Persistence.Linq2Db.csproj" />
+    <ProjectReference Include="..\RCommon.TestBase.Data\RCommon.TestBase.Data.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>
   <ItemGroup>

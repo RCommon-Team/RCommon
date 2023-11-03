@@ -28,10 +28,10 @@ namespace RCommon.TestBase.Data
         public void Configure(EntityTypeBuilder<Order> builder)
         {
             builder.ToTable("Orders", "dbo");
-            builder.HasKey(x => x.OrderId).HasName("PK__Orders__C3905BAF964CE0E8").IsClustered();
+            builder.HasKey(x => x.Id).HasName("PK__Orders__C3905BAF964CE0E8").IsClustered();
             builder.Ignore(x => x.AllowEventTracking);
             //builder.Ignore(x => x.IsChanged);
-            builder.Property(x => x.OrderId).HasColumnName(@"OrderID").HasColumnType("int").IsRequired().ValueGeneratedOnAdd().UseIdentityColumn();
+            builder.Property(x => x.Id).HasColumnName(@"OrderID").HasColumnType("int").IsRequired().ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(x => x.OrderDate).HasColumnName(@"OrderDate").HasColumnType("datetime").IsRequired(false);
             builder.Property(x => x.ShipDate).HasColumnName(@"ShipDate").HasColumnType("datetime").IsRequired(false);
             builder.Property(x => x.CustomerId).HasColumnName(@"CustomerId").HasColumnType("int").IsRequired(false);

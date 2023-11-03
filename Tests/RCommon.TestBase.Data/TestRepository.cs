@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using NUnit.Framework.Interfaces;
 using RCommon.BusinessEntities;
 using RCommon.DataServices;
 using RCommon.Extensions;
@@ -74,13 +75,58 @@ namespace RCommon.TestBase.Data
 
         }
 
-        public Customer Prepare_Can_Perform_Simple_Query()
+        public Customer Prepare_Can_Find_Async_By_Primary_Key()
         {
             var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
             var testData = new List<Customer>();
             testData.Add(customer);
             this.PersistSeedData(testData);
             return customer;
+        }
+
+        public Customer Prepare_Can_Find_Single_Async_With_Expression()
+        {
+            var customer = TestDataActions.CreateCustomerStub(x => x.ZipCode = "30062");
+            var testData = new List<Customer>();
+            testData.Add(customer);
+            this.PersistSeedData(testData);
+            return customer;
+        }
+
+        public List<Customer> Prepare_Can_Find_Async_With_Expression()
+        {
+            var testData = new List<Customer>();
+            for (int i = 0; i < 10; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.LastName = "Potter");
+                testData.Add(customer);
+            }
+            this.PersistSeedData(testData);
+            return testData;
+        }
+
+        public List<Customer> Prepare_Can_Get_Count_Async_With_Expression()
+        {
+            var testData = new List<Customer>();
+            for (int i = 0; i < 10; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.LastName = "Dumbledore");
+                testData.Add(customer);
+            }
+            this.PersistSeedData(testData);
+            return testData;
+        }
+
+        public List<Customer> Prepare_Can_Get_Any_Async_With_Expression()
+        {
+            var testData = new List<Customer>();
+            for (int i = 0; i < 10; i++)
+            {
+                var customer = TestDataActions.CreateCustomerStub(x => x.City = "Hollywood");
+                testData.Add(customer);
+            }
+            this.PersistSeedData(testData);
+            return testData;
         }
 
         public Customer Prepare_Can_Use_Default_DataStore()

@@ -104,15 +104,15 @@ namespace RCommon.Persistence.Linq2Db.Tests
                 .HasTableName("OrderItems")
                 .HasSchemaName("dbo")
                 .Ignore(x => x.AllowEventTracking)
-                .Association(e => e.Order, orderItem => orderItem.OrderId, order => order.OrderId)
+                .Association(e => e.Order, orderItem => orderItem.OrderId, order => order.Id)
                 .Property(x => x.OrderItemId).IsIdentity();
 
             builder.Entity<Order>()
                 .HasTableName("Orders")
                 .HasSchemaName("dbo")
                 .Ignore(x => x.AllowEventTracking)
-                .Association(e => e.OrderItems, order => order.OrderId, orderItem => orderItem.OrderId)
-                .Property(x => x.OrderId).IsIdentity();
+                .Association(e => e.OrderItems, order => order.Id, orderItem => orderItem.OrderId)
+                .Property(x => x.Id).IsIdentity();
 
             builder.Entity<Product>()
                 .HasTableName("Products")

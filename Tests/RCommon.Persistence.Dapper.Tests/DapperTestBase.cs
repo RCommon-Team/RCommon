@@ -4,11 +4,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RCommon.ApplicationServices;
-using RCommon.DataServices;
-using RCommon.DataServices.Transactions;
-using RCommon.Persistence.Dapper.Tests.Configurations;
-using RCommon.TestBase;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,6 +14,16 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using Microsoft.EntityFrameworkCore;
+using RCommon;
+using RCommon.TestBase;
+using RCommon.DataServices;
+using RCommon.ApplicationServices;
+using RCommon.DataServices.Transactions;
+using RCommon.TestBase.Data;
+using RCommon.Persistence.Dapper;
+using RCommon.Persistence.EFCore;
+using RCommon.Persistence.Dapper.Tests.Configurations;
 
 namespace RCommon.Persistence.Dapper.Tests
 {
@@ -35,9 +40,25 @@ namespace RCommon.Persistence.Dapper.Tests
                 {
                     guidOptions.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString;
                 })
-                .WithPersistence<DapperConfiguration, DefaultUnitOfWorkConfiguration>(dapper =>
+                .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
-                    
+                    // Add all the DbContexts here
+                    ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
+                    {
+                        ef.UseSqlServer(
+                        this.Configuration.GetConnectionString("TestDbContext"));
+                    });
+                }, unitOfWork =>
+                {
+                    unitOfWork.SetOptions(options =>
+                    {
+                        options.AutoCompleteScope = false;
+                        options.DefaultIsolation = System.Transactions.IsolationLevel.ReadCommitted;
+                    });
+                })
+                .WithPersistence<DapperConfiguration, DefaultUnitOfWorkConfiguration>(objectAccessActions: dapper =>
+                {
+
                     dapper.AddDbConnection<TestDbConnection>("TestDbConnection", db =>
                     {
                         db.DbFactory = SqlClientFactory.Instance;
@@ -47,6 +68,7 @@ namespace RCommon.Persistence.Dapper.Tests
                     {
                         mappings.AddMap(new CustomerMap());
                         mappings.AddMap(new SalesPersonMap());
+                        mappings.AddMap(new OrderMap());
                         mappings.ForDommel();
                     });
                     dapper.SetDefaultDataStore(dataStore =>
@@ -61,6 +83,7 @@ namespace RCommon.Persistence.Dapper.Tests
                         options.DefaultIsolation = System.Transactions.IsolationLevel.ReadCommitted;
                     });
                 });
+
 
             
 
