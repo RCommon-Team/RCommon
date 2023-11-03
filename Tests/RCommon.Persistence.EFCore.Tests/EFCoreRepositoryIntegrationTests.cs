@@ -94,7 +94,7 @@ namespace RCommon.Persistence.EFCore.Tests
             customerRepo.DataStoreName = "TestDbContext";
 
             var savedCustomer = await customerRepo
-                    .FindAsync(customer.Id);
+                    .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.Id == customer.Id);
