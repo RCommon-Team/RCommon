@@ -28,6 +28,17 @@ namespace RCommon.Persistence.Linq2Db
             
         }
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="options">Connection Options for Linq2Db</param>
+        /// <remarks>Only here to satisfy requirement of DI Injection. Do not use directly!</remarks>
+        public RCommonDataConnection(DataOptions options)
+            :base(options)
+        {
+             
+        }
+
         public DbConnection GetDbConnection()
         {
             return this.Connection;

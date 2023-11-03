@@ -19,6 +19,17 @@ namespace RCommon.Persistence.Linq2Db.Tests
         {
         }
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="options">Connection Options for Linq2Db</param>
+        /// <remarks>Only here to satisfy requirement of DI Injection. Do not use directly!</remarks>
+        public TestDataConnection(DataOptions options)
+            : base(options)
+        {
+                
+        }
+
         public ITable<Customer> Customers => this.GetTable<Customer>();
         public ITable<Department> Departments => this.GetTable<Department>();
         public ITable<MonthlySalesSummary> MonthlySalesSummaries => this.GetTable<MonthlySalesSummary>();

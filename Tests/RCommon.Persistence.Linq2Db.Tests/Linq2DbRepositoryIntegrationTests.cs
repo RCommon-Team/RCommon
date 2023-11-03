@@ -48,14 +48,16 @@ namespace RCommon.Persistence.Linq2Db.Tests
         public async Task TearDown()
         {
             this.Logger.LogInformation("Tearing down Test");
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.CleanUpSeedData();
             await Task.CompletedTask;
         }
 
         [OneTimeTearDown]
         public async Task OneTimeTearDown()
         {
-            var context = _dataStoreRegistry.GetDataStore<TestDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            this.Logger.LogInformation("Tearing down Test Suite");
+            var repo = new TestRepository(this.ServiceProvider);
             repo.ResetDatabase();
             await Task.CompletedTask;
         }
@@ -68,6 +70,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customer = repo.Prepare_Can_Find_Async_By_Primary_Key();
 
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDataConnection";
 
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
@@ -85,9 +88,10 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customer = repo.Prepare_Can_Find_Single_Async_With_Expression();
 
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDataConnection";
 
             var savedCustomer = await customerRepo
-                    .FindAsync(customer.Id);
+                    .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.Id == customer.Id);
@@ -101,6 +105,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customers = repo.Prepare_Can_Find_Async_With_Expression();
 
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDataConnection";
 
             var savedCustomers = await customerRepo
                     .FindAsync(x => x.LastName == "Potter");
@@ -116,6 +121,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customers = repo.Prepare_Can_Get_Count_Async_With_Expression();
 
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDataConnection";
 
             var savedCustomers = await customerRepo
                     .GetCountAsync(x => x.LastName == "Dumbledore");
@@ -131,6 +137,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customers = repo.Prepare_Can_Get_Any_Async_With_Expression();
 
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDataConnection";
 
             var canFind = await customerRepo
                     .AnyAsync(x => x.City == "Hollywood");
@@ -314,7 +321,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             await customerRepo.DeleteAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = await repo.Context.Set<Customer>().FindAsync(customer.Id);
+            repo.Context.ChangeTracker.Clear();
+            savedCustomer = await repo.Context.Set<Customer>().SingleOrDefaultAsync(x=>x.Id == customer.Id);
 
             Assert.IsNull(savedCustomer);
 
@@ -539,6 +547,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
         }
 
+        
         [Test]
         public async Task Can_Eager_Load_Repository_And_Query_Async()
         {

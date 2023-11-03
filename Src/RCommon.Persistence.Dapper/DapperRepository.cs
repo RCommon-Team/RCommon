@@ -262,7 +262,8 @@ namespace RCommon.Persistence.Dapper
         /// <param name="expression">Custom Expression</param>
         /// <param name="token">Cancellation Token</param>
         /// <returns>Value matching expression criteria.</returns>
-        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead</remarks>
+        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead 
+        /// due to issues related to https://github.com/henkmollema/Dommel/issues/282</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             var result =  await FindAsync(expression, token);
@@ -275,7 +276,8 @@ namespace RCommon.Persistence.Dapper
         /// <param name="specification">Custom Specification</param>
         /// <param name="token">Cancellation Token</param>
         /// <returns>Value matching specification expression criteria.</returns>
-        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead</remarks>
+        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead
+        /// due to issues related to https://github.com/henkmollema/Dommel/issues/282</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindSingleOrDefaultAsync(specification, token);
