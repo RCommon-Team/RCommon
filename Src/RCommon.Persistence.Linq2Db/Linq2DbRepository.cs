@@ -133,9 +133,15 @@ namespace RCommon.Persistence.Linq2Db
             return this.FindCore(expression);
         }
 
+        /// <summary>
+        /// This is not yet implemented due to Linq2Db's inability to find primary key or array of primary key. 
+        /// </summary>
+        /// <param name="primaryKey">Value of Primary Key</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns><see cref="NotImplementedException"></see></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            this.DataConnection.s
             //TODO: implement FindASync(object primaryKey)
             throw new NotImplementedException();
             //DataExtensions.RetrieveIdentity<TEntity>(IEnumerable<TEntity>
