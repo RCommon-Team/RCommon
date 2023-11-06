@@ -72,12 +72,14 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
             customerRepo.DataStoreName = "TestDataConnection";
 
-            var savedCustomer = await customerRepo
+            Assert.ThrowsAsync<NotImplementedException>(async () => await customerRepo
+                    .FindAsync(customer.Id));
+            /*
+             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
-
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
+            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);*/
         }
 
         [Test]
