@@ -11,7 +11,8 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface ILinqRepository<TEntity>: IQueryable<TEntity>, IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>
+    public interface ILinqRepository<TEntity>: IQueryable<TEntity>, IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>, 
+        IEagerLoadableQueryable<TEntity>
         where TEntity : IBusinessEntity
     {
         IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
@@ -21,5 +22,7 @@ namespace RCommon.Persistence
             bool orderByAscending, int? pageIndex, int pageSize = 0,
             CancellationToken token = default);
         Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
+
+        IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path);
     }
 }

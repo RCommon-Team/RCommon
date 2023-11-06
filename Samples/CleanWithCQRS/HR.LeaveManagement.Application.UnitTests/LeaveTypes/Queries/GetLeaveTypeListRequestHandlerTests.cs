@@ -42,7 +42,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Queries
             {
                 testData.Add(TestDataActions.CreateLeaveTypeStub());
             }
-            var mock = new Mock<IFullFeaturedRepository<LeaveType>>();
+            var mock = new Mock<IGraphRepository<LeaveType>>();
             mock.Setup(x => x.FindAsync(x=>true, CancellationToken.None))
                 .Returns(() => Task.FromResult(testData as ICollection<LeaveType>));
             

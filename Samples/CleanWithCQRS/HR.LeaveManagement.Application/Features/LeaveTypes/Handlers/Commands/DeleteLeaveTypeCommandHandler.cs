@@ -15,16 +15,16 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
     public class DeleteLeaveTypeCommandHandler : IRequestHandler<DeleteLeaveTypeCommand>
     {
         private readonly IMapper _mapper;
-        private readonly IFullFeaturedRepository<LeaveType> _leaveTypeRepository;
+        private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
 
-        public DeleteLeaveTypeCommandHandler(IMapper mapper, IFullFeaturedRepository<LeaveType> leaveTypeRepository)
+        public DeleteLeaveTypeCommandHandler(IMapper mapper, IGraphRepository<LeaveType> leaveTypeRepository)
         {
             _mapper = mapper;
             _leaveTypeRepository = leaveTypeRepository;
             this._leaveTypeRepository.DataStoreName = "LeaveManagement";
         }
 
-        public async Task<Unit> Handle(DeleteLeaveTypeCommand request, CancellationToken cancellationToken)
+        public async Task Handle(DeleteLeaveTypeCommand request, CancellationToken cancellationToken)
         {
             var leaveType = await _leaveTypeRepository.FindAsync(request.Id);
 
@@ -32,8 +32,6 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
                 throw new NotFoundException(nameof(LeaveType), request.Id);
 
             await _leaveTypeRepository.DeleteAsync(leaveType);
-
-            return Unit.Value;
         }
     }
 }

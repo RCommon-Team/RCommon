@@ -2,6 +2,7 @@
 {
     using MediatR;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Query;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -10,7 +11,6 @@
     using RCommon.Collections;
     using RCommon.DataServices;
     using RCommon.DataServices.Transactions;
-    using RCommon.Expressions;
     using RCommon.Extensions;
     using RCommon.Linq;
     using System;
@@ -30,13 +30,13 @@
     /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EFCoreRepository<TEntity> : FullFeaturedRepositoryBase<TEntity>, IEFCoreRepository<TEntity>
+    public class EFCoreRepository<TEntity> : GraphRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        private readonly List<string> _includes;
         private readonly Dictionary<Type, object> _objectSets;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
+        private IIncludableQueryable<TEntity, object> _includableQueryable;
 
 
 
@@ -47,54 +47,70 @@
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
         public EFCoreRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, 
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
-            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
-            this._includes = new List<string>();
             this._repositoryQuery = null;
+            this._includableQueryable = null;
             this._tracking = true;
             this._objectSets = new Dictionary<Type, object>();
         }
 
-
-        protected override void ApplyFetchingStrategy(Expression[] paths)
+        protected DbSet<TEntity> ObjectSet
         {
-            Guard.Against<ArgumentNullException>((paths == null) || (paths.Length == 0), "Expected a non-null and non-empty array of Expression instances representing the paths to eagerly load.");
-            string currentPath = string.Empty;
-            paths.ForEach<System.Linq.Expressions.Expression>(delegate (System.Linq.Expressions.Expression path) {
-                MemberAccessPathVisitor visitor = new MemberAccessPathVisitor();
-                visitor.Visit(path);
-                currentPath = !string.IsNullOrEmpty(currentPath) ? (currentPath + "." + visitor.Path) : visitor.Path;
-                ((EFCoreRepository<TEntity>)this)._includes.Add(currentPath);
-            });
+            get
+            {
+                return this.ObjectContext.Set<TEntity>();
+            }
         }
 
-
-
-        public IQueryable<TEntity> CreateQuery()
+        public override bool Tracking
         {
-            return this.ObjectSet.AsQueryable<TEntity>();
+            get => this._tracking;
+            set
+            {
+                this._tracking = value;
+            }
+
         }
 
-        public override async Task AttachAsync(TEntity entity, CancellationToken token = default)
+        public override IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
-            this.ObjectContext.Attach<TEntity>(entity);
-            await this.SaveAsync(token);
+            this._includableQueryable = this.RepositoryQuery.Include(path);
+            return this;
         }
 
-        public override async Task DetachAsync(TEntity entity, CancellationToken token = default)
+        public override IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
         {
-            this.ObjectContext.Entry<TEntity>(entity).State = EntityState.Detached;
-            await this.SaveAsync(token);
+            this._repositoryQuery = this._includableQueryable.ThenInclude(path);
+            return this;
+        }
+
+        protected override IQueryable<TEntity> RepositoryQuery
+        {
+            get
+            {
+                if (this._repositoryQuery == null)
+                {
+                    this._repositoryQuery = this.ObjectSet.AsQueryable<TEntity>();
+                }
+
+                // Start Eagerloading
+                if (this._includableQueryable != null)
+                {
+                    this._repositoryQuery = this._includableQueryable;
+                }
+                return this._repositoryQuery;
+            }
         }
 
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
             await this.ObjectSet.AddAsync(entity, token);
             entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
             await this.SaveAsync(token);
         }
 
@@ -103,7 +119,7 @@
         {
             this.ObjectSet.Remove(entity);
             entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
             await this.SaveAsync();
         }
 
@@ -111,7 +127,7 @@
         {
             this.ObjectSet.Update(entity);
             entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
-            this.ChangeTracker.AddEntity(entity);
+            this.EventTracker.AddEntity(entity);
             await this.SaveAsync(token);
         }
 
@@ -242,77 +258,6 @@
             
             return affected;
         }
-
-
-
-        protected DbSet<TEntity> ObjectSet
-        {
-            get
-            {
-                return this.ObjectContext.Set<TEntity>();
-            }
-        }
-
-        public override bool Tracking
-        {
-            get => this._tracking;
-            set
-            {
-                this._tracking = value;
-            }
-
-        }
-
-        protected override IQueryable<TEntity> RepositoryQuery
-        {
-            get
-            {
-                IQueryable<TEntity> query;
-                if (ReferenceEquals(this._repositoryQuery, null))
-                {
-                    query = this.CreateQuery();
-                }
-                else
-                {
-                    query = _repositoryQuery;
-                }
-
-                // Start Eagerloading
-                if (this._includes.Count > 0)
-                {
-                    Action<string>? action = null;
-                    if (action == null)
-                    {
-                        action = delegate (string m) {
-                            query = query.Include(m);
-                        };
-                    }
-                    this._includes.ForEach(action); // Build the eagerloaded query
-                    this._includes.Clear(); // clear the eagerloading paths so we don't duplicate efforts if another repository method is called
-                }
-                this._repositoryQuery = query;
-
-                return this._repositoryQuery;
-            }
-        }
-
-        protected string EntitySetName =>
-            this.ObjectContext.GetType().GetProperties().Single<PropertyInfo>(delegate (PropertyInfo p)
-            {
-                bool flag1;
-                if (!p.PropertyType.IsGenericType)
-                {
-                    flag1 = false;
-                }
-                else
-                {
-                    Type[] typeArguments = new Type[] { typeof(TEntity) };
-                    flag1 = typeof(IQueryable<>).MakeGenericType(typeArguments).IsAssignableFrom(p.PropertyType);
-                }
-                return flag1;
-            }).Name;
-
-
     }
 }
 

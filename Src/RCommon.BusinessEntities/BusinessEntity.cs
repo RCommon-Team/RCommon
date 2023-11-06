@@ -12,7 +12,7 @@ namespace RCommon.BusinessEntities
     [Serializable]
     public abstract class BusinessEntity : IBusinessEntity
     {
-        private bool _allowChangeTracking = true;
+        private bool _allowEventTracking = true;
         public BusinessEntity()
         {
             _localEvents = _localEvents ?? new List<ILocalEvent>();
@@ -43,7 +43,7 @@ namespace RCommon.BusinessEntities
         public IReadOnlyCollection<ILocalEvent> LocalEvents => _localEvents?.AsReadOnly();
 
         [NotMapped]
-        public bool AllowChangeTracking { get => _allowChangeTracking; set => _allowChangeTracking = value; }
+        public bool AllowEventTracking { get => _allowEventTracking; set => _allowEventTracking = value; }
 
         public void AddLocalEvent(ILocalEvent eventItem)
         {

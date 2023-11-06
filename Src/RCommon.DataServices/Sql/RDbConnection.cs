@@ -15,13 +15,13 @@ namespace RCommon.DataServices.Sql
     public class RDbConnection : DisposableResource, IRDbConnection
     {
         private readonly IOptions<RDbConnectionOptions> _options;
-        private readonly IChangeTracker _changeTracker;
+        private readonly IEventTracker _eventTracker;
         private readonly IMediator _mediator;
 
-        public RDbConnection(IOptions<RDbConnectionOptions> options, IChangeTracker changeTracker, IMediator mediator)
+        public RDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker, IMediator mediator)
         {
             _options=options;
-            this._changeTracker = changeTracker;
+            this._eventTracker = eventTracker;
             this._mediator = mediator;
         }
 
@@ -40,7 +40,7 @@ namespace RCommon.DataServices.Sql
 
         public void PersistChanges()
         {
-            this._changeTracker.TrackedEntities.PublishLocalEvents(this._mediator);
+            this._eventTracker.TrackedEntities.PublishLocalEvents(this._mediator);
             // Nothing to do here because this is a SQL Connection
             return;
         }

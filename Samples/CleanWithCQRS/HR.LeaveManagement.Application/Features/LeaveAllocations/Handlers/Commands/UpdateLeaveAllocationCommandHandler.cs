@@ -16,11 +16,11 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
 {
     public class UpdateLeaveAllocationCommandHandler : IRequestHandler<UpdateLeaveAllocationCommand, Unit>
     {
-        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
+        private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
         private readonly IMapper _mapper;
 
-        public UpdateLeaveAllocationCommandHandler(IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository,
+        public UpdateLeaveAllocationCommandHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository,
             IReadOnlyRepository<LeaveType> leaveTypeRepository,
             IMapper mapper)
         {

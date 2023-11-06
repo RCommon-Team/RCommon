@@ -19,6 +19,7 @@ namespace RCommon.Persistence
         Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default);
 
         Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default);
+
         Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
 
         Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);

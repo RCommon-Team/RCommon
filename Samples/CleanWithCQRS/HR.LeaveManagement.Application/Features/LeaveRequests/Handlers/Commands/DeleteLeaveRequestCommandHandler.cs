@@ -15,15 +15,15 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
 {
     public class DeleteLeaveRequestCommandHandler : IRequestHandler<DeleteLeaveRequestCommand>
     {
-        private readonly IFullFeaturedRepository<LeaveRequest> _leaveRequestRepository;
+        private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
 
-        public DeleteLeaveRequestCommandHandler(IFullFeaturedRepository<LeaveRequest> leaveRequestRepository)
+        public DeleteLeaveRequestCommandHandler(IGraphRepository<LeaveRequest> leaveRequestRepository)
         {
             this._leaveRequestRepository = leaveRequestRepository;
             this._leaveRequestRepository.DataStoreName = "LeaveManagement";
         }
 
-        public async Task<Unit> Handle(DeleteLeaveRequestCommand request, CancellationToken cancellationToken)
+        public async Task Handle(DeleteLeaveRequestCommand request, CancellationToken cancellationToken)
         {
             var leaveRequest = await _leaveRequestRepository.FindAsync(request.Id);
 
@@ -31,7 +31,6 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                 throw new NotFoundException(nameof(LeaveRequest), request.Id);
 
             await _leaveRequestRepository.DeleteAsync(leaveRequest);
-            return Unit.Value;
         }
     }
 }

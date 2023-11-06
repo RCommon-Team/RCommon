@@ -15,13 +15,14 @@ namespace RCommon.Persistence.Dapper.Tests.Configurations
         public CustomerMap()
         {
             ToTable("Customers", "dbo");
-            Map(x => x.Id).ToColumn("CustomerId", false)
+            this.
+            Map(x => x.Id).ToColumn("CustomerID", false)
                 .IsIdentity()
                 .IsKey()
                 .SetGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Identity);
             Map(x => x.Orders).Ignore();
             Map(x => x.LocalEvents).Ignore();
-            Map(x => x.AllowChangeTracking).Ignore();
+            Map(x => x.AllowEventTracking).Ignore();
         }
     }
 }

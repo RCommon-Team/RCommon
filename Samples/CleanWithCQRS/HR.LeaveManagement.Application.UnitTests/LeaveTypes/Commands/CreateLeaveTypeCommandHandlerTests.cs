@@ -40,7 +40,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
             _mapper = mapperConfig.CreateMapper();
 
             var testData = new List<LeaveType>();
-            var mock = new Mock<IFullFeaturedRepository<LeaveType>>();
+            var mock = new Mock<IGraphRepository<LeaveType>>();
             mock.Setup(x => x.AddAsync(TestDataActions.CreateLeaveTypeStub(), CancellationToken.None))
                 .Returns(() => Task.FromResult(new BaseCommandResponse()));
             _handler = new CreateLeaveTypeCommandHandler(_mapper, mock.Object);

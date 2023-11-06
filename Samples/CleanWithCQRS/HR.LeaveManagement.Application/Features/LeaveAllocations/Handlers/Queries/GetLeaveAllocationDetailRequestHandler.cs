@@ -12,10 +12,10 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
 {
     public class GetLeaveAllocationDetailRequestHandler : IRequestHandler<GetLeaveAllocationDetailRequest, LeaveAllocationDto>
     {
-        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
+        private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
 
-        public GetLeaveAllocationDetailRequestHandler(IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
+        public GetLeaveAllocationDetailRequestHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
         {
             _leaveAllocationRepository = leaveAllocationRepository;
             this._leaveAllocationRepository.DataStoreName = "LeaveManagement";

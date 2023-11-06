@@ -16,9 +16,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
     public class UpdateLeaveTypeCommandHandler : IRequestHandler<UpdateLeaveTypeCommand, Unit>
     {
         private readonly IMapper _mapper;
-        private readonly IFullFeaturedRepository<LeaveType> _leaveTypeRepository;
+        private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
 
-        public UpdateLeaveTypeCommandHandler(IMapper mapper, IFullFeaturedRepository<LeaveType> leaveTypeRepository)
+        public UpdateLeaveTypeCommandHandler(IMapper mapper, IGraphRepository<LeaveType> leaveTypeRepository)
         {
             _mapper = mapper;
             _leaveTypeRepository = leaveTypeRepository;

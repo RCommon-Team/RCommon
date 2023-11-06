@@ -17,12 +17,12 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
 {
     public class GetLeaveAllocationListRequestHandler : IRequestHandler<GetLeaveAllocationListRequest, List<LeaveAllocationDto>>
     {
-        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
+        private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserService _userService;
 
-        public GetLeaveAllocationListRequestHandler(IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository,
+        public GetLeaveAllocationListRequestHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository,
              IMapper mapper,
              IHttpContextAccessor httpContextAccessor,
             IUserService userService)

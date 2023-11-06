@@ -33,13 +33,13 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
         private readonly IOptions<SendGridEmailSettings> _emailSettings;
         private readonly IMapper _mapper;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
-        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
-        private readonly IFullFeaturedRepository<LeaveRequest> _leaveRequestRepository;
+        private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
+        private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
 
         public CreateLeaveRequestCommandHandler(
             IReadOnlyRepository<LeaveType> leaveTypeRepository,
-            IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository,
-            IFullFeaturedRepository<LeaveRequest> leaveRequestRepository,
+            IGraphRepository<LeaveAllocation> leaveAllocationRepository,
+            IGraphRepository<LeaveRequest> leaveRequestRepository,
             IEmailService emailSender,
             ICurrentUser currentUser,
             IOptions<SendGridEmailSettings> emailSettings,

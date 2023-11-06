@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RCommon.DataServices;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,8 +10,10 @@ using System.Text;
 using Microsoft.Extensions.Logging.Console;
 using System.Transactions;
 using RCommon.TestBase;
+using RCommon.DataServices;
 using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
+using RCommon.TestBase.Data;
 
 namespace RCommon.Persistence.EFCore.Tests
 {

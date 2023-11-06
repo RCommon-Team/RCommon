@@ -17,10 +17,10 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries
 {
     public class GetLeaveTypeDetailRequestHandler : IRequestHandler<GetLeaveTypeDetailRequest, LeaveTypeDto>
     {
-        private readonly IFullFeaturedRepository<LeaveType> _leaveTypeRepository;
+        private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
         private readonly IMapper _mapper;
 
-        public GetLeaveTypeDetailRequestHandler(IFullFeaturedRepository<LeaveType> leaveTypeRepository, IMapper mapper)
+        public GetLeaveTypeDetailRequestHandler(IGraphRepository<LeaveType> leaveTypeRepository, IMapper mapper)
         {
             _leaveTypeRepository = leaveTypeRepository;
             this._leaveTypeRepository.DataStoreName = "LeaveManagement";

@@ -1,6 +1,7 @@
 ﻿
 using Bogus;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -8,11 +9,13 @@ using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Linq;
 using RCommon.TestBase;
+using RCommon.TestBase.Data;
 using RCommon.TestBase.Entities;
 using RCommon.TestBase.Specifications;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -23,7 +26,6 @@ namespace RCommon.Persistence.EFCore.Tests
     public class EFCoreRepositoryIntegrationTests : EFCoreTestBase
 
     {
-        private IDataStoreRegistry _dataStoreRegistry;
         
 
         public EFCoreRepositoryIntegrationTests() : base()
@@ -37,8 +39,6 @@ namespace RCommon.Persistence.EFCore.Tests
         public void InitialSetup()
         {
             this.Logger.LogInformation("Beginning Onetime setup");
-            _dataStoreRegistry = this.ServiceProvider.GetService<IDataStoreRegistry>();
-
         }
 
         [SetUp]
@@ -51,30 +51,28 @@ namespace RCommon.Persistence.EFCore.Tests
         public async Task TearDown()
         {
             this.Logger.LogInformation("Tearing down Test");
-            
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.CleanUpSeedData();
             await Task.CompletedTask;
         }
 
         [OneTimeTearDown]
         public async Task OneTimeTearDown()
         {
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            this.Logger.LogInformation("Tearing down Test Suite");
+            var repo = new TestRepository(this.ServiceProvider);
             repo.ResetDatabase();
             await Task.CompletedTask;
         }
 
         [Test]
-        public async Task Can_perform_simple_query()
+        public async Task Can_Find_Async_By_Primary_Key()
         {
-            var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Albus");
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            var testData = new List<Customer>();
-            testData.Add(customer);
-            repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Find_Async_By_Primary_Key();
+
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customerRepo.DataStoreName = "TestDbContext";
             
             var savedCustomer = await customerRepo
@@ -82,20 +80,81 @@ namespace RCommon.Persistence.EFCore.Tests
 
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.FirstName == "Albus");
+            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
         }
 
         [Test]
-        public async Task Can_use_default_data_store()
+        public async Task Can_Find_Single_Async_With_Expression()
         {
-            var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Happy");
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            var testData = new List<Customer>();
-            testData.Add(customer);
-            repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Find_Single_Async_With_Expression();
+
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
+
+            var savedCustomer = await customerRepo
+                    .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
+
+            Assert.IsNotNull(savedCustomer);
+            Assert.IsTrue(savedCustomer.Id == customer.Id);
+            Assert.IsTrue(savedCustomer.ZipCode == customer.ZipCode);
+        }
+
+        [Test]
+        public async Task Can_Find_Async_With_Expression()
+        {
+            var repo = new TestRepository(this.ServiceProvider);
+            var customers = repo.Prepare_Can_Find_Async_With_Expression();
+
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
+
+            var savedCustomers = await customerRepo
+                    .FindAsync(x => x.LastName == "Potter");
+
+            Assert.IsNotNull(savedCustomers);
+            Assert.IsTrue(savedCustomers.Count() == 10);
+        }
+
+        [Test]
+        public async Task Can_Get_Count_Async_With_Expression()
+        {
+            var repo = new TestRepository(this.ServiceProvider);
+            var customers = repo.Prepare_Can_Get_Count_Async_With_Expression();
+
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
+
+            var savedCustomers = await customerRepo
+                    .GetCountAsync(x => x.LastName == "Dumbledore");
+
+            Assert.IsNotNull(savedCustomers);
+            Assert.IsTrue(savedCustomers == 10);
+        }
+
+        [Test]
+        public async Task Can_Get_Any_Async_With_Expression()
+        {
+            var repo = new TestRepository(this.ServiceProvider);
+            var customers = repo.Prepare_Can_Get_Any_Async_With_Expression();
+
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbContext";
+
+            var canFind = await customerRepo
+                    .AnyAsync(x => x.City == "Hollywood");
+
+            Assert.IsTrue(canFind);
+        }
+
+        [Test]
+        public async Task Can_Use_Default_Data_Store()
+        {
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Use_Default_DataStore();
+
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
@@ -106,23 +165,15 @@ namespace RCommon.Persistence.EFCore.Tests
         }
 
         [Test]
-        public async Task Can_query_using_paging_with_specific_params()
+        public async Task Can_Query_Using_Paging_With_Specific_Params()
         {
-            var testData = new List<Customer>();
-            for (int i = 0; i < 100; i++)
-            {
-                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Lisa");
-                testData.Add(customer);
-            }
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.Prepare_Can_query_using_paging_with_specific_params();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            repo.PersistSeedData(testData);
-
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             
             var customers = await customerRepo
-                    .FindAsync(x => x.FirstName.StartsWith("li"), x => x.LastName, true, 1, 10);
+                    .FindAsync(x => x.FirstName.StartsWith("Li"), x => x.LastName, true, 1, 10);
 
             Assert.IsNotNull(customers);
             Assert.IsTrue(customers.Count == 10);
@@ -140,24 +191,17 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.IsTrue(customers.TotalCount == 100);
             Assert.IsTrue(customers.TotalPages == 10);
             Assert.IsTrue(customers[4].FirstName == "Lisa");
+
+            repo.CleanUpSeedData();
         }
 
         [Test]
-        public async Task Can_query_using_paging_with_specification()
+        public async Task Can_Query_Using_Paging_With_Specification()
         {
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.Prepare_Can_query_using_paging_with_specification();
 
-            var testData = new List<Customer>();
-            for (int i = 0; i < 100; i++)
-            {
-                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Bart");
-                testData.Add(customer);
-            }
-
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            repo.PersistSeedData(testData);
-
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
             var customerSearchSpec = new CustomerSearchSpec("ba", x => x.FirstName, true, 1, 10);
 
@@ -182,24 +226,17 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.IsTrue(customers.TotalCount == 100);
             Assert.IsTrue(customers.TotalPages == 10);
             Assert.IsTrue(customers[4].FirstName == "Bart");
+
+            repo.CleanUpSeedData();
         }
 
         [Test]
-        public async Task Can_query_using_predicate_builder()
+        public async Task Can_Query_Using_Predicate_Builder()
         {
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.Prepare_Can_query_using_predicate_builder();
 
-            var testData = new List<Customer>();
-            for (int i = 0; i < 100; i++)
-            {
-                var customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Homer");
-                testData.Add(customer);
-            }
-
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            repo.PersistSeedData(testData);
-
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
             var predicate = PredicateBuilder.True<Customer>(); // This allows us to build compound expressions
             predicate.And(x => x.FirstName.StartsWith("Ho"));
@@ -217,15 +254,11 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_Add_Async()
         {
-            var testData = new List<Customer>();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub(x=>x.FirstName = "Severnus");
-            testData.Add(customer);
-
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Add_Async();
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             await customerRepo.AddAsync(customer);
 
             Customer savedCustomer = null;
@@ -240,30 +273,16 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_Add_Graph_Async()
         {
-            var testData = new List<Customer>();
-
-            string firstName = Guid.NewGuid().ToString();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub(x =>
-            {
-                x.FirstName = firstName;
-
-                var orders = new List<Order>();
-                orders.Add(TestDataActions.CreateOrderStub());
-                x.Orders = orders;
-
-            });
-            testData.Add(customer);
-
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Add_Graph_Async();
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customerRepo.Include(x => x.Orders);
             await customerRepo.AddAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = await customerRepo.FirstAsync(x => x.FirstName == firstName);
+            savedCustomer = await customerRepo.FirstAsync(x => x.FirstName == customer.FirstName);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
@@ -275,18 +294,12 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_Update_Async()
         {
-            var testData = new List<Customer>();
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Update_Async();
 
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
-            testData.Add(customer);
-
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            repo.PersistSeedData(testData);
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customer.FirstName = "Darth";
             customer.LastName = "Vader";
             await customerRepo.UpdateAsync(customer);
@@ -303,18 +316,11 @@ namespace RCommon.Persistence.EFCore.Tests
         [Test]
         public async Task Can_Delete_Async()
         {
-            var testData = new List<Customer>();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
-            testData.Add(customer);
-
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Delete_Async();
 
             // Start Test
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             await customerRepo.DeleteAsync(customer);
 
             Customer savedCustomer = null;
@@ -326,25 +332,26 @@ namespace RCommon.Persistence.EFCore.Tests
 
 
         [Test]
-        public async Task UnitOfWork_Can_commit()
+        public async Task UnitOfWork_Can_Commit()
         { 
             Customer customer = TestDataActions.CreateCustomerStub();
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Start Test
             using (var scope = scopeFactory.Create())
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
                 await customerRepo.AddAsync(customer);
                 scope.Commit();
             }
 
-            Customer savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer.Id);
+            Customer savedCustomer = await repo.Context.Set<Customer>()
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.Id == customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(savedCustomer.Id, customer.Id);
@@ -352,21 +359,14 @@ namespace RCommon.Persistence.EFCore.Tests
         }
 
         [Test]
-        public async Task UnitOfWork_can_rollback()
+        public async Task UnitOfWork_Can_Rollback()
         {
-            var testData = new List<Customer>();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
-            testData.Add(customer);
-
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-            repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_UnitOfWork_Can_Rollback();
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
 
             using (var scope = scopeFactory.Create())
             {
@@ -382,7 +382,7 @@ namespace RCommon.Persistence.EFCore.Tests
         }
 
         [Test]
-        public async Task UnitOfWork_nested_commit_works()
+        public async Task UnitOfWork_Nested_Commit_Works()
         {
             // Generate Test Data
             var customer = TestDataActions.CreateCustomerStub();
@@ -390,17 +390,16 @@ namespace RCommon.Persistence.EFCore.Tests
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
                 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
                     await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
@@ -410,64 +409,69 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer savedCustomer = null;
             Order savedOrder = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstAsync(x => x.Id == customer.Id);
-            savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstAsync(x=>x.OrderId == order.OrderId);
+            savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstAsync(x=>x.Id == order.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.AreEqual(customer.Id, savedCustomer.Id);
             Assert.IsNotNull(savedOrder);
-            Assert.AreEqual(order.OrderId, savedOrder.OrderId);
+            Assert.AreEqual(order.Id, savedOrder.Id);
         }
 
+        /// <summary>
+        /// This won't work due to EF's ability/need to commit all changes on the graph. The original intent of this 
+        /// test was to evaluate transactions across mulitple connections but that is no longer possible due to lack of DTC. 
+        /// Going forward, this likely needs to be tested as part of a SAGA unit of work. 
+        /// </summary>
+        /// <returns></returns>
+        //[Test]
+        //public async Task UnitOfWork_Nested_Commit_With_Seperate_Transaction_Commits_When_Wrapping_Scope_Rollsback()
+        //{
+        //    // Generate Test Data
+        //    this.Logger.LogInformation("Generating Test Data for: {0}", MethodBase.GetCurrentMethod());
+
+        //    // Setup required services
+        //    var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
+
+        //    Customer customer = TestDataActions.CreateCustomerStub();
+        //    Order order = TestDataActions.CreateOrderStub();
+
+        //    var repo = new TestRepository(this.ServiceProvider);
+
+        //    this.Logger.LogInformation("Starting initial UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
+        //    using (var scope = scopeFactory.Create(TransactionMode.Default))
+        //    {
+        //        var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+
+        //        this.Logger.LogInformation("Adding New Customer from first UnitOfWorkScope ", customer);
+        //        await customerRepo.AddAsync(customer);
+
+        //        this.Logger.LogInformation("Starting new UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
+        //        using (var scope2 = scopeFactory.Create(TransactionMode.New))
+        //        {
+        //            var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
+
+        //            this.Logger.LogInformation("Adding New Order from first UnitOfWorkScope ", order);
+        //            await orderRepo.AddAsync(order);
+
+        //            this.Logger.LogInformation("Attempting to Commit second(new) UnitOfWorkScope ", scope2);
+        //            scope2.Commit();
+        //        }
+        //    } //Rollback
+
+        //    this.Logger.LogInformation("Attempting to Rollback back initial UnitofWorkScope");
+
+        //    Customer savedCustomer = null;
+        //    Order savedOrder = null;
+        //    savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
+        //    savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x=>x.OrderId == order.OrderId);
+
+        //    Assert.IsNull(savedCustomer); // First transaction does not commit
+        //    Assert.IsNotNull(savedOrder);
+        //    Assert.AreEqual(order.OrderId, savedOrder.OrderId); // Second transaction does commit because it is marked "new"
+        //}
+
         [Test]
-        public async Task UnitOfWork_nested_commit_with_seperate_transaction_commits_when_wrapping_scope_rollsback()
-        {
-            // Generate Test Data
-            this.Logger.LogInformation("Generating Test Data for: {0}", MethodBase.GetCurrentMethod());
-
-            // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-
-            Customer customer = TestDataActions.CreateCustomerStub();
-            Order order = TestDataActions.CreateOrderStub();
-
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-
-            this.Logger.LogInformation("Starting initial UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
-            {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-
-                this.Logger.LogInformation("Adding New Customer from first UnitOfWorkScope ", customer);
-                await customerRepo.AddAsync(customer);
-
-                this.Logger.LogInformation("Starting new UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
-                using (var scope2 = scopeFactory.Create(TransactionMode.New))
-                {
-                    var orderRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Order>>();
-
-                    this.Logger.LogInformation("Adding New Order from first UnitOfWorkScope ", order);
-                    await orderRepo.AddAsync(order);
-
-                    this.Logger.LogInformation("Attempting to Commit second(new) UnitOfWorkScope ", scope2);
-                    scope2.Commit();
-                }
-            } //Rollback
-
-            this.Logger.LogInformation("Attempting to Rollback back initial UnitofWorkScope");
-
-            Customer savedCustomer = null;
-            Order savedOrder = null;
-            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
-            savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x=>x.OrderId == order.OrderId);
-
-            Assert.IsNull(savedCustomer); // First transaction does not commit
-            Assert.IsNotNull(savedOrder);
-            Assert.AreEqual(order.OrderId, savedOrder.OrderId); // Second transaction does commit because it is marked "new"
-        }
-
-        [Test]
-        public async Task UnitOfWork_nested_rollback_works()
+        public async Task UnitOfWork_Nested_Rollback_Works()
         {
 
             var customer = TestDataActions.CreateCustomerStub();
@@ -475,17 +479,16 @@ namespace RCommon.Persistence.EFCore.Tests
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
-                    var orderRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Order>>();
+                    var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
                     await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
@@ -494,26 +497,25 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer savedCustomer = null;
             Order savedOrder = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
-            savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x=>x.OrderId == order.OrderId);
+            savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x=>x.Id == order.Id);
             Assert.IsNull(savedCustomer);
             Assert.IsNull(savedOrder);
         }
 
         [Test]
-        public async Task UnitOfWork_commit_throws_when_child_scope_rollsback()
+        public async Task UnitOfWork_Commit_Throws_When_Child_Scope_Rollsback()
         {
             // Generate Test Data
             Customer customer = TestDataActions.CreateCustomerStub();
             SalesPerson salesPerson = TestDataActions.CreateSalesPersonStub();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-            var salesPersonRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<SalesPerson>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
 
             try
             {
@@ -535,25 +537,21 @@ namespace RCommon.Persistence.EFCore.Tests
         }
 
         [Test]
-        public async Task UnitOfWork_can_commit_multiple_db_operations()
+        public async Task UnitOfWork_Can_Commit_Multiple_Db_Operations()
         {
-            var testData = new List<Customer>();
-            var testData2 = new List<SalesPerson>();
-
             // Generate Test Data
             Customer customer = TestDataActions.CreateCustomerStub();
             SalesPerson salesPerson = TestDataActions.CreateSalesPersonStub();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-                var salesPersonRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<SalesPerson>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
 
                 await customerRepo.AddAsync(customer);
                 await salesPersonRepo.AddAsync(salesPerson);
@@ -574,7 +572,7 @@ namespace RCommon.Persistence.EFCore.Tests
         }
 
         [Test]
-        public async Task UnitOfWork_can_rollback_multipe_db_operations()
+        public async Task UnitOfWork_Can_Rollback_Multipe_Db_Operations()
         {
             var customer = new Customer { FirstName = "John", LastName = "Doe" };
             var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
@@ -582,13 +580,12 @@ namespace RCommon.Persistence.EFCore.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-                var salesPersonRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<SalesPerson>>();
+                var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+                var salesPersonRepo = this.ServiceProvider.GetService<IGraphRepository<SalesPerson>>();
 
                 await customerRepo.AddAsync(customer);
                 await salesPersonRepo.AddAsync(salesPerson);
@@ -606,50 +603,53 @@ namespace RCommon.Persistence.EFCore.Tests
             
         }
 
+        /// <summary>
+        /// This won't work due to EF's ability/need to commit all changes on the graph. The original intent of this 
+        /// test was to evaluate transactions across mulitple connections but that is no longer possible due to lack of DTC. 
+        /// Going forward, this likely needs to be tested as part of a SAGA unit of work. 
+        /// </summary>
+        //[Test]
+        //public async Task UnitOfWork_Rollback_Does_Not_Rollback_Supressed_Scope()
+        //{
+        //    var customer = TestDataActions.CreateCustomerStub();
+        //    var order = TestDataActions.CreateOrderStub();
+
+        //    // Setup required services
+        //    var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
+
+        //    var repo = new TestRepository(this.ServiceProvider);
+
+        //    using (var scope = scopeFactory.Create(TransactionMode.Default))
+        //    {
+        //        var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+        //        await customerRepo.AddAsync(customer);
+
+        //        using (var scope2 = scopeFactory.Create(TransactionMode.Supress))
+        //        {
+        //            var orderRepo = this.ServiceProvider.GetService<IGraphRepository<Order>>();
+        //            await orderRepo.AddAsync(order);
+        //            scope2.Commit();
+        //        }
+        //    } //Rollback.
+
+
+        //    Customer savedCustomer = null;
+        //    Order savedOrder = null;
+        //    savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
+        //    savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x => x.OrderId == order.OrderId);
+
+        //    Assert.IsNull(savedCustomer);
+        //    Assert.IsNotNull(savedOrder);
+
+        //}
+
         [Test]
-        public async Task UnitOfWork_rollback_does_not_rollback_supressed_scope()
-        {
-            var customer = TestDataActions.CreateCustomerStub();
-            var order = TestDataActions.CreateOrderStub();
-
-            // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
-
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
-
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
-            {
-                var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
-                await customerRepo.AddAsync(customer);
-
-                using (var scope2 = scopeFactory.Create(TransactionMode.Supress))
-                {
-                    var orderRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Order>>();
-                    await orderRepo.AddAsync(order);
-                    scope2.Commit();
-                }
-            } //Rollback.
-
-
-            Customer savedCustomer = null;
-            Order savedOrder = null;
-            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
-            savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x => x.OrderId == order.OrderId);
-
-            Assert.IsNull(savedCustomer);
-            Assert.IsNotNull(savedOrder);
-            
-        }
-
-        [Test]
-        public async Task Can_eager_load_repository_and_query_async()
+        public async Task Can_Eager_Load_Repository_And_Query_Async()
         {
             var testData = new List<Customer>();
 
             // Generate Test Data
-            var context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
-            var repo = new TestRepository(context);
+            var repo = new TestRepository(this.ServiceProvider);
             repo.PersistSeedData(testData);
 
             var customer = TestDataActions.CreateCustomerStub();
@@ -661,7 +661,7 @@ namespace RCommon.Persistence.EFCore.Tests
             }
             repo.PersistSeedData(testData);
 
-            var customerRepo = this.ServiceProvider.GetService<IFullFeaturedRepository<Customer>>();
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
             customerRepo.Include(x => x.Orders);
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);

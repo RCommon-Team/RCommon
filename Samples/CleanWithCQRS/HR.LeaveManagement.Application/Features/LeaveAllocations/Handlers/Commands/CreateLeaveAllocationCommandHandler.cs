@@ -20,13 +20,13 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
 {
     public class CreateLeaveAllocationCommandHandler : IRequestHandler<CreateLeaveAllocationCommand, BaseCommandResponse>
     {
-        private readonly IFullFeaturedRepository<LeaveType> _leaveTypeRepository;
-        private readonly IFullFeaturedRepository<LeaveAllocation> _leaveAllocationRepository;
+        private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
+        private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public CreateLeaveAllocationCommandHandler(IFullFeaturedRepository<LeaveType> leaveTypeRepository,
-            IFullFeaturedRepository<LeaveAllocation> leaveAllocationRepository,
+        public CreateLeaveAllocationCommandHandler(IGraphRepository<LeaveType> leaveTypeRepository,
+            IGraphRepository<LeaveAllocation> leaveAllocationRepository,
             IUserService userService,
             IMapper mapper)
         {

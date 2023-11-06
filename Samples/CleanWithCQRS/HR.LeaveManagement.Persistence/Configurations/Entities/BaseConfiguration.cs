@@ -14,7 +14,7 @@ namespace HR.LeaveManagement.Persistence.Configurations.Entities
             where T : BusinessEntity
         {
 
-            entity.Ignore(x => x.AllowChangeTracking);
+            entity.Ignore(x => x.AllowEventTracking);
             //entity.Ignore(x => x.IsChanged);
             entity.Ignore(x => x.LocalEvents);
 

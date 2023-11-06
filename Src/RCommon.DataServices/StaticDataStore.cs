@@ -7,8 +7,18 @@ using System.Threading.Tasks;
 
 namespace RCommon.DataServices
 {
-    public static class StaticDataStore
+    public sealed class StaticDataStore
     {
+
+        private static readonly Lazy<StaticDataStore> lazy =
+        new Lazy<StaticDataStore>(() => new StaticDataStore());
+
+        public static StaticDataStore Instance { get { return lazy.Value; } }
+
+        private StaticDataStore()
+        {
+        }
+
         public static ConcurrentDictionary<string, Type> DataStores { get; set; }
     }
 }

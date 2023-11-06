@@ -18,11 +18,11 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
 {
     public class GetLeaveRequestDetailRequestHandler : IRequestHandler<GetLeaveRequestDetailRequest, LeaveRequestDto>
     {
-        private readonly IFullFeaturedRepository<LeaveRequest> _leaveRequestRepository;
+        private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
 
-        public GetLeaveRequestDetailRequestHandler(IFullFeaturedRepository<LeaveRequest> leaveRequestRepository,
+        public GetLeaveRequestDetailRequestHandler(IGraphRepository<LeaveRequest> leaveRequestRepository,
             IMapper mapper,
             IUserService userService)
         {

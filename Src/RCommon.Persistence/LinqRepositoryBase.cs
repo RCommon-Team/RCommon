@@ -13,24 +13,35 @@ using RCommon.DataServices.Transactions;
 using RCommon.DataServices.Sql;
 using System.Threading;
 using RCommon.Collections;
+using Microsoft.Extensions.Options;
+using RCommon.Extensions;
 
 namespace RCommon.Persistence
 {
     public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>
        where TEntity : IBusinessEntity
     {
-        private readonly ILogger _logger;
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
+        private string _dataStoreName;
+        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
 
-        public LinqRepositoryBase(ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager)
+        public LinqRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
+            IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            _logger = logger.CreateLogger(this.GetType().Name);
-            _unitOfWorkManager = unitOfWorkManager;
+            DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
+            _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
+            UnitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
+            EventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
+
+            if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
+                && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
+            {
+                this.DataStoreName = defaultDataStoreOptions.Value.DefaultDataStoreName;
+            }
         }
 
 
         /// <summary>
-        /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="FullFeaturedRepositoryBase{TEntity}"/> 
+        /// Gets the <see cref="IQueryable{TEntity}"/> used by the <see cref="GraphRepositoryBase{TEntity}"/> 
         /// to execute Linq queries.
         /// </summary>
         /// <value>A <see cref="IQueryable{TEntity}"/> instance.</value>
@@ -97,7 +108,19 @@ namespace RCommon.Persistence
         }
 
 
-        public string DataStoreName { get; set; }
+        /// <summary>
+        /// Querries the repository based on the provided specification and returns results that
+        /// are only satisfied by the specification.
+        /// </summary>
+        /// <param name="specification">A <see cref="ISpecification{TEntity}"/> instnace used to filter results
+        /// that only satisfy the specification.</param>
+        /// <returns>A <see cref="IEnumerable{TEntity}"/> that can be used to enumerate over the results
+        /// of the query.</returns>
+        public IEnumerable<TEntity> Query(ISpecification<TEntity> specification)
+        {
+            return RepositoryQuery.Where(specification.Predicate).AsQueryable();
+        }
+
         public abstract IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
@@ -112,27 +135,35 @@ namespace RCommon.Persistence
         public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default);
         public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
         public abstract Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int? pageIndex, int pageSize = 0,
             CancellationToken token = default);
         public abstract Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
 
-        protected internal IDbConnection DbConnection
+        public abstract IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path);
+
+        public abstract IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path);
+
+        public IDataStoreRegistry DataStoreRegistry { get; }
+        public ILogger Logger { get; set; }
+        public IUnitOfWorkManager UnitOfWorkManager { get; }
+        public IEventTracker EventTracker { get; }
+        public string DataStoreName
         {
-            get
+            get => _dataStoreName;
+            set
             {
+                _dataStoreName = value;
+                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
 
-                /*if (this._unitOfWorkManager.CurrentUnitOfWork != null)
+                // Enlist Data Stores that are participating in transactions
+                if (this.UnitOfWorkManager.CurrentUnitOfWork != null)
                 {
-
-                    return this._dataStoreProvider.GetDataStore<RDbConnection>(this._unitOfWorkManager.CurrentUnitOfWork.TransactionId.Value, this.DataStoreName).GetSqlDbConnection("", "");
-
+                    this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWork.TransactionId, dataStore);
                 }
-                return this._dataStoreProvider.GetDataStore<ISqlConnectionManager>(this.DataStoreName).GetSqlDbConnection("", "");*/
-                return null;
             }
         }
-
     }
 
 }

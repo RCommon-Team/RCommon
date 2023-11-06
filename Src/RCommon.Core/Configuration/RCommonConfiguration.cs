@@ -20,7 +20,7 @@ namespace RCommon
             Guard.Against<NullReferenceException>(services == null, "IServiceCollection cannot be null");
             Services = services;
 
-            this.Services.AddMediatR(Assembly.GetEntryAssembly()); // MediaR is a first class citizen in the RCommon Framework
+            this.Services.AddMediatR(x => x.RegisterServicesFromAssembly(Assembly.GetEntryAssembly())); // MediaR is a first class citizen in the RCommon Framework
         }
 
         public IRCommonConfiguration WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)
@@ -49,6 +49,16 @@ namespace RCommon
             this.Services.Configure<SystemTimeOptions>(actions);
             this.Services.AddTransient<ISystemTime, SystemTime>();
             this._dateTimeConfigured = true;
+            return this;
+        }
+
+        public IRCommonConfiguration WithCommonFactory<TService, TImplementation>()
+            where TService : class
+            where TImplementation : class, TService
+        {
+            this.Services.AddTransient<TService, TImplementation>();
+            this.Services.AddScoped<Func<TService>>(x => () => x.GetService<TService>());
+            this.Services.AddScoped<ICommonFactory<TService>, CommonFactory<TService>>();
             return this;
         }
 

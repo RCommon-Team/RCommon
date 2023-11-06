@@ -27,9 +27,9 @@ namespace RCommon.Persistence.Dapper
     {
 
         public DapperRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IChangeTracker changeTracker, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, 
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreRegistry, dataStoreEnlistmentProvider, logger, unitOfWorkManager, changeTracker, defaultDataStoreOptions)
+            : base(dataStoreRegistry, dataStoreEnlistmentProvider, logger, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             this.Logger = logger.CreateLogger(this.GetType().Name);
         }
@@ -47,7 +47,7 @@ namespace RCommon.Persistence.Dapper
                     }
 
                     entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
-                    this.ChangeTracker.AddEntity(entity);
+                    this.EventTracker.AddEntity(entity);
                     this.DispatchEvents();
                     await db.InsertAsync(entity, cancellationToken: token);
 
@@ -81,7 +81,7 @@ namespace RCommon.Persistence.Dapper
                     }
 
                     entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
-                    this.ChangeTracker.AddEntity(entity);
+                    this.EventTracker.AddEntity(entity);
                     this.DispatchEvents();
                     await db.DeleteAsync(entity, cancellationToken: token);
                 }
@@ -116,7 +116,7 @@ namespace RCommon.Persistence.Dapper
                     }
 
                     entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
-                    this.ChangeTracker.AddEntity(entity);
+                    this.EventTracker.AddEntity(entity);
                     this.DispatchEvents();
                     await db.UpdateAsync(entity, cancellationToken: token);
                 }
@@ -256,35 +256,28 @@ namespace RCommon.Persistence.Dapper
             }
         }
 
+        /// <summary>
+        /// Gets the single returned value based on the expression passed in. 
+        /// </summary>
+        /// <param name="expression">Custom Expression</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Value matching expression criteria.</returns>
+        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead 
+        /// due to issues related to https://github.com/henkmollema/Dommel/issues/282</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            await using (var db = this.DataStore.GetDbConnection())
-            {
-                try
-                {
-                    if (db.State == ConnectionState.Closed)
-                    {
-                        await db.OpenAsync();
-                    }
-;
-                    var result = await db.FirstOrDefaultAsync(expression, cancellationToken: token);
-                    return result;
-                }
-                catch (ApplicationException exception)
-                {
-                    this.Logger.LogError(exception, "Error in {0}.FindSingleOrDefaultAsync while executing on the DbConnection.", this.GetType().FullName);
-                    throw;
-                }
-                finally
-                {
-                    if (db.State == ConnectionState.Open)
-                    {
-                        await db.CloseAsync();
-                    }
-                }
-            }
+            var result =  await FindAsync(expression, token);
+            return result.SingleOrDefault();
         }
 
+        /// <summary>
+        /// Gets the single returned value based on the expression passed in. 
+        /// </summary>
+        /// <param name="specification">Custom Specification</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Value matching specification expression criteria.</returns>
+        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead
+        /// due to issues related to https://github.com/henkmollema/Dommel/issues/282</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindSingleOrDefaultAsync(specification, token);
