@@ -19,8 +19,8 @@ namespace RCommon.Persistence.Linq2Db
         private readonly IEventTracker _eventTracker;
         private readonly IMediator _mediator;
 
-        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, DataOptions<RCommonDataConnection> linq2DbOptions)
-            :base(linq2DbOptions.Options)
+        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, DataOptions linq2DbOptions)
+            :base(linq2DbOptions)
         {
             var options = linq2DbOptions ?? throw new ArgumentNullException(nameof(linq2DbOptions));
             _eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
@@ -28,16 +28,7 @@ namespace RCommon.Persistence.Linq2Db
             
         }
 
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="options">Connection Options for Linq2Db</param>
-        /// <remarks>Only here to satisfy requirement of DI Injection. Do not use directly!</remarks>
-        public RCommonDataConnection(DataOptions options)
-            :base(options)
-        {
-             
-        }
+     
 
         public DbConnection GetDbConnection()
         {

@@ -1,4 +1,5 @@
 ﻿using LinqToDB;
+using LinqToDB.AspNet.Logging;
 using LinqToDB.Configuration;
 using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.Mapping;
@@ -61,7 +62,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
                     {
                         return options
                             .UseSqlServer(this.Configuration.GetConnectionString("TestDataConnection"))
-                            .UseMappingSchema(CreateMappingSchema());
+                            .UseMappingSchema(CreateMappingSchema())
+                            .UseDefaultLogging(this.ServiceProvider);
 
                     });
                     linq2Db.SetDefaultDataStore(dataStore =>
@@ -76,9 +78,6 @@ namespace RCommon.Persistence.Linq2Db.Tests
                         options.DefaultIsolation = IsolationLevel.ReadCommitted;
                     });
                 });
-
-            //services.AddSingleton<MappingSchema>(x => this.CreateMappingSchema());
-            //services.AddSingleton<LinqToDBConnectionOptions>(x => CreateLinqToDBConnectionOptions());
 
             this.ServiceProvider = services.BuildServiceProvider();
             this.Logger = this.ServiceProvider.GetService<ILogger<Linq2DbTestBase>>();
@@ -101,44 +100,56 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             var mappingSchema = new MappingSchema();
             var builder = new FluentMappingBuilder(mappingSchema);
-            
-            
+
+
 
             builder.Entity<Customer>()
                 .HasTableName("Customers")
                 .HasSchemaName("dbo")
                 .Ignore(x => x.AllowEventTracking)
                 .Association(e => e.Orders, customer => customer.Id, order => order.CustomerId)
-                .Property(x => x.Id).HasColumnName("CustomerId").IsIdentity();
+                .Property(x => x.Id).HasColumnName("CustomerId").IsIdentity().IsPrimaryKey()
+                .Property(x => x.City).HasColumnName("City")
+                .Property(x => x.FirstName).HasColumnName("FirstName")
+                .Property(x => x.LastName).HasColumnName("LastName");
 
             builder.Entity<Department>()
                 .HasTableName("Departments")
                 .HasSchemaName("dbo")
                 .Ignore(x => x.AllowEventTracking)
                 .Association(e => e.SalesPersons, department => department.Id, salesPerson => salesPerson.DepartmentId)
-                .Property(x => x.Id).IsIdentity();
+                .Property(x => x.Id).IsIdentity().IsPrimaryKey();
 
             builder.Entity<OrderItem>()
                 .HasTableName("OrderItems")
                 .HasSchemaName("dbo")
                 .Ignore(x => x.AllowEventTracking)
                 .Association(e => e.Order, orderItem => orderItem.OrderId, order => order.Id)
-                .Property(x => x.OrderItemId).IsIdentity();
+                .Property(x => x.OrderItemId).HasColumnName("OrderItemId").IsIdentity().IsPrimaryKey();
 
             builder.Entity<Order>()
                 .HasTableName("Orders")
                 .HasSchemaName("dbo")
                 .Ignore(x => x.AllowEventTracking)
                 .Association(e => e.OrderItems, order => order.Id, orderItem => orderItem.OrderId)
-                .Property(x => x.Id).IsIdentity();
+                .Property(x => x.Id).HasColumnName("OrderId").IsIdentity().IsPrimaryKey()
+                .Property(x => x.OrderDate).HasColumnName("OrderDate")
+                .Property(x => x.ShipDate).HasColumnName("ShipDate");
 
             builder.Entity<Product>()
                 .HasTableName("Products")
                 .HasSchemaName("dbo")
                 .Ignore(x => x.AllowEventTracking)
                 .Association(e => e.OrderItems, product => product.ProductId, orderItem => orderItem.ProductId)
-                .Property(x => x.ProductId).IsIdentity();
-            
+                .Property(x => x.ProductId).HasColumnName("ProductId").IsIdentity().IsPrimaryKey();
+
+            builder.Entity<SalesPerson>()
+                .HasTableName("SalesPerson")
+                .HasSchemaName("dbo")
+                .Ignore(x => x.AllowEventTracking)
+                .Association(e => e.Department, salesPerson => salesPerson.DepartmentId, department => department.Id)
+                .Property(x => x.Id).IsIdentity().IsPrimaryKey();
+
             builder.Build();
             return mappingSchema;
         }

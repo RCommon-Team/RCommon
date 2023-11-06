@@ -135,6 +135,7 @@ namespace RCommon.Persistence.Linq2Db
 
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
+            this.DataConnection.s
             //TODO: implement FindASync(object primaryKey)
             throw new NotImplementedException();
             //DataExtensions.RetrieveIdentity<TEntity>(IEnumerable<TEntity>

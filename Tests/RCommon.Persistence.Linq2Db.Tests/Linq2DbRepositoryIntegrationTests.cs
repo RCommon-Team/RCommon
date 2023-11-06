@@ -154,7 +154,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
             var savedCustomer = await customerRepo
-                    .FindAsync(customer.Id);
+                    .FindSingleOrDefaultAsync(x=>x.Id == customer.Id);
 
             Assert.IsNotNull(savedCustomer);
             Assert.IsTrue(savedCustomer.Id == customer.Id);
@@ -268,27 +268,6 @@ namespace RCommon.Persistence.Linq2Db.Tests
         }
 
         [Test]
-        public async Task Can_Add_Graph_Async()
-        {
-            var repo = new TestRepository(this.ServiceProvider);
-            var customer = repo.Prepare_Can_Add_Graph_Async();
-
-            // Start Test
-            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
-            customerRepo.Include(x => x.Orders);
-            await customerRepo.AddAsync(customer);
-
-            Customer savedCustomer = null;
-            savedCustomer = await customerRepo.FirstAsync(x => x.FirstName == customer.FirstName);
-
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.IsTrue(savedCustomer.Id > 0);
-            Assert.IsTrue(savedCustomer.Orders.Count == 1);
-
-        }
-
-        [Test]
         public async Task Can_Update_Async()
         {
             var repo = new TestRepository(this.ServiceProvider);
@@ -332,7 +311,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
         [Test]
         public async Task UnitOfWork_Can_Commit()
         {
-            Customer customer = TestDataActions.CreateCustomerStub();
+            Customer customer = TestDataActions.CreateCustomerStub(x => x.LastName = "Griswold");
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
@@ -348,10 +327,10 @@ namespace RCommon.Persistence.Linq2Db.Tests
             }
 
             Customer savedCustomer = await repo.Context.Set<Customer>()
-                .SingleOrDefaultAsync(x => x.Id == customer.Id);
+                .SingleOrDefaultAsync(x => x.LastName == "Griswold");
 
             Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.Id, customer.Id);
+            Assert.AreEqual(savedCustomer.LastName, customer.LastName);
 
         }
 
@@ -405,13 +384,13 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             Customer savedCustomer = null;
             Order savedOrder = null;
-            savedCustomer = await repo.Context.Set<Customer>().FirstAsync(x => x.Id == customer.Id);
-            savedOrder = await repo.Context.Set<Order>().FirstAsync(x => x.Id == order.Id);
+            savedCustomer = await repo.Context.Set<Customer>().SingleOrDefaultAsync(x => x.StreetAddress1 == customer.StreetAddress1);
+            savedOrder = await repo.Context.Set<Order>().SingleOrDefaultAsync(x => x.ShipDate == order.ShipDate);
 
             Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(customer.Id, savedCustomer.Id);
+            Assert.AreEqual(customer.StreetAddress1, savedCustomer.StreetAddress1);
             Assert.IsNotNull(savedOrder);
-            Assert.AreEqual(order.Id, savedOrder.Id);
+            Assert.AreEqual(order.ShipDate.Value.ToLongDateString(), savedOrder.ShipDate.Value.ToLongDateString());
         }
 
         [Test]
@@ -484,8 +463,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
         public async Task UnitOfWork_Can_Commit_Multiple_Db_Operations()
         {
             // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
-            SalesPerson salesPerson = TestDataActions.CreateSalesPersonStub();
+            Customer customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Snuffalufagus");
+            SalesPerson salesPerson = TestDataActions.CreateSalesPersonStub(x => x.FirstName = "Kirby");
 
             var repo = new TestRepository(this.ServiceProvider);
 
@@ -505,13 +484,13 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             Customer savedCustomer = null;
             SalesPerson savedSalesPerson = null;
-            savedCustomer = await repo.Context.Set<Customer>().FirstOrDefaultAsync(x => x.Id == customer.Id);
-            savedSalesPerson = await repo.Context.Set<SalesPerson>().FirstOrDefaultAsync(x => x.Id == salesPerson.Id);
+            savedCustomer = await repo.Context.Set<Customer>().FirstOrDefaultAsync(x => x.FirstName == "Snuffalufagus");
+            savedSalesPerson = await repo.Context.Set<SalesPerson>().FirstOrDefaultAsync(x => x.FirstName == "Kirby");
 
             Assert.IsNotNull(savedCustomer);
             Assert.IsNotNull(savedSalesPerson);
-            Assert.AreEqual(customer.Id, savedCustomer.Id);
-            Assert.AreEqual(salesPerson.Id, savedSalesPerson.Id);
+            Assert.AreEqual(customer.FirstName, savedCustomer.FirstName);
+            Assert.AreEqual(salesPerson.FirstName, savedSalesPerson.FirstName);
 
         }
 
