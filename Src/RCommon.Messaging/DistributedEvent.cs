@@ -16,10 +16,10 @@ namespace RCommon.Messaging
         }
 
         [JsonConstructor]
-        public DistributedEvent(Guid id, DateTime createDate)
+        public DistributedEvent(Guid id, DateTime creationDate)
         {
             Id = id;
-            CreationDate = createDate;
+            CreationDate = creationDate;
         }
 
         [JsonInclude]
