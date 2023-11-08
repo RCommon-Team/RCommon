@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.Messaging
+namespace RCommon.Messaging.MassTransit
 {
-    public class DistributedEventBroker : IDistributedEventBroker
+    public class MassTransitEventPublisher : IDistributedEventPublisher
     {
         private readonly IPublishEndpoint _publishEndpoint;
         private List<object> _distributedEvents;
 
-        public DistributedEventBroker(IPublishEndpoint publishEndpoint)
+        public MassTransitEventPublisher(IPublishEndpoint publishEndpoint)
         {
             _publishEndpoint = publishEndpoint;
             this._distributedEvents = new List<object>();

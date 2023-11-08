@@ -1,7 +1,7 @@
 ﻿
-namespace RCommon.ApplicationServices.Messaging
+namespace RCommon.Messaging
 {
-    public interface IDistributedEventBroker
+    public interface IDistributedEventPublisher
     {
         IReadOnlyCollection<object> DistributedEvents { get; }
 

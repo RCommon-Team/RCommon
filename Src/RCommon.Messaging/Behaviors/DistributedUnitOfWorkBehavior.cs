@@ -7,18 +7,18 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.Messaging.Behaviors
+namespace RCommon.Messaging.Behaviors
 {
     public class DistributedUnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> _logger;
-        private readonly IDistributedEventBroker _distributedEventBroker;
+        private readonly IDistributedEventPublisher _distributedEventBroker;
         private readonly IUnitOfWorkFactory _unitOfWorkScopeFactory;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
         public DistributedUnitOfWorkBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
-            ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> logger, IDistributedEventBroker distributedEventBroker)
+            ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> logger, IDistributedEventPublisher distributedEventBroker)
         {
             _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkFactory));
             _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 

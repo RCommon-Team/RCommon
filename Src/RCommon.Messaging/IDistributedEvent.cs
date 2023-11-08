@@ -1,5 +1,5 @@
 ﻿
-namespace RCommon.ApplicationServices.Messaging
+namespace RCommon.Messaging
 {
     public interface IDistributedEvent
     {

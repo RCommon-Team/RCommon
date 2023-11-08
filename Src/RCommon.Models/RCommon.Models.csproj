@@ -17,7 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.Validation\RCommon.Validation.csproj" />
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 

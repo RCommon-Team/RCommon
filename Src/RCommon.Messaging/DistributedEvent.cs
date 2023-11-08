@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.Messaging
+namespace RCommon.Messaging
 {
     public record DistributedEvent : IDistributedEvent
     {
