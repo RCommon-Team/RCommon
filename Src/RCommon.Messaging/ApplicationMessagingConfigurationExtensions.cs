@@ -1,8 +1,7 @@
 ﻿
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.ApplicationServices.Messaging;
-using RCommon.ApplicationServices.Messaging.Behaviors;
+using RCommon.Messaging.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Linq;

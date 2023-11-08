@@ -10,4 +10,8 @@
     <PackageReference Include="MassTransit" Version="8.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.Messaging\RCommon.Messaging.csproj" />
+  </ItemGroup>
+
 </Project>

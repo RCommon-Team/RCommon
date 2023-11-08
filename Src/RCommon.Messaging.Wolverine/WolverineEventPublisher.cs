@@ -1,22 +1,24 @@
-﻿using MassTransit;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wolverine;
 
-namespace RCommon.Messaging.MassTransit
+namespace RCommon.Messaging.Wolverine
 {
-    public class MassTransitEventPublisher : IDistributedEventPublisher
+    public class WolverineEventPublisher : IDistributedEventPublisher
     {
-        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IMessageBus _messageBus;
         private List<object> _distributedEvents;
 
-        public MassTransitEventPublisher(IPublishEndpoint publishEndpoint)
+        public WolverineEventPublisher(IMessageBus messageBus)
         {
-            _publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
+            this._messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
             this._distributedEvents = new List<object>();
         }
+
+        public IReadOnlyCollection<object> DistributedEvents { get => _distributedEvents; }
 
         public void AddDistributedEvent<T>(T distributedEvent) where T : IDistributedEvent
         {
@@ -37,9 +39,10 @@ namespace RCommon.Messaging.MassTransit
 
         public async Task PublishDistributedEvents(CancellationToken cancellationToken)
         {
-            await _publishEndpoint.PublishBatch(DistributedEvents, cancellationToken);
+            foreach (var distributedEvent in this._distributedEvents)
+            {
+                await this._messageBus.PublishAsync(distributedEvent);
+            }
         }
-
-        public IReadOnlyCollection<object> DistributedEvents { get => _distributedEvents; }
     }
 }

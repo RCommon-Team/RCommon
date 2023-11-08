@@ -10,4 +10,8 @@
     <PackageReference Include="WolverineFx" Version="1.10.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.Messaging\RCommon.Messaging.csproj" />
+  </ItemGroup>
+
 </Project>
