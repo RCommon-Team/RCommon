@@ -17,23 +17,23 @@ namespace RCommon.DataServices.Transactions
 
         public IUnitOfWork Create()
         {
-            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWork>();
-            unitOfWorkScope.Begin(TransactionMode.Default);
-            return unitOfWorkScope;
+            var unitOfWork = this._serviceProvider.GetService<IUnitOfWork>();
+            unitOfWork.Begin(TransactionMode.Default);
+            return unitOfWork;
         }
 
         public IUnitOfWork Create(TransactionMode transactionMode)
         {
-            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWork>();
-            unitOfWorkScope.Begin(transactionMode);
-            return unitOfWorkScope;
+            var unitOfWork = this._serviceProvider.GetService<IUnitOfWork>();
+            unitOfWork.Begin(transactionMode);
+            return unitOfWork;
         }
 
         public IUnitOfWork Create(TransactionMode transactionMode, IsolationLevel isolationLevel)
         {
-            var unitOfWorkScope = this._serviceProvider.GetService<IUnitOfWork>();
-            unitOfWorkScope.Begin(transactionMode, isolationLevel);
-            return unitOfWorkScope;
+            var unitOfWork = this._serviceProvider.GetService<IUnitOfWork>();
+            unitOfWork.Begin(transactionMode, isolationLevel);
+            return unitOfWork;
         }
     }
 }

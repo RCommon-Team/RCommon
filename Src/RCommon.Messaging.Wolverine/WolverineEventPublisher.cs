@@ -39,10 +39,15 @@ namespace RCommon.Messaging.Wolverine
 
         public async Task PublishDistributedEvents(CancellationToken cancellationToken)
         {
+            var publishList = new List<Task>();
             foreach (var distributedEvent in this._distributedEvents)
             {
-                await this._messageBus.PublishAsync(distributedEvent);
+                publishList.Add(Task.Run(async () =>
+                {
+                    await this._messageBus.PublishAsync(distributedEvent);
+                }));
             }
+            await Task.WhenAll(publishList);
         }
     }
 }
