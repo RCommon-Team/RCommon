@@ -38,6 +38,7 @@ namespace RCommon.Messaging.MassTransit
         public async Task PublishDistributedEvents(CancellationToken cancellationToken)
         {
             await _publishEndpoint.PublishBatch(DistributedEvents, cancellationToken);
+            this.ClearDistributedEvents();
         }
 
         public IReadOnlyCollection<object> DistributedEvents { get => _distributedEvents; }

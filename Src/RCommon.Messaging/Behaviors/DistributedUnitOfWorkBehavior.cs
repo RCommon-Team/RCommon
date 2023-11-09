@@ -23,7 +23,7 @@ namespace RCommon.Messaging.Behaviors
             _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkFactory));
             _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 
             _logger = logger ?? throw new ArgumentException(nameof(ILogger));
-            _distributedEventBroker = distributedEventBroker;
+            _distributedEventBroker = distributedEventBroker ?? throw new ArgumentNullException(nameof(distributedEventBroker));
         }
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)

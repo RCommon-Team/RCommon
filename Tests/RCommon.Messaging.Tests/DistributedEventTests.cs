@@ -70,5 +70,12 @@ namespace RCommon.Messaging.Tests
             Assert.IsTrue(target.CreationDate.IsValid());
             Assert.IsTrue(target.CreationDate == date);
         }
+
+        [Test]
+        public void Implements_IDistributedEvent()
+        {
+            var target = new DistributedEvent();
+            Assert.That(target is IDistributedEvent);
+        }
     }
 }
