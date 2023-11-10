@@ -1,6 +1,5 @@
 ﻿using Mediator;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +15,7 @@ namespace RCommon.MartinOthamarMediator
         public SourceGeneratorMediatorConfiguration(IServiceCollection services)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
-            _services.AddTransient<IMediatorService, SourceGeneratorMediatorService>();
+            _services.AddTransient<RCommon.Mediator.IMediatorService, SourceGeneratorMediatorService>();
         }
 
         public ISourceGeneratorMediatorConfiguration AddSourceGeneratorMediator()
