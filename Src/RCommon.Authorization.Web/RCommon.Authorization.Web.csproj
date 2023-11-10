@@ -1,17 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Company>Reactor2, Jason Webb</Company>
-    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <PackageIcon>rcommon-icon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <RepositoryType>GitHub</RepositoryType>
-    <PackageTags>RCommon, Authorization, Web, Framework</PackageTags>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.0.2.1</Version>
+	  <TargetFramework>net7.0</TargetFramework>
+	  <Version>2.0.0.0</Version>
+	  <Authors>Jason Webb</Authors>
+	  <Company>RCommon</Company>
+	  <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+	  <Copyright></Copyright>
+	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+	  <PackageIcon>rcommon-icon.png</PackageIcon>
+	  <PackageTags>RCommon, web authorization, web security, web identity, bearer tokens, c#, .NET</PackageTags>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
+	  <FileVersion>2.0.0.0</FileVersion>
+	  <PackageIconUrl />
+	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

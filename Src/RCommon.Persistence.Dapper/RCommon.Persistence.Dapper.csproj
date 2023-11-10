@@ -1,19 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageIcon>rcommon-icon.png</PackageIcon>
-    <PackageIconUrl />
-    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-    <Authors>Reactor2, Jason Webb</Authors>
-    <Company>RCommon</Company>
-    <RepositoryType>GitHub</RepositoryType>
-    <PackageTags>RCommon, data access, object access, dapper, generic repository, repository abstractions, persistance framework</PackageTags>
-    <Version>1.0.2.1</Version>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+	  <TargetFramework>net7.0</TargetFramework>
+	  <Version>2.0.0.0</Version>
+	  <Authors>Jason Webb</Authors>
+	  <Company>RCommon</Company>
+	  <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+	  <Copyright></Copyright>
+	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+	  <PackageIcon>rcommon-icon.png</PackageIcon>
+	  <PackageTags>RCommon, dapper, dapper repository, repository pattern, crud, dapper extensions, c#, .NET</PackageTags>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
+	  <FileVersion>2.0.0.0</FileVersion>
+	  <PackageIconUrl />
+	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
