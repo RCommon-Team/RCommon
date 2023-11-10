@@ -95,7 +95,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.MassTrans
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.Wolverine.Tests", "..\Tests\RCommon.Messaging.Wolverine.Tests\RCommon.Messaging.Wolverine.Tests.csproj", "{52003D9E-B698-4E48-BD97-3702DD8F91A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Mediatr", "..\Src\RCommon.Mediatr\RCommon.Mediatr.csproj", "{0987AF3F-6EFC-4AE6-9007-DE9533934D82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Mediator.MediatR", "..\Src\RCommon.Mediator.Mediatr\RCommon.Mediator.MediatR.csproj", "{0987AF3F-6EFC-4AE6-9007-DE9533934D82}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Mediator", "..\Src\RCommon.Mediator\RCommon.Mediator.csproj", "{0CE7EC46-274F-4D46-A344-1F92E1D23923}"
 EndProject

@@ -3,28 +3,25 @@ using Microsoft.Extensions.Logging;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Extensions;
-using RCommon.Messaging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.Mediatr.Behaviors
+namespace RCommon.Mediator.MediatR.Behaviors
 {
-    public class DistributedUnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class UnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
-        private readonly ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> _logger;
-        private readonly IDistributedEventPublisher _distributedEventBroker;
+        private readonly ILogger<UnitOfWorkBehavior<TRequest, TResponse>> _logger;
         private readonly IUnitOfWorkFactory _unitOfWorkScopeFactory;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public DistributedUnitOfWorkBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
-            ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> logger, IDistributedEventPublisher distributedEventBroker)
+        public UnitOfWorkBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
+            ILogger<UnitOfWorkBehavior<TRequest, TResponse>> logger)
         {
             _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkFactory));
             _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 
             _logger = logger ?? throw new ArgumentException(nameof(ILogger));
-            _distributedEventBroker = distributedEventBroker ?? throw new ArgumentNullException(nameof(distributedEventBroker));
         }
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -47,13 +44,10 @@ namespace RCommon.Mediatr.Behaviors
                     unitOfWork.Commit();
                 }
 
-                //Perform MassTransit publish events
-                await _distributedEventBroker.PublishDistributedEvents(cancellationToken);
-
 
                 return response;
             }
-            catch (ApplicationException ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "ERROR Handling transaction for {CommandName} ({@Command})", typeName, request);
 

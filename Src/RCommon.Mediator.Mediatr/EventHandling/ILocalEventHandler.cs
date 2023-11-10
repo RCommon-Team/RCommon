@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Mediatr.EventHandling
+namespace RCommon.Mediator.MediatR.EventHandling
 {
     public interface ILocalEventHandler<TLocalEvent> : INotificationHandler<TLocalEvent> 
         where TLocalEvent : INotification

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.Mediatr.Behaviors;
+using RCommon.Mediator.MediatR.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Text;
