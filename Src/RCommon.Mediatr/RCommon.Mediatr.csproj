@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.8.0" />
+    <PackageReference Include="MediatR" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
+    <ProjectReference Include="..\RCommon.Mediator\RCommon.Mediator.csproj" />
+    <ProjectReference Include="..\RCommon.Messaging\RCommon.Messaging.csproj" />
+  </ItemGroup>
+
+</Project>

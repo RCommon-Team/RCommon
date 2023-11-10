@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\RCommon.Mediator\RCommon.Mediator.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="12.1.1" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
   </ItemGroup>
 

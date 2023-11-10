@@ -3,11 +3,12 @@ using Microsoft.Extensions.Logging;
 using RCommon.DataServices;
 using RCommon.DataServices.Transactions;
 using RCommon.Extensions;
+using RCommon.Messaging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.Messaging.Behaviors
+namespace RCommon.Mediatr.Behaviors
 {
     public class DistributedUnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>

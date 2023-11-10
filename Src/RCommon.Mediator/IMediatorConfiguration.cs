@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.BusinessEntities
+namespace RCommon.Mediator
 {
-    public interface ILocalEvent
+    public interface IMediatorConfiguration
     {
     }
 }

@@ -1,10 +1,10 @@
 ﻿using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
-using MediatR;
 using Microsoft.Extensions.Options;
 using RCommon.BusinessEntities;
 using RCommon.DataServices;
+using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -17,9 +17,9 @@ namespace RCommon.Persistence.Linq2Db
     public class RCommonDataConnection : DataConnection, IDataStore
     {
         private readonly IEventTracker _eventTracker;
-        private readonly IMediator _mediator;
+        private readonly IMediatorService _mediator;
 
-        public RCommonDataConnection(IEventTracker eventTracker, IMediator mediator, DataOptions linq2DbOptions)
+        public RCommonDataConnection(IEventTracker eventTracker, IMediatorService mediator, DataOptions linq2DbOptions)
             :base(linq2DbOptions)
         {
             var options = linq2DbOptions ?? throw new ArgumentNullException(nameof(linq2DbOptions));

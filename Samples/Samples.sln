@@ -73,9 +73,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistence.Linq2Db
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase.Data", "..\Tests\RCommon.TestBase.Data\RCommon.TestBase.Data.csproj", "{B608157C-D7AE-410E-9284-64A30B0B5404}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Messaging.MassTransit", "..\Src\RCommon.Messaging.MassTransit\RCommon.Messaging.MassTransit.csproj", "{D9B8D10F-3206-482F-8C4F-8079408ED224}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.MassTransit", "..\Src\RCommon.Messaging.MassTransit\RCommon.Messaging.MassTransit.csproj", "{D9B8D10F-3206-482F-8C4F-8079408ED224}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Messaging.Wolverine", "..\Src\RCommon.Messaging.Wolverine\RCommon.Messaging.Wolverine.csproj", "{B11F34D8-466E-489E-A302-D02826D4422B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.Wolverine", "..\Src\RCommon.Messaging.Wolverine\RCommon.Messaging.Wolverine.csproj", "{B11F34D8-466E-489E-A302-D02826D4422B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{E8F6C8E5-8058-4E79-8EA5-818BD39FEF8A}"
 EndProject
@@ -89,11 +89,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging", "Messaging", "{F026BAB4-FBBE-4AF5-8187-AA3ADF540053}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Messaging.Tests", "..\Tests\RCommon.Messaging.Tests\RCommon.Messaging.Tests.csproj", "{A6568A2E-7EE2-466D-AC83-7C4DCA183D50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.Tests", "..\Tests\RCommon.Messaging.Tests\RCommon.Messaging.Tests.csproj", "{A6568A2E-7EE2-466D-AC83-7C4DCA183D50}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Messaging.MassTransit.Tests", "..\Tests\RCommon.Messaging.MassTransit.Tests\RCommon.Messaging.MassTransit.Tests.csproj", "{D02ADFB9-822C-47BD-B5E9-4469F57CD8AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.MassTransit.Tests", "..\Tests\RCommon.Messaging.MassTransit.Tests\RCommon.Messaging.MassTransit.Tests.csproj", "{D02ADFB9-822C-47BD-B5E9-4469F57CD8AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Messaging.Wolverine.Tests", "..\Tests\RCommon.Messaging.Wolverine.Tests\RCommon.Messaging.Wolverine.Tests.csproj", "{52003D9E-B698-4E48-BD97-3702DD8F91A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.Wolverine.Tests", "..\Tests\RCommon.Messaging.Wolverine.Tests\RCommon.Messaging.Wolverine.Tests.csproj", "{52003D9E-B698-4E48-BD97-3702DD8F91A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Mediatr", "..\Src\RCommon.Mediatr\RCommon.Mediatr.csproj", "{0987AF3F-6EFC-4AE6-9007-DE9533934D82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Mediator", "..\Src\RCommon.Mediator\RCommon.Mediator.csproj", "{0CE7EC46-274F-4D46-A344-1F92E1D23923}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mediators", "Mediators", "{6B6F6775-0D0F-4A87-BA51-9B3897800C08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.MartinOthamarMediator", "..\Src\RCommon.MartinOthamarMediator\RCommon.MartinOthamarMediator.csproj", "{C7B3B022-43A0-48B4-8EA8-4370922B53FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -245,6 +253,18 @@ Global
 		{52003D9E-B698-4E48-BD97-3702DD8F91A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52003D9E-B698-4E48-BD97-3702DD8F91A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52003D9E-B698-4E48-BD97-3702DD8F91A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0987AF3F-6EFC-4AE6-9007-DE9533934D82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0987AF3F-6EFC-4AE6-9007-DE9533934D82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0987AF3F-6EFC-4AE6-9007-DE9533934D82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0987AF3F-6EFC-4AE6-9007-DE9533934D82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CE7EC46-274F-4D46-A344-1F92E1D23923}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CE7EC46-274F-4D46-A344-1F92E1D23923}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CE7EC46-274F-4D46-A344-1F92E1D23923}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CE7EC46-274F-4D46-A344-1F92E1D23923}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7B3B022-43A0-48B4-8EA8-4370922B53FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7B3B022-43A0-48B4-8EA8-4370922B53FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7B3B022-43A0-48B4-8EA8-4370922B53FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7B3B022-43A0-48B4-8EA8-4370922B53FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -293,6 +313,10 @@ Global
 		{A6568A2E-7EE2-466D-AC83-7C4DCA183D50} = {F026BAB4-FBBE-4AF5-8187-AA3ADF540053}
 		{D02ADFB9-822C-47BD-B5E9-4469F57CD8AB} = {F026BAB4-FBBE-4AF5-8187-AA3ADF540053}
 		{52003D9E-B698-4E48-BD97-3702DD8F91A9} = {F026BAB4-FBBE-4AF5-8187-AA3ADF540053}
+		{0987AF3F-6EFC-4AE6-9007-DE9533934D82} = {6B6F6775-0D0F-4A87-BA51-9B3897800C08}
+		{0CE7EC46-274F-4D46-A344-1F92E1D23923} = {6B6F6775-0D0F-4A87-BA51-9B3897800C08}
+		{6B6F6775-0D0F-4A87-BA51-9B3897800C08} = {2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}
+		{C7B3B022-43A0-48B4-8EA8-4370922B53FF} = {6B6F6775-0D0F-4A87-BA51-9B3897800C08}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

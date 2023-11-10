@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.BusinessEntities
+namespace RCommon
 {
-    public interface ILocalEvent
+    public static class MediatorConfigurationExtensions
     {
+        
     }
 }

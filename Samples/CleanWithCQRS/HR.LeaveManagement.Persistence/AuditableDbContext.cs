@@ -1,8 +1,8 @@
 ﻿using HR.LeaveManagement.Domain.Common;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RCommon;
 using RCommon.BusinessEntities;
+using RCommon.Mediator;
 using RCommon.Persistence.EFCore;
 using RCommon.Security.Users;
 using System;
@@ -19,7 +19,7 @@ namespace HR.LeaveManagement.Persistence
         private readonly ISystemTime _systemTime;
 
         public AuditableDbContext(DbContextOptions options, ICurrentUser currentUser, ISystemTime systemTime, 
-            IEventTracker eventTracker, IMediator mediator) 
+            IEventTracker eventTracker, IMediatorService mediator) 
             : base(options, eventTracker, mediator)
         {
             _currentUser = currentUser;

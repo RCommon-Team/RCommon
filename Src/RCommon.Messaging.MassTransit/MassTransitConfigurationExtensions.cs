@@ -1,8 +1,6 @@
 ﻿using MassTransit;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Messaging;
-using RCommon.Messaging.Behaviors;
 using RCommon.Messaging.MassTransit;
 using System;
 using System.Collections.Generic;

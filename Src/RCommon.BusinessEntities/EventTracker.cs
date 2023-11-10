@@ -1,5 +1,4 @@
-﻿using MediatR;
-using RCommon.BusinessEntities;
+﻿using RCommon.BusinessEntities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -5,10 +5,10 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.Extensions.Options;
 using RCommon.BusinessEntities;
 using RCommon.Extensions;
+using RCommon.Mediator;
 
 namespace RCommon.DataServices.Sql
 {
@@ -16,9 +16,9 @@ namespace RCommon.DataServices.Sql
     {
         private readonly IOptions<RDbConnectionOptions> _options;
         private readonly IEventTracker _eventTracker;
-        private readonly IMediator _mediator;
+        private readonly IMediatorService _mediator;
 
-        public RDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker, IMediator mediator)
+        public RDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker, IMediatorService mediator)
         {
             _options=options;
             this._eventTracker = eventTracker;

@@ -1,6 +1,5 @@
 ﻿namespace RCommon.Persistence.EFCore
 {
-    using MediatR;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Query;
     using Microsoft.Extensions.DependencyInjection;

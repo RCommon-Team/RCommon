@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MediatR;
 using RCommon.Extensions;
 using PropertyChanged;
 using System.ComponentModel;
