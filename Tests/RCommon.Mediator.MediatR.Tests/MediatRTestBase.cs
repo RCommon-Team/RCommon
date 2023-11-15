@@ -31,7 +31,7 @@ namespace RCommon.Mediator.MediatR.Tests
                 .ConfigureTestServices(
                     services =>
                     {
-                        services.AddTransient((a) => this.SomeMockService.Object);
+                        //services.AddTransient((a) => this.SomeMockService.Object);
                         services.AddRCommon()
                         .WithSequentialGuidGenerator(guidOptions =>
                         {

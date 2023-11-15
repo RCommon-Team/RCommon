@@ -41,8 +41,10 @@ namespace RCommon.Mediator.MediatR.Tests
             Action options = null;
 
             // Act
-            var result = mediatrConfiguration.AddMediatr(
-                options);
+            var result = mediatrConfiguration.AddMediatr(x=>
+            {
+
+            });
 
             // Assert
             Assert.Fail();
