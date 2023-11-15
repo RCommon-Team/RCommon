@@ -69,6 +69,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase.Data", "..\Tests\RCommon.TestBase.Data\RCommon.TestBase.Data.csproj", "{52013FDA-A7EB-4B7E-8E69-A4566F00ACB8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mediators", "Mediators", "{EF78B8EE-80FF-45DE-9B82-352953B361A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Mediator.MediatR", "RCommon.Mediator.Mediatr\RCommon.Mediator.MediatR.csproj", "{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Mediator", "RCommon.Mediator\RCommon.Mediator.csproj", "{FC484848-D719-4AAD-91B0-EDDC434F946E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +181,14 @@ Global
 		{52013FDA-A7EB-4B7E-8E69-A4566F00ACB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52013FDA-A7EB-4B7E-8E69-A4566F00ACB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52013FDA-A7EB-4B7E-8E69-A4566F00ACB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC484848-D719-4AAD-91B0-EDDC434F946E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC484848-D719-4AAD-91B0-EDDC434F946E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC484848-D719-4AAD-91B0-EDDC434F946E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC484848-D719-4AAD-91B0-EDDC434F946E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -201,6 +215,8 @@ Global
 		{653F520D-D02D-44AC-AE48-FA1E963BE82D} = {EDBFED39-5609-4066-B9C7-0693F3642C19}
 		{F1158595-0560-42FE-BB98-464BAD3B8C1D} = {0AF37317-F10E-47E8-A4C8-9EA886E00E40}
 		{52013FDA-A7EB-4B7E-8E69-A4566F00ACB8} = {F1158595-0560-42FE-BB98-464BAD3B8C1D}
+		{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D} = {EF78B8EE-80FF-45DE-9B82-352953B361A8}
+		{FC484848-D719-4AAD-91B0-EDDC434F946E} = {EF78B8EE-80FF-45DE-9B82-352953B361A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}
