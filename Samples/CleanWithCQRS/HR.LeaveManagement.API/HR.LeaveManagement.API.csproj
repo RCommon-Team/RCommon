@@ -19,6 +19,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Src\RCommon.Emailing.SendGrid\RCommon.Emailing.SendGrid.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Mediator.MediatR\RCommon.Mediator.MediatR.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Application\HR.LeaveManagement.Application.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Persistence\HR.LeaveManagement.Persistence.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Identity\HR.LeaveManagement.Identity.csproj" />

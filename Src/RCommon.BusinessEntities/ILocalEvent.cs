@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using RCommon.Mediator.EventHandling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.BusinessEntities
 {
-    public interface ILocalEvent : INotification
+    public interface ILocalEvent : INotifier
     {
     }
 }

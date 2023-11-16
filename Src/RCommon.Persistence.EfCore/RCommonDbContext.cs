@@ -1,9 +1,9 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RCommon.BusinessEntities;
 using RCommon.Core.Threading;
 using RCommon.DataServices;
+using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -17,9 +17,9 @@ namespace RCommon.Persistence.EFCore
     public abstract class RCommonDbContext : DbContext, IDataStore
     {
         private readonly IEventTracker _eventTracker;
-        private readonly IMediator _mediator;
+        private readonly IMediatorService _mediator;
 
-        public RCommonDbContext(DbContextOptions options, IEventTracker eventTracker, IMediator mediator)
+        public RCommonDbContext(DbContextOptions options, IEventTracker eventTracker, IMediatorService mediator)
             : base(options)
         {
             this._eventTracker = eventTracker;

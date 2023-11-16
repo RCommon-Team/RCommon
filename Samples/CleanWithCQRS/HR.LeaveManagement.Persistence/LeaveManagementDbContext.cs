@@ -1,9 +1,9 @@
 ﻿using HR.LeaveManagement.Domain;
 using HR.LeaveManagement.Domain.Common;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RCommon;
 using RCommon.BusinessEntities;
+using RCommon.Mediator;
 using RCommon.Security.Users;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace HR.LeaveManagement.Persistence
     {
 
         public LeaveManagementDbContext(DbContextOptions<LeaveManagementDbContext> options, ICurrentUser currentUser, ISystemTime systemTime, 
-            IEventTracker eventTracker, IMediator mediator)
+            IEventTracker eventTracker, IMediatorService mediator)
             : base(options, currentUser, systemTime, eventTracker, mediator)
         {
         }

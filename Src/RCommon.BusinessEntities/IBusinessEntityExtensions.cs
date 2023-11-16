@@ -1,5 +1,5 @@
-﻿using MediatR;
-using RCommon.Extensions;
+﻿using RCommon.Extensions;
+using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace RCommon.BusinessEntities
 {
     public static class IBusinessEntityExtensions
     {
-        public static void PublishLocalEvents(this IBusinessEntity entity, IMediator mediator)
+        public static void PublishLocalEvents(this IBusinessEntity entity, IMediatorService mediator)
         {
             var relatedEntities = entity.TraverseGraphFor<IBusinessEntity>();
             relatedEntities.ForEach(relatedEntity =>

@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using MediatR;
 using System.Reflection;
 
 namespace RCommon
@@ -19,8 +18,6 @@ namespace RCommon
         {
             Guard.Against<NullReferenceException>(services == null, "IServiceCollection cannot be null");
             Services = services;
-
-            this.Services.AddMediatR(x => x.RegisterServicesFromAssembly(Assembly.GetEntryAssembly())); // MediaR is a first class citizen in the RCommon Framework
         }
 
         public IRCommonConfiguration WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)

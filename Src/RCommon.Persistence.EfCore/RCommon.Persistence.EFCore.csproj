@@ -2,24 +2,25 @@
 
   <PropertyGroup>
 	  <Nullable>enable</Nullable>
-    <TargetFramework>net7.0</TargetFramework>
-    <Authors>Reactor2, Jason Webb</Authors>
-    <Company>RCommon</Company>
-    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-    <Copyright></Copyright>
-    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <PackageIcon>rcommon-icon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageTags>RCommon, generic repository, Entity Framework Core Repository, persistance framework, EF</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <RepositoryType>GitHub</RepositoryType>
-    <Version>1.0.2.1</Version>
-    <PackageIconUrl />
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+	  <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+	  <Version>2.0.0.0</Version>
+	  <Authors>Jason Webb</Authors>
+	  <Company>RCommon</Company>
+	  <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+	  <Copyright></Copyright>
+	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+	  <PackageIcon>rcommon-icon.png</PackageIcon>
+	  <PackageTags>RCommon, entity framework, efcore, repository, crud, repository pattern, c#, .NET</PackageTags>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
+	  <FileVersion>2.0.0.0</FileVersion>
+	  <PackageIconUrl />
+	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.13" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.13" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />

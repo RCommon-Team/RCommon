@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace RCommon.BusinessEntities
     public static class BusinessEntityCollectionExtensions
     {
 
-        public static void PublishLocalEvents(this IEnumerable<IBusinessEntity> entities, IMediator mediator)
+        public static void PublishLocalEvents(this IEnumerable<IBusinessEntity> entities, IMediatorService mediator)
         {
             foreach (var item in entities)
             {

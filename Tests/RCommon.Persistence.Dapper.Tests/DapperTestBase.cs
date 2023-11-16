@@ -18,7 +18,6 @@ using Microsoft.EntityFrameworkCore;
 using RCommon;
 using RCommon.TestBase;
 using RCommon.DataServices;
-using RCommon.ApplicationServices;
 using RCommon.DataServices.Transactions;
 using RCommon.TestBase.Data;
 using RCommon.Persistence.Dapper;

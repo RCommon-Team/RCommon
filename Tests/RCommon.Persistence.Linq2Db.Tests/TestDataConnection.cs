@@ -1,8 +1,8 @@
 ﻿using LinqToDB;
 using LinqToDB.Configuration;
-using MediatR;
 using Microsoft.Extensions.Options;
 using RCommon.BusinessEntities;
+using RCommon.Mediator;
 using RCommon.TestBase.Entities;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 {
     public class TestDataConnection : RCommonDataConnection
     {
-        public TestDataConnection(IEventTracker eventTracker, IMediator mediator, DataOptions linq2DbOptions) 
+        public TestDataConnection(IEventTracker eventTracker, IMediatorService mediator, DataOptions linq2DbOptions) 
             : base(eventTracker, mediator, linq2DbOptions)
         {
         }

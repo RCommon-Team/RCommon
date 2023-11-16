@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Bogus" Version="34.0.2" />
+	  <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.13" />
+	  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+	  <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
+	  <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+	  <PackageReference Include="coverlet.collector" Version="6.0.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="NUnit" Version="3.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.Mediator.Mediatr\RCommon.Mediator.MediatR.csproj" />
+    <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
+  </ItemGroup>
+
+</Project>

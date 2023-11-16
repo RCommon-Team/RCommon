@@ -15,7 +15,6 @@ using System.ComponentModel;
 using System.Data.Common;
 using RCommon.BusinessEntities;
 using System.Threading;
-using MediatR;
 using Microsoft.Extensions.Options;
 using Dommel;
 using RCommon.Collections;

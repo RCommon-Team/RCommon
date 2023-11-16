@@ -14,8 +14,8 @@ namespace RCommon.Emailing.SendGrid
 
         }
 
-        public string SendGridApiKey { get; set; }
-        public string FromEmailDefault { get; set; }
-        public string FromNameDefault { get; set; }
+        public string? SendGridApiKey { get; set; }
+        public string? FromEmailDefault { get; set; }
+        public string? FromNameDefault { get; set; }
     }
 }
