@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.DataServices
 {
     public interface IUnitOfWorkManager
     {

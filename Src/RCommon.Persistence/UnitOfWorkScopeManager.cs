@@ -22,9 +22,20 @@
 using System;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
+
+/* Unmerged change from project 'RCommon.Persistence (net8.0)'
+Before:
+using Microsoft.Extensions.Logging;
+After:
+using Microsoft.Extensions.Logging;
+using RCommon;
+using RCommon.Persistence;
+using RCommon.Persistence;
+using RCommon.Persistence.Transactions;
+*/
 using Microsoft.Extensions.Logging;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.Persistence
 {
 
     public class UnitOfWorkScopeManager : DisposableResource, IUnitOfWorkManager
@@ -37,25 +48,25 @@ namespace RCommon.DataServices.Transactions
         public UnitOfWorkScopeManager(ILogger<UnitOfWorkScopeManager> logger)
         {
             _logger = logger;
-            this.EnlistedTransactions = new ConcurrentDictionary<Guid, IUnitOfWork>();
+            EnlistedTransactions = new ConcurrentDictionary<Guid, IUnitOfWork>();
         }
 
         public bool EnlistUnitOfWork(IUnitOfWork unitOfWorkScope)
         {
             unitOfWorkScope.ScopeBeginning += OnUnitOfWorkScopeBeginning;
             unitOfWorkScope.ScopeCompleted += OnUnitOfWorkScopeCompleted;
-            return this.EnlistedTransactions.TryAdd(unitOfWorkScope.TransactionId, unitOfWorkScope);
+            return EnlistedTransactions.TryAdd(unitOfWorkScope.TransactionId, unitOfWorkScope);
         }
 
         private void OnUnitOfWorkScopeCompleted(IUnitOfWork unitOfWorkScope)
         {
-            this.EnlistedTransactions.TryRemove(unitOfWorkScope.TransactionId, out _);
-            this._logger.LogDebug("UnitOfWorkScope {0} Removed from enlisted transactions", unitOfWorkScope.TransactionId);
+            EnlistedTransactions.TryRemove(unitOfWorkScope.TransactionId, out _);
+            _logger.LogDebug("UnitOfWorkScope {0} Removed from enlisted transactions", unitOfWorkScope.TransactionId);
         }
 
         private void OnUnitOfWorkScopeBeginning(IUnitOfWork unitOfWorkScope)
         {
-            this._currentUnitOfWork = unitOfWorkScope;
+            _currentUnitOfWork = unitOfWorkScope;
         }
 
         /// <summary>
@@ -65,7 +76,7 @@ namespace RCommon.DataServices.Transactions
         {
             get
             {
-                return this._currentUnitOfWork;
+                return _currentUnitOfWork;
             }
         }
 
@@ -73,14 +84,14 @@ namespace RCommon.DataServices.Transactions
 
         protected override void Dispose(bool disposing)
         {
-            if (this._disposed)
+            if (_disposed)
                 return;
 
             if (disposing)
             {
-                this.EnlistedTransactions.Clear();
-                this._logger.LogDebug("UnitOfWorkScopeManager has removed all enlisted transactions");
-                this._disposed = true;
+                EnlistedTransactions.Clear();
+                _logger.LogDebug("UnitOfWorkScopeManager has removed all enlisted transactions");
+                _disposed = true;
             }
         }
     }

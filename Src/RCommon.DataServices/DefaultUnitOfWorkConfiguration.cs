@@ -23,9 +23,8 @@ using System;
 using System.ComponentModel;
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.DataServices.Transactions;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.DataServices
 {
     ///<summary>
     /// Implementation of <see cref="IUnitOfWorkConfiguration"/>.
@@ -50,7 +49,7 @@ namespace RCommon.DataServices.Transactions
 
         public IUnitOfWorkConfiguration SetOptions(Action<UnitOfWorkSettings> unitOfWorkOptions)
         {
-            this._services.Configure<UnitOfWorkSettings>(unitOfWorkOptions);
+            _services.Configure(unitOfWorkOptions);
             return this;
         }
     }

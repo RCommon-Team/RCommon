@@ -22,12 +22,24 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
+
+/* Unmerged change from project 'RCommon.DataServices (net8.0)'
+Before:
+using System;
+After:
+using RCommon;
+using RCommon.DataServices;
+using RCommon.DataServices;
+using RCommon.DataServices.Transactions;
+using System;
+*/
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.DataServices
 {
     public class UnitOfWorkScope : DisposableResource, IUnitOfWork
     {
@@ -48,7 +60,7 @@ namespace RCommon.DataServices.Transactions
         public event Action<IUnitOfWork> ScopeBeginning;
         public event Action<IUnitOfWork> ScopeCompleted;
 
-        public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
+        public UnitOfWorkScope(IUnitOfWorkManager unitOfWorkManager, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
             IGuidGenerator guidGenerator, ILogger<UnitOfWorkScope> logger, IOptions<UnitOfWorkSettings> unitOfWorkSettings)
         {
             _unitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
@@ -59,13 +71,13 @@ namespace RCommon.DataServices.Transactions
             _unitOfWorkSettings = unitOfWorkSettings.Value;
 
             _unitOfWorkManager.EnlistUnitOfWork(this);
-            
+
         }
 
-        
 
 
-        public void Begin(TransactionMode transactionMode, 
+
+        public void Begin(TransactionMode transactionMode,
             IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
             OnBegin();
@@ -90,18 +102,18 @@ namespace RCommon.DataServices.Transactions
                 "This unit of work scope has been marked completed. A child scope participating in the " +
                 "transaction has rolledback and the transaction aborted. The parent scope cannot be commited.");
 
-            
+
             _commitAttempted = true;
             OnCommit();
         }
 
         private void OnBegin()
         {
-            Guard.Against<UnitOfWorkException> (_started, 
+            Guard.Against<UnitOfWorkException>(_started,
                 "This unit of work scope has already started and cannot begin again as it would disrupt the state of the current transaction.");
-            
+
             _started = true;
-            _logger.LogInformation("UnitOfWorkScope {0} Beginning.", this.TransactionId);
+            _logger.LogInformation("UnitOfWorkScope {0} Beginning.", TransactionId);
             if (ScopeBeginning != null)
             {
                 ScopeBeginning(this);
@@ -113,22 +125,22 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         private void OnCommit()
         {
-            _logger.LogInformation("UnitOfWorkScope {0} Comitting.", this.TransactionId);
+            _logger.LogInformation("UnitOfWorkScope {0} Comitting.", TransactionId);
             if (ScopeComitting != null)
             {
                 ScopeComitting(this);
             }
-            this.Flush(true);
-            _dataStoreEnlistmentProvider.RemoveEnlistedDataStores(this.TransactionId);
+            Flush(true);
+            _dataStoreEnlistmentProvider.RemoveEnlistedDataStores(TransactionId);
             _transactionScope.Complete();
             OnComplete();
-            
+
         }
 
         private void OnComplete()
         {
             _completed = true;
-            _logger.LogInformation("UnitOfWorkScope {0} Completed.", this.TransactionId);
+            _logger.LogInformation("UnitOfWorkScope {0} Completed.", TransactionId);
             if (ScopeCompleted != null)
             {
                 ScopeCompleted(this);
@@ -140,18 +152,18 @@ namespace RCommon.DataServices.Transactions
         /// </summary>
         private void OnRollback()
         {
-            _logger.LogInformation("UnitOfWorkScope {0} Rolling Back.", this.TransactionId);
+            _logger.LogInformation("UnitOfWorkScope {0} Rolling Back.", TransactionId);
             if (ScopeRollingback != null)
             {
                 ScopeRollingback(this);
             }
-            _dataStoreEnlistmentProvider.RemoveEnlistedDataStores(this.TransactionId);
+            _dataStoreEnlistmentProvider.RemoveEnlistedDataStores(TransactionId);
         }
 
         private void Flush(bool allowPersist)
         {
-            Guard.Against<ObjectDisposedException>(this._disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
-            var dataStores = this._dataStoreEnlistmentProvider.GetEnlistedDataStores(this.TransactionId);
+            Guard.Against<ObjectDisposedException>(_disposed, "The current UnitOfWork instance has been disposed. Cannot get registered IDataStores from a disposed UnitOfWork instance.");
+            var dataStores = _dataStoreEnlistmentProvider.GetEnlistedDataStores(TransactionId);
 
             if (dataStores.Count == 0)
             {
@@ -211,7 +223,7 @@ namespace RCommon.DataServices.Transactions
                     ScopeComitting = null;
                     ScopeRollingback = null;
                     _disposed = true;
-                    _logger.LogDebug("UnitOfWorkScope {0} Disposed.", this.TransactionId);
+                    _logger.LogDebug("UnitOfWorkScope {0} Disposed.", TransactionId);
                 }
             }
         }

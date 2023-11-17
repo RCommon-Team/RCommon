@@ -22,7 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RCommon.BusinessEntities;
-using RCommon.DataServices;
+using RCommon.Persistence;
 using RCommon.Mediator;
 using RCommon.Persistence.EFCore;
 using RCommon.TestBase;

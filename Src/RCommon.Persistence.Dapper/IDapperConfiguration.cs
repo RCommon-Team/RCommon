@@ -1,4 +1,4 @@
-﻿using RCommon.DataServices.Sql;
+﻿using RCommon.Persistence.Sql;
 using System;
 
 namespace RCommon

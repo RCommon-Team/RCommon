@@ -22,7 +22,7 @@
 using System;
 using System.Transactions;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.Persistence
 {
     public interface IUnitOfWorkFactory
     {

@@ -20,9 +20,20 @@
 #endregion
 
 using System;
+
+/* Unmerged change from project 'RCommon.DataServices (net8.0)'
+Before:
+using System.Transactions;
+After:
+using System.Transactions;
+using RCommon;
+using RCommon.DataServices;
+using RCommon.DataServices;
+using RCommon.DataServices.Transactions;
+*/
 using System.Transactions;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.DataServices
 {
     ///<summary>
     ///</summary>

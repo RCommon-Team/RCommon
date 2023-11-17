@@ -2,8 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.DataServices;
-using RCommon.DataServices.Transactions;
+using RCommon.Persistence;
 using RCommon.Linq;
 using RCommon.TestBase;
 using RCommon.TestBase.Data;

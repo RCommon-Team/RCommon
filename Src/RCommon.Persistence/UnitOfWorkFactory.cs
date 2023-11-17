@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Transactions;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.Persistence
 {
     public class UnitOfWorkFactory : IUnitOfWorkFactory
     {
@@ -17,21 +17,21 @@ namespace RCommon.DataServices.Transactions
 
         public IUnitOfWork Create()
         {
-            var unitOfWork = this._serviceProvider.GetService<IUnitOfWork>();
+            var unitOfWork = _serviceProvider.GetService<IUnitOfWork>();
             unitOfWork.Begin(TransactionMode.Default);
             return unitOfWork;
         }
 
         public IUnitOfWork Create(TransactionMode transactionMode)
         {
-            var unitOfWork = this._serviceProvider.GetService<IUnitOfWork>();
+            var unitOfWork = _serviceProvider.GetService<IUnitOfWork>();
             unitOfWork.Begin(transactionMode);
             return unitOfWork;
         }
 
         public IUnitOfWork Create(TransactionMode transactionMode, IsolationLevel isolationLevel)
         {
-            var unitOfWork = this._serviceProvider.GetService<IUnitOfWork>();
+            var unitOfWork = _serviceProvider.GetService<IUnitOfWork>();
             unitOfWork.Begin(transactionMode, isolationLevel);
             return unitOfWork;
         }

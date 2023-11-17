@@ -23,7 +23,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Transactions;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.DataServices
 {
     /// <summary>
     /// Helper class to create <see cref="TransactionScope"/> instances.

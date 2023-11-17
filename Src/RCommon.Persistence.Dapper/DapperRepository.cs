@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using RCommon.DataServices;
-using RCommon.DataServices.Sql;
-using RCommon.DataServices.Transactions;
+using RCommon.Persistence;
+using RCommon.Persistence.Sql;
 using System;
 using System.Collections.Generic;
 using System.Data;

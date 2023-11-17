@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using RCommon.DataServices.Transactions;
 using RCommon.Mediator.MediatR.Behaviors;
 using System;
 using System.Threading.Tasks;

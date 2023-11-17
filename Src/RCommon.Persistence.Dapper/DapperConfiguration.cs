@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using RCommon.DataServices.Sql;
+using RCommon.Persistence.Sql;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -10,7 +10,7 @@ using RCommon.Extensions;
 using RCommon.Persistence;
 using RCommon.Persistence.Dapper;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.DataServices;
+using RCommon.Persistence;
 
 namespace RCommon
 {
