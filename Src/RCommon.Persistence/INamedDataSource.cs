@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.DataServices
+namespace RCommon.Persistence
 {
     public interface INamedDataSource
     {

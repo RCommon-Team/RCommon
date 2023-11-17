@@ -1,4 +1,4 @@
-﻿using RCommon.DataServices;
+﻿using RCommon.Persistence;
 using System.Collections;
 using System;
 using System.Collections.Generic;
@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 using System.Data.Common;
 using System.Data;
 using Microsoft.Extensions.Logging;
-using RCommon.DataServices.Transactions;
-using RCommon.DataServices.Sql;
+using RCommon.Persistence.Sql;
 using RCommon.BusinessEntities;
 using System.Threading;
 using RCommon.Collections;

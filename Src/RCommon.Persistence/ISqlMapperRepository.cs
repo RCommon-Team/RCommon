@@ -1,6 +1,6 @@
 ﻿using RCommon.BusinessEntities;
-using RCommon.DataServices;
-using RCommon.DataServices.Sql;
+using RCommon.Persistence;
+using RCommon.Persistence.Sql;
 using System;
 using System.Collections.Generic;
 using System.Data;

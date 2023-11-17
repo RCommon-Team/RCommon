@@ -13,11 +13,27 @@
 //See the License for the specific language governing permissions and 
 //limitations under the License. 
 #endregion
+#region license compliance
+//Substantial changes to the original code have been made in the form of namespace reorganization, 
+//and interface signature.
+//Original code here: https://github.com/riteshrao/ncommon/blob/v1.2/NCommon/src/Data/IUnitOfWork.cs
+#endregion
 
 using System;
+
+/* Unmerged change from project 'RCommon.Persistence (net8.0)'
+Before:
+using System.Transactions;
+After:
+using System.Transactions;
+using RCommon;
+using RCommon.Persistence;
+using RCommon.Persistence;
+using RCommon.Persistence.Transactions;
+*/
 using System.Transactions;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.Persistence
 {
     ///<summary>
     ///</summary>

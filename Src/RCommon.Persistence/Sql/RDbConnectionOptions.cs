@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.DataServices.Sql
+namespace RCommon.Persistence.Sql
 {
     public class RDbConnectionOptions
     {

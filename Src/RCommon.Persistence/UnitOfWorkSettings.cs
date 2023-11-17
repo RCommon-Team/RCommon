@@ -16,7 +16,7 @@
 
 using System.Transactions;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.Persistence
 {
     ///<summary>
     /// Contains settings for RCommon unit of work.
@@ -25,8 +25,8 @@ namespace RCommon.DataServices.Transactions
     {
         public UnitOfWorkSettings()
         {
-            this.DefaultIsolation = IsolationLevel.ReadCommitted;
-            this.AutoCompleteScope = false;
+            DefaultIsolation = IsolationLevel.ReadCommitted;
+            AutoCompleteScope = false;
         }
 
 

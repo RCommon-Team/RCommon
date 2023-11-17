@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using RCommon.BusinessEntities;
-using RCommon.DataServices;
+using RCommon.Persistence;
 using RCommon.Extensions;
 using RCommon.Persistence.EFCore;
 using RCommon.TestBase.Entities;

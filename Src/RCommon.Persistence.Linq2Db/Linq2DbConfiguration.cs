@@ -3,7 +3,7 @@ using LinqToDB.Configuration;
 using LinqToDB.AspNet;
 using LinqToDB.Mapping;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.DataServices;
+using RCommon.Persistence;
 using RCommon.Extensions;
 using System;
 using System.Collections.Generic;

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RCommon.DataServices.Transactions;
+using RCommon.Persistence;
 using RCommon.TestBase;
 using RCommon.TestBase.Data;
 using RCommon.TestBase.Entities;

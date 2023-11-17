@@ -5,18 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.Persistence
 {
     public class ScopedDataStoreEnlistmentProvider : IDataStoreEnlistmentProvider
     {
         public ScopedDataStoreEnlistmentProvider()
         {
-            this.DataStores = new ConcurrentDictionary<Guid, IDataStore>();
+            DataStores = new ConcurrentDictionary<Guid, IDataStore>();
         }
 
         public bool EnlistDataStore(Guid transactionId, IDataStore dataStore)
         {
-            var dataStoreValue = this.DataStores.GetOrAdd(transactionId, dataStore);
+            var dataStoreValue = DataStores.GetOrAdd(transactionId, dataStore);
 
             if (dataStoreValue == null)
             {
@@ -28,17 +28,17 @@ namespace RCommon.DataServices.Transactions
 
         public IList<IDataStore> GetEnlistedDataStores(Guid transactionId)
         {
-            var dataStores = this.DataStores.Where(x => x.Key == transactionId)
+            var dataStores = DataStores.Where(x => x.Key == transactionId)
                 .Select(x => x.Value).ToList();
             return dataStores;
         }
 
         public bool RemoveEnlistedDataStores(Guid transactionId)
         {
-            var dataStores = this.DataStores.Where(x => x.Key == transactionId);
+            var dataStores = DataStores.Where(x => x.Key == transactionId);
             foreach (var item in dataStores)
             {
-                if (!this.DataStores.TryRemove(item))
+                if (!DataStores.TryRemove(item))
                 {
                     return false;
                 }

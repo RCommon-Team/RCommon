@@ -10,7 +10,7 @@ using RCommon.BusinessEntities;
 using RCommon.Extensions;
 using RCommon.Mediator;
 
-namespace RCommon.DataServices.Sql
+namespace RCommon.Persistence.Sql
 {
     public class RDbConnection : DisposableResource, IRDbConnection
     {

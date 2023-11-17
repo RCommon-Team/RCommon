@@ -2,7 +2,7 @@
 using System.Data.Common;
 using System.Threading.Tasks;
 
-namespace RCommon.DataServices.Sql
+namespace RCommon.Persistence.Sql
 {
     public interface IRDbConnection : IDataStore
     {

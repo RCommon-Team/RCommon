@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using RCommon.BusinessEntities;
-using RCommon.DataServices.Sql;
+using RCommon.Persistence.Sql;
 using RCommon.Mediator;
 using System;
 using System.Collections.Generic;

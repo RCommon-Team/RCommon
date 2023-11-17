@@ -1,4 +1,4 @@
-﻿namespace RCommon.DataServices
+﻿namespace RCommon.Persistence
 {
     public interface IDataStoreRegistry
     {

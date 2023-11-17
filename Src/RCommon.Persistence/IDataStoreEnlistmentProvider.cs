@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace RCommon.DataServices.Transactions
+namespace RCommon.Persistence
 {
     public interface IDataStoreEnlistmentProvider
     {

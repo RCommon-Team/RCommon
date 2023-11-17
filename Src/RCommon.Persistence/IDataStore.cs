@@ -5,7 +5,7 @@ using System.Data.Common;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.DataServices
+namespace RCommon.Persistence
 {
     public interface IDataStore : IDisposable, IAsyncDisposable
     { 
