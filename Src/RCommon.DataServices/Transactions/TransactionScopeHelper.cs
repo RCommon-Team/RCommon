@@ -13,6 +13,11 @@
 //See the License for the specific language governing permissions and 
 //limitations under the License. 
 #endregion
+#region license compliance
+//Substantial changes to the original code have been made in the form of namespace reorganization, 
+//and method signature.
+//Original code here: https://github.com/riteshrao/ncommon/blob/v1.2/NCommon/src/Data/Impl/TransactionScopeHelper.cs
+#endregion
 
 using Microsoft.Extensions.Logging;
 using System;
