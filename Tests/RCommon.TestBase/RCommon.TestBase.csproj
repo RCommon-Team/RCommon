@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
-    <ProjectReference Include="..\..\Src\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Entities\RCommon.Entities.csproj" />
   </ItemGroup>
 
 </Project>

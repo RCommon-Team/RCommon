@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.BusinessEntities
+namespace RCommon.Entities
 {
     public abstract class AuditedEntity<TCreatedByUser, TLastModifiedByUser> : BusinessEntity, IAuditedEntity<TCreatedByUser, TLastModifiedByUser>
     {

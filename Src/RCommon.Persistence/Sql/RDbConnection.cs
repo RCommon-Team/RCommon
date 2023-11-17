@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Extensions;
 using RCommon.Mediator;
 

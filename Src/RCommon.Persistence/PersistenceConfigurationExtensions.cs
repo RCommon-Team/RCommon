@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Persistence.Transactions;
 using System;

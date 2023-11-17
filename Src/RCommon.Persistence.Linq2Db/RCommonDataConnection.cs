@@ -2,7 +2,7 @@
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using Microsoft.Extensions.Options;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Mediator;
 using System;

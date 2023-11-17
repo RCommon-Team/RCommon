@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Extensions;
 using RCommon.Persistence.EFCore;

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using System.Data;
 using Microsoft.Extensions.Logging;
 using RCommon.Persistence.Sql;

@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ApplicationServices
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Models", "RCommon.Models\RCommon.Models.csproj", "{60DD21D4-98D7-4101-86E3-8B2E4BA253EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BusinessEntities", "RCommon.BusinessEntities\RCommon.BusinessEntities.csproj", "{E826DF9F-418D-4978-B357-304E732EFE9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Entities", "RCommon.Entities\RCommon.Entities.csproj", "{E826DF9F-418D-4978-B357-304E732EFE9E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistance", "Persistance", "{F8D8C009-564C-4F33-A49B-CE7830575A09}"
 EndProject

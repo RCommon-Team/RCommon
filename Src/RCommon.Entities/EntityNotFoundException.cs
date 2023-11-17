@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace RCommon.BusinessEntities
+namespace RCommon.Entities
 {
     /// <summary>
     /// This exception is thrown if an entity excepted to be found but not found.

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.BusinessEntities
+namespace RCommon.Entities
 {
     public static class IBusinessEntityExtensions
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Persistence.Sql;
 using RCommon.Mediator;
 using System;

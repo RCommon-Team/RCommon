@@ -6,7 +6,7 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using RCommon;
-    using RCommon.BusinessEntities;
+    using RCommon.Entities;
     using RCommon.Collections;
     using RCommon.Persistence;
     using RCommon.Extensions;

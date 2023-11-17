@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RCommon.BusinessEntities
+namespace RCommon.Entities
 {
     public interface IEventTracker
     {

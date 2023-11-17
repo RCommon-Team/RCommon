@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.BusinessEntities
+namespace RCommon.Entities.Domain
 {
-    public interface ITrackedEntity
+    public interface IAggregateRoot
     {
-        bool AllowEventTracking { get; set; }
     }
 }

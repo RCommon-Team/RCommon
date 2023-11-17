@@ -1,7 +1,7 @@
 ﻿using LinqToDB;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Collections;
 using RCommon.Extensions;
 using System;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Core.Threading;
 using RCommon.Persistence;
 using RCommon.Mediator;

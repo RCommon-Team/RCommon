@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,4 @@
-﻿using RCommon.BusinessEntities;
+﻿using RCommon.Entities;
 using RCommon.Collections;
 using RCommon.Persistence;
 using System;

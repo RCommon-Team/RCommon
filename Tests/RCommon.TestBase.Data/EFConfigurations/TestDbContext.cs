@@ -21,7 +21,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Mediator;
 using RCommon.Persistence.EFCore;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RCommon.BusinessEntities
+namespace RCommon.Entities
 {
     public interface IAuditedEntity<TCreatedByUser, TLastModifiedByUser> 
         : IBusinessEntity

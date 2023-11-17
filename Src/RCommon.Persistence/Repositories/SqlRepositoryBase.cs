@@ -9,7 +9,7 @@ using System.Data.Common;
 using System.Data;
 using Microsoft.Extensions.Logging;
 using RCommon.Persistence.Sql;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using System.Threading;
 using RCommon.Collections;
 using Microsoft.Extensions.Options;

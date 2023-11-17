@@ -5,7 +5,7 @@ using PropertyChanged;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RCommon.BusinessEntities
+namespace RCommon.Entities
 {
     /// <inheritdoc/>
     [Serializable]

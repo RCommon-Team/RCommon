@@ -1,7 +1,7 @@
 ﻿using HR.LeaveManagement.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using RCommon;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Mediator;
 using RCommon.Persistence.EFCore;
 using RCommon.Security.Users;

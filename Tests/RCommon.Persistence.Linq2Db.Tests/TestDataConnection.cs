@@ -1,7 +1,7 @@
 ﻿using LinqToDB;
 using LinqToDB.Configuration;
 using Microsoft.Extensions.Options;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Mediator;
 using RCommon.TestBase.Entities;
 using System;

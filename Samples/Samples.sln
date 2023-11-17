@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.ApplicationServices", "..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj", "{77C5C4DB-9D8B-4CE7-824D-C4A8AD3A4056}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.BusinessEntities", "..\Src\RCommon.BusinessEntities\RCommon.BusinessEntities.csproj", "{A09E85E5-6453-437F-9D5D-A31972B8D1F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Entities", "..\Src\RCommon.Entities\RCommon.Entities.csproj", "{A09E85E5-6453-437F-9D5D-A31972B8D1F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Models", "..\Src\RCommon.Models\RCommon.Models.csproj", "{E779DD7F-D69F-41C9-9EFE-584E48D46F1F}"
 EndProject
@@ -110,6 +110,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Messaging.WolverineRabbitMq", "MessagingWolverineRabbitMq\Samples.Messaging.WolverineRabbitMq\Samples.Messaging.WolverineRabbitMq.csproj", "{E3E0A3A0-0C4C-466C-8FFC-35D424186C15}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Persistence.Eventuous", "..\Src\RCommon.Persistence.Eventuous\RCommon.Persistence.Eventuous.csproj", "{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Persistence.EventFlow", "..\Src\RCommon.Persistence.EventFlow\RCommon.Persistence.EventFlow.csproj", "{94E3F32B-04D9-45D8-916E-F6C8C5F69BDD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -281,6 +283,10 @@ Global
 		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94E3F32B-04D9-45D8-916E-F6C8C5F69BDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94E3F32B-04D9-45D8-916E-F6C8C5F69BDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94E3F32B-04D9-45D8-916E-F6C8C5F69BDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94E3F32B-04D9-45D8-916E-F6C8C5F69BDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -337,6 +343,7 @@ Global
 		{7B0FB62A-DD64-46E6-8F04-69CEFE70CCC1} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
 		{E3E0A3A0-0C4C-466C-8FFC-35D424186C15} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
 		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B} = {E8F6C8E5-8058-4E79-8EA5-818BD39FEF8A}
+		{94E3F32B-04D9-45D8-916E-F6C8C5F69BDD} = {E8F6C8E5-8058-4E79-8EA5-818BD39FEF8A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

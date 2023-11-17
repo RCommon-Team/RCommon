@@ -11,7 +11,7 @@ using Dapper;
 using System.Reflection;
 using System.ComponentModel;
 using System.Data.Common;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using System.Threading;
 using Microsoft.Extensions.Options;
 using Dommel;
