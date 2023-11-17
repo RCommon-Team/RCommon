@@ -7,7 +7,6 @@ using Microsoft.OpenApi.Models;
 using RCommon;
 using RCommon.Persistence;
 using RCommon.Emailing.SendGrid;
-using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
 using RCommon.Security;
 using Microsoft.EntityFrameworkCore;
