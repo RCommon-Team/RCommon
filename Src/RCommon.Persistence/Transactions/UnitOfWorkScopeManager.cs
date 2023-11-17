@@ -35,7 +35,7 @@ using RCommon.Persistence.Transactions;
 */
 using Microsoft.Extensions.Logging;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
 
     public class UnitOfWorkScopeManager : DisposableResource, IUnitOfWorkManager

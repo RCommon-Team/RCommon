@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Repositories
 {
     public class RepositoryException : ApplicationException
     {

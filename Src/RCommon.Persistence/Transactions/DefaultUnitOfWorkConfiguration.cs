@@ -24,7 +24,7 @@ using System.ComponentModel;
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     ///<summary>
     /// Implementation of <see cref="IUnitOfWorkConfiguration"/>.

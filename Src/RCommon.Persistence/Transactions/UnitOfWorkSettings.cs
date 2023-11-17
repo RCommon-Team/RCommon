@@ -16,7 +16,7 @@
 
 using System.Transactions;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     ///<summary>
     /// Contains settings for RCommon unit of work.

@@ -10,7 +10,7 @@ using RCommon.Extensions;
 using RCommon.Persistence;
 using RCommon.Persistence.Dapper;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.Persistence;
+using RCommon.Persistence.Repositories;
 
 namespace RCommon
 {

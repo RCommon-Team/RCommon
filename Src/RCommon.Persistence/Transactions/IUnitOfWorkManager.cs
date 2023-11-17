@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     public interface IUnitOfWorkManager
     {

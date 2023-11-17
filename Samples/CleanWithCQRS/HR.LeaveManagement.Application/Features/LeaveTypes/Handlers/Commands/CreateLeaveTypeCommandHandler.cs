@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using HR.LeaveManagement.Application.Responses;
 using System.Linq;
 using RCommon.Persistence;
+using RCommon.Persistence.Repositories;
 
 namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
 {

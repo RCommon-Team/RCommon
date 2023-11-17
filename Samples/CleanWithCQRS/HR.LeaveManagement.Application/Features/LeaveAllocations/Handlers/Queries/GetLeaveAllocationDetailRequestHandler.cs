@@ -5,6 +5,7 @@ using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Queries;
 using HR.LeaveManagement.Domain;
 using MediatR;
 using RCommon.Persistence;
+using RCommon.Persistence.Repositories;
 using System.Threading;
 using System.Threading.Tasks;
 

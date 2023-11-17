@@ -11,7 +11,7 @@ using RCommon.Persistence.Transactions;
 */
 using System;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     public interface IUnitOfWorkConfiguration
     {

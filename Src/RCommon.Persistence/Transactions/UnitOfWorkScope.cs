@@ -24,6 +24,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 
+
+
 /* Unmerged change from project 'RCommon.Persistence (net8.0)'
 Before:
 using System;
@@ -39,7 +41,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     public class UnitOfWorkScope : DisposableResource, IUnitOfWork
     {

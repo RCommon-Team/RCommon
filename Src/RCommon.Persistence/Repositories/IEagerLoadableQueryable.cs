@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Repositories
 {
     public interface IEagerLoadableQueryable<TEntity> : IQueryable<TEntity>, IReadOnlyRepository<TEntity>
         where TEntity : IBusinessEntity

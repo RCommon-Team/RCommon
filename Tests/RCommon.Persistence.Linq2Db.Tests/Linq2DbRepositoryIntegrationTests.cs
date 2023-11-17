@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.Persistence;
 using RCommon.Linq;
 using RCommon.TestBase;
 using RCommon.TestBase.Data;
@@ -15,6 +14,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using RCommon.Persistence.Transactions;
+using RCommon.Persistence.Repositories;
 
 namespace RCommon.Persistence.Linq2Db.Tests
 {

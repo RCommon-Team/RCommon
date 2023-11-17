@@ -23,7 +23,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Transactions;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     /// <summary>
     /// Helper class to create <see cref="TransactionScope"/> instances.

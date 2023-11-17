@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using RCommon.Persistence;
+using RCommon.Persistence.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Text;

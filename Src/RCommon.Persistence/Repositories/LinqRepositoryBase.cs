@@ -1,5 +1,4 @@
-﻿using RCommon.Persistence;
-using System.Collections;
+﻿using System.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +13,9 @@ using System.Threading;
 using RCommon.Collections;
 using Microsoft.Extensions.Options;
 using RCommon.Extensions;
+using RCommon.Persistence.Transactions;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Repositories
 {
     public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>
        where TEntity : IBusinessEntity

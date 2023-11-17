@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Repositories
 {
     public interface IReadOnlyRepository<TEntity> : INamedDataSource
     {

@@ -1,10 +1,10 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using RCommon.Persistence;
 using RCommon.Extensions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using RCommon.Persistence.Transactions;
 
 namespace RCommon.Mediator.MediatR.Behaviors
 {

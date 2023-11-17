@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using RCommon.Persistence;
 using RCommon.Persistence.Sql;
 using System;
 using System.Collections.Generic;
@@ -17,6 +16,8 @@ using System.Threading;
 using Microsoft.Extensions.Options;
 using Dommel;
 using RCommon.Collections;
+using RCommon.Persistence.Transactions;
+using RCommon.Persistence.Repositories;
 
 namespace RCommon.Persistence.Dapper
 {

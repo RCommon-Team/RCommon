@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Repositories
 {
     public interface ILinqRepository<TEntity>: IQueryable<TEntity>, IReadOnlyRepository<TEntity>, IWriteOnlyRepository<TEntity>, 
         IEagerLoadableQueryable<TEntity>

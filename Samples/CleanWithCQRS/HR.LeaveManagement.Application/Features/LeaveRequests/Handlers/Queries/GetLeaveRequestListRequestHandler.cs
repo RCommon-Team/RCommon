@@ -15,6 +15,7 @@ using HR.LeaveManagement.Application.Contracts.Identity;
 using Microsoft.AspNetCore.Http;
 using HR.LeaveManagement.Application.Constants;
 using RCommon.Persistence;
+using RCommon.Persistence.Repositories;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
 {

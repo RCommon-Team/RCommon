@@ -15,6 +15,7 @@ using System.Linq;
 using HR.LeaveManagement.Application.Contracts.Identity;
 using RCommon.Persistence;
 using HR.LeaveManagement.Domain.Specifications;
+using RCommon.Persistence.Repositories;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Commands
 {

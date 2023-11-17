@@ -20,6 +20,8 @@
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
+    using RCommon.Persistence.Transactions;
+    using RCommon.Persistence.Repositories;
 
     /// <summary>
     /// A concrete implementation for Entity Framework Core.

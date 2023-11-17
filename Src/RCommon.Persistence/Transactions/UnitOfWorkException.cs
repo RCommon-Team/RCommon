@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     public class UnitOfWorkException : GeneralException
     {

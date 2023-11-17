@@ -17,11 +17,11 @@ using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using RCommon;
 using RCommon.TestBase;
-using RCommon.Persistence;
 using RCommon.TestBase.Data;
 using RCommon.Persistence.Dapper;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.Dapper.Tests.Configurations;
+using RCommon.Persistence.Transactions;
 
 namespace RCommon.Persistence.Dapper.Tests
 {

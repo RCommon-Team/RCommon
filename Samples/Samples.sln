@@ -105,9 +105,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Mediator.MediatR.Te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging", "Messaging", "{35AE0870-0A6D-4F27-B534-B8DCDFD11A36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.Messaging.MassTransitRabbitMq", "MessagingMassTransitRabbitMq\Samples.Messaging.MassTransitRabbitMq\Samples.Messaging.MassTransitRabbitMq.csproj", "{7B0FB62A-DD64-46E6-8F04-69CEFE70CCC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Messaging.MassTransitRabbitMq", "MessagingMassTransitRabbitMq\Samples.Messaging.MassTransitRabbitMq\Samples.Messaging.MassTransitRabbitMq.csproj", "{7B0FB62A-DD64-46E6-8F04-69CEFE70CCC1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.Messaging.WolverineRabbitMq", "MessagingWolverineRabbitMq\Samples.Messaging.WolverineRabbitMq\Samples.Messaging.WolverineRabbitMq.csproj", "{E3E0A3A0-0C4C-466C-8FFC-35D424186C15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Messaging.WolverineRabbitMq", "MessagingWolverineRabbitMq\Samples.Messaging.WolverineRabbitMq\Samples.Messaging.WolverineRabbitMq.csproj", "{E3E0A3A0-0C4C-466C-8FFC-35D424186C15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Persistence.Eventuous", "..\Src\RCommon.Persistence.Eventuous\RCommon.Persistence.Eventuous.csproj", "{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -275,6 +277,10 @@ Global
 		{E3E0A3A0-0C4C-466C-8FFC-35D424186C15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3E0A3A0-0C4C-466C-8FFC-35D424186C15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3E0A3A0-0C4C-466C-8FFC-35D424186C15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -330,6 +336,7 @@ Global
 		{35AE0870-0A6D-4F27-B534-B8DCDFD11A36} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
 		{7B0FB62A-DD64-46E6-8F04-69CEFE70CCC1} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
 		{E3E0A3A0-0C4C-466C-8FFC-35D424186C15} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
+		{E97B39CF-F0F1-4D2C-BA61-6CA1A4BEF93B} = {E8F6C8E5-8058-4E79-8EA5-818BD39FEF8A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

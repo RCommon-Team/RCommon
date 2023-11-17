@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.Persistence;
 using RCommon.Persistence.Sql;
 using RCommon.Linq;
 using RCommon.Persistence.EFCore;
@@ -18,6 +17,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using RCommon.Persistence.Transactions;
+using RCommon.Persistence.Repositories;
 
 namespace RCommon.Persistence.Dapper.Tests
 {

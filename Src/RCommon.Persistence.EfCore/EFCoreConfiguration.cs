@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RCommon.Extensions;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
+using RCommon.Persistence.Repositories;
 
 namespace RCommon
 {

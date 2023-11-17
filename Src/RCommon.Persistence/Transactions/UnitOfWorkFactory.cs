@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Transactions;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     public class UnitOfWorkFactory : IUnitOfWorkFactory
     {

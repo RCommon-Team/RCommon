@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RCommon.BusinessEntities;
 using RCommon.Collections;
-using RCommon.Persistence;
 using RCommon.Extensions;
 using System;
 using System.Collections;
@@ -12,8 +11,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using RCommon.Persistence.Transactions;
 
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Repositories
 {
     ///<summary>
     /// A base class for implementors of <see cref="IRepository{TEntity}"/>.

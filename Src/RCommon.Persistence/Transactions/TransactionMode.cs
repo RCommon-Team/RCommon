@@ -1,4 +1,4 @@
-namespace RCommon.Persistence
+namespace RCommon.Persistence.Transactions
 {
     /// <summary>
     /// Defines the transaction mode when creating a new <see cref="UnitOfWorkScope"/> instance.

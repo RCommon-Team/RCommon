@@ -10,8 +10,8 @@ using System.Text;
 using Microsoft.Extensions.Logging.Console;
 using System.Transactions;
 using RCommon.TestBase;
-using RCommon.Persistence;
 using RCommon.TestBase.Data;
+using RCommon.Persistence.Transactions;
 
 namespace RCommon.Persistence.EFCore.Tests
 {
