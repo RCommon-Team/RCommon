@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities.Domain
 {
-    public interface IAggregateRoot
+    public interface IIdentity
     {
-        void AddDomainEvent(IDomainEvent eventItem);
     }
 }

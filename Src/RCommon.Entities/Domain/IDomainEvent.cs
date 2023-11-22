@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities.Domain
 {
-    public class AggregateState
+    public interface IDomainEvent : ILocalEvent
     {
     }
 }

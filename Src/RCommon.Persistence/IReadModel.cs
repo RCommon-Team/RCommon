@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Entities.Domain
+namespace RCommon.Persistence
 {
-    public interface IAggregateRoot
+    public interface IReadModel
     {
-        void AddDomainEvent(IDomainEvent eventItem);
     }
 }

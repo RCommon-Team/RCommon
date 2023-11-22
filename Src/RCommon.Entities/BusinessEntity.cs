@@ -12,6 +12,8 @@ namespace RCommon.Entities
     public abstract class BusinessEntity : IBusinessEntity
     {
         private bool _allowEventTracking = true;
+        private List<ILocalEvent> _localEvents;
+
         public BusinessEntity()
         {
             _localEvents = _localEvents ?? new List<ILocalEvent>();
@@ -35,8 +37,6 @@ namespace RCommon.Entities
         {
             return this.BinaryEquals(other);
         }
-
-        private List<ILocalEvent> _localEvents;
 
         [NotMapped]
         public IReadOnlyCollection<ILocalEvent> LocalEvents => _localEvents?.AsReadOnly();

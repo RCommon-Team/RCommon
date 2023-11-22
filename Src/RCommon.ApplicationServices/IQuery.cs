@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Entities.Domain
+namespace RCommon.ApplicationServices
 {
-    public class DomainEvent : ILocalEvent
+    public interface IQuery
     {
     }
 }
