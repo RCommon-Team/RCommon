@@ -16,6 +16,7 @@ namespace RCommon.Entities
 
     public abstract class AuditedEntity<TKey, TCreatedByUser, TLastModifiedByUser>
         : BusinessEntity<TKey>, IAuditedEntity<TCreatedByUser, TLastModifiedByUser>, IAuditedEntity<TKey, TCreatedByUser, TLastModifiedByUser>
+        where TKey : IEquatable<TKey>
     {
         public DateTime? DateCreated { get; set; }
         public TCreatedByUser? CreatedBy { get; set; }

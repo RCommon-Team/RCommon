@@ -93,6 +93,7 @@ namespace RCommon.Entities
     /// <inheritdoc cref="IBusinessEntity{TKey}" />
     [Serializable]
     public abstract class BusinessEntity<TKey> : BusinessEntity, IBusinessEntity<TKey>
+        where TKey : IEquatable<TKey>
     {
         /// <inheritdoc/>
         public virtual TKey Id { get; protected set; }
