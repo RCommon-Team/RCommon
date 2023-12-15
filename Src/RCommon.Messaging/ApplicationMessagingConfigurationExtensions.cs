@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace RCommon
 {
     public static class ApplicationMessagingConfigurationExtensions
-    { 
+    {
         
 
     }
