@@ -16,20 +16,24 @@ namespace RCommon.Persistence.EFCore
 {
     public abstract class RCommonDbContext : DbContext, IDataStore
     {
-        private readonly IEventTracker _eventTracker;
-        private readonly IMediatorService _mediator;
+        private readonly ILocalEventTracker _eventTracker;
 
-        public RCommonDbContext(DbContextOptions options, IEventTracker eventTracker, IMediatorService mediator)
+
+        public RCommonDbContext(DbContextOptions options, ILocalEventTracker eventTracker)
             : base(options)
         {
-            this._eventTracker = eventTracker;
-            this._mediator = mediator;
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            this._eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
         }
 
         public RCommonDbContext(DbContextOptions options)
             : base(options)
         {
-
+            
         }
 
         
@@ -47,7 +51,7 @@ namespace RCommon.Persistence.EFCore
 
         public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
-            this._eventTracker.TrackedEntities.PublishLocalEvents(this._mediator);
+            this._eventTracker.PublishLocalEvents();
             return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
     }

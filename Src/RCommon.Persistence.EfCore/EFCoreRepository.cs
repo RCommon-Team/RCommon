@@ -47,7 +47,7 @@
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
         public EFCoreRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, ILocalEventTracker eventTracker, 
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions) 
             : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {

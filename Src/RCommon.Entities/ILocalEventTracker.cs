@@ -2,10 +2,10 @@
 
 namespace RCommon.Entities
 {
-    public interface IEventTracker
+    public interface ILocalEventTracker
     {
         ICollection<IBusinessEntity> TrackedEntities { get; }
-
         void AddEntity(IBusinessEntity entity);
+        bool PublishLocalEvents();
     }
 }

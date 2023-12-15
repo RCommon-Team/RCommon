@@ -27,7 +27,7 @@ namespace RCommon.Persistence.Repositories
         private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
 
         public GraphRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            IUnitOfWorkManager unitOfWorkManager, ILocalEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
             :base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             

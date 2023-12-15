@@ -12,8 +12,8 @@ namespace RCommon.Persistence.Dapper.Tests
     public class TestDbConnection : RDbConnection
     {
 
-        public TestDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker, IMediatorService mediator) 
-            : base(options, eventTracker, mediator)
+        public TestDbConnection(IOptions<RDbConnectionOptions> options, ILocalEventTracker eventTracker) 
+            : base(options, eventTracker)
         {
             
         }

@@ -65,7 +65,7 @@ namespace RCommon
         /// <returns>Updated instance of <see cref="IRCommonConfiguration"/>RCommon Configuration</returns>
         private static IRCommonConfiguration WithChangeTracking(this IRCommonConfiguration config)
         {
-            config.Services.AddScoped<IEventTracker, EventTracker>();
+            config.Services.AddScoped<ILocalEventTracker, InMemoryEventTracker>();
             return config;
         }
 
