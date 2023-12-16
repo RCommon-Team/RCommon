@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Globalization;
 using RCommon.Reflection;
 
-namespace RCommon.Extensions
+namespace RCommon
 {
     public static class ObjectExtensions
     {

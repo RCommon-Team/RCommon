@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using RCommon.Extensions;
 using PropertyChanged;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;

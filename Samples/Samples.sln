@@ -109,6 +109,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Messaging.MassTrans
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Messaging.WolverineRabbitMq", "Messaging\Samples.Messaging.WolverineRabbitMq\Samples.Messaging.WolverineRabbitMq.csproj", "{CC87A0C7-A975-485A-BF5D-4CAF93149A89}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Domain", "..\Src\RCommon.Domain\RCommon.Domain.csproj", "{EE3F9809-E008-42B8-B027-9BF33B9B398B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -275,6 +277,10 @@ Global
 		{CC87A0C7-A975-485A-BF5D-4CAF93149A89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC87A0C7-A975-485A-BF5D-4CAF93149A89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC87A0C7-A975-485A-BF5D-4CAF93149A89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE3F9809-E008-42B8-B027-9BF33B9B398B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE3F9809-E008-42B8-B027-9BF33B9B398B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE3F9809-E008-42B8-B027-9BF33B9B398B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE3F9809-E008-42B8-B027-9BF33B9B398B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -330,6 +336,7 @@ Global
 		{35AE0870-0A6D-4F27-B534-B8DCDFD11A36} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
 		{2604828E-A2EC-471D-ABF3-33C8D92B4657} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
 		{CC87A0C7-A975-485A-BF5D-4CAF93149A89} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
+		{EE3F9809-E008-42B8-B027-9BF33B9B398B} = {2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

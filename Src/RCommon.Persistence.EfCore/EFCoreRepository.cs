@@ -1,27 +1,27 @@
-﻿namespace RCommon.Persistence.EFCore
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using RCommon;
+using RCommon.Entities;
+using RCommon.Collections;
+using RCommon.Persistence;
+using RCommon.Linq;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using RCommon.Persistence.Transactions;
+using RCommon.Persistence.Repositories;
+
+namespace RCommon.Persistence.EFCore
 {
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Query;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
-    using RCommon;
-    using RCommon.Entities;
-    using RCommon.Collections;
-    using RCommon.Persistence;
-    using RCommon.Extensions;
-    using RCommon.Linq;
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using RCommon.Persistence.Transactions;
-    using RCommon.Persistence.Repositories;
 
     /// <summary>
     /// A concrete implementation for Entity Framework Core.

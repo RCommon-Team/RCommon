@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices
+namespace RCommon.ApplicationServices.Queries
 {
-    public interface ICommand
+    public interface IQuery<out T>
     {
     }
 }

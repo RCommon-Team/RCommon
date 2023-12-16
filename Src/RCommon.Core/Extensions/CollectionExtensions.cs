@@ -10,7 +10,7 @@ using System.Linq;
 using RCommon.Collections;
 using System.Threading.Tasks;
 
-namespace RCommon.Extensions
+namespace RCommon
 {
     /// <summary>
     /// Contains some usefull extensions for working will collections.

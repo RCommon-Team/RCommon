@@ -4,7 +4,7 @@ using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using RCommon.Entities;
 using RCommon.Persistence;
-using RCommon.Extensions;
+
 using RCommon.Persistence.EFCore;
 using RCommon.TestBase.Entities;
 using System;
