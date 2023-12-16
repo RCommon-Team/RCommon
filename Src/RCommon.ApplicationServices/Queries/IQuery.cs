@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.Queries
 {
-    public interface IQuery<out T>
+    public interface IQuery
+    {
+    }
+
+    public interface IQuery<TResult> : IQuery
     {
     }
 }

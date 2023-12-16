@@ -67,20 +67,20 @@ namespace RCommon.ApplicationServices.Commands
                     command.GetType().PrettyPrint());
             }
 
-            var aggregateUpdateResult = await ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+            var commandResult = await ExecuteHandlerAsync(command, cancellationToken).ConfigureAwait(false);
 
             if (_logger.IsEnabled(LogLevel.Trace))
             {
                 _logger.LogTrace(
                         "Execution command {CommandType} was success: {IsSuccess}",
                         command.GetType().PrettyPrint(),
-                        aggregateUpdateResult.Result?.IsSuccess);
+                        commandResult.Result?.IsSuccess);
             }
 
-            return aggregateUpdateResult.Result;
+            return commandResult.Result;
         }
 
-        private async Task<ICommandResult<TResult>> ExecuteAsync<TResult>(
+        private async Task<ICommandResult<TResult>> ExecuteHandlerAsync<TResult>(
             ICommand<TResult> command,
             CancellationToken cancellationToken)
             where TResult : IExecutionResult
