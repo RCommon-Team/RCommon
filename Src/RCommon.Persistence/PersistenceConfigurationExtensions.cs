@@ -14,7 +14,7 @@ namespace RCommon
     {
 
         public static IRCommonConfiguration WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonConfiguration config) 
-            where TObjectAccess: IObjectAccessConfiguration
+            where TObjectAccess: IPersistenceConfiguration
             where TUnitOfWork : IUnitOfWorkConfiguration
         {
             return WithPersistence<TObjectAccess, TUnitOfWork>(config, x => { }, x => { });
@@ -22,7 +22,7 @@ namespace RCommon
 
         public static IRCommonConfiguration WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonConfiguration config,
             Action<TObjectAccess> objectAccessActions)
-            where TObjectAccess : IObjectAccessConfiguration
+            where TObjectAccess : IPersistenceConfiguration
             where TUnitOfWork : IUnitOfWorkConfiguration
         {
 
@@ -31,7 +31,7 @@ namespace RCommon
 
         public static IRCommonConfiguration WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonConfiguration config,
             Action<TUnitOfWork> uniOfWorkActions)
-            where TObjectAccess : IObjectAccessConfiguration
+            where TObjectAccess : IPersistenceConfiguration
             where TUnitOfWork : IUnitOfWorkConfiguration
         {
 
@@ -40,7 +40,7 @@ namespace RCommon
 
         public static IRCommonConfiguration WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonConfiguration config, 
             Action<TObjectAccess> objectAccessActions, Action<TUnitOfWork> unitOfWorkActions)
-            where TObjectAccess : IObjectAccessConfiguration
+            where TObjectAccess : IPersistenceConfiguration
             where TUnitOfWork : IUnitOfWorkConfiguration
         {
             // Data Store Management

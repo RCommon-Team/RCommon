@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Persistence;
 using RCommon.Persistence.EFCore;
+using RCommon.Persistence.EFCore.Crud;
 using RCommon.Persistence.Repositories;
 
 namespace RCommon
@@ -43,7 +44,7 @@ namespace RCommon
             return this;
         }
 
-        public IObjectAccessConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
+        public IPersistenceConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
             this._services.Configure(options);
             return this;

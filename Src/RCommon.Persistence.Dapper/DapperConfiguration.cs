@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RCommon.Persistence;
-using RCommon.Persistence.Dapper;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Dapper.Crud;
 
 namespace RCommon
 {
@@ -49,7 +49,7 @@ namespace RCommon
             return this;
         }
 
-        public IObjectAccessConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
+        public IPersistenceConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
             this._services.Configure(options);
             return this;

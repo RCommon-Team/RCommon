@@ -37,4 +37,9 @@
     <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="EventSourcing\" />
+    <Folder Include="Projections\" />
+  </ItemGroup>
+
 </Project>

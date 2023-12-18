@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Linq2Db.Crud;
 
 namespace RCommon.Persistence.Linq2Db
 {
@@ -48,7 +49,7 @@ namespace RCommon.Persistence.Linq2Db
             return this;
         }
 
-        public IObjectAccessConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
+        public IPersistenceConfiguration SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
             this._services.Configure(options);
             return this;

@@ -3,7 +3,7 @@ using System;
 
 namespace RCommon
 {
-    public interface IDapperConfiguration : IObjectAccessConfiguration
+    public interface IDapperConfiguration : IPersistenceConfiguration
     {
         IDapperConfiguration AddDbConnection<TDbConnection>(string dataStoreName, Action<RDbConnectionOptions> options) where TDbConnection : IRDbConnection;
     }

@@ -37,4 +37,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="EventSourcing\" />
+    <Folder Include="Projections\" />
+  </ItemGroup>
+
 </Project>

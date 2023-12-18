@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using RCommon.Entities;
+using System.Collections.Generic;
 
 namespace RCommon.Entities
 {

@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
-    <ProjectReference Include="..\RCommon.Domain\RCommon.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

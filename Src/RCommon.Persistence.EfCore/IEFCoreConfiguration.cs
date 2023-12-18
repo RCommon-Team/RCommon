@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon
 {
-    public interface IEFCoreConfiguration : IObjectAccessConfiguration
+    public interface IEFCoreConfiguration : IPersistenceConfiguration
     {
         IEFCoreConfiguration AddDbContext<TDbContext>(string dataStoreName, Action<DbContextOptionsBuilder>? options) where TDbContext : RCommonDbContext;
     }
