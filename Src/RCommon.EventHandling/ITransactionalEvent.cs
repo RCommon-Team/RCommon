@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Entities.Domain
+namespace RCommon.EventHandling
 {
-    public class IAggregateRoot
+    public interface ITransactionalEvent : ILocalEvent
     {
     }
 }

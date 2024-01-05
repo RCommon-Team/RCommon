@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RCommon.Persistence;
-using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands
 {

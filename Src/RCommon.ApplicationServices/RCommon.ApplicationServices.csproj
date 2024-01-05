@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\RCommon.Entities\RCommon.Entities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

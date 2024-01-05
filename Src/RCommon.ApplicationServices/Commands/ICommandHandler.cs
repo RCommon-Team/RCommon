@@ -21,7 +21,7 @@ namespace RCommon.ApplicationServices.Commands
     }
 
     /// <summary>Handles returning commands of specified type.</summary>
-    /// <typeparam name="TQuery">Handled command type.</typeparam>
+    /// <typeparam name="TCommand">Handled command type.</typeparam>
     /// <typeparam name="TResult">Command result type.</typeparam>
     public interface ICommandHandler<TResult, in TCommand>
         where TCommand : ICommand<TResult>

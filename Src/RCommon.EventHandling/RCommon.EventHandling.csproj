@@ -13,4 +13,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+  </ItemGroup>
+
 </Project>

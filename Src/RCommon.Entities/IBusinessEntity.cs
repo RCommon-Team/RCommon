@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using RCommon.EventHandling;
+using System.Collections.Generic;
 
 namespace RCommon.Entities
 {
     /// <summary>
     /// Defines an entity. It's primary key may not be "Id" or it may have a composite primary key.
-    /// Use <see cref="IEntity{TKey}"/> where possible for better integration to repositories and other structures in the framework.
+    /// Use <see cref="IBusinessEntity{TKey}"/> where possible for better integration to repositories and other structures in the framework.
     /// </summary>
     public interface IBusinessEntity : ITrackedEntity
     {

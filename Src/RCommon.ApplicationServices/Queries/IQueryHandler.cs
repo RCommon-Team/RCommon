@@ -14,6 +14,6 @@ namespace RCommon.ApplicationServices.Queries
     public interface IQueryHandler<in TQuery, TResult> : IQueryHandler
         where TQuery : IQuery<TResult>
     {
-        Task<TResult> ExecuteQueryAsync(TQuery query, CancellationToken cancellationToken);
+        Task<TResult> HandleAsync(TQuery query, CancellationToken cancellationToken);
     }
 }

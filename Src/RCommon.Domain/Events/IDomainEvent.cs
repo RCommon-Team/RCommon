@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.EventHandling.Producers
+namespace RCommon.Domain.Events
 {
-    public interface IEventProducer
+    public interface DomainEvent 
     {
-        void Produce(ILocalEvent localEvent);
     }
 }

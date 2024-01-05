@@ -7,7 +7,7 @@ using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
 using HR.LeaveManagement.Domain;
 using MediatR;
 using RCommon.Persistence;
-using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Crud;
 using System;
 using System.Collections.Generic;
 using System.Text;

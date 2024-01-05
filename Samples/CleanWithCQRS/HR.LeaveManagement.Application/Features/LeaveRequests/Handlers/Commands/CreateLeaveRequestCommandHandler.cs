@@ -23,7 +23,7 @@ using RCommon.Emailing;
 using System.Net.Mail;
 using Microsoft.Extensions.Options;
 using RCommon.Emailing.SendGrid;
-using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands
 {

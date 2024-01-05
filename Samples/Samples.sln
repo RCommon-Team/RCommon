@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{3234
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase", "..\Tests\RCommon.TestBase\RCommon.TestBase.csproj", "{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{788A01F9-0510-441A-B05B-0CDA0EE87507}"
 EndProject
@@ -111,7 +111,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.Messaging.Wolverine
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EventHandling", "EventHandling", "{23F6EC2C-E5D7-4CB2-8D55-92ECE51CDDC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.EventHandling", "..\Src\RCommon.EventHandling\RCommon.EventHandling.csproj", "{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.EventHandling", "..\Src\RCommon.EventHandling\RCommon.EventHandling.csproj", "{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DDD", "DDD", "{1361B4D2-9882-40EE-9D8D-17AE2FA6332D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Domain", "..\Src\RCommon.Domain\RCommon.Domain.csproj", "{EC087ADC-615B-4135-9B41-A1E039E19E57}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -283,6 +287,10 @@ Global
 		{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC087ADC-615B-4135-9B41-A1E039E19E57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC087ADC-615B-4135-9B41-A1E039E19E57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC087ADC-615B-4135-9B41-A1E039E19E57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC087ADC-615B-4135-9B41-A1E039E19E57}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -340,6 +348,7 @@ Global
 		{CC87A0C7-A975-485A-BF5D-4CAF93149A89} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
 		{23F6EC2C-E5D7-4CB2-8D55-92ECE51CDDC7} = {2FF651DE-D9BC-49D0-A0B2-9CC9C23B42C1}
 		{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56} = {23F6EC2C-E5D7-4CB2-8D55-92ECE51CDDC7}
+		{EC087ADC-615B-4135-9B41-A1E039E19E57} = {1361B4D2-9882-40EE-9D8D-17AE2FA6332D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

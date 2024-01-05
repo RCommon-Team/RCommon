@@ -12,7 +12,7 @@ using HR.LeaveManagement.Domain;
 using HR.LeaveManagement.Application.Constants;
 using RCommon.Persistence;
 using System.Collections;
-using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Queries
 {

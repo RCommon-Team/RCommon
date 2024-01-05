@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.EventHandling.Producers
+namespace RCommon.Domain.Model
 {
-    public interface IEventProducer
+    public class IAggregateRoot
     {
-        void Produce(ILocalEvent localEvent);
     }
 }
