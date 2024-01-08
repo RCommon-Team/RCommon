@@ -7,7 +7,7 @@ using HR.LeaveManagement.Domain;
 using Moq;
 using NUnit.Framework;
 using RCommon.Persistence;
-using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Crud;
 using Shouldly;
 using System;
 using System.Collections.Generic;

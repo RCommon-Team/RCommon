@@ -1,4 +1,6 @@
 ﻿using MassTransit;
+using RCommon.EventHandling;
+using RCommon.EventHandling.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

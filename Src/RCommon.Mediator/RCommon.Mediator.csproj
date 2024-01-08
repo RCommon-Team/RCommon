@@ -27,4 +27,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.EventHandling\RCommon.EventHandling.csproj" />
+  </ItemGroup>
+
 </Project>

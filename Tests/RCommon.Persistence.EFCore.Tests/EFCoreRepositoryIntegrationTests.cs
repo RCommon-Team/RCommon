@@ -18,7 +18,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Transactions;
 using RCommon.Persistence.Transactions;
-using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Crud;
 
 namespace RCommon.Persistence.EFCore.Tests
 {

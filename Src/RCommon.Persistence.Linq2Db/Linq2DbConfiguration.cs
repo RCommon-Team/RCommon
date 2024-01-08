@@ -10,8 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RCommon.Persistence.Repositories;
 using RCommon.Persistence.Linq2Db.Crud;
+using RCommon.Persistence.Crud;
 
 namespace RCommon.Persistence.Linq2Db
 {

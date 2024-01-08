@@ -17,7 +17,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using RCommon.Persistence.Transactions;
-using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Crud;
 
 namespace RCommon.Persistence.EFCore.Crud
 {

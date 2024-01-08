@@ -27,7 +27,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 
-namespace RCommon.Domain.Model.ValueObjects
+namespace RCommon.Entities.ValueObjects
 {
     public class SingleValueObjectConverter : JsonConverter
     {

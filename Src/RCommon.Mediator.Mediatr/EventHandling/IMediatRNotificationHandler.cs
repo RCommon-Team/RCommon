@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Mediator.MediatR.EventHandling
 {
-    public interface IMediatRNotificationHandler<TLocalEvent> : ILocalEventHandler<TLocalEvent>, INotificationHandler<TLocalEvent> 
+    public interface IMediatRNotificationHandler<TLocalEvent> : INotificationHandler<TLocalEvent> 
         where TLocalEvent : IMediatRNotification
     {
     }

@@ -5,9 +5,9 @@ using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Persistence;
+using RCommon.Persistence.Crud;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.EFCore.Crud;
-using RCommon.Persistence.Repositories;
 
 namespace RCommon
 {

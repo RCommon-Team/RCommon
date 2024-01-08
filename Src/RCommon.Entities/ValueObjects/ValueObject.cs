@@ -27,7 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace RCommon.Domain.Model.ValueObjects
+namespace RCommon.Entities.ValueObjects
 {
     public abstract class ValueObject
     {

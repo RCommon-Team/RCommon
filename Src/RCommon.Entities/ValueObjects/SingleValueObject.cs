@@ -25,7 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace RCommon.Domain.Model.ValueObjects
+namespace RCommon.Entities.ValueObjects
 {
     public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleValueObject
         where T : IComparable

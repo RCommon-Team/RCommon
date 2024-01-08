@@ -13,6 +13,6 @@ namespace RCommon.EventHandling.Producers
         {
 
         }
-    {
+    
     }
 }

@@ -23,7 +23,7 @@
 
 using System;
 using Newtonsoft.Json;
-using RCommon.Entities.Domain.ValueObjects;
+using RCommon.Entities.ValueObjects;
 
 namespace RCommon.ApplicationServices.Caching
 {

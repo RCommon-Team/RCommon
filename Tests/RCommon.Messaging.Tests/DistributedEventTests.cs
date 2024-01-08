@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using RCommon.EventHandling;
 using System;
 using System.Collections.Generic;
 using System.Linq;

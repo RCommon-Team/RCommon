@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 using Dommel;
 using RCommon.Collections;
 using RCommon.Persistence.Transactions;
-using RCommon.Persistence.Repositories;
+using RCommon.Persistence.Crud;
 
 namespace RCommon.Persistence.Dapper.Crud
 {

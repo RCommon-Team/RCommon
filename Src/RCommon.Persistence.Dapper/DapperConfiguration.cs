@@ -8,8 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using RCommon.Persistence;
 using Microsoft.Extensions.DependencyInjection;
-using RCommon.Persistence.Repositories;
 using RCommon.Persistence.Dapper.Crud;
+using RCommon.Persistence.Crud;
 
 namespace RCommon
 {
