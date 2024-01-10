@@ -10,7 +10,7 @@
 	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
 	  <PackageIcon>rcommon-icon.png</PackageIcon>
-	  <PackageTags>RCommon, masstransit, message bus, event bus, messaging, c#, .NET</PackageTags>
+	  <PackageTags>RCommon, language extensions, generic factories, abstractions, c#, .NET</PackageTags>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
 	  <FileVersion>2.0.0.0</FileVersion>
@@ -28,11 +28,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="8.1.1" />
+    <PackageReference Include="FluentValidation" Version="11.9.0" />
+    <PackageReference Include="MediatR" Version="12.2.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\RCommon.Mediator\RCommon.Mediator.csproj" />
     <ProjectReference Include="..\RCommon.Messaging\RCommon.Messaging.csproj" />
+    <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

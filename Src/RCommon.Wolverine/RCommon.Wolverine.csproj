@@ -10,7 +10,7 @@
 	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
 	  <PackageIcon>rcommon-icon.png</PackageIcon>
-	  <PackageTags>RCommon, language extensions, generic factories, abstractions, c#, .NET</PackageTags>
+	  <PackageTags>RCommon, Wolverine wrapper, messaging, message bus, event bus, c#, .NET</PackageTags>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
 	  <FileVersion>2.0.0.0</FileVersion>
@@ -28,15 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="11.8.0" />
-    <PackageReference Include="MediatR" Version="12.1.1" />
+    <PackageReference Include="WolverineFx" Version="1.13.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
-    <ProjectReference Include="..\RCommon.Mediator\RCommon.Mediator.csproj" />
     <ProjectReference Include="..\RCommon.Messaging\RCommon.Messaging.csproj" />
-    <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

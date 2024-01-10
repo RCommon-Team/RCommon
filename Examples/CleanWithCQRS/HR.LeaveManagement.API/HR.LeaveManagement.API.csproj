@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="MediatR" Version="12.1.1" />
+	  <PackageReference Include="MediatR" Version="12.2.0" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.13">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -17,9 +17,9 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Src\RCommon.Emailing.SendGrid\RCommon.Emailing.SendGrid.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Emailing.SendGrid\RCommon.SendGrid.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
-		<ProjectReference Include="..\..\..\Src\RCommon.Mediator.MediatR\RCommon.Mediator.MediatR.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Mediator.Mediatr\RCommon.MediatR.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Application\HR.LeaveManagement.Application.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Persistence\HR.LeaveManagement.Persistence.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Identity\HR.LeaveManagement.Identity.csproj" />

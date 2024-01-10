@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Core", "RCommon.Core\RCommon.Core.csproj", "{04F96FF4-7229-4468-A486-086993EFD2A2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistence.EFCore", "RCommon.Persistence.EfCore\RCommon.Persistence.EFCore.csproj", "{D24B4C22-2EBF-4412-B2D9-B4DBC4482756}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.EFCore", "RCommon.EfCore\RCommon.EFCore.csproj", "{D24B4C22-2EBF-4412-B2D9-B4DBC4482756}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{0AF37317-F10E-47E8-A4C8-9EA886E00E40}"
 EndProject
@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistence.EFCore.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase", "..\Tests\RCommon.TestBase\RCommon.TestBase.csproj", "{3A6EE1AD-5E24-4CA4-B64D-E1517EB2DF63}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistence.Dapper", "RCommon.Persistence.Dapper\RCommon.Persistence.Dapper.csproj", "{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Dapper", "RCommon.Dapper\RCommon.Dapper.csproj", "{4936D8C3-7C82-4014-97AD-1FD3B1BAAE70}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistence.Dapper.Tests", "..\Tests\RCommon.Persistence.Dapper.Tests\RCommon.Persistence.Dapper.Tests.csproj", "{AB009DA1-E781-4EBF-B1A5-EA31A82F004E}"
 EndProject
@@ -45,7 +45,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Emailing", "Emailing", "{F7
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Emailing", "RCommon.Emailing\RCommon.Emailing.csproj", "{2D94CD97-1AB3-438B-8877-F238CAC24DDC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Emailing.SendGrid", "RCommon.Emailing.SendGrid\RCommon.Emailing.SendGrid.csproj", "{404EDC63-3ED8-4E27-B30B-B3C26C778E90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.SendGrid", "RCommon.SendGrid\RCommon.SendGrid.csproj", "{404EDC63-3ED8-4E27-B30B-B3C26C778E90}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Emailing", "Emailing", "{CC5AA114-1483-404D-9D77-96F106CEB178}"
 EndProject
@@ -53,15 +53,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Emailing.Tests", ".
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Emailing.SendGrid.Tests", "..\Tests\RCommon.Emailing.SendGrid.Tests\RCommon.Emailing.SendGrid.Tests.csproj", "{2A857FB0-CBCA-461F-B4DE-2148C3EDE5CC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Persistence.Linq2Db", "RCommon.Persistence.Linq2Db\RCommon.Persistence.Linq2Db.csproj", "{415C4864-FAC3-4BC3-8687-915563521F81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Linq2Db", "RCommon.Linq2Db\RCommon.Linq2Db.csproj", "{415C4864-FAC3-4BC3-8687-915563521F81}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging", "Messaging", "{EDBFED39-5609-4066-B9C7-0693F3642C19}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging", "RCommon.Messaging\RCommon.Messaging.csproj", "{7BD6C5FF-1319-48BC-8439-1A0366EB9467}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.MassTransit", "RCommon.Messaging.MassTransit\RCommon.Messaging.MassTransit.csproj", "{32242BE8-2873-4012-BFF2-694E03C4FAEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.MassTransit", "RCommon.MassTransit\RCommon.MassTransit.csproj", "{32242BE8-2873-4012-BFF2-694E03C4FAEF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Messaging.Wolverine", "RCommon.Messaging.Wolverine\RCommon.Messaging.Wolverine.csproj", "{653F520D-D02D-44AC-AE48-FA1E963BE82D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Wolverine", "RCommon.Wolverine\RCommon.Messaging.Wolverine.csproj", "{653F520D-D02D-44AC-AE48-FA1E963BE82D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{F1158595-0560-42FE-BB98-464BAD3B8C1D}"
 EndProject
@@ -69,7 +69,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.TestBase.Data", "..
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mediators", "Mediators", "{EF78B8EE-80FF-45DE-9B82-352953B361A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Mediator.MediatR", "RCommon.Mediator.Mediatr\RCommon.Mediator.MediatR.csproj", "{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.MediatR", "RCommon.Mediatr\RCommon.MediatR.csproj", "{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Mediator", "RCommon.Mediator\RCommon.Mediator.csproj", "{FC484848-D719-4AAD-91B0-EDDC434F946E}"
 EndProject
