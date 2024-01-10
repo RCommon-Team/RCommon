@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.Queries
 {
-    internal class IQueryService
+    public interface IQueryBus
     {
+        Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken);
     }
 }

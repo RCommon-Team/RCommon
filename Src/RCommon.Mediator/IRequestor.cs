@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Mediator.EventHandling
+namespace RCommon.Mediator
 {
     public interface IRequestor
     {

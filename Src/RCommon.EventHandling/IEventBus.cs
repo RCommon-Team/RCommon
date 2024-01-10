@@ -21,14 +21,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using RCommon.ApplicationServices.ExecutionResults;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.Commands
+namespace RCommon.EventHandling
 {
-    public interface ICommandService
+    public interface IEventBus
     {
-        Task<TResult> ExecuteCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken) where TResult : IExecutionResult;
+        Task DispatchEventAsync<TResult>(ILocalEvent query, CancellationToken cancellationToken);
     }
 }

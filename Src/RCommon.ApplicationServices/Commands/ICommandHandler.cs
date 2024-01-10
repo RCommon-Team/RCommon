@@ -13,7 +13,7 @@ namespace RCommon.ApplicationServices.Commands
     }
 
     /// <summary>Handles commands of specified type.</summary>
-    /// <typeparam name="T">Handled command type.</typeparam>
+    /// <typeparam name="TCommand">Handled command type.</typeparam>
     public interface ICommandHandler<in TCommand>
          where TCommand: ICommand
     {

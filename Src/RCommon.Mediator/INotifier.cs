@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.EventHandling
+namespace RCommon.Mediator
 {
-    public interface ILocalEvent
+    public interface INotifier
     {
     }
 }

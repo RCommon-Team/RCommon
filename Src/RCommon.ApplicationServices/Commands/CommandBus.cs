@@ -37,25 +37,20 @@ using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Commands
 {
-    public class CommandService : ICommandService
+    public class CommandBus : ICommandBus
     {
-        private readonly ILogger<CommandService> _logger;
+        private readonly ILogger<CommandBus> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IMemoryCache _memoryCache;
 
-        public CommandService(
-            ILogger<CommandService> logger,
-            IServiceProvider serviceProvider,
-            IMemoryCache memoryCache)
+        public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _memoryCache = memoryCache;
         }
 
-        public async Task<TResult> ExecuteCommandAsync<TResult>(
-            ICommand<TResult> command,
-            CancellationToken cancellationToken)
+        public async Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken)
             where TResult : IExecutionResult
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
@@ -80,9 +75,7 @@ namespace RCommon.ApplicationServices.Commands
             return commandResult.Result;
         }
 
-        private async Task<ICommandResult<TResult>> ExecuteHandlerAsync<TResult>(
-            ICommand<TResult> command,
-            CancellationToken cancellationToken)
+        private async Task<ICommandResult<TResult>> ExecuteHandlerAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken)
             where TResult : IExecutionResult
         {
             var commandType = command.GetType();

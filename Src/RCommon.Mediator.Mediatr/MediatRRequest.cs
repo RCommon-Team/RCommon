@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Mediator.EventHandling
+namespace RCommon.Mediator.MediatR
 {
-    public interface INotifier
+    public class MediatRRequest<TRequestor>
     {
     }
 }

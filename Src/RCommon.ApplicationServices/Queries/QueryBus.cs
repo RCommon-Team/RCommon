@@ -34,7 +34,7 @@ using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Queries
 {
-    public class QueryService
+    public class QueryBus : IQueryBus
     {
         private class CacheItem
         {
@@ -42,23 +42,18 @@ namespace RCommon.ApplicationServices.Queries
             public Func<IQueryHandler, IQuery, CancellationToken, Task> HandlerFunc { get; set; }
         }
 
-        private readonly ILogger<QueryService> _logger;
+        private readonly ILogger<QueryBus> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IMemoryCache _memoryCache;
 
-        public QueryService(
-            ILogger<QueryService> logger,
-            IServiceProvider serviceProvider,
-            IMemoryCache memoryCache)
+        public QueryBus(ILogger<QueryBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _memoryCache = memoryCache;
         }
 
-        public async Task<TResult> ExecuteQueryAsync<TResult>(
-            IQuery<TResult> query,
-            CancellationToken cancellationToken)
+        public async Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken)
         {
             var queryType = query.GetType();
             var cacheItem = GetCacheItem(queryType);
@@ -78,8 +73,7 @@ namespace RCommon.ApplicationServices.Queries
             return await task.ConfigureAwait(false);
         }
 
-        private CacheItem GetCacheItem(
-            Type queryType)
+        private CacheItem GetCacheItem(Type queryType)
         {
             return _memoryCache.GetOrCreate(
                 CacheKey.With(GetType(), queryType.GetCacheKey()),
