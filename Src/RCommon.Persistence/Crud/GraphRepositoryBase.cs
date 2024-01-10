@@ -15,7 +15,7 @@ using RCommon.Persistence.Transactions;
 namespace RCommon.Persistence.Crud
 {
     ///<summary>
-    /// A base class for implementors of <see cref="IRepository{TEntity}"/>.
+    /// A base class for implementors of <see cref="IGraphRepository{TEntity}"/>.
     ///</summary>
     ///<typeparam name="TEntity"></typeparam>
     public abstract class GraphRepositoryBase<TEntity> : LinqRepositoryBase<TEntity>, IGraphRepository<TEntity>

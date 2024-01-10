@@ -51,8 +51,6 @@ namespace RCommon.Persistence.EFCore.Crud
             : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             Logger = logger.CreateLogger(GetType().Name);
-            _repositoryQuery = null;
-            _includableQueryable = null;
             _tracking = true;
             _objectSets = new Dictionary<Type, object>();
         }
