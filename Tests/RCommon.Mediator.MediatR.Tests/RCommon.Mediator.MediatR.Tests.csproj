@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Src\RCommon.Mediator.Mediatr\RCommon.MediatR.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Mediatr\RCommon.MediatR.csproj" />
     <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>
 

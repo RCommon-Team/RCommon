@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RCommon.EventHandling.Producers;
 using RCommon.Messaging;
 using RCommon.Messaging.Wolverine;
 using System;

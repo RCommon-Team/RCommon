@@ -75,7 +75,7 @@ namespace RCommon.EventHandling
 
         private CacheItem GetCacheItem(Type queryType)
         {
-            return _memoryCache.GetOrCreate(
+            /*return _memoryCache.GetOrCreate(
                 CacheKey.With(GetType(), queryType.GetCacheKey()),
                 e =>
                 {
@@ -94,7 +94,8 @@ namespace RCommon.EventHandling
                         EventHandlerType = eventHandlerType,
                         HandlerFunc = invokeDispatchEventAsync
                     };
-                });
+                });*/
+            return null;
         }
     }
 }

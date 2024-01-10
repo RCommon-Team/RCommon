@@ -15,7 +15,6 @@ namespace RCommon
         public static IRCommonConfiguration AddMediatR(this IRCommonConfiguration config, Action<MediatRServiceConfiguration> mediatrOptions )
         {
             config.Services.AddMediatR(mediatrOptions);
-            config.Services.AddTransient(typeof(INotificationHandler<>), typeof(MediatRWrapperHandler<>));
             return config;
         }
 

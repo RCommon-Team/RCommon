@@ -78,9 +78,9 @@ namespace RCommon.Persistence.EFCore.Tests
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);
         }
 
         [Test]
@@ -96,9 +96,9 @@ namespace RCommon.Persistence.EFCore.Tests
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.ZipCode == customer.ZipCode);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.ZipCode == customer.ZipCode);
         }
 
         [Test]
@@ -113,8 +113,8 @@ namespace RCommon.Persistence.EFCore.Tests
             var savedCustomers = await customerRepo
                     .FindAsync(x => x.LastName == "Potter");
 
-            Assert.IsNotNull(savedCustomers);
-            Assert.IsTrue(savedCustomers.Count() == 10);
+            Assert.That(savedCustomers != null);
+            Assert.That(savedCustomers.Count() == 10);
         }
 
         [Test]
@@ -129,8 +129,8 @@ namespace RCommon.Persistence.EFCore.Tests
             var savedCustomers = await customerRepo
                     .GetCountAsync(x => x.LastName == "Dumbledore");
 
-            Assert.IsNotNull(savedCustomers);
-            Assert.IsTrue(savedCustomers == 10);
+            Assert.That(savedCustomers != null);
+            Assert.That(savedCustomers == 10);
         }
 
         [Test]
@@ -145,7 +145,7 @@ namespace RCommon.Persistence.EFCore.Tests
             var canFind = await customerRepo
                     .AnyAsync(x => x.City == "Hollywood");
 
-            Assert.IsTrue(canFind);
+            Assert.That(canFind);
         }
 
         [Test]
@@ -159,9 +159,9 @@ namespace RCommon.Persistence.EFCore.Tests
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.FirstName == "Happy");
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.FirstName == "Happy");
         }
 
         [Test]
@@ -175,22 +175,22 @@ namespace RCommon.Persistence.EFCore.Tests
             var customers = await customerRepo
                     .FindAsync(x => x.FirstName.StartsWith("Li"), x => x.LastName, true, 1, 10);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers.PageIndex == 1);
-            Assert.IsTrue(customers.TotalCount == 100);
-            Assert.IsTrue(customers.TotalPages == 10);
-            Assert.IsTrue(customers[4].FirstName == "Lisa");
+            Assert.That(customers != null);
+            Assert.That(customers.Count == 10);
+            Assert.That(customers.PageIndex == 1);
+            Assert.That(customers.TotalCount == 100);
+            Assert.That(customers.TotalPages == 10);
+            Assert.That(customers[4].FirstName == "Lisa");
 
             customers = await customerRepo
                     .FindAsync(x => x.FirstName.StartsWith("li"), x => x.LastName, true, 2, 10);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers.PageIndex == 2);
-            Assert.IsTrue(customers.TotalCount == 100);
-            Assert.IsTrue(customers.TotalPages == 10);
-            Assert.IsTrue(customers[4].FirstName == "Lisa");
+            Assert.That(customers != null);
+            Assert.That(customers.Count == 10);
+            Assert.That(customers.PageIndex == 2);
+            Assert.That(customers.TotalCount == 100);
+            Assert.That(customers.TotalPages == 10);
+            Assert.That(customers[4].FirstName == "Lisa");
 
             repo.CleanUpSeedData();
         }
@@ -208,24 +208,24 @@ namespace RCommon.Persistence.EFCore.Tests
             var customers = await customerRepo
                     .FindAsync(customerSearchSpec);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers.PageIndex == 1);
-            Assert.IsTrue(customers.TotalCount == 100);
-            Assert.IsTrue(customers.TotalPages == 10);
-            Assert.IsTrue(customers[4].FirstName == "Bart");
+            Assert.That(customers != null);
+            Assert.That(customers.Count == 10);
+            Assert.That(customers.PageIndex == 1);
+            Assert.That(customers.TotalCount == 100);
+            Assert.That(customers.TotalPages == 10);
+            Assert.That(customers[4].FirstName == "Bart");
 
             customerSearchSpec = new CustomerSearchSpec("ba", x => x.FirstName, true, 2, 10);
 
             customers = await customerRepo
                     .FindAsync(customerSearchSpec);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers.PageIndex == 2);
-            Assert.IsTrue(customers.TotalCount == 100);
-            Assert.IsTrue(customers.TotalPages == 10);
-            Assert.IsTrue(customers[4].FirstName == "Bart");
+            Assert.That(customers != null);
+            Assert.That(customers.Count == 10);
+            Assert.That(customers.PageIndex == 2);
+            Assert.That(customers.TotalCount == 100);
+            Assert.That(customers.TotalPages == 10);
+            Assert.That(customers[4].FirstName == "Bart");
 
             repo.CleanUpSeedData();
         }
@@ -244,9 +244,9 @@ namespace RCommon.Persistence.EFCore.Tests
             var customers = await customerRepo
                     .FindAsync(predicate, x => x.LastName, true, 1, 10);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers[4].FirstName == "Homer");
+            Assert.That(customers != null);
+            Assert.That(customers.Count == 10);
+            Assert.That(customers[4].FirstName == "Homer");
         }
 
 
@@ -264,9 +264,9 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer savedCustomer = null;
             savedCustomer = await customerRepo.FirstAsync(x=>x.FirstName == "Severnus");
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.IsTrue(savedCustomer.Id > 0);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer.Id > 0);
 
         }
 
@@ -284,10 +284,10 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer savedCustomer = null;
             savedCustomer = await customerRepo.FirstAsync(x => x.FirstName == customer.FirstName);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.IsTrue(savedCustomer.Id > 0);
-            Assert.IsTrue(savedCustomer.Orders.Count == 1);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer.Id > 0);
+            Assert.That(savedCustomer.Orders.Count == 1);
 
         }
 
@@ -307,9 +307,9 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().FirstAsync(x =>x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, "Darth");
-            Assert.AreEqual(savedCustomer.LastName, "Vader");
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.FirstName == "Darth");
+            Assert.That(savedCustomer.LastName == "Vader");
 
         }
 
@@ -326,7 +326,7 @@ namespace RCommon.Persistence.EFCore.Tests
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().FindAsync(customer.Id);
 
-            Assert.IsNull(savedCustomer);
+            Assert.That(savedCustomer != null);
 
         }
 
@@ -353,8 +353,8 @@ namespace RCommon.Persistence.EFCore.Tests
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.Id, customer.Id);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
 
         }
 
@@ -378,7 +378,7 @@ namespace RCommon.Persistence.EFCore.Tests
 
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstAsync(x=>x.Id == customer.Id);
-            Assert.AreNotEqual(customer.LastName, savedCustomer.LastName);
+            Assert.That(customer.LastName == savedCustomer.LastName);
         }
 
         [Test]
@@ -411,10 +411,10 @@ namespace RCommon.Persistence.EFCore.Tests
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstAsync(x => x.Id == customer.Id);
             savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstAsync(x=>x.Id == order.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(customer.Id, savedCustomer.Id);
-            Assert.IsNotNull(savedOrder);
-            Assert.AreEqual(order.Id, savedOrder.Id);
+            Assert.That(savedCustomer != null);
+            Assert.That(customer.Id == savedCustomer.Id);
+            Assert.That(savedOrder != null);
+            Assert.That(order.Id == savedOrder.Id);
         }
 
         /// <summary>
@@ -498,8 +498,8 @@ namespace RCommon.Persistence.EFCore.Tests
             Order savedOrder = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
             savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x=>x.Id == order.Id);
-            Assert.IsNull(savedCustomer);
-            Assert.IsNull(savedOrder);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedOrder != null);
         }
 
         [Test]
@@ -532,7 +532,7 @@ namespace RCommon.Persistence.EFCore.Tests
             catch (Exception ex)
             {
 
-                Assert.IsTrue(ex is TransactionAbortedException);
+                Assert.That(ex is TransactionAbortedException);
             }
         }
 
@@ -564,10 +564,10 @@ namespace RCommon.Persistence.EFCore.Tests
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
             savedSalesPerson = await repo.Context.Set<SalesPerson>().AsNoTracking().FirstOrDefaultAsync(x=>x.Id == salesPerson.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsNotNull(savedSalesPerson);
-            Assert.AreEqual(customer.Id, savedCustomer.Id);
-            Assert.AreEqual(salesPerson.Id, savedSalesPerson.Id);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedSalesPerson != null);
+            Assert.That(customer.Id == savedCustomer.Id);
+            Assert.That(salesPerson.Id == savedSalesPerson.Id);
             
         }
 
@@ -598,8 +598,8 @@ namespace RCommon.Persistence.EFCore.Tests
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
             savedSalesPerson = await repo.Context.Set<SalesPerson>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == salesPerson.Id);
 
-            Assert.IsNull(savedCustomer);
-            Assert.IsNull(savedSalesPerson);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedSalesPerson != null);
             
         }
 
@@ -666,10 +666,10 @@ namespace RCommon.Persistence.EFCore.Tests
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.Orders != null);
-            Assert.IsTrue(savedCustomer.Orders.Count == 10);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.Orders != null);
+            Assert.That(savedCustomer.Orders.Count == 10);
         }
 
     }

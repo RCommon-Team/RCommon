@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
+	  <ProjectReference Include="..\..\Src\RCommon.SendGrid\RCommon.SendGrid.csproj" />
 	  <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
 	</ItemGroup>
 

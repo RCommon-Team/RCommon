@@ -43,6 +43,11 @@ namespace RCommon.Messaging.MassTransit
             this.ClearDistributedEvents();
         }
 
+        public void Produce(ILocalEvent localEvent)
+        {
+            throw new NotImplementedException();
+        }
+
         public IReadOnlyCollection<object> DistributedEvents { get => _distributedEvents; }
     }
 }

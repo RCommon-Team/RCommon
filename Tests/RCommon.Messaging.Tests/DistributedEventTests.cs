@@ -49,11 +49,11 @@ namespace RCommon.Messaging.Tests
         {
             var target = new DistributedEvent();
 
-            Assert.IsNotNull(target);
-            Assert.IsNotNull(target.Id);
-            Assert.IsNotNull(target.CreationDate);
-            Assert.IsTrue(target.Id != Guid.Empty);
-            Assert.IsTrue(target.CreationDate.IsValid());
+            Assert.That(target != null);
+            Assert.That(target.Id != null);
+            Assert.That(target.CreationDate != null);
+            Assert.That(target.Id != Guid.Empty);
+            Assert.That(target.CreationDate.IsValid());
         }
 
         [Test]
@@ -64,12 +64,12 @@ namespace RCommon.Messaging.Tests
 
             var target = new DistributedEvent(id, date);
 
-            Assert.IsNotNull(target);
-            Assert.IsNotNull(target.Id);
-            Assert.IsNotNull(target.CreationDate);
-            Assert.IsTrue(target.Id == id);
-            Assert.IsTrue(target.CreationDate.IsValid());
-            Assert.IsTrue(target.CreationDate == date);
+            Assert.That(target != null);
+            Assert.That(target.Id != null);
+            Assert.That(target.CreationDate != null);
+            Assert.That(target.Id == id);
+            Assert.That(target.CreationDate.IsValid());
+            Assert.That(target.CreationDate == date);
         }
 
         [Test]

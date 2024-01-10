@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
+using RCommon.EventHandling;
 using RCommon.Messaging.MassTransit;
 using System;
 using System.Threading.Tasks;
@@ -70,7 +71,7 @@ namespace RCommon.Messaging.MassTransit.Tests
                 distributedEvent);
 
             // Assert
-            Assert.IsTrue(massTransitEventPublisher.DistributedEvents.Count == 1);
+            Assert.That(massTransitEventPublisher.DistributedEvents.Count == 1);
             this._mockRepository.VerifyAll();
         }
 
@@ -86,14 +87,14 @@ namespace RCommon.Messaging.MassTransit.Tests
                 distributedEvent);
 
             // Assert
-            Assert.IsTrue(massTransitEventPublisher.DistributedEvents.Count == 1);
+            Assert.That(massTransitEventPublisher.DistributedEvents.Count == 1);
 
             // Act
             massTransitEventPublisher.RemoveDistributedEvent(
                 distributedEvent);
 
             // Assert
-            Assert.IsTrue(massTransitEventPublisher.DistributedEvents.Count == 0);
+            Assert.That(massTransitEventPublisher.DistributedEvents.Count == 0);
 
             this._mockRepository.VerifyAll();
         }
@@ -110,13 +111,13 @@ namespace RCommon.Messaging.MassTransit.Tests
                 distributedEvent);
 
             // Assert
-            Assert.IsTrue(massTransitEventPublisher.DistributedEvents.Count == 1);
+            Assert.That(massTransitEventPublisher.DistributedEvents.Count == 1);
 
             // Act
             massTransitEventPublisher.ClearDistributedEvents();
 
             // Assert
-            Assert.IsTrue(massTransitEventPublisher.DistributedEvents.Count == 0);
+            Assert.That(massTransitEventPublisher.DistributedEvents.Count == 0);
         }
 
         [Test]
@@ -133,7 +134,7 @@ namespace RCommon.Messaging.MassTransit.Tests
                 distributedEvent);
 
             // Assert
-            Assert.IsTrue(massTransitEventPublisher.DistributedEvents.Count == 1);
+            Assert.That(massTransitEventPublisher.DistributedEvents.Count == 1);
 
             // Act
             await massTransitEventPublisher.PublishDistributedEvents(
@@ -142,7 +143,7 @@ namespace RCommon.Messaging.MassTransit.Tests
             // TODO: Assert that in-memory MassTransit Test Harness publishing process works
 
             // Assert
-            Assert.IsTrue(massTransitEventPublisher.DistributedEvents.Count == 0);
+            Assert.That(massTransitEventPublisher.DistributedEvents.Count == 0);
             this._mockRepository.VerifyAll();
         }
     }

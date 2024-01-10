@@ -17,9 +17,10 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Src\RCommon.Emailing.SendGrid\RCommon.SendGrid.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.EfCore\RCommon.EFCore.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
-		<ProjectReference Include="..\..\..\Src\RCommon.Mediator.Mediatr\RCommon.MediatR.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Mediatr\RCommon.MediatR.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.SendGrid\RCommon.SendGrid.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Application\HR.LeaveManagement.Application.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Persistence\HR.LeaveManagement.Persistence.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Identity\HR.LeaveManagement.Identity.csproj" />

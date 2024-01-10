@@ -51,5 +51,10 @@ namespace RCommon.Messaging.Wolverine
             }
             await Task.WhenAll(publishList);
         }
+
+        public void Produce(ILocalEvent localEvent)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

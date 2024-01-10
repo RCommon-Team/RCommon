@@ -80,14 +80,14 @@ namespace RCommon.Emailing.Tests
 
             mock.Object.SendEmail(message);
 
-            Assert.IsTrue(_emailSent);
+            Assert.That(_emailSent);
 
         }
 
         private void EmailService_EmailSent(object sender, EmailEventArgs e)
         {
-            Assert.IsNotNull(e);
-            Assert.IsTrue(e.MailMessage.Subject == "Test Email");
+            Assert.That(e != null);
+            Assert.That(e.MailMessage.Subject == "Test Email");
             _emailSent = true;
         }
 
@@ -112,7 +112,7 @@ namespace RCommon.Emailing.Tests
 
             await mock.Object.SendEmailAsync(message);
 
-            Assert.IsTrue(_emailSent);
+            Assert.That(_emailSent);
         }
 
     }
