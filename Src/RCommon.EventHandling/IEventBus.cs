@@ -26,6 +26,6 @@ namespace RCommon.EventHandling
 {
     public interface IEventBus
     {
-        Task DispatchEventAsync<TResult>(ILocalEvent query, CancellationToken cancellationToken);
+        Task DispatchEventAsync<TResult>(ILocalEvent localEvent, CancellationToken cancellationToken);
     }
 }

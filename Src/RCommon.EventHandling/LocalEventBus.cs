@@ -53,9 +53,9 @@ namespace RCommon.EventHandling
             _memoryCache = memoryCache;
         }
 
-        public async Task DispatchEventAsync<TResult>(ILocalEvent query, CancellationToken cancellationToken)
+        public async Task DispatchEventAsync<TResult>(ILocalEvent localEvent, CancellationToken cancellationToken)
         {
-            var eventType = query.GetType();
+            var eventType = localEvent.GetType();
             var cacheItem = GetCacheItem(eventType);
 
             var eventHandler = (ILocalEventHandler)_serviceProvider.GetRequiredService(cacheItem.EventHandlerType);
@@ -68,7 +68,7 @@ namespace RCommon.EventHandling
                     eventHandler.GetType().PrettyPrint());
             }
 
-            var task = (Task<TResult>)cacheItem.HandlerFunc(eventHandler, query, cancellationToken);
+            var task = (Task<TResult>)cacheItem.HandlerFunc(eventHandler, localEvent, cancellationToken);
 
             await task.ConfigureAwait(false);
         }
