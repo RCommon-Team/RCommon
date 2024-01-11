@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
 	  <Authors>Jason Webb</Authors>
 	  <Company>RCommon</Company>
-	  <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+	  <Description>A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
 	  <Copyright></Copyright>
 	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
 	  <PackageIcon>rcommon-icon.png</PackageIcon>
