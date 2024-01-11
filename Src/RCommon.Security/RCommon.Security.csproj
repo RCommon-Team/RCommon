@@ -29,9 +29,17 @@
 		</None>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="7.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
 	</ItemGroup>
 
 </Project>
