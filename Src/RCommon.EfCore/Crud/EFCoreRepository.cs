@@ -32,7 +32,6 @@ namespace RCommon.Persistence.EFCore.Crud
     public class EFCoreRepository<TEntity> : GraphRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        private readonly Dictionary<Type, object> _objectSets;
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
         private IIncludableQueryable<TEntity, object> _includableQueryable;
@@ -46,13 +45,12 @@ namespace RCommon.Persistence.EFCore.Crud
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
         public EFCoreRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, ILocalEventTracker eventTracker,
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker,
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
             : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
         {
             Logger = logger.CreateLogger(GetType().Name);
             _tracking = true;
-            _objectSets = new Dictionary<Type, object>();
         }
 
         protected DbSet<TEntity> ObjectSet

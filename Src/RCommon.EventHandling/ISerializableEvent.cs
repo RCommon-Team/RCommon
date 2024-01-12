@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.EventHandling
 {
-    public interface ITransactionalEvent : ILocalEvent
+    public interface ISerializableEvent
     {
     }
 }

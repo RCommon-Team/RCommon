@@ -8,7 +8,7 @@ using RCommon;
 namespace RCommon.EventHandling.Producers
 {
     /// <summary>
-    /// Responsible for wiring up all <see cref="ILocalEvent">local events</see> to their appropriate <see cref="IEventProducer"/>
+    /// Responsible for wiring up all <see cref="ISerializableEvent">local events</see> to their appropriate <see cref="IEventProducer"/>
     /// </summary>
     public class EventRouter
     {
@@ -19,12 +19,12 @@ namespace RCommon.EventHandling.Producers
             _eventProducerRegistry = eventProducerRegistry ?? throw new ArgumentNullException(nameof(eventProducerRegistry));
         }
 
-        public void RouteEvents(ICollection<ILocalEvent> localEvents)
+        public async Task RouteEvents(ICollection<ISerializableEvent> localEvents)
         {
             try
             {
                 // Seperate Async events from Transactional Events
-                var transactionalEvents = localEvents.Where(x => x is ITransactionalEvent);
+                var syncEvents = localEvents.Where(x => x is ISyncEvent);
                 var asyncEvents = localEvents.Where(x => x is IAsyncEvent);
 
                 // Produce the Transactional Events first
@@ -34,7 +34,7 @@ namespace RCommon.EventHandling.Producers
                     
                     foreach (var eventProducer in eventProducers)
                     {
-                        eventProducer.Produce(localEvent);
+                        await eventProducer.ProduceEventAsync(localEvent);
                     }
                 }
                 

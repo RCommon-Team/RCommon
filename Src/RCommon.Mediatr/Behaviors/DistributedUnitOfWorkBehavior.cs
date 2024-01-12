@@ -12,12 +12,12 @@ namespace RCommon.Mediator.MediatR.Behaviors
         where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> _logger;
-        private readonly IDistributedEventPublisher _distributedEventBroker;
+        private readonly IEventProducer _distributedEventBroker;
         private readonly IUnitOfWorkFactory _unitOfWorkScopeFactory;
         private readonly IUnitOfWorkManager _unitOfWorkManager;
 
         public DistributedUnitOfWorkBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
-            ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> logger, IDistributedEventPublisher distributedEventBroker)
+            ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>> logger, IEventProducer distributedEventBroker)
         {
             _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkFactory));
             _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 
@@ -46,7 +46,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
                 }
 
                 //Perform MassTransit publish events
-                await _distributedEventBroker.PublishDistributedEvents(cancellationToken);
+                //await _distributedEventBroker.PublishDistributedEvents(cancellationToken);
 
 
                 return response;

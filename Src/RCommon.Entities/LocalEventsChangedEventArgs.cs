@@ -9,13 +9,13 @@ namespace RCommon.Entities
 {
     public class LocalEventsChangedEventArgs : EventArgs
     {
-        public LocalEventsChangedEventArgs(IBusinessEntity entity, ILocalEvent eventData)
+        public LocalEventsChangedEventArgs(IBusinessEntity entity, ISerializableEvent eventData)
         {
             Entity=entity;
             EventData=eventData;
         }
 
         public IBusinessEntity Entity { get; }
-        public ILocalEvent EventData { get; }
+        public ISerializableEvent EventData { get; }
     }
 }

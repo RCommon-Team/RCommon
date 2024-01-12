@@ -44,7 +44,7 @@ namespace RCommon.TestBase.Data
 
 
         public TestDbContext(DbContextOptions<TestDbContext> options, IConfiguration configuration, 
-            ILocalEventTracker eventTracker) : base(options, eventTracker)
+            IEventTracker eventTracker) : base(options, eventTracker)
         {
             _configuration = configuration;
         }

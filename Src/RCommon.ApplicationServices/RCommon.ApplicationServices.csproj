@@ -12,7 +12,7 @@
     <Company>RCommon</Company>
     <Version>2.0.0.0</Version>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageTags>RCommon, application services, common application services, email, CRUD helpers, c#, .NET</PackageTags>
+    <PackageTags>RCommon, application services, CQRS, auto web api, commands, command handlers, queries, query handlers, command bus, query bus, c#, .NET</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 

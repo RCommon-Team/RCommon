@@ -1,4 +1,7 @@
 ﻿
+using System;
+using System.Collections.Generic;
+
 namespace RCommon.EventHandling.Producers
 {
     public interface IEventProducerRegistry

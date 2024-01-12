@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities
 {
-    public class InMemoryEventTracker : ILocalEventTracker
+    public class InMemoryEventTracker : IEventTracker
     {
         private readonly ICollection<IBusinessEntity> _businessEntities = new List<IBusinessEntity>();
         private readonly IMediatorService _mediatorService;

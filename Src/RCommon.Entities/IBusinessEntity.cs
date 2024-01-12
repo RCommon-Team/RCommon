@@ -15,12 +15,12 @@ namespace RCommon.Entities
         /// <returns></returns>
         object[] GetKeys();
 
-        IReadOnlyCollection<ILocalEvent> LocalEvents { get; }
+        IReadOnlyCollection<ISerializableEvent> LocalEvents { get; }
 
-        void AddLocalEvent(ILocalEvent eventItem);
+        void AddLocalEvent(ISerializableEvent eventItem);
         void ClearLocalEvents();
         bool EntityEquals(IBusinessEntity other);
-        void RemoveLocalEvent(ILocalEvent eventItem);
+        void RemoveLocalEvent(ISerializableEvent eventItem);
     }
 
     /// <summary>

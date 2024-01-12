@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.EventHandling
 {
-    public interface IEventData
+    public interface ISyncEvent : ISerializableEvent
     {
     }
 }

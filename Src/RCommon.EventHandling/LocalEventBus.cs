@@ -34,12 +34,12 @@ using RCommon.Reflection;
 
 namespace RCommon.EventHandling
 {
-    public class LocalEventBus : IEventBus
+    public class LocalEventBus
     {
         private class CacheItem
         {
             public Type EventHandlerType { get; set; }
-            public Func<ILocalEventHandler, ILocalEvent, CancellationToken, Task> HandlerFunc { get; set; }
+            public Func<ISubscriber, ISerializableEvent, CancellationToken, Task> HandlerFunc { get; set; }
         }
 
         private readonly ILogger<LocalEventBus> _logger;
@@ -53,12 +53,12 @@ namespace RCommon.EventHandling
             _memoryCache = memoryCache;
         }
 
-        public async Task DispatchEventAsync<TResult>(ILocalEvent localEvent, CancellationToken cancellationToken)
+        public async Task DispatchEventAsync<TResult>(ISerializableEvent localEvent, CancellationToken cancellationToken)
         {
             var eventType = localEvent.GetType();
             var cacheItem = GetCacheItem(eventType);
 
-            var eventHandler = (ILocalEventHandler)_serviceProvider.GetRequiredService(cacheItem.EventHandlerType);
+            var eventHandler = (ISubscriber)_serviceProvider.GetRequiredService(cacheItem.EventHandlerType);
             if (_logger.IsEnabled(LogLevel.Trace))
             {
                 _logger.LogTrace(

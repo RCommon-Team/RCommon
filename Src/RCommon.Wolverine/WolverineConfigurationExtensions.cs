@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RCommon.Messaging;
-using RCommon.Messaging.Wolverine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +12,7 @@ namespace RCommon
     {
         public static IRCommonConfiguration WithWolverine(this IRCommonConfiguration config, Action<WolverineOptions> options)
         {
-            //config.Services.AddScoped<IDistributedEventPublisher, WolverineEventPublisher>();
+            //config.Services.AddScoped<ISerializableEventPublisher, WolverineEventPublisher>();
             return config;
         }
     }

@@ -19,7 +19,7 @@ namespace HR.LeaveManagement.Persistence
         private readonly ISystemTime _systemTime;
 
         public AuditableDbContext(DbContextOptions options, ICurrentUser currentUser, ISystemTime systemTime, 
-            ILocalEventTracker eventTracker) 
+            IEventTracker eventTracker) 
             : base(options, eventTracker)
         {
             _currentUser = currentUser;

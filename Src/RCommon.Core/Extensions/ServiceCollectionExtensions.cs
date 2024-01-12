@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace RCommon
@@ -17,6 +20,15 @@ namespace RCommon
             var config = new RCommonConfiguration(services);
             config.Configure();
             return config;
+        }
+
+        public static void AddHostedServiceIfSupported<T>(this IServiceCollection services)
+            where T : class
+        {
+            if (typeof(T).GetInterfaces().Contains(typeof(IHostedService)))
+            {
+                services.TryAddSingleton(sp => (sp.GetRequiredService<T>() as IHostedService)!);
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ namespace RCommon.Mediator.MediatR
     {
         private readonly IEnumerable<INotifierHandler<TNotifier>> _handlers;
 
-        //the IoC should inject all domain handlers here
+        //the IoC should inject all handlers here
         public MediatRNotificationHandler(IEnumerable<INotifierHandler<TNotifier>> handlers)
         {
             _handlers = handlers ?? throw new ArgumentNullException(nameof(handlers));

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities
 {
-    public class EntityEvent<TEntity> : ILocalEvent
+    public class EntityEvent<TEntity> : ISerializableEvent
     {
         public EntityEvent(TEntity entity)
         {

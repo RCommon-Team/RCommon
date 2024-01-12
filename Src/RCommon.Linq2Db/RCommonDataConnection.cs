@@ -16,9 +16,9 @@ namespace RCommon.Persistence.Linq2Db
 {
     public class RCommonDataConnection : DataConnection, IDataStore
     {
-        private readonly ILocalEventTracker _eventTracker;
+        private readonly IEventTracker _eventTracker;
 
-        public RCommonDataConnection(ILocalEventTracker eventTracker, DataOptions linq2DbOptions)
+        public RCommonDataConnection(IEventTracker eventTracker, DataOptions linq2DbOptions)
             :base(linq2DbOptions)
         {
             var options = linq2DbOptions ?? throw new ArgumentNullException(nameof(linq2DbOptions));

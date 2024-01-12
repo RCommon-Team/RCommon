@@ -41,6 +41,11 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
     <ProjectReference Include="..\RCommon.EventHandling\RCommon.EventHandling.csproj" />
+    <ProjectReference Include="..\RCommon.Messaging\RCommon.Messaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Producers\" />
   </ItemGroup>
 
 </Project>
