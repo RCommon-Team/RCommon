@@ -17,35 +17,14 @@ namespace RCommon.Mediator.MediatR
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public async Task Publish(object notification, CancellationToken cancellation = default)
+        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
         {
-            if (notification is null)
-            {
-                throw new ArgumentNullException(nameof(notification));
-            }
-
-            await _mediator.Publish(notification, cancellation);
+            return _mediator.Publish(new MediatRNotification<TNotification>(notification), cancellationToken);
         }
 
-        public async Task<object?> Send(object notification, CancellationToken cancellationToken = default)
+        public Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
         {
-            if (notification is null)
-            {
-                throw new ArgumentNullException(nameof(notification));
-            }
-
-            return await _mediator.Send(notification, cancellationToken);
+            return _mediator.Send(new MediatRRequest<TRequest, TResponse>(request), cancellationToken);
         }
-
-        public IAsyncEnumerable<object?> CreateStream(object request, CancellationToken cancellationToken = default)
-        {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return _mediator.CreateStream(request, cancellationToken);
-        }
-
     }
 }

@@ -35,7 +35,7 @@ namespace RCommon.EventHandling
         public static void AddProducer<T>(this IEventHandlingConfiguration config) 
             where T : class, IEventProducer
         {
-            config.Services.TryAddSingleton<T>();
+            config.Services.TryAddSingleton<IEventProducer, T>();
         }
 
         public static void AddProducer<T>(this IEventHandlingConfiguration config, Func<IServiceProvider, T> getProducer) 

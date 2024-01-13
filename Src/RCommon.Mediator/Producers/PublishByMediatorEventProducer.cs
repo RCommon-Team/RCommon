@@ -19,7 +19,7 @@ namespace RCommon.Mediator.Producers
 
         public async Task ProduceEventAsync(ISerializableEvent @event)
         {
-            await _mediatorService.Publish(@event);
+            await _mediatorService.Publish<ISerializableEvent>(@event);
         }
     }
 }

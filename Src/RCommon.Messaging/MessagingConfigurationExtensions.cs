@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon
 {
-    public static class ApplicationMessagingConfigurationExtensions
+    public static class MessagingConfigurationExtensions
     {
         
 

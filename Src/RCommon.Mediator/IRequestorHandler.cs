@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace RCommon.Mediator
 {
-    public interface INotifierHandler<in T>
+    public interface IRequestorHandler<in TRequest, TResponse>
     {
-        Task HandleAsync(T notification, CancellationToken cancellationToken = default(CancellationToken));
+        Task<TResponse> HandleAsync(TRequest request, CancellationToken cancellationToken);
     }
 }

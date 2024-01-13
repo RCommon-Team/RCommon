@@ -8,7 +8,7 @@ namespace RCommon.Mediator
 {
     public interface IMediatorService
     {
-        Task<object?> Send(object notification, CancellationToken cancellationToken = default);
-        Task Publish(object notification, CancellationToken cancellationToken = default);
+        Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default);
+        Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default);
     }
 }

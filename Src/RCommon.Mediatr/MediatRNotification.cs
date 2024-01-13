@@ -14,6 +14,10 @@ namespace RCommon.Mediator.MediatR
         {
             Notification = notification;
         }
+        public MediatRNotification()
+        {
+            
+        }
 
         public T Notification { get; }
     }
