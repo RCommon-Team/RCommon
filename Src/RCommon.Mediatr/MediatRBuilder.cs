@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Mediator.MediatR
 {
-    public class MediatRBuilder : IMediatrConfiguration
+    public class MediatRBuilder : IMediatRBuilder
     {
         private readonly IServiceCollection _services;
 
@@ -17,13 +17,13 @@ namespace RCommon.Mediator.MediatR
             _services = services ?? throw new ArgumentNullException(nameof(services));
         }
 
-        public IMediatrConfiguration AddMediatr(Action<MediatRServiceConfiguration> options) 
+        public IMediatRBuilder AddMediatr(Action<MediatRServiceConfiguration> options) 
         {
             this._services.AddMediatR(options);
             return this;
         }
 
-        public IMediatrConfiguration AddMediatr(MediatRServiceConfiguration options)
+        public IMediatRBuilder AddMediatr(MediatRServiceConfiguration options)
         {
             this._services.AddMediatR(options);
             return this;

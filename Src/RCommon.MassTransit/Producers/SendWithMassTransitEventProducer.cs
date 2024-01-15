@@ -6,15 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Mediator.Producers
+namespace RCommon.MassTransit.Producers
 {
-    public class SendWithMediatorEventProducer : IEventProducer
+    public class SendWithMassTransitEventProducer : IEventProducer
     {
-        private readonly IMediatorService _mediatorService;
-
-        public SendWithMediatorEventProducer(IMediatorService mediatorService)
+        public SendWithMassTransitEventProducer()
         {
-            _mediatorService = mediatorService;
+                
         }
 
         public Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) 

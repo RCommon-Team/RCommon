@@ -17,10 +17,10 @@ namespace RCommon.Mediator.Producers
             _mediatorService = mediatorService;
         }
 
-        public async Task ProduceEventAsync<T>(T @event)
+        public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default)
             where T : ISerializableEvent
         {
-            await _mediatorService.Publish<T>(@event);
+            await _mediatorService.Publish<T>(@event, cancellationToken);
         }
     }
 }

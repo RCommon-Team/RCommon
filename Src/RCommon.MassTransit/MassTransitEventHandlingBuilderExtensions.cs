@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RCommon
 {
-    public static class MassTransitBuilderExtensions
+    public static class MassTransitEventHandlingBuilderExtensions
     {
 
         public static IRCommonBuilder WithMassTransit(this IRCommonBuilder config, 

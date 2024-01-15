@@ -45,21 +45,5 @@ namespace RCommon
             return config;
         }
 
-        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder config)
-            where TEventHandler : class, IAppNotificationHandler<TEvent>
-            where TEvent : IAppNotification
-        {
-            //config.Services.AddTransient(typeof(IAppNotificationHandler<>), typeof(TEventHandler<>));
-            //config.Services.AddTransient<IAppNotificationHandler<TEvent>, TEventHandler>();
-            config.Services.AddTransient<IAppNotificationHandler<TEvent>, TEventHandler>();
-        }
-
-        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder config, Func<IServiceProvider, TEventHandler> getSubscriber)
-            where TEvent : MediatRNotification<TEvent>
-            where TEventHandler : class, IAppNotificationHandler<TEvent>
-        {
-            config.Services.TryAddTransient(getSubscriber);
-        }
-
     }
 }
