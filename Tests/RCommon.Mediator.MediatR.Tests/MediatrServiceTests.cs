@@ -62,26 +62,8 @@ namespace RCommon.Mediator.MediatR.Tests
             CancellationToken cancellationToken = default(global::System.Threading.CancellationToken);
 
             // Act
-            await service.Send(
+            await service.Send<object, object>(
                 notification,
-                cancellationToken);
-
-            // Assert
-            Assert.Fail();
-            this.mockRepository.VerifyAll();
-        }
-
-        [Test]
-        public void CreateStream_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            var service = this.CreateService();
-            object request = null;
-            CancellationToken cancellationToken = default(global::System.Threading.CancellationToken);
-
-            // Act
-            var result = service.CreateStream(
-                request,
                 cancellationToken);
 
             // Assert

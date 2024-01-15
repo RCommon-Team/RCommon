@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace RCommon
 {
-    public  class RCommonConfigurationException : GeneralException
+    public  class RCommonBuilderException : GeneralException
     {
-        public RCommonConfigurationException(string message) : base(SeverityOptions.Critical , message)
+        public RCommonBuilderException(string message) : base(SeverityOptions.Critical , message)
         {
 
         }

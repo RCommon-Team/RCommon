@@ -1,17 +1,10 @@
-﻿
-
-
-using Examples.EventHandling.MediatR;
+﻿using Examples.EventHandling.InMemoryEventBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
-using RCommon.Mediator;
-using RCommon.Mediator.MediatR;
-using RCommon.Mediator.Producers;
-using RCommon.MediatR;
 using System.Diagnostics;
 
 try
@@ -29,13 +22,9 @@ try
                     services.AddRCommon()
                         .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
                         {
-                            eventHandling.AddProducer<PublishWithMediatorEventProducer>();
+                            eventHandling.AddProducer<PublishWithEventBusEventProducer>();
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
-                            //services.AddTransient<IAppNotificationHandler<TestEvent>, TestEventHandler>();
                         });
-
-                    Console.WriteLine($"Total Services Registered:");
-                    Console.WriteLine(services.GenerateServiceDescriptorsString());
 
                 }).Build();
 
@@ -50,11 +39,11 @@ try
     }
 
     Console.WriteLine("Example Complete");
-    Console.ReadLine();         
+    Console.ReadLine();
 }
 catch (Exception ex)
-{   
+{
     Console.WriteLine(ex.ToString());
-    
+
 }
 

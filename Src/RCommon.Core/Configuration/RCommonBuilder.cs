@@ -22,7 +22,7 @@ namespace RCommon
 
         public IRCommonBuilder WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)
         {
-            Guard.Against<RCommonConfigurationException>(this._guidConfigured,
+            Guard.Against<RCommonBuilderException>(this._guidConfigured,
                 "Guid Generator has already been configured once. You cannot configure multiple times");
             this.Services.Configure<SequentialGuidGeneratorOptions>(actions);
             this.Services.AddTransient<IGuidGenerator, SequentialGuidGenerator>();
@@ -32,7 +32,7 @@ namespace RCommon
 
         public IRCommonBuilder WithSimpleGuidGenerator()
         {
-            Guard.Against<RCommonConfigurationException>(this._guidConfigured,
+            Guard.Against<RCommonBuilderException>(this._guidConfigured,
                 "Guid Generator has already been configured once. You cannot configure multiple times");
             this.Services.AddTransient<IGuidGenerator, SimpleGuidGenerator>();
             this._guidConfigured = true;
@@ -41,7 +41,7 @@ namespace RCommon
 
         public IRCommonBuilder WithDateTimeSystem(Action<SystemTimeOptions> actions)
         {
-            Guard.Against<RCommonConfigurationException>(this._dateTimeConfigured,
+            Guard.Against<RCommonBuilderException>(this._dateTimeConfigured,
                 "Date/Time System has already been configured once. You cannot configure multiple times");
             this.Services.Configure<SystemTimeOptions>(actions);
             this.Services.AddTransient<ISystemTime, SystemTime>();
