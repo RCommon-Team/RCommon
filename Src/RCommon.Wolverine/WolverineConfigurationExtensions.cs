@@ -10,7 +10,7 @@ namespace RCommon
 {
     public static class WolverineConfigurationExtensions
     {
-        public static IRCommonConfiguration WithWolverine(this IRCommonConfiguration config, Action<WolverineOptions> options)
+        public static IRCommonBuilder WithWolverine(this IRCommonBuilder config, Action<WolverineOptions> options)
         {
             //config.Services.AddScoped<ISerializableEventPublisher, WolverineEventPublisher>();
             return config;

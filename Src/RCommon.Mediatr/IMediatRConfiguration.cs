@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Mediator.MediatR
 {
-    public interface IMediatrConfiguration : IMediatorConfiguration
+    public interface IMediatrConfiguration : IMediatorBuilder
     {
         IMediatrConfiguration AddMediatr(Action<MediatRServiceConfiguration> options);
         IMediatrConfiguration AddMediatr(MediatRServiceConfiguration options);

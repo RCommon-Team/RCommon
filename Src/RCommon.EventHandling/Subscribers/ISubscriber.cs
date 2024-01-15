@@ -9,14 +9,9 @@ using System.Threading.Tasks;
 
 namespace RCommon.EventHandling.Subscribers
 {
-    public interface ISubscriber
-    {
-
-    }
 
     public interface ISubscriber<TLocalEvent>
-        where TLocalEvent : ISerializableEvent
     {
-        public Task HandleAsync(TLocalEvent localEvent, CancellationToken cancellationToken);
+        public Task HandleAsync(TLocalEvent localEvent, CancellationToken cancellationToken = default);
     }
 }

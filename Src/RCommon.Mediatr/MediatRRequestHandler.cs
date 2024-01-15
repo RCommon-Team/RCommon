@@ -11,10 +11,10 @@ namespace RCommon.MediatR
 {
     public class MediatRRequestHandler<TRequest, TResponse> : IRequestHandler<MediatRRequest<TRequest, TResponse>, TResponse>
     {
-        private readonly IRequestorHandler<TRequest, TResponse> myImpl;
+        private readonly IAppRequestHandler<TRequest, TResponse> myImpl;
 
         // injected by DI container
-        public MediatRRequestHandler(IRequestorHandler<TRequest, TResponse> impl)
+        public MediatRRequestHandler(IAppRequestHandler<TRequest, TResponse> impl)
         {
             myImpl = impl ?? throw new ArgumentNullException(nameof(impl));
         }

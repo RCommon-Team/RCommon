@@ -9,13 +9,13 @@ using RCommon;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
 using RCommon.Mediator;
+using RCommon.Mediator.MediatR;
 using RCommon.Mediator.Producers;
 using RCommon.MediatR;
 using System.Diagnostics;
 
 try
 {
-    //var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
     var host = Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
                 {
@@ -27,19 +27,19 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithEventHandling<MediatREventHandlingConfiguration>(eventHandling =>
+                        .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
                         {
-                            eventHandling.AddEvent<TestEvent>();
-                            eventHandling.AddProducer<PublishByMediatorEventProducer>();
+                            eventHandling.AddProducer<PublishWithEventBusEventProducer>();
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+                            //services.AddTransient<IAppNotificationHandler<TestEvent>, TestEventHandler>();
                         });
 
-                    
+                    Console.WriteLine($"Total Services Registered:");
+                    Console.WriteLine(services.GenerateServiceDescriptorsString());
 
                 }).Build();
 
     Console.WriteLine("Example Starting");
-
     var eventProducers = host.Services.GetServices<IEventProducer>();
     var testEvent = new TestEvent(DateTime.Now, Guid.NewGuid());
 
@@ -54,6 +54,7 @@ try
 }
 catch (Exception ex)
 {   
-    Debug.WriteLine(ex.ToString());
+    Console.WriteLine(ex.ToString());
+    
 }
 

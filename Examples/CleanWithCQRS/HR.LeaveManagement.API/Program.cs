@@ -31,7 +31,7 @@ builder.Services.AddRCommon()
     .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
     .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
     .AddUnitOfWorkToMediatorPipeline()
-    .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+    .WithPersistence<EFCorePerisistenceBuilder, DefaultUnitOfWorkBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
     {
         // Add all the DbContexts here
         ef.AddDbContext<LeaveManagementDbContext>("LeaveManagementConnectionString", options =>

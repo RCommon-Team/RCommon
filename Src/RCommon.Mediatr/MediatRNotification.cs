@@ -7,18 +7,14 @@ using System.Threading.Tasks;
 
 namespace RCommon.Mediator.MediatR
 {
-    public class MediatRNotification<T> : INotification
+    public class MediatRNotification<TEvent> : INotification
     {
 
-        public MediatRNotification(T notification)
+        public MediatRNotification(TEvent notification)
         {
             Notification = notification;
         }
-        public MediatRNotification()
-        {
-            
-        }
 
-        public T Notification { get; }
+        public TEvent Notification { get; }
     }
 }

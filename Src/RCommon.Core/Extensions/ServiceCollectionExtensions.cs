@@ -15,9 +15,9 @@ namespace RCommon
         /// </summary>
         /// <param name="services">Dependency Injection services that serve as our interface for injecting additional services.</param>
         /// <returns>RCommon configuration interface for additional chaining.</returns>
-        public static IRCommonConfiguration AddRCommon(this IServiceCollection services)
+        public static IRCommonBuilder AddRCommon(this IServiceCollection services)
         {
-            var config = new RCommonConfiguration(services);
+            var config = new RCommonBuilder(services);
             config.Configure();
             return config;
         }

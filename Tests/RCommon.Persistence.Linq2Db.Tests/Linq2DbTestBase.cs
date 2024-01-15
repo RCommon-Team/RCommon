@@ -39,7 +39,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             services.AddRCommon()
                 .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
                 .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
-                .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(objectAccessActions: ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .WithPersistence<EFCorePerisistenceBuilder, DefaultUnitOfWorkBuilder>(objectAccessActions: ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
                     ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
@@ -55,7 +55,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
                         options.DefaultIsolation = System.Transactions.IsolationLevel.ReadCommitted;
                     });
                 })
-                .WithPersistence<Linq2DbConfiguration, DefaultUnitOfWorkConfiguration>(objectAccessActions: linq2Db =>
+                .WithPersistence<Linq2DbPersistenceBuilder, DefaultUnitOfWorkBuilder>(objectAccessActions: linq2Db =>
                 {
                     // Add all the DbContexts here
                     linq2Db.AddDataConnection<TestDataConnection>("TestDataConnection", (provider, options) =>

@@ -27,9 +27,9 @@ namespace RCommon.Mediator.MediatR.Tests
             this.mockServiceCollection = this.mockRepository.Create<IServiceCollection>();
         }
 
-        private MediatrConfiguration CreateMediatrConfiguration()
+        private MediatRBuilder CreateMediatrConfiguration()
         {
-            return new MediatrConfiguration(
+            return new MediatRBuilder(
                 this.mockServiceCollection.Object);
         }
 

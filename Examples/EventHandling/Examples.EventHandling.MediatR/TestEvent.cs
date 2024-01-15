@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Examples.EventHandling.MediatR
 {
-    public class TestEvent : ISyncEvent, INotifier
+    public class TestEvent : ISyncEvent
     {
         public TestEvent(DateTime dateTime, Guid guid)
         {

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
@@ -9,8 +10,14 @@ using System.Threading.Tasks;
 
 namespace Examples.EventHandling.MediatR
 {
-    public class TestEventHandler : INotifierHandler<TestEvent>
+    public class TestEventHandler : ISubscriber<TestEvent>
     {
+        public TestEventHandler()
+        {
+                
+        }
+
+
         public async Task HandleAsync(TestEvent notification, CancellationToken cancellationToken = default)
         {
             Console.WriteLine("I just handled this event {0}", new object[] { notification.ToString() });

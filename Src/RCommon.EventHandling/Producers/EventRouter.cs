@@ -12,11 +12,11 @@ namespace RCommon.EventHandling.Producers
     /// </summary>
     public class EventRouter
     {
-        private readonly IEventProducerRegistry _eventProducerRegistry;
+        //private readonly IEventProducerRegistry _eventProducerRegistry;
 
-        public EventRouter(IEventProducerRegistry eventProducerRegistry)
+        public EventRouter()
         {
-            _eventProducerRegistry = eventProducerRegistry ?? throw new ArgumentNullException(nameof(eventProducerRegistry));
+            //_eventProducerRegistry = eventProducerRegistry ?? throw new ArgumentNullException(nameof(eventProducerRegistry));
         }
 
         public async Task RouteEvents(ICollection<ISerializableEvent> localEvents)
@@ -30,12 +30,12 @@ namespace RCommon.EventHandling.Producers
                 // Produce the Transactional Events first
                 foreach (var localEvent in localEvents)
                 {
-                    var eventProducers = _eventProducerRegistry.GetEventProducersForEvent(localEvent.GetType());
+                    /*var eventProducers = _eventProducerRegistry.GetEventProducersForEvent(localEvent.GetType());
                     
                     foreach (var eventProducer in eventProducers)
                     {
                         await eventProducer.ProduceEventAsync(localEvent);
-                    }
+                    }*/
                 }
                 
             }

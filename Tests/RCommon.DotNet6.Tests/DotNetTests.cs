@@ -14,7 +14,7 @@ namespace RCommon.DotNet6.Tests
         public void Can_Use_Dapper()
         {
             var services = new ServiceCollection();
-            var target = new DapperConfiguration(services);
+            var target = new DapperPersistenceBuilder(services);
             Assert.That(target, Is.Not.Null);
         }
     }

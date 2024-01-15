@@ -8,6 +8,6 @@ namespace RCommon.EventHandling.Producers
 {
     public interface IEventProducer
     {
-        Task ProduceEventAsync(ISerializableEvent @event);
+        Task ProduceEventAsync<T>(T @event) where T : ISerializableEvent;
     }
 }
