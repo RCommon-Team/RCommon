@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using RCommon.Mediator.MediatR.Behaviors;
-using RCommon.Messaging;
 using System;
 using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace RCommon.Mediator.MediatR.Tests.Behaviors
         private Mock<IUnitOfWorkFactory> mockUnitOfWorkFactory;
         private Mock<IUnitOfWorkManager> mockUnitOfWorkManager;
         private Mock<ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>>> mockLogger;
-        private Mock<IDistributedEventPublisher> mockDistributedEventPublisher;
+        private Mock<ISerializableEventPublisher> mockDistributedEventPublisher;
 
         public DistributedUnitOfWorkBehaviorTests() : base()
         {
@@ -33,7 +32,7 @@ namespace RCommon.Mediator.MediatR.Tests.Behaviors
             this.mockUnitOfWorkFactory = this.mockRepository.Create<IUnitOfWorkFactory>();
             this.mockUnitOfWorkManager = this.mockRepository.Create<IUnitOfWorkManager>();
             this.mockLogger = this.mockRepository.Create<ILogger<DistributedUnitOfWorkBehavior<TRequest, TResponse>>>();
-            this.mockDistributedEventPublisher = this.mockRepository.Create<IDistributedEventPublisher>();
+            this.mockDistributedEventPublisher = this.mockRepository.Create<ISerializableEventPublisher>();
         }
 
         private DistributedUnitOfWorkBehavior CreateDistributedUnitOfWorkBehavior()

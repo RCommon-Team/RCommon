@@ -131,26 +131,6 @@ namespace RCommon
 
         #endregion
 
-        #region Public Methods
-
-        /// <summary>
-        /// Override the GetObjectData method to serialize custom values.
-        /// </summary>
-        /// <param name="info">Represents the SerializationInfo of the exception.</param>
-        /// <param name="context">Represents the context information of the exception.</param>
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("machineName", machineName, typeof(string));
-            info.AddValue("createdDateTime", createdDateTime);
-            info.AddValue("appDomainName", appDomainName, typeof(string));
-            info.AddValue("threadIdentity", threadIdentity, typeof(string));
-            info.AddValue("windowsIdentity", windowsIdentity, typeof(string));
-            info.AddValue("additionalInformation", additionalInformation, typeof(NameValueCollection));
-            base.GetObjectData(info, context);
-        }
-
-        #endregion
-
         #region Private Methods
 
         /// <summary>

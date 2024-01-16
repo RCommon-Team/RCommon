@@ -8,7 +8,7 @@ using RCommon.Linq;
 using RCommon.Collections;
 using System.Threading.Tasks;
 
-namespace RCommon.Extensions
+namespace RCommon
 {
     public static class IQueryableExtensions
     {

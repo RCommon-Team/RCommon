@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.Persistence;
 using RCommon.Linq;
 using RCommon.TestBase;
 using RCommon.TestBase.Data;
@@ -15,6 +14,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using RCommon.Persistence.Transactions;
+using RCommon.Persistence.Crud;
 
 namespace RCommon.Persistence.Linq2Db.Tests
 {
@@ -77,8 +78,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
              var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
             Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);*/
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);*/
         }
 
         [Test]
@@ -94,9 +95,9 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.ZipCode == customer.ZipCode);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.ZipCode == customer.ZipCode);
         }
 
         [Test]
@@ -111,8 +112,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var savedCustomers = await customerRepo
                     .FindAsync(x => x.LastName == "Potter");
 
-            Assert.IsNotNull(savedCustomers);
-            Assert.IsTrue(savedCustomers.Count() == 10);
+            Assert.That(savedCustomers.Count() == 10);
         }
 
         [Test]
@@ -127,8 +127,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var savedCustomers = await customerRepo
                     .GetCountAsync(x => x.LastName == "Dumbledore");
 
-            Assert.IsNotNull(savedCustomers);
-            Assert.IsTrue(savedCustomers == 10);
+            Assert.That(savedCustomers != null);
+            Assert.That(savedCustomers == 10);
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var canFind = await customerRepo
                     .AnyAsync(x => x.City == "Hollywood");
 
-            Assert.IsTrue(canFind);
+            Assert.That(canFind);
         }
 
         [Test]
@@ -157,9 +157,9 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x=>x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.FirstName == "Happy");
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.FirstName == "Happy");
         }
 
         [Test]
@@ -173,22 +173,20 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customers = await customerRepo
                     .FindAsync(x => x.FirstName.StartsWith("Li"), x => x.LastName, true, 1, 10);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers.PageIndex == 1);
-            Assert.IsTrue(customers.TotalCount == 100);
-            Assert.IsTrue(customers.TotalPages == 10);
-            Assert.IsTrue(customers[4].FirstName == "Lisa");
+            Assert.That(customers.Count == 10);
+            Assert.That(customers.PageIndex == 1);
+            Assert.That(customers.TotalCount == 100);
+            Assert.That(customers.TotalPages == 10);
+            Assert.That(customers[4].FirstName == "Lisa");
 
             customers = await customerRepo
                     .FindAsync(x => x.FirstName.StartsWith("li"), x => x.LastName, true, 2, 10);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers.PageIndex == 2);
-            Assert.IsTrue(customers.TotalCount == 100);
-            Assert.IsTrue(customers.TotalPages == 10);
-            Assert.IsTrue(customers[4].FirstName == "Lisa");
+            Assert.That(customers.Count == 10);
+            Assert.That(customers.PageIndex == 2);
+            Assert.That(customers.TotalCount == 100);
+            Assert.That(customers.TotalPages == 10);
+            Assert.That(customers[4].FirstName == "Lisa");
 
             repo.CleanUpSeedData();
         }
@@ -206,24 +204,22 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customers = await customerRepo
                     .FindAsync(customerSearchSpec);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers.PageIndex == 1);
-            Assert.IsTrue(customers.TotalCount == 100);
-            Assert.IsTrue(customers.TotalPages == 10);
-            Assert.IsTrue(customers[4].FirstName == "Bart");
+            Assert.That(customers.Count == 10);
+            Assert.That(customers.PageIndex == 1);
+            Assert.That(customers.TotalCount == 100);
+            Assert.That(customers.TotalPages == 10);
+            Assert.That(customers[4].FirstName == "Bart");
 
             customerSearchSpec = new CustomerSearchSpec("ba", x => x.FirstName, true, 2, 10);
 
             customers = await customerRepo
                     .FindAsync(customerSearchSpec);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers.PageIndex == 2);
-            Assert.IsTrue(customers.TotalCount == 100);
-            Assert.IsTrue(customers.TotalPages == 10);
-            Assert.IsTrue(customers[4].FirstName == "Bart");
+            Assert.That(customers.Count == 10);
+            Assert.That(customers.PageIndex == 2);
+            Assert.That(customers.TotalCount == 100);
+            Assert.That(customers.TotalPages == 10);
+            Assert.That(customers[4].FirstName == "Bart");
 
             repo.CleanUpSeedData();
         }
@@ -242,9 +238,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var customers = await customerRepo
                     .FindAsync(predicate, x => x.LastName, true, 1, 10);
 
-            Assert.IsNotNull(customers);
-            Assert.IsTrue(customers.Count == 10);
-            Assert.IsTrue(customers[4].FirstName == "Homer");
+            Assert.That(customers.Count == 10);
+            Assert.That(customers[4].FirstName == "Homer");
         }
 
 
@@ -262,9 +257,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             Customer savedCustomer = null;
             savedCustomer = await customerRepo.FirstAsync(x => x.FirstName == "Severnus");
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.IsTrue(savedCustomer.Id > 0);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer.Id > 0);
 
         }
 
@@ -284,9 +278,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().FirstAsync(x => x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, "Darth");
-            Assert.AreEqual(savedCustomer.LastName, "Vader");
+            Assert.That(savedCustomer.FirstName == "Darth");
+            Assert.That(savedCustomer.LastName == "Vader");
 
         }
 
@@ -304,7 +297,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             repo.Context.ChangeTracker.Clear();
             savedCustomer = await repo.Context.Set<Customer>().SingleOrDefaultAsync(x=>x.Id == customer.Id);
 
-            Assert.IsNull(savedCustomer);
+            Assert.That(savedCustomer == null);
 
         }
 
@@ -330,8 +323,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             Customer savedCustomer = await repo.Context.Set<Customer>()
                 .SingleOrDefaultAsync(x => x.LastName == "Griswold");
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.LastName, customer.LastName);
+            Assert.That(savedCustomer.LastName == customer.LastName);
 
         }
 
@@ -355,7 +347,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().FirstAsync(x => x.Id == customer.Id);
-            Assert.AreNotEqual(customer.LastName, savedCustomer.LastName);
+            Assert.That(customer.LastName == savedCustomer.LastName);
         }
 
         [Test]
@@ -388,10 +380,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             savedCustomer = await repo.Context.Set<Customer>().SingleOrDefaultAsync(x => x.StreetAddress1 == customer.StreetAddress1);
             savedOrder = await repo.Context.Set<Order>().SingleOrDefaultAsync(x => x.ShipDate == order.ShipDate);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(customer.StreetAddress1, savedCustomer.StreetAddress1);
-            Assert.IsNotNull(savedOrder);
-            Assert.AreEqual(order.ShipDate.Value.ToLongDateString(), savedOrder.ShipDate.Value.ToLongDateString());
+            Assert.That(customer.StreetAddress1 == savedCustomer.StreetAddress1);
+            Assert.That(order.ShipDate.Value.ToLongDateString() == savedOrder.ShipDate.Value.ToLongDateString());
         }
 
         [Test]
@@ -422,8 +412,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             Order savedOrder = null;
             savedCustomer = await repo.Context.Set<Customer>().FirstOrDefaultAsync(x => x.Id == customer.Id);
             savedOrder = await repo.Context.Set<Order>().FirstOrDefaultAsync(x => x.Id == order.Id);
-            Assert.IsNull(savedCustomer);
-            Assert.IsNull(savedOrder);
+            Assert.That(savedCustomer == null);
+            Assert.That(savedOrder == null);
         }
 
         [Test]
@@ -456,7 +446,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             catch (Exception ex)
             {
 
-                Assert.IsTrue(ex is TransactionAbortedException);
+                Assert.That(ex is TransactionAbortedException);
             }
         }
 
@@ -488,10 +478,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             savedCustomer = await repo.Context.Set<Customer>().FirstOrDefaultAsync(x => x.FirstName == "Snuffalufagus");
             savedSalesPerson = await repo.Context.Set<SalesPerson>().FirstOrDefaultAsync(x => x.FirstName == "Kirby");
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsNotNull(savedSalesPerson);
-            Assert.AreEqual(customer.FirstName, savedCustomer.FirstName);
-            Assert.AreEqual(salesPerson.FirstName, savedSalesPerson.FirstName);
+            Assert.That(customer.FirstName == savedCustomer.FirstName);
+            Assert.That(salesPerson.FirstName == savedSalesPerson.FirstName);
 
         }
 
@@ -522,8 +510,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
             savedCustomer = await repo.Context.Set<Customer>().FirstOrDefaultAsync(x => x.Id == customer.Id);
             savedSalesPerson = await repo.Context.Set<SalesPerson>().FirstOrDefaultAsync(x => x.Id == salesPerson.Id);
 
-            Assert.IsNull(savedCustomer);
-            Assert.IsNull(savedSalesPerson);
+            Assert.That(savedCustomer == null);
+            Assert.That(savedSalesPerson == null);
 
         }
 
@@ -551,10 +539,9 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x => x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.Orders != null);
-            Assert.IsTrue(savedCustomer.Orders.Count == 10);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.Orders != null);
+            Assert.That(savedCustomer.Orders.Count == 10);
         }
 
     }

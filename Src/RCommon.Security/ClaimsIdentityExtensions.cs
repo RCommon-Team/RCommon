@@ -1,5 +1,4 @@
-﻿using RCommon.Extensions;
-using RCommon.Security.Claims;
+﻿using RCommon.Security.Claims;
 using System;
 using System.Collections.Generic;
 using System.Linq;

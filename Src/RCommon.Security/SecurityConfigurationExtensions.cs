@@ -13,7 +13,7 @@ namespace RCommon
     public static class SecurityConfigurationExtensions
     {
 
-        public static IRCommonConfiguration WithClaimsAndPrincipalAccessor(this IRCommonConfiguration config)
+        public static IRCommonBuilder WithClaimsAndPrincipalAccessor(this IRCommonBuilder config)
         {
             config.Services.AddTransient<ICurrentPrincipalAccessor, ThreadCurrentPrincipalAccessor>();
             config.Services.AddTransient<ICurrentClient, CurrentClient>();

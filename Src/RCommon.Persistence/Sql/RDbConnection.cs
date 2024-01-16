@@ -6,8 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using RCommon.BusinessEntities;
-using RCommon.Extensions;
+using RCommon.Entities;
 using RCommon.Mediator;
 
 namespace RCommon.Persistence.Sql
@@ -16,13 +15,11 @@ namespace RCommon.Persistence.Sql
     {
         private readonly IOptions<RDbConnectionOptions> _options;
         private readonly IEventTracker _eventTracker;
-        private readonly IMediatorService _mediator;
 
-        public RDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker, IMediatorService mediator)
+        public RDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker)
         {
-            _options=options;
-            this._eventTracker = eventTracker;
-            this._mediator = mediator;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            this._eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
         }
 
         public DbConnection GetDbConnection()
@@ -40,7 +37,7 @@ namespace RCommon.Persistence.Sql
 
         public void PersistChanges()
         {
-            this._eventTracker.TrackedEntities.PublishLocalEvents(this._mediator);
+            this._eventTracker.PublishLocalEvents();
             // Nothing to do here because this is a SQL Connection
             return;
         }

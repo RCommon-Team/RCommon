@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using RCommon.Persistence.Sql;
 using RCommon.Mediator;
 using System;
@@ -12,8 +12,8 @@ namespace RCommon.Persistence.Dapper.Tests
     public class TestDbConnection : RDbConnection
     {
 
-        public TestDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker, IMediatorService mediator) 
-            : base(options, eventTracker, mediator)
+        public TestDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker) 
+            : base(options, eventTracker)
         {
             
         }

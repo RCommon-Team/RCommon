@@ -12,7 +12,6 @@ namespace RCommon.Persistence
 
         void PersistChanges();
         DbConnection GetDbConnection();
-
     }
 
 }

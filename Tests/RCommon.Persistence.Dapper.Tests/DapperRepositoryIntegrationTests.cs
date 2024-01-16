@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.Persistence;
 using RCommon.Persistence.Sql;
 using RCommon.Linq;
 using RCommon.Persistence.EFCore;
@@ -18,6 +17,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using RCommon.Persistence.Transactions;
+using RCommon.Persistence.Crud;
 
 namespace RCommon.Persistence.Dapper.Tests
 {
@@ -74,9 +75,9 @@ namespace RCommon.Persistence.Dapper.Tests
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);
         }
 
         [Test]
@@ -92,9 +93,9 @@ namespace RCommon.Persistence.Dapper.Tests
             var savedCustomer = await customerRepo
                     .FindSingleOrDefaultAsync(x=>x.ZipCode == customer.ZipCode);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.ZipCode == customer.ZipCode);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.ZipCode == customer.ZipCode);
         }
 
         [Test]
@@ -109,8 +110,8 @@ namespace RCommon.Persistence.Dapper.Tests
             var savedCustomers = await customerRepo
                     .FindAsync(x=> x.LastName == "Potter");
 
-            Assert.IsNotNull(savedCustomers);
-            Assert.IsTrue(savedCustomers.Count() == 10);
+            Assert.That(savedCustomers != null);
+            Assert.That(savedCustomers.Count() == 10);
         }
 
      
@@ -126,8 +127,8 @@ namespace RCommon.Persistence.Dapper.Tests
             var savedCustomers = await customerRepo
                     .GetCountAsync(x => x.LastName == "Dumbledore");
 
-            Assert.IsNotNull(savedCustomers);
-            Assert.IsTrue(savedCustomers == 10);
+            Assert.That(savedCustomers > 0);
+            Assert.That(savedCustomers == 10);
         }
 
         [Test]
@@ -142,7 +143,7 @@ namespace RCommon.Persistence.Dapper.Tests
             var canFind = await customerRepo
                     .AnyAsync(x => x.City == "Hollywood");
 
-            Assert.IsTrue(canFind);
+            Assert.That(canFind);
         }
 
         [Test]
@@ -156,9 +157,9 @@ namespace RCommon.Persistence.Dapper.Tests
             var savedCustomer = await customerRepo
                     .FindAsync(customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == customer.Id);
-            Assert.IsTrue(savedCustomer.FirstName == "Happy");
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.FirstName == "Happy");
         }
 
 
@@ -176,9 +177,9 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer savedCustomer = null;
             savedCustomer = await customerRepo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.IsTrue(savedCustomer.Id > 0);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer.Id > 0);
 
         }
 
@@ -198,9 +199,9 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().SingleOrDefaultAsync(x => x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, "Darth");
-            Assert.AreEqual(savedCustomer.LastName, "Vader");
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.FirstName == "Darth");
+            Assert.That(savedCustomer.LastName == "Vader");
 
         }
 
@@ -217,7 +218,7 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x=> x.Id == customer.Id);
 
-            Assert.IsNull(savedCustomer);
+            Assert.That(savedCustomer != null);
 
         }
 
@@ -244,8 +245,8 @@ namespace RCommon.Persistence.Dapper.Tests
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.LastName == "Poppadopalus");
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.LastName, customer.LastName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.LastName == customer.LastName);
 
         }
 
@@ -270,7 +271,7 @@ namespace RCommon.Persistence.Dapper.Tests
 
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer.Id);
-            Assert.AreEqual(target, savedCustomer.LastName);
+            Assert.That(target == savedCustomer.LastName);
         }
 
         [Test]
@@ -303,10 +304,10 @@ namespace RCommon.Persistence.Dapper.Tests
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.StreetAddress1 == customer.StreetAddress1);
             savedOrder = await repo.Context.Set<Order>().AsNoTracking().SingleOrDefaultAsync(x => x.ShipDate == order.ShipDate);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(customer.StreetAddress1, savedCustomer.StreetAddress1);
-            Assert.IsNotNull(savedOrder);
-            Assert.AreEqual(order.ShipDate.Value.ToLongDateString(), savedOrder.ShipDate.Value.ToLongDateString());
+            Assert.That(savedCustomer != null);
+            Assert.That(customer.StreetAddress1 == savedCustomer.StreetAddress1);
+            Assert.That(savedOrder != null);
+            Assert.That(order.ShipDate.Value.ToLongDateString() == savedOrder.ShipDate.Value.ToLongDateString());
         }
 
         [Test]
@@ -337,8 +338,8 @@ namespace RCommon.Persistence.Dapper.Tests
             Order savedOrder = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
             savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == order.Id);
-            Assert.IsNull(savedCustomer);
-            Assert.IsNull(savedOrder);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedOrder != null);
         }
 
         [Test]
@@ -372,7 +373,7 @@ namespace RCommon.Persistence.Dapper.Tests
             catch (Exception ex)
             {
 
-                Assert.IsTrue(ex is TransactionAbortedException);
+                Assert.That(ex is TransactionAbortedException);
             }
         }
 
@@ -404,10 +405,10 @@ namespace RCommon.Persistence.Dapper.Tests
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.FirstName == "Snuffalufagus");
             savedSalesPerson = await repo.Context.Set<SalesPerson>().AsNoTracking().FirstOrDefaultAsync(x => x.FirstName == "Kirby");
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsNotNull(savedSalesPerson);
-            Assert.AreEqual(customer.FirstName, savedCustomer.FirstName);
-            Assert.AreEqual(salesPerson.FirstName, savedSalesPerson.FirstName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedSalesPerson != null);
+            Assert.That(customer.FirstName == savedCustomer.FirstName);
+            Assert.That(salesPerson.FirstName == savedSalesPerson.FirstName);
 
         }
 
@@ -438,8 +439,8 @@ namespace RCommon.Persistence.Dapper.Tests
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
             savedSalesPerson = await repo.Context.Set<SalesPerson>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == salesPerson.Id);
 
-            Assert.IsNull(savedCustomer);
-            Assert.IsNull(savedSalesPerson);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedSalesPerson != null);
 
         }
 

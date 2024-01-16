@@ -17,11 +17,11 @@ using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using RCommon;
 using RCommon.TestBase;
-using RCommon.Persistence;
 using RCommon.TestBase.Data;
 using RCommon.Persistence.Dapper;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.Dapper.Tests.Configurations;
+using RCommon.Persistence.Transactions;
 
 namespace RCommon.Persistence.Dapper.Tests
 {
@@ -38,7 +38,7 @@ namespace RCommon.Persistence.Dapper.Tests
                 {
                     guidOptions.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString;
                 })
-                .WithPersistence<EFCoreConfiguration, DefaultUnitOfWorkConfiguration>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .WithPersistence<EFCorePerisistenceBuilder, DefaultUnitOfWorkBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
                     ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
@@ -54,7 +54,7 @@ namespace RCommon.Persistence.Dapper.Tests
                         options.DefaultIsolation = System.Transactions.IsolationLevel.ReadCommitted;
                     });
                 })
-                .WithPersistence<DapperConfiguration, DefaultUnitOfWorkConfiguration>(objectAccessActions: dapper =>
+                .WithPersistence<DapperPersistenceBuilder, DefaultUnitOfWorkBuilder>(objectAccessActions: dapper =>
                 {
 
                     dapper.AddDbConnection<TestDbConnection>("TestDbConnection", db =>

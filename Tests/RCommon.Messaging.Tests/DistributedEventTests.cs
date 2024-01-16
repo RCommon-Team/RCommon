@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using RCommon.EventHandling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RCommon.Extensions;
+
 
 namespace RCommon.Messaging.Tests
 {
@@ -43,39 +44,5 @@ namespace RCommon.Messaging.Tests
             this.Logger.LogInformation("Tearing down Test Suite");
         }
 
-        [Test]
-        public void Can_Construct_With_Empty_Constructor()
-        {
-            var target = new DistributedEvent();
-
-            Assert.IsNotNull(target);
-            Assert.IsNotNull(target.Id);
-            Assert.IsNotNull(target.CreationDate);
-            Assert.IsTrue(target.Id != Guid.Empty);
-            Assert.IsTrue(target.CreationDate.IsValid());
-        }
-
-        [Test]
-        public void Can_Construct_With_Populated_Constructor()
-        {
-            var id = Guid.NewGuid();
-            var date = DateTime.Now;
-
-            var target = new DistributedEvent(id, date);
-
-            Assert.IsNotNull(target);
-            Assert.IsNotNull(target.Id);
-            Assert.IsNotNull(target.CreationDate);
-            Assert.IsTrue(target.Id == id);
-            Assert.IsTrue(target.CreationDate.IsValid());
-            Assert.IsTrue(target.CreationDate == date);
-        }
-
-        [Test]
-        public void Implements_IDistributedEvent()
-        {
-            var target = new DistributedEvent();
-            Assert.That(target is IDistributedEvent);
-        }
     }
 }
