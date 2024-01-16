@@ -69,13 +69,13 @@ namespace RCommon.ApplicationServices.Commands
                 _logger.LogTrace(
                         "Execution command {CommandType} was success: {IsSuccess}",
                         command.GetType().PrettyPrint(),
-                        commandResult.Result?.IsSuccess);
+                        commandResult?.IsSuccess);
             }
 
-            return commandResult.Result;
+            return commandResult;
         }
 
-        private async Task<ICommandResult<TResult>> ExecuteHandlerAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken)
+        private async Task<TResult> ExecuteHandlerAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken)
             where TResult : IExecutionResult
         {
             var commandType = command.GetType();
@@ -100,8 +100,8 @@ namespace RCommon.ApplicationServices.Commands
 
             var commandHandler = commandHandlers.Single();
 
-            var task = (Task<ICommandResult<TResult>>)commandExecutionDetails.Invoker(commandHandler, command, cancellationToken);
-            return await task.ConfigureAwait(false);
+            var task =  (Task<TResult>)commandExecutionDetails.Invoker(commandHandler, command, cancellationToken);
+            return await task;
         }
 
         private class CommandExecutionDetails
@@ -129,7 +129,7 @@ namespace RCommon.ApplicationServices.Commands
                     var commandTypes = commandInterfaceType.GetTypeInfo().GetGenericArguments();
 
                     var commandHandlerType = typeof(ICommandHandler<,>)
-                        .MakeGenericType(commandTypes[0], commandTypes[1], commandTypes[2], commandType);
+                        .MakeGenericType(commandTypes[0], commandType);
 
                     _logger.LogDebug(
                         "Command {CommandType} is resolved by {CommandHandlerType}",

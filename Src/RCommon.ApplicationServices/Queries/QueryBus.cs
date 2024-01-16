@@ -87,7 +87,7 @@ namespace RCommon.ApplicationServices.Queries
                     var queryHandlerType = typeof(IQueryHandler<,>).MakeGenericType(queryType, queryInterfaceType.GetTypeInfo().GetGenericArguments()[0]);
                     var invokeExecuteQueryAsync = ReflectionHelper.CompileMethodInvocation<Func<IQueryHandler, IQuery, CancellationToken, Task>>(
                         queryHandlerType,
-                        "ExecuteQueryAsync",
+                        "HandleAsync",
                         queryType, typeof(CancellationToken));
                     return new CacheItem
                     {

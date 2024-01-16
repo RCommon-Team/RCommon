@@ -115,6 +115,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.EventHandling.Medi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.EventHandling.InMemoryEventBus", "Examples.EventHandling.InMemoryEventBus\Examples.EventHandling.InMemoryEventBus.csproj", "{7462F438-075E-431B-9FC6-5B414E4310AD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CQRS", "CQRS", "{783F8A99-F164-42E3-BD7C-09D432D02DEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.ApplicationServices.CQRS", "Examples.ApplicationServices.CQRS\Examples.ApplicationServices.CQRS.csproj", "{A04DBC88-10E1-4D38-AD59-D2B8F9509EC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -305,6 +309,10 @@ Global
 		{7462F438-075E-431B-9FC6-5B414E4310AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7462F438-075E-431B-9FC6-5B414E4310AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7462F438-075E-431B-9FC6-5B414E4310AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A04DBC88-10E1-4D38-AD59-D2B8F9509EC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A04DBC88-10E1-4D38-AD59-D2B8F9509EC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A04DBC88-10E1-4D38-AD59-D2B8F9509EC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A04DBC88-10E1-4D38-AD59-D2B8F9509EC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -351,6 +359,8 @@ Global
 		{FCC70943-06B2-4743-A99D-82F5122297F3} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
 		{213F2EFE-F1DF-471C-A518-94D107DD543F} = {FCC70943-06B2-4743-A99D-82F5122297F3}
 		{7462F438-075E-431B-9FC6-5B414E4310AD} = {FCC70943-06B2-4743-A99D-82F5122297F3}
+		{783F8A99-F164-42E3-BD7C-09D432D02DEE} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
+		{A04DBC88-10E1-4D38-AD59-D2B8F9509EC3} = {783F8A99-F164-42E3-BD7C-09D432D02DEE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

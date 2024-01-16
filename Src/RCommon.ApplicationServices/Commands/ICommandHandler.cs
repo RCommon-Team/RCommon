@@ -14,7 +14,7 @@ namespace RCommon.ApplicationServices.Commands
 
     /// <summary>Handles commands of specified type.</summary>
     /// <typeparam name="TCommand">Handled command type.</typeparam>
-    public interface ICommandHandler<in TCommand>
+    public interface ICommandHandler<in TCommand> : ICommandHandler
          where TCommand: ICommand
     {
         Task HandleAsync(TCommand command, CancellationToken cancellationToken);
@@ -23,7 +23,7 @@ namespace RCommon.ApplicationServices.Commands
     /// <summary>Handles returning commands of specified type.</summary>
     /// <typeparam name="TCommand">Handled command type.</typeparam>
     /// <typeparam name="TResult">Command result type.</typeparam>
-    public interface ICommandHandler<TResult, in TCommand>
+    public interface ICommandHandler<TResult, in TCommand> : ICommandHandler
         where TCommand : ICommand<TResult>
         where TResult : IExecutionResult
     {
