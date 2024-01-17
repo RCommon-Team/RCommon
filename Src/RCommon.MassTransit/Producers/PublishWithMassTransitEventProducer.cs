@@ -11,17 +11,19 @@ namespace RCommon.MassTransit.Producers
 {
     public class PublishWithMassTransitEventProducer : IEventProducer
     {
-        private readonly IPublishEndpoint _publishEndpoint;
+        //private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IBus _bus;
 
-        public PublishWithMassTransitEventProducer(IPublishEndpoint publishEndpoint)
+        public PublishWithMassTransitEventProducer(IBus bus)
         {
-            _publishEndpoint = publishEndpoint;
+           // _publishEndpoint = publishEndpoint;
+            _bus = bus;
         }
 
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent
         {
             Console.WriteLine("{0} publishing event {1} to MassTransit", new object[] { this.GetGenericTypeName(), @event });
-            await _publishEndpoint.Publish(@event, cancellationToken);
+            await _bus.Publish(@event, cancellationToken);
         }
     }
 }

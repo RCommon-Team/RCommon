@@ -18,7 +18,7 @@ namespace RCommon.MassTransit
             :base(builder.Services)
         {
             Services = builder.Services;
-            Services.AddTransient(typeof(IMassTransitEventHandler<>), typeof(MassTransitEventHandler<>));
+            
         }
 
         public IServiceCollection Services { get; }

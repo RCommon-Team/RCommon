@@ -1,7 +1,12 @@
 ﻿using MassTransit;
+using MassTransit.Configuration;
+using MassTransit.DependencyInjection;
+using MassTransit.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
 using RCommon.EventHandling.Subscribers;
@@ -17,6 +22,47 @@ namespace RCommon
 {
     public static class MassTransitEventHandlingBuilderExtensions
     {
+        /// <summary>
+        /// Adds MassTransit and its dependencies to the <paramref name="builder" />, and allows consumers, sagas, and activities to be configured
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configure"></param>
+        private static IServiceCollection AddMassTransit(this IRCommonBuilder builder, Action<IMassTransitEventHandlingBuilder> configure = null)
+        {
+            if (builder.Services.Any(d => d.ServiceType == typeof(IBus)))
+            {
+                throw new ConfigurationException(
+                    "AddMassTransit() was already called and may only be called once per container. To configure additional bus instances, refer to the documentation: https://masstransit-project.com/usage/containers/multibus.html");
+            }
+
+            AddHostedService(builder.Services);
+            AddInstrumentation(builder.Services);
+            
+            var configurator = new MassTransitEventHandlingBuilder(builder);
+            configure?.Invoke(configurator);
+            configurator.Complete();
+
+            return builder.Services;
+        }
+
+        private static void AddHostedService(IServiceCollection collection)
+        {
+            collection.AddOptions();
+            collection.AddHealthChecks();
+            collection.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<HealthCheckServiceOptions>, ConfigureBusHealthCheckServiceOptions>());
+
+            collection.AddOptions<MassTransitHostOptions>();
+            collection.TryAddSingleton<IValidateOptions<MassTransitHostOptions>, ValidateMassTransitHostOptions>();
+            collection.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MassTransitHostedService>());
+        }
+
+        private static void AddInstrumentation(IServiceCollection collection)
+        {
+            collection.AddOptions<InstrumentationOptions>();
+            collection.AddSingleton<IConfigureOptions<InstrumentationOptions>, ConfigureDefaultInstrumentationOptions>();
+        }
+
+
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder)
             where T : IMassTransitEventHandlingBuilder
         {
@@ -27,15 +73,11 @@ namespace RCommon
             where T : IMassTransitEventHandlingBuilder
         {
             
-            // Event Bus
-            builder.Services.AddSingleton<IEventBus, InMemoryEventBus>();
-            
-            var massTransit = actions as Action<IBusRegistrationConfigurator>;
-            builder.Services.AddMassTransit(massTransit);
+            // MassTransit Event Bus
+            builder.Services.AddTransient(typeof(IMassTransitEventHandler<>), typeof(MassTransitEventHandler<>));
+            builder.Services.AddTransient(typeof(MassTransitEventHandler<>));
+            builder.AddMassTransit(actions);
 
-            // Event Handling Configurations 
-            var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
-            actions(eventHandlingConfig);
             return builder;
         }
 
@@ -43,7 +85,7 @@ namespace RCommon
             where TEvent : class, ISerializableEvent
             where TEventHandler : class, ISubscriber<TEvent>
         {
-            builder.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
+            builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
             builder.AddConsumer<MassTransitEventHandler<TEvent>>();
         }
 

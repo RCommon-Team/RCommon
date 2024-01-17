@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
+    <ProjectReference Include="..\..\..\Src\RCommon.EventHandling\RCommon.EventHandling.csproj" />
   </ItemGroup>
 
 </Project>

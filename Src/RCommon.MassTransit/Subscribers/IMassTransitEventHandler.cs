@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.MassTransit.Subscribers
 {
-    public interface IMassTransitEventHandler : IConsumer
+    public interface IMassTransitEventHandler
     {
     }
 
-    public interface IMassTransitEventHandler<in TDistributedEvent> : IMassTransitEventHandler, IConsumer<TDistributedEvent>, IConsumer 
+    public interface IMassTransitEventHandler<in TDistributedEvent> : IMassTransitEventHandler, IConsumer<TDistributedEvent> 
         where TDistributedEvent : class, ISerializableEvent
     {
     }

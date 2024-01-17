@@ -45,7 +45,6 @@ try
         Console.WriteLine($"Producer: {producer}");
         await producer.ProduceEventAsync(testEvent);
     }
-
     Console.WriteLine("Example Complete");
     Console.ReadLine();
 }
