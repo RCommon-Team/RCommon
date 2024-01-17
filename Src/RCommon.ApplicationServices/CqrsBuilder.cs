@@ -13,10 +13,10 @@ namespace RCommon.ApplicationServices
 {
     public class CqrsBuilder : ICqrsBuilder
     {
-        public CqrsBuilder(IServiceCollection services)
+        public CqrsBuilder(IRCommonBuilder builder)
         {
-            Services = services;
-            this.RegisterServices(services);
+            Services = builder.Services;
+            this.RegisterServices(Services);
         }
 
         protected void RegisterServices(IServiceCollection services)

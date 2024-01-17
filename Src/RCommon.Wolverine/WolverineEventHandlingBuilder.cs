@@ -8,17 +8,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.Wolverine
 {
-    public class WolverineEventHandlingBuilder : IEventHandlingBuilder
+    public class WolverineEventHandlingBuilder : IWolverineEventHandlingBuilder
     {
-        public WolverineEventHandlingBuilder(IServiceCollection services)
+        public WolverineEventHandlingBuilder(IRCommonBuilder builder)
         {
-            Services = services;
-            this.RegisterServices(services);
-        }
-
-        protected void RegisterServices(IServiceCollection services)
-        {
-            
+            Services = builder.Services;
         }
 
         public IServiceCollection Services { get; }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
 using RCommon.EventHandling.Subscribers;
+using RCommon.Wolverine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,42 +22,19 @@ namespace RCommon
             return config;
         }
 
-        public static void AddProducer<T>(this IEventHandlingBuilder config)
-            where T : class, IEventProducer
-        {
-            config.Services.TryAddSingleton<IEventProducer, T>();
-        }
-
-        public static void AddProducer<T>(this IEventHandlingBuilder config, Func<IServiceProvider, T> getProducer)
-            where T : class, IEventProducer
-        {
-            config.Services.TryAddSingleton(getProducer);
-        }
-
-        public static void AddProducer<T>(this IEventHandlingBuilder config, T producer)
-            where T : class, IEventProducer
-        {
-            config.Services.TryAddSingleton(producer);
-            config.Services.TryAddSingleton<IEventProducer>(sp => sp.GetRequiredService<T>());
-
-            if (producer is IHostedService service)
-            {
-                config.Services.TryAddSingleton(service);
-            }
-        }
-
-        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder config)
+        
+        public static void AddSubscriber<TEvent, TEventHandler>(this IWolverineEventHandlingBuilder builder)
             where TEvent : class
             where TEventHandler : class, ISubscriber<TEvent>
         {
-            config.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
+            builder.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
         }
 
-        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder config, Func<IServiceProvider, TEventHandler> getSubscriber)
+        public static void AddSubscriber<TEvent, TEventHandler>(this IWolverineEventHandlingBuilder builder, Func<IServiceProvider, TEventHandler> getSubscriber)
             where TEvent : class
             where TEventHandler : class, ISubscriber<TEvent>
         {
-            config.Services.TryAddScoped(getSubscriber);
+            builder.Services.TryAddScoped(getSubscriber);
         }
     }
 }

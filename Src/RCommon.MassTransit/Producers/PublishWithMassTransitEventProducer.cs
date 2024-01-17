@@ -20,6 +20,7 @@ namespace RCommon.MassTransit.Producers
 
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent
         {
+            Console.WriteLine("{0} publishing event {1} to MassTransit", new object[] { this.GetGenericTypeName(), @event });
             await _publishEndpoint.Publish(@event, cancellationToken);
         }
     }

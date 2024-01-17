@@ -14,61 +14,61 @@ namespace RCommon.EventHandling
 {
     public static class EventHandlingBuilderExtensions
     {
-        public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder config)
+        public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder)
             where T : IEventHandlingBuilder
         {
-            return WithEventHandling<T>(config, x => { });
+            return WithEventHandling<T>(builder, x => { });
         }
 
-        public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder config, Action<T> actions)
+        public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<T> actions)
             where T : IEventHandlingBuilder
         {
 
             // Event Bus
-            config.Services.AddSingleton<IEventBus, InMemoryEventBus>();
+            builder.Services.AddSingleton<IEventBus, InMemoryEventBus>();
 
             // Event Handling Configurations 
-            var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { config.Services });
+            var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
             actions(eventHandlingConfig);
-            return config;
+            return builder;
         }
 
-        public static void AddProducer<T>(this IEventHandlingBuilder config) 
+        public static void AddProducer<T>(this IEventHandlingBuilder builder) 
             where T : class, IEventProducer
         {
-            config.Services.TryAddSingleton<IEventProducer, T>();
+            builder.Services.TryAddSingleton<IEventProducer, T>();
         }
 
-        public static void AddProducer<T>(this IEventHandlingBuilder config, Func<IServiceProvider, T> getProducer) 
+        public static void AddProducer<T>(this IEventHandlingBuilder builder, Func<IServiceProvider, T> getProducer) 
             where T : class, IEventProducer
         {
-            config.Services.TryAddSingleton(getProducer);
+            builder.Services.TryAddSingleton(getProducer);
         }
 
-        public static void AddProducer<T>(this IEventHandlingBuilder config, T producer)
+        public static void AddProducer<T>(this IEventHandlingBuilder builder, T producer)
             where T : class, IEventProducer
         {
-            config.Services.TryAddSingleton(producer);
-            config.Services.TryAddSingleton<IEventProducer>(sp => sp.GetRequiredService<T>());
+            builder.Services.TryAddSingleton(producer);
+            builder.Services.TryAddSingleton<IEventProducer>(sp => sp.GetRequiredService<T>());
 
             if (producer is IHostedService service)
             {
-                config.Services.TryAddSingleton(service);
+                builder.Services.TryAddSingleton(service);
             }
         }
 
-        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder config)
+        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder builder)
             where TEvent : class
             where TEventHandler : class, ISubscriber<TEvent>
         {
-            config.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
+            builder.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
         }
 
-        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder config, Func<IServiceProvider, TEventHandler> getSubscriber)
+        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder builder, Func<IServiceProvider, TEventHandler> getSubscriber)
             where TEvent : class
             where TEventHandler : class, ISubscriber<TEvent>
         {
-            config.Services.TryAddScoped(getSubscriber);
+            builder.Services.TryAddScoped(getSubscriber);
         }
     }
 }

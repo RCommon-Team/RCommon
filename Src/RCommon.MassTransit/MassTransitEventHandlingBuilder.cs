@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MassTransit;
+using MassTransit.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using RCommon.EventHandling;
+using RCommon.MassTransit.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,17 +11,14 @@ using System.Threading.Tasks;
 
 namespace RCommon.MassTransit
 {
-    public class MassTransitEventHandlingBuilder : IEventHandlingBuilder
+    public class MassTransitEventHandlingBuilder : ServiceCollectionBusConfigurator, IMassTransitEventHandlingBuilder
     {
-        public MassTransitEventHandlingBuilder(IServiceCollection services)
-        {
-            Services = services;
-            this.RegisterServices(services);
-        }
 
-        protected void RegisterServices(IServiceCollection services)
+        public MassTransitEventHandlingBuilder(IRCommonBuilder builder)
+            :base(builder.Services)
         {
-
+            Services = builder.Services;
+            Services.AddTransient(typeof(IMassTransitEventHandler<>), typeof(MassTransitEventHandler<>));
         }
 
         public IServiceCollection Services { get; }
