@@ -24,7 +24,7 @@ namespace RCommon
         {
 
             // Event Handling Configurations 
-            var cqrsBuilder = (T)Activator.CreateInstance(typeof(T), new object[] { builder.Services });
+            var cqrsBuilder = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
             actions(cqrsBuilder);
             return cqrsBuilder;
         }

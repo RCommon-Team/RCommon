@@ -1,13 +1,10 @@
-﻿using Examples.Messaging.MassTransit;
-using MassTransit;
+﻿using Examples.EventHandling.InMemoryEventBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
-using RCommon.MassTransit;
-using RCommon.MassTransit.Producers;
 using System.Diagnostics;
 
 try
@@ -23,14 +20,9 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+                        .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
                         {
-                            eventHandling.UsingInMemory((context, cfg) =>
-                            {
-                                cfg.ConfigureEndpoints(context);
-                            });
-
-                            eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+                            eventHandling.AddProducer<PublishWithEventBusEventProducer>();
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
                         });
 
@@ -45,6 +37,7 @@ try
         Console.WriteLine($"Producer: {producer}");
         await producer.ProduceEventAsync(testEvent);
     }
+
     Console.WriteLine("Example Complete");
     Console.ReadLine();
 }

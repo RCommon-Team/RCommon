@@ -35,7 +35,6 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
     <ProjectReference Include="..\RCommon.Mediator\RCommon.Mediator.csproj" />
-    <ProjectReference Include="..\RCommon.Messaging\RCommon.Messaging.csproj" />
     <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
   </ItemGroup>
 

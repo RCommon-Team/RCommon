@@ -30,7 +30,6 @@
     <ProjectReference Include="..\..\Src\RCommon.MassTransit\RCommon.MassTransit.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Mediator\RCommon.Mediator.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Mediatr\RCommon.MediatR.csproj" />
-    <ProjectReference Include="..\..\Src\RCommon.Messaging\RCommon.Messaging.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Models\RCommon.Models.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Persistence\RCommon.Persistence.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Security\RCommon.Security.csproj" />

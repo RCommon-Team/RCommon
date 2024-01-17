@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.Messaging\RCommon.Messaging.csproj" />
+    <ProjectReference Include="..\RCommon.EventHandling\RCommon.EventHandling.csproj" />
   </ItemGroup>
 
 </Project>

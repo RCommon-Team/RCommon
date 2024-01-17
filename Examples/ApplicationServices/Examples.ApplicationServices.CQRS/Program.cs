@@ -1,11 +1,10 @@
-﻿using Examples.Messaging.Wolverine;
+﻿using Examples.ApplicationServices.CQRS;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
-using RCommon.EventHandling;
-using RCommon.EventHandling.Producers;
-using RCommon.Wolverine.Producers;
+using RCommon.ApplicationServices;
+using RCommon.ApplicationServices.ExecutionResults;
 using System.Diagnostics;
 
 try
@@ -21,23 +20,24 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+                        .WithCQRS<CqrsBuilder>(builder =>
                         {
-                            eventHandling.AddProducer<PublishWithWolverineEventProducer>();
-                            eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+                            builder.AddQueryHandler<TestQueryHandler, TestQuery, TestDto>();
+                            builder.AddCommandHandler<TestCommandHandler, TestCommand, IExecutionResult>();
                         });
+
+                    services.AddTransient<ITestApplicationService, TestApplicationService>();
 
                 }).Build();
 
     Console.WriteLine("Example Starting");
-    var eventProducers = host.Services.GetServices<IEventProducer>();
-    var testEvent = new TestEvent(DateTime.Now, Guid.NewGuid());
 
-    foreach (var producer in eventProducers)
-    {
-        Console.WriteLine($"Producer: {producer}");
-        await producer.ProduceEventAsync(testEvent);
-    }
+    var appService = host.Services.GetRequiredService<ITestApplicationService>();
+    var commandResult = await appService.ExecuteTestCommand(new TestCommand());
+    var queryResult = await appService.ExecuteTestQuery(new TestQuery());
+
+    Console.WriteLine(commandResult.ToString());
+    Console.WriteLine(queryResult.Message);
 
     Console.WriteLine("Example Complete");
     Console.ReadLine();

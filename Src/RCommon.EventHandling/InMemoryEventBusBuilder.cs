@@ -10,20 +10,15 @@ namespace RCommon.EventHandling
     public class InMemoryEventBusBuilder : IEventHandlingBuilder
     {
 
-        public InMemoryEventBusBuilder(IServiceCollection services)
+        public InMemoryEventBusBuilder(IRCommonBuilder builder)
         {
-            Services = services;
-            services.AddSingleton<IEventBus>(sp =>
-            {
-                this.RegisterServices(this.Services);
-                return new InMemoryEventBus(sp, services);
-            });
-            
-        }
+            Services = builder.Services;
 
-        protected void RegisterServices(IServiceCollection services)
-        {
-            
+            builder.Services.AddSingleton<IEventBus>(sp =>
+            {
+                return new InMemoryEventBus(sp, builder.Services);
+            });
+
         }
 
         public IServiceCollection Services { get; }
