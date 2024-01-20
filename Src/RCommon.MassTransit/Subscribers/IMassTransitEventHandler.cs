@@ -12,7 +12,7 @@ namespace RCommon.MassTransit.Subscribers
     {
     }
 
-    public interface IMassTransitEventHandler<in TDistributedEvent> : IMassTransitEventHandler, IConsumer<TDistributedEvent> 
+    public interface IMassTransitEventHandler<in TDistributedEvent> : IMassTransitEventHandler 
         where TDistributedEvent : class, ISerializableEvent
     {
     }
