@@ -16,11 +16,6 @@ namespace RCommon
 {
     public static class WolverineEventHandlingBuilderExtensions
     {
-        public static IRCommonBuilder WithWolverine(this IRCommonBuilder config, Action<WolverineOptions> options)
-        {
-            //config.Services.AddScoped<ISerializableEventPublisher, WolverineEventPublisher>();
-            return config;
-        }
 
         
         public static void AddSubscriber<TEvent, TEventHandler>(this IWolverineEventHandlingBuilder builder)

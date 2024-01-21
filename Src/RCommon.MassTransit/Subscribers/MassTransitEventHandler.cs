@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.MassTransit.Subscribers
 {
-    public class MassTransitEventHandler<TEvent> : IMassTransitEventHandler<TEvent>
+    public class MassTransitEventHandler<TEvent> : IMassTransitEventHandler<TEvent>, IConsumer<TEvent>
         where TEvent : class, ISerializableEvent
     {
         private readonly ISubscriber<TEvent> _subscriber;

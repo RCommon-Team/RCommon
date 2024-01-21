@@ -7,27 +7,34 @@ using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
 using RCommon.Wolverine.Producers;
 using System.Diagnostics;
+using Wolverine;
 
 try
 {
     var host = Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((context, builder) =>
-                {
+        .UseWolverine(options =>
+        {
+            options.LocalQueue("test");
+        })
+        .ConfigureAppConfiguration((context, builder) =>
+        {
 
-                    ConfigurationContainer.Configuration = builder
-                        .Build();
-                })
-                .ConfigureServices(services =>
+            ConfigurationContainer.Configuration = builder
+                .Build();
+        })
+        .ConfigureServices(services =>
+        {
+            // Configure RCommon
+            services.AddRCommon()
+                .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
                 {
-                    // Configure RCommon
-                    services.AddRCommon()
-                        .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
-                        {
-                            eventHandling.AddProducer<PublishWithWolverineEventProducer>();
-                            eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
-                        });
+                    eventHandling.AddProducer<PublishWithWolverineEventProducer>();
+                    eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+                });
 
-                }).Build();
+        }).Build();
+
+    await host.StartAsync();
 
     Console.WriteLine("Example Starting");
     var eventProducers = host.Services.GetServices<IEventProducer>();
