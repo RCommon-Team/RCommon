@@ -119,6 +119,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.EventHandling.InMe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.ApplicationServices.CQRS", "ApplicationServices\Examples.ApplicationServices.CQRS\Examples.ApplicationServices.CQRS.csproj", "{CEAA39C2-249C-44D0-94CF-8342CB35811D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.EventFlow", "..\Src\RCommon.EventFlow\RCommon.EventFlow.csproj", "{49CDE523-169D-4B62-9AA3-28D21E769526}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -305,6 +307,10 @@ Global
 		{CEAA39C2-249C-44D0-94CF-8342CB35811D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEAA39C2-249C-44D0-94CF-8342CB35811D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEAA39C2-249C-44D0-94CF-8342CB35811D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49CDE523-169D-4B62-9AA3-28D21E769526}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49CDE523-169D-4B62-9AA3-28D21E769526}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49CDE523-169D-4B62-9AA3-28D21E769526}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49CDE523-169D-4B62-9AA3-28D21E769526}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -353,6 +359,7 @@ Global
 		{783F8A99-F164-42E3-BD7C-09D432D02DEE} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
 		{86CE6DBE-418E-440B-9C27-58B00AFB2FCA} = {FCC70943-06B2-4743-A99D-82F5122297F3}
 		{CEAA39C2-249C-44D0-94CF-8342CB35811D} = {783F8A99-F164-42E3-BD7C-09D432D02DEE}
+		{49CDE523-169D-4B62-9AA3-28D21E769526} = {3199F749-0082-41D0-91D3-ECED117F8B08}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}
