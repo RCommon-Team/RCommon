@@ -11,7 +11,7 @@
 	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
 	  <PackageIcon>rcommon-icon.png</PackageIcon>
 	  <PackageTags>RCommon, language extensions, generic factories, abstractions, c#, .NET</PackageTags>
-	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
 	  <FileVersion>2.0.0.0</FileVersion>
 	  <PackageIconUrl />
