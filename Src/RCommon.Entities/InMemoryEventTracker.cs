@@ -1,4 +1,5 @@
-﻿using RCommon.Mediator;
+﻿using RCommon.EventHandling.Producers;
+using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,11 +11,11 @@ namespace RCommon.Entities
     public class InMemoryEventTracker : IEventTracker
     {
         private readonly ICollection<IBusinessEntity> _businessEntities = new List<IBusinessEntity>();
-        private readonly IMediatorService _mediatorService;
+        private readonly IEventRouter _eventRouter;
 
-        public InMemoryEventTracker(IMediatorService mediatorService)
+        public InMemoryEventTracker(IEventRouter eventRouter)
         {
-            _mediatorService = mediatorService;
+            this._eventRouter = eventRouter;
         }
 
         public void AddEntity(IBusinessEntity entity)
@@ -36,8 +37,7 @@ namespace RCommon.Entities
             {
                 var entityGraph = entity.TraverseGraphFor<IBusinessEntity>();
                 entityGraph.ForEach(graphEntity =>
-                    graphEntity.LocalEvents.ForEach(localEvent =>
-                        this._mediatorService.Publish(localEvent)));
+                    _eventRouter.RouteEvents(graphEntity.LocalEvents));
             }
             return true;
             
