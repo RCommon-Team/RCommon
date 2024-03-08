@@ -2,8 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using RCommon.Configuration;
-using RCommon.DependencyInjection.Microsoft;
 using RCommon.Emailing;
 using RCommon.Emailing.SendGrid;
 using RCommon.TestBase;
@@ -35,7 +33,7 @@ namespace RCommon.Tests.Application.Services
         protected void InitializeRCommon(IServiceCollection services)
         {
 
-            ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
+            services.AddRCommon()
                 .WithSendGridEmailServices(settings =>
                 {
                     settings.SendGridApiKey = "apiKey";
@@ -79,14 +77,14 @@ namespace RCommon.Tests.Application.Services
             
             mock.Object.SendEmail(message);
 
-            Assert.IsTrue(_emailSent);
+            Assert.That(_emailSent);
 
         }
 
         private void EmailService_EmailSent(object sender, EmailEventArgs e)
         {
-            Assert.IsNotNull(e);
-            Assert.IsTrue(e.MailMessage.Subject == "Test Email");
+            Assert.That(e != null);
+            Assert.That(e.MailMessage.Subject == "Test Email");
             _emailSent = true;
         }
 
@@ -111,7 +109,7 @@ namespace RCommon.Tests.Application.Services
 
             await mock.Object.SendEmailAsync(message);
 
-            Assert.IsTrue(_emailSent);
+            Assert.That(_emailSent);
         }
 
     }

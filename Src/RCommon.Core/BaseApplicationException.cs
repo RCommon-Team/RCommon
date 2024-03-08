@@ -24,8 +24,6 @@ namespace RCommon
         private string windowsIdentity;
         private DateTime createdDateTime = DateTime.Now;
 
-        //private static ResourceManager resourceManager = new ResourceManager(typeof(BaseApplicationException).Namespace + ".ManagerText", Assembly.GetAssembly(typeof(BaseApplicationException)));
-
         // Collection provided to store any extra information associated with the exception.
         private NameValueCollection additionalInformation = new NameValueCollection();
 
@@ -129,26 +127,6 @@ namespace RCommon
             threadIdentity = info.GetString("threadIdentity");
             windowsIdentity = info.GetString("windowsIdentity");
             additionalInformation = (NameValueCollection)info.GetValue("additionalInformation", typeof(NameValueCollection));
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Override the GetObjectData method to serialize custom values.
-        /// </summary>
-        /// <param name="info">Represents the SerializationInfo of the exception.</param>
-        /// <param name="context">Represents the context information of the exception.</param>
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("machineName", machineName, typeof(string));
-            info.AddValue("createdDateTime", createdDateTime);
-            info.AddValue("appDomainName", appDomainName, typeof(string));
-            info.AddValue("threadIdentity", threadIdentity, typeof(string));
-            info.AddValue("windowsIdentity", windowsIdentity, typeof(string));
-            info.AddValue("additionalInformation", additionalInformation, typeof(NameValueCollection));
-            base.GetObjectData(info, context);
         }
 
         #endregion

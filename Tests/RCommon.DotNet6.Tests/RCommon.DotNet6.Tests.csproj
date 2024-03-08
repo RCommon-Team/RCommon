@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NUnit" Version="4.0.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Authorization.Web\RCommon.Authorization.Web.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Dapper\RCommon.Dapper.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.EfCore\RCommon.EFCore.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Entities\RCommon.Entities.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.EventHandling\RCommon.EventHandling.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Linq2Db\RCommon.Linq2Db.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.MassTransit\RCommon.MassTransit.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Mediator\RCommon.Mediator.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Mediatr\RCommon.MediatR.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Models\RCommon.Models.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Persistence\RCommon.Persistence.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Security\RCommon.Security.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.SendGrid\RCommon.SendGrid.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Web\RCommon.Web.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,5 +1,4 @@
-﻿using RCommon.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,11 +13,11 @@ namespace RCommon
     public static class SecurityConfigurationExtensions
     {
 
-        public static IRCommonConfiguration WithClaimsAndPrincipalAccessor(this IRCommonConfiguration config)
+        public static IRCommonBuilder WithClaimsAndPrincipalAccessor(this IRCommonBuilder config)
         {
-            config.ContainerAdapter.Services.AddTransient<ICurrentPrincipalAccessor, ThreadCurrentPrincipalAccessor>();
-            config.ContainerAdapter.Services.AddTransient<ICurrentClient, CurrentClient>();
-            config.ContainerAdapter.Services.AddTransient<ICurrentUser, CurrentUser>();
+            config.Services.AddTransient<ICurrentPrincipalAccessor, ThreadCurrentPrincipalAccessor>();
+            config.Services.AddTransient<ICurrentClient, CurrentClient>();
+            config.Services.AddTransient<ICurrentUser, CurrentUser>();
             return config;
         }
     }

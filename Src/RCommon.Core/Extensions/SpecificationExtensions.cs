@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace RCommon.Extensions
+namespace RCommon
 {
     ///<summary>
     /// Extension methods for <see cref="ISpecification{T}"/>.

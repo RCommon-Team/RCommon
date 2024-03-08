@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RCommon.Configuration;
-using RCommon.DependencyInjection.Microsoft;
 using RCommon.TestBase;
 using System;
 using System.Collections.Generic;
@@ -25,7 +23,7 @@ namespace RCommon.Security.Tests
 
             base.InitializeBootstrapper(services);
 
-            ConfigureRCommon.Using(new DotNetCoreContainerAdapter(services))
+            services.AddRCommon()
                 .WithClaimsAndPrincipalAccessor();
 
 

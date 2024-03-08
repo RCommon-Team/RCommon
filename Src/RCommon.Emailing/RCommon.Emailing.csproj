@@ -1,20 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
     <Nullable>enable</Nullable>
-	  <Authors>Reactor2, Jason Webb</Authors>
+	  <Authors>Jason Webb</Authors>
 	  <Company>RCommon</Company>
-	  <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+	  <Description>A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
 	  <Copyright></Copyright>
 	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
 	  <PackageIcon>rcommon-icon.png</PackageIcon>
 	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-	  <PackageTags>RCommon, emailing, smtp</PackageTags>
+	  <PackageTags>RCommon, emailing, email abstractions, smtp</PackageTags>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <RepositoryType>GitHub</RepositoryType>
-	  <Version>1.0.2.1</Version>
+	  <Version>2.0.0.0</Version>
 	  <PackageIconUrl />
 	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
@@ -28,6 +27,10 @@
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
 	</ItemGroup>
 
 </Project>

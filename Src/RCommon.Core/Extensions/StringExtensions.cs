@@ -9,7 +9,7 @@ using RCommon.Util;
 using System.Linq.Expressions;
 using System.Globalization;
 
-namespace RCommon.Extensions
+namespace RCommon
 {
     public static class StringExtension
     {

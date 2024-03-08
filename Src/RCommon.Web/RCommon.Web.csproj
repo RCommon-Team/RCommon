@@ -1,17 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <Company>Reactor2, Jason Webb</Company>
-    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <RepositoryType>GitHub</RepositoryType>
-    <PackageTags>RCommon, Web, Application, Framework</PackageTags>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageIcon>rcommon-icon.png</PackageIcon>
-    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-    <Version>1.0.2.1</Version>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
+	  <Version>2.0.0.0</Version>
+	  <Authors>Jason Webb</Authors>
+	  <Company>RCommon</Company>
+	  <Description>A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+	  <Copyright></Copyright>
+	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+	  <PackageIcon>rcommon-icon.png</PackageIcon>
+	  <PackageTags>RCommon, web extensions, c#, .NET</PackageTags>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
+	  <FileVersion>2.0.0.0</FileVersion>
+	  <PackageIconUrl />
+	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,13 +26,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.27.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.1.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.DataServices\RCommon.DataServices.csproj" />
     <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
   </ItemGroup>
 

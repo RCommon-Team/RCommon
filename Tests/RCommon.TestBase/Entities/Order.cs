@@ -1,6 +1,6 @@
 
 
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -9,9 +9,8 @@ using System.Threading.Tasks;
 namespace RCommon.TestBase.Entities
 {
     // Orders
-    public partial class Order : BusinessEntity
+    public partial class Order : BusinessEntity<int>
     {
-        public int OrderId { get; set; } // OrderID (Primary key)
         public DateTime? OrderDate { get; set; } // OrderDate
         public DateTime? ShipDate { get; set; } // ShipDate
         public int? CustomerId { get; set; } // CustomerId
@@ -37,11 +36,6 @@ namespace RCommon.TestBase.Entities
         }
 
         partial void InitializePartial();
-
-        public override object[] GetKeys()
-        {
-            return new object[] {this.OrderId};
-        }
     }
 
 }

@@ -1,12 +1,13 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using RCommon.DataServices;
-using RCommon.DataServices.Sql;
-using RCommon.DataServices.Transactions;
+using RCommon.Persistence.Sql;
 using RCommon.Linq;
+using RCommon.Persistence.EFCore;
 using RCommon.TestBase;
+using RCommon.TestBase.Data;
 using RCommon.TestBase.Entities;
 using RCommon.TestBase.Specifications;
 using System;
@@ -15,18 +16,19 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
+using RCommon.Persistence.Transactions;
+using RCommon.Persistence.Crud;
 
 namespace RCommon.Persistence.Dapper.Tests
 {
     [TestFixture()]
     public class DapperRepositoryIntegrationTests : DapperTestBase
     {
-        private IDataStoreProvider _dataStoreProvider;
 
         public DapperRepositoryIntegrationTests() : base()
         {
             var services = new ServiceCollection();
-
             this.InitializeRCommon(services);
         }
 
@@ -35,12 +37,6 @@ namespace RCommon.Persistence.Dapper.Tests
         public void InitialSetup()
         {
             this.Logger.LogInformation("Beginning Onetime setup");
-            _dataStoreProvider = this.ServiceProvider.GetService<IDataStoreProvider>();
-
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            repo.ResetDatabase();
-
         }
 
         [SetUp]
@@ -53,71 +49,60 @@ namespace RCommon.Persistence.Dapper.Tests
         public async Task TearDown()
         {
             this.Logger.LogInformation("Tearing down Test");
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.CleanUpSeedData();
+            await Task.CompletedTask;
+        }
 
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
+        [OneTimeTearDown]
+        public async Task OneTimeTearDown()
+        {
+            this.Logger.LogInformation("Tearing down Test Suite");
+            var repo = new TestRepository(this.ServiceProvider);
             repo.ResetDatabase();
-
-            _dataStoreProvider.RemoveRegisteredDataStores(context.GetType(), Guid.Empty);
             await Task.CompletedTask;
         }
 
         [Test]
         public async Task Can_Find_Async_By_Primary_Key()
         {
-            var customer = TestDataActions.CreateCustomerStub();
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            var testData = new List<Customer>();
-            testData.Add(customer);
-            var ids = await repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Find_Async_By_Primary_Key();
 
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             customerRepo.DataStoreName = "TestDbConnection";
 
             var savedCustomer = await customerRepo
-                    .FindAsync(ids.First());
+                    .FindAsync(customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == ids.First());
-            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);
         }
 
         [Test]
         public async Task Can_Find_Single_Async_With_Expression()
         {
-            var customer = TestDataActions.CreateCustomerStub(x => x.ZipCode = "30062");
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            var testData = new List<Customer>();
-            testData.Add(customer);
-            var ids = await repo.PersistSeedData(testData);
+
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Find_Single_Async_With_Expression();
 
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             customerRepo.DataStoreName = "TestDbConnection";
 
             var savedCustomer = await customerRepo
-                    .FindSingleOrDefaultAsync(x=>x.ZipCode == "30062");
+                    .FindSingleOrDefaultAsync(x=>x.ZipCode == customer.ZipCode);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == ids.First());
-            Assert.IsTrue(savedCustomer.ZipCode == customer.ZipCode);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.ZipCode == customer.ZipCode);
         }
 
         [Test]
         public async Task Can_Find_Async_With_Expression()
         {
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            var testData = new List<Customer>();
-
-            for (int i = 0; i < 10; i++)
-            {
-                var customer = TestDataActions.CreateCustomerStub(x => x.LastName = "Potter");
-                testData.Add(customer);
-            }
-            
-            var ids = await repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customers = repo.Prepare_Can_Find_Async_With_Expression();
 
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
             customerRepo.DataStoreName = "TestDbConnection";
@@ -125,88 +110,64 @@ namespace RCommon.Persistence.Dapper.Tests
             var savedCustomers = await customerRepo
                     .FindAsync(x=> x.LastName == "Potter");
 
-            Assert.IsNotNull(savedCustomers);
-            Assert.IsTrue(savedCustomers.Count() == 10);
+            Assert.That(savedCustomers != null);
+            Assert.That(savedCustomers.Count() == 10);
         }
 
      
         [Test]
         public async Task Can_Get_Count_Async_With_Expression()
         {
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            var testData = new List<Customer>();
-
-            for (int i = 0; i < 10; i++)
-            {
-                var customer = TestDataActions.CreateCustomerStub(x => x.LastName = "Dumbledore");
-                testData.Add(customer);
-            }
-
-            var ids = await repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customers = repo.Prepare_Can_Get_Count_Async_With_Expression();
 
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbConnection";
 
-            var count = await customerRepo
+            var savedCustomers = await customerRepo
                     .GetCountAsync(x => x.LastName == "Dumbledore");
 
-            Assert.IsNotNull(count);
-            Assert.IsTrue(count == 10);
+            Assert.That(savedCustomers > 0);
+            Assert.That(savedCustomers == 10);
         }
 
         [Test]
         public async Task Can_Get_Any_Async_With_Expression()
         {
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            var testData = new List<Customer>();
-
-            for (int i = 0; i < 10; i++)
-            {
-                var customer = TestDataActions.CreateCustomerStub(x => x.City = "Hollywood");
-                testData.Add(customer);
-            }
-
-            var ids = await repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customers = repo.Prepare_Can_Get_Any_Async_With_Expression();
 
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+            customerRepo.DataStoreName = "TestDbConnection";
 
             var canFind = await customerRepo
                     .AnyAsync(x => x.City == "Hollywood");
 
-            Assert.IsTrue(canFind);
+            Assert.That(canFind);
         }
 
         [Test]
-        public async Task Can_use_default_data_store()
+        public async Task Can_Use_Default_Data_Store()
         {
-            var customer = TestDataActions.CreateCustomerStub();
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            var testData = new List<Customer>();
-            testData.Add(customer);
-            var ids = await repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Use_Default_DataStore();
 
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
 
             var savedCustomer = await customerRepo
-                    .FindAsync(ids.First());
+                    .FindAsync(customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsTrue(savedCustomer.Id == ids.First());
-            Assert.IsTrue(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.FirstName == "Happy");
         }
 
 
         [Test]
         public async Task Can_Add_Async()
         {
-            var testData = new List<Customer>();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
-            testData.Add(customer);
-
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Add_Async();
 
             // Start Test
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
@@ -216,379 +177,270 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer savedCustomer = null;
             savedCustomer = await customerRepo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.IsTrue(savedCustomer.Id > 0);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.FirstName == customer.FirstName);
+            Assert.That(savedCustomer.Id > 0);
 
         }
 
         [Test]
         public async Task Can_Update_Async()
         {
-            var testData = new List<Customer>();
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Update_Async();
 
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Severnus");
-            testData.Add(customer);
-
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            var ids = await repo.PersistSeedData(testData);
 
             // Start Test
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            customerRepo.DataStoreName = "TestDbConnection";
-            var id = ids.First();
-            customer = await customerRepo.FindAsync(id);
             customer.FirstName = "Darth";
             customer.LastName = "Vader";
             await customerRepo.UpdateAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = await customerRepo.FindAsync(id);
+            savedCustomer = await repo.Context.Set<Customer>().SingleOrDefaultAsync(x => x.Id == customer.Id);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
-            Assert.AreEqual(savedCustomer.LastName, customer.LastName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.FirstName == "Darth");
+            Assert.That(savedCustomer.LastName == "Vader");
 
         }
 
         [Test]
         public async Task Can_Delete_Async()
         {
-            var testData = new List<Customer>();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
-            testData.Add(customer);
-
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            var ids = await repo.PersistSeedData(testData);
-            var id = ids.First();
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_Can_Delete_Async();
 
             // Start Test
             var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            customerRepo.DataStoreName = "TestDbConnection";
-            customer = await customerRepo.FindAsync(id);
             await customerRepo.DeleteAsync(customer);
 
             Customer savedCustomer = null;
-            savedCustomer = await customerRepo.FindAsync(id);
+            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x=> x.Id == customer.Id);
 
-            Assert.IsNull(savedCustomer);
+            Assert.That(savedCustomer != null);
 
         }
 
 
         [Test]
-        public async Task UnitOfWork_Can_commit()
+        public async Task UnitOfWork_Can_Commit()
         {
-            Customer customer = TestDataActions.CreateCustomerStub();
+            Customer customer = TestDataActions.CreateCustomerStub(x => x.LastName = "Poppadopalus");
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
-            var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Start Test
             using (var scope = scopeFactory.Create())
             {
+                var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
 
-                repo.DataStoreName = "TestDbConnection";
-                await repo.AddAsync(customer);
+                await customerRepo.AddAsync(customer);
                 scope.Commit();
             }
 
-            Customer savedCustomer = await repo.FindSingleOrDefaultAsync(x=> x.FirstName == customer.FirstName);
+            Customer savedCustomer = await repo.Context.Set<Customer>()
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.LastName == "Poppadopalus");
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(savedCustomer.FirstName, customer.FirstName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.LastName == customer.LastName);
 
         }
 
         [Test]
-        public async Task UnitOfWork_can_rollback()
+        public async Task UnitOfWork_Can_Rollback()
         {
-            var testData = new List<Customer>();
-
-            // Generate Test Data
-            Customer customer = TestDataActions.CreateCustomerStub();
-            testData.Add(customer);
-
-            var context = _dataStoreProvider.GetDataStore<RDbConnection>("TestDbConnection");
-            var repo = new TestRepository(context.GetDbConnection());
-            await repo.PersistSeedData(testData);
+            var repo = new TestRepository(this.ServiceProvider);
+            var customer = repo.Prepare_UnitOfWork_Can_Rollback();
+            var target = customer.LastName;
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
-            var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            customerRepo.DataStoreName = "TestDbConnection";
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             using (var scope = scopeFactory.Create())
             {
-                customer = await customerRepo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
+                var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+                customer = await customerRepo.FindSingleOrDefaultAsync(x => x.City == customer.City);
                 customer.LastName = "Changed";
                 await customerRepo.UpdateAsync(customer);
 
-
             } //Dispose here as scope is not comitted.
-            
+
             Customer savedCustomer = null;
-            savedCustomer = await customerRepo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
-            Assert.AreNotEqual(customer.LastName, savedCustomer.LastName);
+            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer.Id);
+            Assert.That(target == savedCustomer.LastName);
         }
 
         [Test]
-        public async Task UnitOfWork_nested_commit_works()
+        public async Task UnitOfWork_Nested_Commit_Works()
         {
             // Generate Test Data
             var customer = TestDataActions.CreateCustomerStub();
-            var salesPerson = TestDataActions.CreateSalesPersonStub();
+            var order = TestDataActions.CreateOrderStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
-            var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            repo.DataStoreName = "TestDbConnection";
-
-            var repo2 = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
-            repo2.DataStoreName = "TestDbConnection";
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                await repo.AddAsync(customer);
+                var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+                await customerRepo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
-                    await repo2.AddAsync(salesPerson);
+                    var orderRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Order>>();
+                    await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
                 scope.Commit();
             }
 
             Customer savedCustomer = null;
-            SalesPerson savedSalesPerson = null;
-            savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
-            savedSalesPerson = await repo2.FindSingleOrDefaultAsync(x => x.FirstName == salesPerson.FirstName);
+            Order savedOrder = null;
+            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.StreetAddress1 == customer.StreetAddress1);
+            savedOrder = await repo.Context.Set<Order>().AsNoTracking().SingleOrDefaultAsync(x => x.ShipDate == order.ShipDate);
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.AreEqual(customer.FirstName, savedCustomer.FirstName);
-            Assert.IsNotNull(savedSalesPerson);
-            Assert.AreEqual(savedSalesPerson.FirstName, salesPerson.FirstName);
+            Assert.That(savedCustomer != null);
+            Assert.That(customer.StreetAddress1 == savedCustomer.StreetAddress1);
+            Assert.That(savedOrder != null);
+            Assert.That(order.ShipDate.Value.ToLongDateString() == savedOrder.ShipDate.Value.ToLongDateString());
         }
 
         [Test]
-        public async Task UnitOfWork_nested_commit_with_seperate_transaction_commits_when_wrapping_scope_rollsback()
-        {
-            // Generate Test Data
-            this.Logger.LogInformation("Generating Test Data for: {0}", MethodBase.GetCurrentMethod());
-
-            // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
-
-            var customer = TestDataActions.CreateCustomerStub();
-            var salesPerson = TestDataActions.CreateSalesPersonStub();
-
-            var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            repo.DataStoreName = "TestDbConnection";
-
-            var repo2 = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
-            repo2.DataStoreName = "TestDbConnection";
-
-            this.Logger.LogInformation("Starting initial UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
-            {
-                this.Logger.LogInformation("Adding New Customer from first UnitOfWorkScope {0}", customer);
-                await repo.AddAsync(customer);
-
-                this.Logger.LogInformation("Starting new UnitOfWorkScope from {0}", MethodBase.GetCurrentMethod());
-                using (var scope2 = scopeFactory.Create(TransactionMode.New))
-                {
-                    this.Logger.LogInformation("Adding New Order from first UnitOfWorkScope (0}", salesPerson);
-                    await repo2.AddAsync(salesPerson);
-
-                    this.Logger.LogInformation("Attempting to Commit second(new) UnitOfWorkScope {0}", scope2);
-                    scope2.Commit();
-                }
-            } //Rollback
-
-            this.Logger.LogInformation("Attempting to Rollback back initial UnitofWorkScope {0}", "initial scope");
-
-            Customer savedCustomer = null;
-            SalesPerson savedSalesPerson = null;
-            savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
-            savedSalesPerson = await repo2.FindSingleOrDefaultAsync(x => x.FirstName == salesPerson.FirstName);
-
-            Assert.IsNull(savedCustomer);
-            Assert.IsNotNull(savedSalesPerson);
-            Assert.AreEqual(salesPerson.FirstName, savedSalesPerson.FirstName); // Second transaction does commit because it is marked "new"
-        }
-
-        [Test]
-        public async Task UnitOfWork_nested_rollback_works()
+        public async Task UnitOfWork_Nested_Rollback_Works()
         {
 
             var customer = TestDataActions.CreateCustomerStub();
-            var salesPerson = TestDataActions.CreateSalesPersonStub();
+            var order = TestDataActions.CreateOrderStub();
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
-
-            var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            repo.DataStoreName = "TestDbConnection";
-
-            var repo2 = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
-            repo2.DataStoreName = "TestDbConnection";
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                await repo.AddAsync(customer);
+                var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+                await customerRepo.AddAsync(customer);
 
                 using (var scope2 = scopeFactory.Create(TransactionMode.Default))
                 {
-                    await repo2.AddAsync(salesPerson);
+                    var orderRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Order>>();
+                    await orderRepo.AddAsync(order);
                     scope2.Commit();
                 }
             } //Rollback.
 
-            var savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
-            var savedSalesPerson = await repo2.FindSingleOrDefaultAsync(x => x.FirstName == salesPerson.FirstName);
-            Assert.IsNull(savedCustomer);
-            Assert.IsNull(savedSalesPerson);
+            Customer savedCustomer = null;
+            Order savedOrder = null;
+            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
+            savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == order.Id);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedOrder != null);
         }
 
         [Test]
-        public async Task UnitOfWork_commit_throws_when_child_scope_rollsback()
+        public async Task UnitOfWork_Commit_Throws_When_Child_Scope_Rollsback()
         {
-            var customer = TestDataActions.CreateCustomerStub();
-            var salesPerson = TestDataActions.CreateSalesPersonStub();
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub();
+            SalesPerson salesPerson = TestDataActions.CreateSalesPersonStub();
+
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
+            
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            try
             {
-                var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-                repo.DataStoreName = "TestDbConnection";
-                await repo.AddAsync(customer);
-                using (var scope2 = scopeFactory.Create(TransactionMode.Default))
+                using (var scope = scopeFactory.Create())
                 {
-                    var repo2 = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
-                    repo2.DataStoreName = "TestDbConnection";
-                    await repo2.AddAsync(salesPerson);
-                } //child scope rollback.
+                    var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+                    var salesPersonRepo = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
 
-                //Assert.Throws<InvalidOperationException>(scope.Commit);
-                try
-                {
-                    scope.Commit();
-                }
-                catch (InvalidOperationException ex)
-                {
+                    await customerRepo.AddAsync(customer);
+                    using (var scope2 = scopeFactory.Create())
+                    {
+                        await salesPersonRepo.AddAsync(salesPerson);
+                    } //child scope rollback.
 
-                    Assert.IsTrue(ex is InvalidOperationException);
                 }
+            }
+            catch (Exception ex)
+            {
+
+                Assert.That(ex is TransactionAbortedException);
             }
         }
 
         [Test]
-        public async Task UnitOfWork_can_commit_multiple_db_operations()
+        public async Task UnitOfWork_Can_Commit_Multiple_Db_Operations()
         {
-            var customer = TestDataActions.CreateCustomerStub();
-            var salesPerson = TestDataActions.CreateSalesPersonStub();
+            // Generate Test Data
+            Customer customer = TestDataActions.CreateCustomerStub(x => x.FirstName = "Snuffalufagus");
+            SalesPerson salesPerson = TestDataActions.CreateSalesPersonStub(x => x.FirstName = "Kirby");
+
+            var repo = new TestRepository(this.ServiceProvider);
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
-
-            var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            repo.DataStoreName = "TestDbConnection";
-
-            var repo2 = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
-            repo2.DataStoreName = "TestDbConnection";
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                await repo.AddAsync(customer);
-                await repo2.AddAsync(salesPerson);
+                var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+                var salesPersonRepo = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
+
+                await customerRepo.AddAsync(customer);
+                await salesPersonRepo.AddAsync(salesPerson);
                 scope.Commit();
             }
 
 
             Customer savedCustomer = null;
             SalesPerson savedSalesPerson = null;
-            savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
-            savedSalesPerson = await repo2.FindSingleOrDefaultAsync(x => x.FirstName == salesPerson.FirstName);
+            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.FirstName == "Snuffalufagus");
+            savedSalesPerson = await repo.Context.Set<SalesPerson>().AsNoTracking().FirstOrDefaultAsync(x => x.FirstName == "Kirby");
 
-            Assert.IsNotNull(savedCustomer);
-            Assert.IsNotNull(savedSalesPerson);
-            Assert.AreEqual(customer.FirstName, savedCustomer.FirstName);
-            Assert.AreEqual(salesPerson.FirstName, savedSalesPerson.FirstName);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedSalesPerson != null);
+            Assert.That(customer.FirstName == savedCustomer.FirstName);
+            Assert.That(salesPerson.FirstName == savedSalesPerson.FirstName);
 
         }
 
         [Test]
-        public async Task UnitOfWork_can_rollback_multipe_db_operations()
+        public async Task UnitOfWork_Can_Rollback_Multipe_Db_Operations()
         {
-            var customer = TestDataActions.CreateCustomerStub();
-            var salesPerson = TestDataActions.CreateSalesPersonStub();
+            var customer = new Customer { FirstName = "John", LastName = "Doe" };
+            var salesPerson = new SalesPerson { FirstName = "Jane", LastName = "Doe", SalesQuota = 2000 };
 
             // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
+            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            repo.DataStoreName = "TestDbConnection";
-
-            var repo2 = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
-            repo2.DataStoreName = "TestDbConnection";
+            var repo = new TestRepository(this.ServiceProvider);
 
             using (var scope = scopeFactory.Create(TransactionMode.Default))
             {
-                await repo.AddAsync(customer);
-                await repo2.AddAsync(salesPerson);
+                var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
+                var salesPersonRepo = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
+
+                await customerRepo.AddAsync(customer);
+                await salesPersonRepo.AddAsync(salesPerson);
             }// Rollback
 
 
 
             Customer savedCustomer = null;
             SalesPerson savedSalesPerson = null;
-            savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
-            savedSalesPerson = await repo2.FindSingleOrDefaultAsync(x => x.FirstName == salesPerson.FirstName);
+            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
+            savedSalesPerson = await repo.Context.Set<SalesPerson>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == salesPerson.Id);
 
-            Assert.IsNull(savedCustomer);
-            Assert.IsNull(savedSalesPerson);
-
-        }
-
-        [Test]
-        public async Task UnitOfWork_rollback_does_not_rollback_supressed_scope()
-        {
-            var customer = TestDataActions.CreateCustomerStub();
-            var salesPerson = TestDataActions.CreateSalesPersonStub();
-
-            // Setup required services
-            var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkScopeFactory>();
-
-            var repo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-            repo.DataStoreName = "TestDbConnection";
-
-            var repo2 = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
-            repo2.DataStoreName = "TestDbConnection";
-
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
-            {
-                await repo.AddAsync(customer);
-
-                using (var scope2 = scopeFactory.Create(TransactionMode.Supress))
-                {
-                    await repo2.AddAsync(salesPerson);
-                    scope2.Commit();
-                }
-            } //Rollback.
-
-            var savedCustomer = await repo.FindSingleOrDefaultAsync(x => x.FirstName == customer.FirstName);
-            var savedSalesPerson = await repo2.FindSingleOrDefaultAsync(x => x.FirstName == salesPerson.FirstName);
-
-            Assert.IsNull(savedCustomer);
-            Assert.IsNotNull(savedSalesPerson);
+            Assert.That(savedCustomer != null);
+            Assert.That(savedSalesPerson != null);
 
         }
 

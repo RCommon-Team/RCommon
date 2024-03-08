@@ -1,6 +1,6 @@
 
 
-using RCommon.BusinessEntities;
+using RCommon.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading;

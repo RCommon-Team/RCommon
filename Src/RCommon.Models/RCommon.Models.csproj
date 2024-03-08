@@ -1,23 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageIcon>rcommon-icon.png</PackageIcon>
-    <PackageIconUrl />
-    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <Description>A cohesive set of .NET 7 infrastructure libraries that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-    <Authors>Reactor2, Jason Webb</Authors>
-    <Company>RCommon</Company>
-    <RepositoryType>GitHub</RepositoryType>
-    <PackageTags>RCommon, dto models, model validation, eto, model abstractions, c#, .NET</PackageTags>
-    <Version>1.0.2.1</Version>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+	  <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
+	  <Version>2.0.0.0</Version>
+	  <Authors>Jason Webb</Authors>
+	  <Company>RCommon</Company>
+	  <Description>A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
+	  <Copyright></Copyright>
+	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
+	  <PackageIcon>rcommon-icon.png</PackageIcon>
+	  <PackageTags>RCommon, model helpers, dto, dto conversion, c#, .NET</PackageTags>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
+	  <FileVersion>2.0.0.0</FileVersion>
+	  <PackageIconUrl />
+	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.Validation\RCommon.Validation.csproj" />
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
   </ItemGroup>
 

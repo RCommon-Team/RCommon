@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Data;
 
-namespace RCommon.Extensions
+namespace RCommon
 {
     public static class IDataReaderExtensions
     {
