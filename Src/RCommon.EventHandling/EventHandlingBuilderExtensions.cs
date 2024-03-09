@@ -27,6 +27,9 @@ namespace RCommon.EventHandling
             // Event Bus
             builder.Services.AddSingleton<IEventBus, InMemoryEventBus>();
 
+            // Event Routing
+            builder.Services.AddTransient<IEventRouter, EventRouter>();
+
             // Event Handling Configurations 
             var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
             actions(eventHandlingConfig);

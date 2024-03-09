@@ -111,8 +111,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.EventHandling.Medi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CQRS", "CQRS", "{783F8A99-F164-42E3-BD7C-09D432D02DEE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CQRS", "CQRS", "{D724588A-9236-4175-A337-53C4530CC5A7}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Experimental", "Experimental", "{6509FEEC-F46C-4B03-82D4-8F2D78896160}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.EventHandling.InMemoryEventBus", "EventHandling\Examples.EventHandling.InMemoryEventBus\Examples.EventHandling.InMemoryEventBus.csproj", "{86CE6DBE-418E-440B-9C27-58B00AFB2FCA}"

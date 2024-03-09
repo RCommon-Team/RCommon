@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCommon.Entities;
+using RCommon.EventHandling;
+using RCommon.EventHandling.Producers;
 using RCommon.Persistence;
 using RCommon.Persistence.Transactions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -65,6 +68,7 @@ namespace RCommon
         /// <returns>Updated instance of <see cref="IRCommonBuilder"/>RCommon Configuration</returns>
         private static IRCommonBuilder WithChangeTracking(this IRCommonBuilder config)
         {
+            config.Services.AddTransient<IEventRouter, EventRouter>();
             config.Services.AddScoped<IEventTracker, InMemoryEventTracker>();
             return config;
         }
