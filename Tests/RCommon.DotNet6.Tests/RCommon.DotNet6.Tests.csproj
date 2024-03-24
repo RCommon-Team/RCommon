@@ -25,7 +25,6 @@
     <ProjectReference Include="..\..\Src\RCommon.EfCore\RCommon.EFCore.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Entities\RCommon.Entities.csproj" />
-    <ProjectReference Include="..\..\Src\RCommon.EventHandling\RCommon.EventHandling.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Linq2Db\RCommon.Linq2Db.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.MassTransit\RCommon.MassTransit.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Mediator\RCommon.Mediator.csproj" />

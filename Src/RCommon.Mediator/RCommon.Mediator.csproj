@@ -36,9 +36,8 @@
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
 		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
 	</ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\RCommon.EventHandling\RCommon.EventHandling.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+	</ItemGroup>
 
 </Project>

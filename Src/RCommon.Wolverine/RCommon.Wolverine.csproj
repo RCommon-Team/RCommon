@@ -43,7 +43,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
-    <ProjectReference Include="..\RCommon.EventHandling\RCommon.EventHandling.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using RCommon.Entities;
-using RCommon.Mediator;
 
 namespace RCommon.Persistence.Sql
 {

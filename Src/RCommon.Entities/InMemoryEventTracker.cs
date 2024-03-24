@@ -1,5 +1,4 @@
 ﻿using RCommon.EventHandling.Producers;
-using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
