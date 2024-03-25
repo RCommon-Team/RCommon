@@ -23,7 +23,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RCommon.Entities;
 using RCommon.Persistence;
-using RCommon.Mediator;
 using RCommon.Persistence.EFCore;
 using RCommon.TestBase;
 using RCommon.TestBase.Entities;

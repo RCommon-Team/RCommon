@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using RCommon;
 using RCommon.Entities;
-using RCommon.Mediator;
 using RCommon.Persistence.EFCore;
 using RCommon.Security.Users;
 using System;

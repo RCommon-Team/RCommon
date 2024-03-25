@@ -11,12 +11,10 @@ namespace RCommon.MassTransit.Producers
 {
     public class PublishWithMassTransitEventProducer : IEventProducer
     {
-        //private readonly IPublishEndpoint _publishEndpoint;
         private readonly IBus _bus;
 
         public PublishWithMassTransitEventProducer(IBus bus)
         {
-           // _publishEndpoint = publishEndpoint;
             _bus = bus;
         }
 

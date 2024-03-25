@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
 using RCommon.EventHandling.Subscribers;
 using System;
@@ -10,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RCommon.EventHandling
+namespace RCommon
 {
     public static class EventHandlingBuilderExtensions
     {
@@ -23,13 +24,6 @@ namespace RCommon.EventHandling
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<T> actions)
             where T : IEventHandlingBuilder
         {
-
-            // Event Bus
-            builder.Services.AddSingleton<IEventBus, InMemoryEventBus>();
-
-            // Event Routing
-            builder.Services.AddTransient<IEventRouter, EventRouter>();
-
             // Event Handling Configurations 
             var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
             actions(eventHandlingConfig);

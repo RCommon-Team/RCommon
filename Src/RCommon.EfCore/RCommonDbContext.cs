@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using RCommon.Entities;
 using RCommon.Core.Threading;
 using RCommon.Persistence;
-using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Data;

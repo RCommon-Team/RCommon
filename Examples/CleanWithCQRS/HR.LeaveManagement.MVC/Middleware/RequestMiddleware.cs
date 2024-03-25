@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -39,8 +39,8 @@ namespace HR.LeaveManagement.MVC.Middleware
                     if (tokenExists)
                     {
                         var token = _localStorageService.GetStorageValue<string>("token");
-                        JwtSecurityTokenHandler tokenHandler = new();
-                        var tokenContent = tokenHandler.ReadJwtToken(token);
+                        JsonWebTokenHandler tokenHandler = new();
+                        var tokenContent = tokenHandler.ReadJsonWebToken(token);
                         var expiry = tokenContent.ValidTo;
                         if (expiry < DateTime.UtcNow)
                         {

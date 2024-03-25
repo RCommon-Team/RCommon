@@ -4,7 +4,6 @@ using LinqToDB.Data;
 using Microsoft.Extensions.Options;
 using RCommon.Entities;
 using RCommon.Persistence;
-using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;

@@ -10,13 +10,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="nunit" Version="4.1.0" />
+    <PackageReference Include="NUnit" Version="4.1.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-    <PackageReference Include="NUnit.Analyzers" Version="3.10.0">
+    <PackageReference Include="NUnit.Analyzers" Version="4.1.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="6.0.1">
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -30,7 +30,6 @@
     <ProjectReference Include="..\..\Src\RCommon.EfCore\RCommon.EFCore.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Entities\RCommon.Entities.csproj" />
-    <ProjectReference Include="..\..\Src\RCommon.EventHandling\RCommon.EventHandling.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Linq2Db\RCommon.Linq2Db.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.MassTransit\RCommon.MassTransit.csproj" />
     <ProjectReference Include="..\..\Src\RCommon.Mediator\RCommon.Mediator.csproj" />

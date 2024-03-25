@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -19,7 +19,7 @@ namespace HR.LeaveManagement.MVC.Contracts
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
-        private JwtSecurityTokenHandler _tokenHandler;
+        private JsonWebTokenHandler _tokenHandler;
 
         public AuthenticationService(IClient client, ILocalStorageService localStorage, IHttpContextAccessor httpContextAccessor,
             IMapper mapper)
@@ -27,7 +27,7 @@ namespace HR.LeaveManagement.MVC.Contracts
         {
             this._httpContextAccessor = httpContextAccessor;
             this._mapper = mapper;
-            this._tokenHandler = new JwtSecurityTokenHandler();
+            this._tokenHandler = new JsonWebTokenHandler();
         }
 
         public async Task<bool> Authenticate(string email, string password)
@@ -40,7 +40,7 @@ namespace HR.LeaveManagement.MVC.Contracts
                 if (authenticationResponse.Token != string.Empty)
                 {
                     //Get Claims from token and Build auth user object
-                    var tokenContent = _tokenHandler.ReadJwtToken(authenticationResponse.Token);
+                    var tokenContent = _tokenHandler.ReadJsonWebToken(authenticationResponse.Token);
                     var claims = ParseClaims(tokenContent);
                     var user = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
                     var login = _httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, user);
@@ -76,7 +76,7 @@ namespace HR.LeaveManagement.MVC.Contracts
             await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
-        private IList<Claim> ParseClaims(JwtSecurityToken tokenContent)
+        private IList<Claim> ParseClaims(JsonWebToken tokenContent)
         {
             var claims = tokenContent.Claims.ToList();
             claims.Add(new Claim(ClaimTypes.Name, tokenContent.Subject));

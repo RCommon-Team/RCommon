@@ -33,20 +33,13 @@ try
                             eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
                         });
-
+                    services.AddHostedService<Worker>();
                 }).Build();
 
-    Console.WriteLine("Example Starting");
-    var eventProducers = host.Services.GetServices<IEventProducer>();
-    var testEvent = new TestEvent(DateTime.Now, Guid.NewGuid());
 
-    foreach (var producer in eventProducers)
-    {
-        Console.WriteLine($"Producer: {producer}");
-        await producer.ProduceEventAsync(testEvent);
-    }
-    Console.WriteLine("Example Complete");
-    Console.ReadLine();
+
+
+    await host.RunAsync();
 }
 catch (Exception ex)
 {

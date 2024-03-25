@@ -19,6 +19,7 @@ namespace Examples.Messaging.MassTransit
         public async Task HandleAsync(TestEvent notification, CancellationToken cancellationToken = default)
         {
             Console.WriteLine("I just handled this event {0}", new object[] { notification.ToString() });
+            Console.WriteLine("Example Complete");
             await Task.CompletedTask;
         }
     }
