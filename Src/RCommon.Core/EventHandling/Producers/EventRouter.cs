@@ -15,12 +15,9 @@ namespace RCommon.EventHandling.Producers
     {
         private readonly IServiceProvider _serviceProvider;
 
-        //private readonly IEventProducerRegistry _eventProducerRegistry;
-
         public EventRouter(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
-            //_eventProducerRegistry = eventProducerRegistry ?? throw new ArgumentNullException(nameof(eventProducerRegistry));
         }
 
         public async Task RouteEvents(IEnumerable<ISerializableEvent> localEvents)

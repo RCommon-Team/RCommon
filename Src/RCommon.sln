@@ -71,8 +71,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.Wolverine", "RCommo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Event Handling", "Event Handling", "{6D73446A-6E32-4324-B524-E054334B394B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.EventHandling", "RCommon.EventHandling\RCommon.EventHandling.csproj", "{ACD50AC9-613C-4DAD-8576-440CB85159BC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -179,10 +177,6 @@ Global
 		{397769BB-08F3-44DE-9BE6-90A73E0ABB76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{397769BB-08F3-44DE-9BE6-90A73E0ABB76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{397769BB-08F3-44DE-9BE6-90A73E0ABB76}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ACD50AC9-613C-4DAD-8576-440CB85159BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ACD50AC9-613C-4DAD-8576-440CB85159BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ACD50AC9-613C-4DAD-8576-440CB85159BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ACD50AC9-613C-4DAD-8576-440CB85159BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -210,7 +204,6 @@ Global
 		{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D} = {EF78B8EE-80FF-45DE-9B82-352953B361A8}
 		{FC484848-D719-4AAD-91B0-EDDC434F946E} = {EF78B8EE-80FF-45DE-9B82-352953B361A8}
 		{397769BB-08F3-44DE-9BE6-90A73E0ABB76} = {6D73446A-6E32-4324-B524-E054334B394B}
-		{ACD50AC9-613C-4DAD-8576-440CB85159BC} = {6D73446A-6E32-4324-B524-E054334B394B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

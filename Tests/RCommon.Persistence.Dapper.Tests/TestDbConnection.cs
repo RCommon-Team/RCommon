@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using RCommon.Entities;
 using RCommon.Persistence.Sql;
-using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Text;

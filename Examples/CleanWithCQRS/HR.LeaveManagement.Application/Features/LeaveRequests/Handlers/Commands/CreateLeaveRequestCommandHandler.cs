@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using HR.LeaveManagement.Application.Models;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using HR.LeaveManagement.Application.Constants;
 using RCommon.Persistence;
 using RCommon.Security.Users;

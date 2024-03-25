@@ -3,7 +3,6 @@ using HR.LeaveManagement.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using RCommon;
 using RCommon.Entities;
-using RCommon.Mediator;
 using RCommon.Security.Users;
 using System;
 using System.Collections.Generic;

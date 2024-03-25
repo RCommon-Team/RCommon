@@ -93,8 +93,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Messaging.MassTran
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Messaging.Wolverine", "Messaging\Samples.Messaging.WolverineRabbitMq\Examples.Messaging.Wolverine.csproj", "{B792333E-245B-48F0-A88E-F36EEF1F7C11}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.EventHandling", "..\Src\RCommon.EventHandling\RCommon.EventHandling.csproj", "{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{3199F749-0082-41D0-91D3-ECED117F8B08}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.DotNet6.Tests", "..\Tests\RCommon.DotNet6.Tests\RCommon.DotNet6.Tests.csproj", "{B93C2373-7ADD-4D1F-B8CB-8FF32EAF364E}"
@@ -271,10 +269,6 @@ Global
 		{B792333E-245B-48F0-A88E-F36EEF1F7C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B792333E-245B-48F0-A88E-F36EEF1F7C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B792333E-245B-48F0-A88E-F36EEF1F7C11}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8D143FCC-AD56-4CE7-9AFA-24144BFF1C56}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B93C2373-7ADD-4D1F-B8CB-8FF32EAF364E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B93C2373-7ADD-4D1F-B8CB-8FF32EAF364E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B93C2373-7ADD-4D1F-B8CB-8FF32EAF364E}.Release|Any CPU.ActiveCfg = Release|Any CPU

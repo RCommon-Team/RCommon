@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using RCommon.EventHandling;
+using RCommon.EventHandling.Producers;
 
 namespace RCommon
 {
@@ -18,6 +20,10 @@ namespace RCommon
         {
             Guard.Against<NullReferenceException>(services == null, "IServiceCollection cannot be null");
             Services = services;
+
+            // Event Bus
+            Services.AddSingleton<IEventBus, InMemoryEventBus>(); // Set up default event bus
+            Services.AddSingleton<IEventRouter, EventRouter>();
         }
 
         public IRCommonBuilder WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)

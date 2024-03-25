@@ -2,7 +2,6 @@
 using LinqToDB.Configuration;
 using Microsoft.Extensions.Options;
 using RCommon.Entities;
-using RCommon.Mediator;
 using RCommon.TestBase.Entities;
 using System;
 using System.Collections.Generic;
