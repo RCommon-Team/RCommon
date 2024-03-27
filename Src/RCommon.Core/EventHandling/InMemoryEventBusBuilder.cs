@@ -14,10 +14,10 @@ namespace RCommon.EventHandling
         {
             Services = builder.Services;
 
-            builder.Services.AddSingleton<IEventBus>(sp =>
+            /*builder.Services.AddSingleton<IEventBus>(sp =>
             {
                 return new InMemoryEventBus(sp, builder.Services);
-            });
+            });*/
 
         }
 

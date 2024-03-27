@@ -13,9 +13,9 @@ namespace RCommon.Persistence.Sql
     public class RDbConnection : DisposableResource, IRDbConnection
     {
         private readonly IOptions<RDbConnectionOptions> _options;
-        private readonly IEventTracker _eventTracker;
+        private readonly IEntityEventTracker _eventTracker;
 
-        public RDbConnection(IOptions<RDbConnectionOptions> options, IEventTracker eventTracker)
+        public RDbConnection(IOptions<RDbConnectionOptions> options, IEntityEventTracker eventTracker)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             this._eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));

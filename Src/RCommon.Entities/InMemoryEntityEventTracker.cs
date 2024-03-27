@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities
 {
-    public class InMemoryEventTracker : IEventTracker
+    public class InMemoryEntityEventTracker : IEntityEventTracker
     {
         private readonly ICollection<IBusinessEntity> _businessEntities = new List<IBusinessEntity>();
         private readonly IEventRouter _eventRouter;
 
-        public InMemoryEventTracker(IEventRouter eventRouter)
+        public InMemoryEntityEventTracker(IEventRouter eventRouter)
         {
             this._eventRouter = eventRouter;
         }
@@ -30,13 +30,16 @@ namespace RCommon.Entities
 
         public ICollection<IBusinessEntity> TrackedEntities { get => _businessEntities; }
 
-        public bool PublishLocalEvents()
+        public async Task<bool> PublishLocalEvents()
         {
             foreach (var entity in this._businessEntities)
             {
                 var entityGraph = entity.TraverseGraphFor<IBusinessEntity>();
-                entityGraph.ForEach(graphEntity =>
-                    _eventRouter.RouteEvents(graphEntity.LocalEvents));
+
+                foreach (var graphEntity in entityGraph)
+                {
+                    await _eventRouter.RouteEvents(graphEntity.LocalEvents);
+                }
             }
             return true;
             
