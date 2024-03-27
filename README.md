@@ -9,5 +9,22 @@ RCommon is a cohesive set of libraries with abstractions for widely used impleme
 
 We track bugs, enhancement requests, new feature requests, and general issues on [GitHub Issues](https://github.com/Reactor2Team/RCommon/issues "GitHub Issues") and are very responsive. General "how to" and community support should be managed on [Stack Overflow](https://stackoverflow.com/questions/tagged/rcommon "Stack Overflow"). 
 
+## Patterns & Abstractions Utilized
+* Specification
+* Command Query Responsbility Segregation (CQRS)
+* Repository
+* Unit Of Work
+* Event Sourcing (Coming Soon)
+* Event Bus
+* Message Bus
+* Generic Factory
+* Guard
+* Data Transfer Objects (DTO)
+
+## Pattern Implementations
+* Repository: Entity Framework Core, Dapper, Linq2Db
+* Message Bus: MassTransit, Wolverine
+* Email: SMTP, SendGrid
+
 ## Documentation
 We have begun maintaining and publishing our documentation at [https://docs.rcommon.com](https://docs.rcommon.com)
