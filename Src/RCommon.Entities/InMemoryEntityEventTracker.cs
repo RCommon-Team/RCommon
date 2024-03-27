@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities
 {
-    public class InMemoryEventTracker : IEventTracker
+    public class InMemoryEntityEventTracker : IEntityEventTracker
     {
         private readonly ICollection<IBusinessEntity> _businessEntities = new List<IBusinessEntity>();
         private readonly IEventRouter _eventRouter;
 
-        public InMemoryEventTracker(IEventRouter eventRouter)
+        public InMemoryEntityEventTracker(IEventRouter eventRouter)
         {
             this._eventRouter = eventRouter;
         }

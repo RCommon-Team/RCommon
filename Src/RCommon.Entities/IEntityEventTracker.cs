@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RCommon.Entities
 {
-    public interface IEventTracker
+    public interface IEntityEventTracker
     {
         ICollection<IBusinessEntity> TrackedEntities { get; }
         void AddEntity(IBusinessEntity entity);

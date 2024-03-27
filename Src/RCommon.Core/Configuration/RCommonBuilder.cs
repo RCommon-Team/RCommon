@@ -22,7 +22,11 @@ namespace RCommon
             Services = services;
 
             // Event Bus
-            Services.AddSingleton<IEventBus, InMemoryEventBus>(); // Set up default event bus
+            //Services.AddSingleton<IEventBus, InMemoryEventBus>(); // Set up default event bus
+            services.AddSingleton<IEventBus>(sp =>
+            {
+                return new InMemoryEventBus(sp, services);
+            });
             Services.AddSingleton<IEventRouter, EventRouter>();
         }
 
