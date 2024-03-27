@@ -16,7 +16,7 @@ namespace HR.LeaveManagement.Persistence
     {
 
         public LeaveManagementDbContext(DbContextOptions<LeaveManagementDbContext> options, ICurrentUser currentUser, ISystemTime systemTime, 
-            IEventTracker eventTracker)
+            IEntityEventTracker eventTracker)
             : base(options, currentUser, systemTime, eventTracker)
         {
         }

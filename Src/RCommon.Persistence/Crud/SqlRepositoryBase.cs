@@ -24,7 +24,7 @@ namespace RCommon.Persistence.Crud
         private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
 
         public SqlRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEventTracker eventTracker, 
+            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEntityEventTracker eventTracker, 
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
             DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
@@ -83,7 +83,7 @@ namespace RCommon.Persistence.Crud
         public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
         public IUnitOfWorkManager UnitOfWorkManager { get; }
-        public IEventTracker EventTracker { get; }
+        public IEntityEventTracker EventTracker { get; }
     }
 
 }

@@ -15,10 +15,10 @@ namespace RCommon.Persistence.EFCore
 {
     public abstract class RCommonDbContext : DbContext, IDataStore
     {
-        private readonly IEventTracker _eventTracker;
+        private readonly IEntityEventTracker _eventTracker;
 
 
-        public RCommonDbContext(DbContextOptions options, IEventTracker eventTracker)
+        public RCommonDbContext(DbContextOptions options, IEntityEventTracker eventTracker)
             : base(options)
         {
             if (options is null)
