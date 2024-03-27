@@ -19,7 +19,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<None Include="rcommon-icon.png">
+		<None Include="..\RCommon.Core\rcommon-icon.png">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>

@@ -27,7 +27,7 @@ namespace RCommon
             {
                 return new InMemoryEventBus(sp, services);
             });
-            Services.AddSingleton<IEventRouter, EventRouter>();
+            Services.AddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
         }
 
         public IRCommonBuilder WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)
