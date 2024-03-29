@@ -38,9 +38,4 @@
     <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Producers\" />
-    <Folder Include="Subscribers\" />
-  </ItemGroup>
-
 </Project>

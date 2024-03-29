@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using RCommon.EventHandling;
+using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Mediator.MediatR
 {
-    public class MediatRNotificationHandler<TNotification, TEvent> : INotificationHandler<TNotification, TEvent>
+    /*public class MediatRNotificationHandler<TNotification, TEvent> : INotificationHandler<TNotification, TEvent>
         where TNotification : MediatRNotification<TEvent>
     {
         private readonly IAppNotificationHandler<TEvent> _handlers;
@@ -27,5 +28,5 @@ namespace RCommon.Mediator.MediatR
             //.Select(x => x.HandleAsync(notification.Notification, cancellationToken));
             return Task.WhenAll(tasks);
         }
-    }
+    }*/
 }

@@ -14,26 +14,19 @@ namespace RCommon.MediatR
 {
     public class MediatREventHandlingBuilder : IMediatREventHandlingBuilder
     {
-
         public MediatREventHandlingBuilder(IRCommonBuilder builder)
         {
-            Services = builder.Services;
+            
 
-            this.RegisterServices(Services);
+            this.RegisterServices(builder.Services);
+            Services = builder.Services;
 
         }
 
         protected void RegisterServices(IServiceCollection services)
-        {
-            services.AddMediatR(mediatr =>
-            {
-                mediatr.RegisterServicesFromAssemblyContaining<MediatREventHandlingBuilder>();
-            });
+        {   
 
-
-            services.AddSingleton<IMediatorService, MediatrService>();
-            //services.AddTransient(typeof(INotificationHandler<>), typeof(INotificationHandler<,>));
-            services.AddTransient(typeof(INotificationHandler<,>), typeof(MediatRNotificationHandler<,>));
+            services.AddSingleton<IMediatorService, MediatRService>();
             services.AddTransient(typeof(IRequestHandler<,>), typeof(MediatRRequestHandler<,>));
         }
 

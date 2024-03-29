@@ -10,13 +10,17 @@ using System.Threading.Tasks;
 
 namespace Examples.EventHandling.MediatR
 {
-    public class TestEventHandler : ISubscriber<TestEvent>
+    public class TestEventHandler : ISubscriber<TestEvent>, INotificationHandler<TestEvent>
     {
         public TestEventHandler()
         {
-                
+            Console.WriteLine("TestHandler Constructed");
         }
 
+        public async Task Handle(TestEvent notification, CancellationToken cancellationToken)
+        {
+            await this.HandleAsync(notification, cancellationToken);
+        }
 
         public async Task HandleAsync(TestEvent notification, CancellationToken cancellationToken = default)
         {

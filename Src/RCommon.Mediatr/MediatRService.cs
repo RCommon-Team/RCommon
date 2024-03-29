@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using RCommon.Mediator;
+using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.Mediator.MediatR
 {
-    public class MediatrService : IMediatorService
+    public class MediatRService : IMediatorService
     {
         private readonly IMediator _mediator;
 
-        public MediatrService(IMediator mediator)
+        public MediatRService(IMediator mediator)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }

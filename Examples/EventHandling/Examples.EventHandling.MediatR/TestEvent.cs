@@ -1,4 +1,5 @@
-﻿using RCommon.EventHandling;
+﻿using MediatR;
+using RCommon.EventHandling;
 using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
@@ -8,12 +9,13 @@ using System.Threading.Tasks;
 
 namespace Examples.EventHandling.MediatR
 {
-    public class TestEvent : ISyncEvent
+    public class TestEvent : ISyncEvent, INotification
     {
         public TestEvent(DateTime dateTime, Guid guid)
         {
             DateTime = dateTime;
             Guid = guid;
+            Console.WriteLine("TestEvent Constructed");
         }
 
         public TestEvent()

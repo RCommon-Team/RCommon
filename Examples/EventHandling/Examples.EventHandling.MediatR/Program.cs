@@ -12,7 +12,10 @@ using RCommon.Mediator;
 using RCommon.Mediator.MediatR;
 using RCommon.Mediator.Producers;
 using RCommon.MediatR;
+using RCommon.MediatR.Producers;
 using System.Diagnostics;
+using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 try
 {
@@ -29,9 +32,9 @@ try
                     services.AddRCommon()
                         .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
                         {
-                            eventHandling.AddProducer<PublishWithMediatorEventProducer>();
+                            
+                            eventHandling.AddProducer<PublishWithMediatREventProducer>();
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
-                            //services.AddTransient<IAppNotificationHandler<TestEvent>, TestEventHandler>();
                         });
 
                     Console.WriteLine($"Total Services Registered:");
