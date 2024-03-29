@@ -9,7 +9,6 @@ namespace RCommon.Entities
 {
     public class InMemoryEntityEventTracker : IEntityEventTracker
     {
-        //TODO: Consider using ConcurrentQueue<IBusinessEntity> https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0
         private readonly ICollection<IBusinessEntity> _businessEntities = new List<IBusinessEntity>();
         private readonly IEventRouter _eventRouter;
 
@@ -31,7 +30,7 @@ namespace RCommon.Entities
 
         public ICollection<IBusinessEntity> TrackedEntities { get => _businessEntities; }
 
-        public void StoreTransactionalEvents()
+        public async Task<bool> EmitTransactionalEventsAsync()
         {
             foreach (var entity in this._businessEntities)
             {
@@ -42,7 +41,8 @@ namespace RCommon.Entities
                     _eventRouter.AddTransactionalEvents(graphEntity.LocalEvents);
                 }
             }
-            
+            await _eventRouter.RouteEventsAsync();
+            return true;
         }
     }
 }

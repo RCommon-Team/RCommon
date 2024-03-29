@@ -17,8 +17,6 @@ namespace RCommon.EventHandling.Producers
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<InMemoryTransactionalEventRouter> _logger;
-
-        //TODO: Consider using ConcurrentQueue<IBusinessEntity> https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0
         private List<ISerializableEvent> _storedTransactionalEvents;
 
         public InMemoryTransactionalEventRouter(IServiceProvider serviceProvider, ILogger<InMemoryTransactionalEventRouter> logger)
@@ -28,7 +26,7 @@ namespace RCommon.EventHandling.Producers
             _storedTransactionalEvents = new List<ISerializableEvent>();
         }
 
-        public async Task RouteEvents(IEnumerable<ISerializableEvent> transactionalEvents)
+        public async Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents)
         {
             try
             {
@@ -65,9 +63,9 @@ namespace RCommon.EventHandling.Producers
             }
         }
 
-        public async Task RouteEvents()
+        public async Task RouteEventsAsync()
         {
-            await this.RouteEvents(this._storedTransactionalEvents);
+            await this.RouteEventsAsync(this._storedTransactionalEvents);
             this._storedTransactionalEvents.Clear();
         }
 

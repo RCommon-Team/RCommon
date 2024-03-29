@@ -14,12 +14,12 @@ namespace RCommon.Persistence.Sql
     public class RDbConnection : DisposableResource, IRDbConnection
     {
         private readonly IOptions<RDbConnectionOptions> _options;
-        private readonly IEntityEventTracker _eventTracker;
+        private readonly IEntityEventTracker _entityEventTracker;
 
-        public RDbConnection(IOptions<RDbConnectionOptions> options, IEntityEventTracker eventTracker)
+        public RDbConnection(IOptions<RDbConnectionOptions> options, IEntityEventTracker entityEventTracker)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            this._eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
+            this._entityEventTracker = entityEventTracker ?? throw new ArgumentNullException(nameof(entityEventTracker));
         }
 
         public DbConnection GetDbConnection()
@@ -44,7 +44,7 @@ namespace RCommon.Persistence.Sql
 
         public async Task PersistChangesAsync()
         {
-            await this._eventTracker.PublishLocalEvents();
+            await this._entityEventTracker.EmitTransactionalEventsAsync();
         }
 
     }

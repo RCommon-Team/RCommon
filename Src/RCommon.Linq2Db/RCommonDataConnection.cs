@@ -42,7 +42,7 @@ namespace RCommon.Persistence.Linq2Db
 
         public async Task PersistChangesAsync()
         {
-            await this._eventTracker.PublishLocalEvents();
+            await this._eventTracker.EmitTransactionalEventsAsync();
         }
     }
 }
