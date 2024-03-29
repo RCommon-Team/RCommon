@@ -23,6 +23,7 @@ namespace RCommon.MediatR.Producers
             where T : ISerializableEvent
         {
             await _mediatorService.Publish(@event, cancellationToken);
+            Console.WriteLine("Publisher Executed w/ event: {0}", @event);
         }
     }
 }

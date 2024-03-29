@@ -21,7 +21,8 @@ namespace RCommon.Mediator.MediatR
         public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
 
         {
-            return _mediator.Publish(new MediatRNotification<TNotification>(notification), cancellationToken);
+            Console.WriteLine("MediatRService publishing notification: {0}", notification);
+            return _mediator.Publish(notification, cancellationToken);
         }
 
         public Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
