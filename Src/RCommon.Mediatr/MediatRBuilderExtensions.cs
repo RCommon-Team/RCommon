@@ -39,11 +39,5 @@ namespace RCommon
             return config;
         }
 
-        public static IRCommonBuilder AddDisributedUnitOfWorkToMediatorPipeline(this IRCommonBuilder config)
-        {
-            config.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(DistributedUnitOfWorkBehavior<,>));
-            return config;
-        }
-
     }
 }
