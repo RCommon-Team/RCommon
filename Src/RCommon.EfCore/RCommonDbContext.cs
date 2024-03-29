@@ -15,10 +15,10 @@ namespace RCommon.Persistence.EFCore
 {
     public abstract class RCommonDbContext : DbContext, IDataStore
     {
-        private readonly IEntityEventTracker _eventTracker;
+        private readonly IEntityEventTracker _entityEventTracker;
 
 
-        public RCommonDbContext(DbContextOptions options, IEntityEventTracker eventTracker)
+        public RCommonDbContext(DbContextOptions options, IEntityEventTracker entityEventTracker)
             : base(options)
         {
             if (options is null)
@@ -26,7 +26,7 @@ namespace RCommon.Persistence.EFCore
                 throw new ArgumentNullException(nameof(options));
             }
 
-            this._eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
+            this._entityEventTracker = entityEventTracker ?? throw new ArgumentNullException(nameof(entityEventTracker));
         }
 
         public RCommonDbContext(DbContextOptions options)
@@ -50,7 +50,7 @@ namespace RCommon.Persistence.EFCore
 
         public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
-            this._eventTracker.PublishLocalEvents();
+            await this._entityEventTracker.EmitTransactionalEventsAsync();
             return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
     }

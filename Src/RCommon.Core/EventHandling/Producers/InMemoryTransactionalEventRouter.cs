@@ -26,7 +26,7 @@ namespace RCommon.EventHandling.Producers
             _storedTransactionalEvents = new List<ISerializableEvent>();
         }
 
-        public async Task RouteEvents(IEnumerable<ISerializableEvent> transactionalEvents)
+        public async Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents)
         {
             try
             {
@@ -63,9 +63,9 @@ namespace RCommon.EventHandling.Producers
             }
         }
 
-        public async Task RouteEvents()
+        public async Task RouteEventsAsync()
         {
-            await this.RouteEvents(this._storedTransactionalEvents);
+            await this.RouteEventsAsync(this._storedTransactionalEvents);
             this._storedTransactionalEvents.Clear();
         }
 

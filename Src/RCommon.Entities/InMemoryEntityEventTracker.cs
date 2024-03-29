@@ -30,7 +30,7 @@ namespace RCommon.Entities
 
         public ICollection<IBusinessEntity> TrackedEntities { get => _businessEntities; }
 
-        public async Task<bool> PublishLocalEvents()
+        public async Task<bool> EmitTransactionalEventsAsync()
         {
             foreach (var entity in this._businessEntities)
             {
@@ -38,11 +38,11 @@ namespace RCommon.Entities
 
                 foreach (var graphEntity in entityGraph)
                 {
-                    await _eventRouter.RouteEvents(graphEntity.LocalEvents);
+                    _eventRouter.AddTransactionalEvents(graphEntity.LocalEvents);
                 }
             }
+            await _eventRouter.RouteEventsAsync();
             return true;
-            
         }
     }
 }
