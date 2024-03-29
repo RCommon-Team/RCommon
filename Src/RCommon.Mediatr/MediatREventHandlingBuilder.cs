@@ -12,12 +12,15 @@ using System.Threading.Tasks;
 
 namespace RCommon.MediatR
 {
-    public class MediatREventHandlingBuilder : IEventHandlingBuilder
+    public class MediatREventHandlingBuilder : IMediatREventHandlingBuilder
     {
-        public MediatREventHandlingBuilder(IServiceCollection services)
+
+        public MediatREventHandlingBuilder(IRCommonBuilder builder)
         {
-            Services = services;
-            this.RegisterServices(services);
+            Services = builder.Services;
+
+            this.RegisterServices(Services);
+
         }
 
         protected void RegisterServices(IServiceCollection services)
@@ -27,7 +30,7 @@ namespace RCommon.MediatR
                 mediatr.RegisterServicesFromAssemblyContaining<MediatREventHandlingBuilder>();
             });
 
-            
+
             services.AddSingleton<IMediatorService, MediatrService>();
             //services.AddTransient(typeof(INotificationHandler<>), typeof(INotificationHandler<,>));
             services.AddTransient(typeof(INotificationHandler<,>), typeof(MediatRNotificationHandler<,>));

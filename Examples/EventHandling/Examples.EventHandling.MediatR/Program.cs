@@ -27,7 +27,7 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+                        .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
                         {
                             eventHandling.AddProducer<PublishWithMediatorEventProducer>();
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
