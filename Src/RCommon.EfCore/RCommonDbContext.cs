@@ -50,7 +50,7 @@ namespace RCommon.Persistence.EFCore
 
         public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
-            this._eventTracker.PublishLocalEvents();
+            await this._eventTracker.PublishLocalEvents();
             return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
     }

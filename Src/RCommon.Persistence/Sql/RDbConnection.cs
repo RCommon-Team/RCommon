@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using RCommon.Core.Threading;
 using RCommon.Entities;
 
 namespace RCommon.Persistence.Sql
@@ -36,9 +37,14 @@ namespace RCommon.Persistence.Sql
 
         public void PersistChanges()
         {
-            this._eventTracker.PublishLocalEvents();
+            AsyncHelper.RunSync(() => this.PersistChangesAsync());
             // Nothing to do here because this is a SQL Connection
             return;
+        }
+
+        public async Task PersistChangesAsync()
+        {
+            await this._eventTracker.PublishLocalEvents();
         }
 
     }

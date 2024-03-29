@@ -21,6 +21,6 @@ namespace RCommon.Entities
         /// Publishes the events associated with each entity being tracked.
         /// </summary>
         /// <returns>True if successful</returns>
-        Task<bool> PublishLocalEvents();
+        void StoreTransactionalEvents();
     }
 }

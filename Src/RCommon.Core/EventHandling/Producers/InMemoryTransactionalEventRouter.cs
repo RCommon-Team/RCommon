@@ -17,6 +17,8 @@ namespace RCommon.EventHandling.Producers
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<InMemoryTransactionalEventRouter> _logger;
+
+        //TODO: Consider using ConcurrentQueue<IBusinessEntity> https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0
         private List<ISerializableEvent> _storedTransactionalEvents;
 
         public InMemoryTransactionalEventRouter(IServiceProvider serviceProvider, ILogger<InMemoryTransactionalEventRouter> logger)
