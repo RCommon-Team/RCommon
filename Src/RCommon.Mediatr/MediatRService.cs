@@ -22,6 +22,7 @@ namespace RCommon.Mediator.MediatR
 
         {
             Console.WriteLine("MediatRService publishing notification: {0}", notification);
+            //return _mediator.Publish(new MediatRNotification<TNotification>(notification), cancellationToken);
             return _mediator.Publish(notification, cancellationToken);
         }
 

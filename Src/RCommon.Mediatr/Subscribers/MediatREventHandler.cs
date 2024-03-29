@@ -22,7 +22,6 @@ namespace RCommon.MediatR.Subscribers
 
         public async Task Handle(TEvent notification, CancellationToken cancellationToken)
         {
-            Console.WriteLine("{0} handling event {1} from MediatR", new object[] { this.GetGenericTypeName(), notification });
             await _subscriber.HandleAsync(notification);
         }
     }

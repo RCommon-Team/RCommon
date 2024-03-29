@@ -15,7 +15,6 @@ namespace Examples.EventHandling.MediatR
         {
             DateTime = dateTime;
             Guid = guid;
-            Console.WriteLine("TestEvent Constructed");
         }
 
         public TestEvent()

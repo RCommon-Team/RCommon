@@ -58,7 +58,7 @@ namespace RCommon.MediatR
             where TEventHandler : class, ISubscriber<TEvent>, INotificationHandler<TEvent>
         {
             builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
-            builder.Services.AddScoped<INotificationHandler<TEvent>, TEventHandler>();
+            builder.Services.AddTransient<INotificationHandler<TEvent>, TEventHandler>();
         }
     }
 }
