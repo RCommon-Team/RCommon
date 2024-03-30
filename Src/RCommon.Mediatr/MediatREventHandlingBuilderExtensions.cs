@@ -42,7 +42,7 @@ namespace RCommon.MediatR
         {
 
             // MediatR
-            builder.Services.AddTransient(typeof(IMediatREventHandler<>), typeof(MediatRNotificationHandler<>));
+            //builder.Services.AddTransient(typeof(IMediatRNotificationHandler<>), typeof(MediatRNotificationHandler<>));
             //builder.Services.AddTransient(typeof(MediatREventHandler<>));
             builder.Services.AddMediatR(mediatRActions);
 
@@ -54,11 +54,12 @@ namespace RCommon.MediatR
         }
 
         public static void AddSubscriber<TEvent, TEventHandler>(this IMediatREventHandlingBuilder builder)
-            where TEvent : class, ISerializableEvent, INotification
-            where TEventHandler : class, ISubscriber<TEvent>, INotificationHandler<TEvent>
+            where TEvent : class, ISerializableEvent
+            where TEventHandler : class, ISubscriber<TEvent>
         {
             builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
-            builder.Services.AddTransient<INotificationHandler<TEvent>, TEventHandler>();
+            builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, MediatRNotificationHandler<TEvent, MediatRNotification<TEvent>>>();
+            //builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, TEventHandler>();
         }
     }
 }
