@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.MediatR.Subscribers
 {
-    public class MediatRRequest<TRequest, TResponse> : IRequest<TResponse>
+    public class MediatRRequest<TRequest> : IRequest
     {
 
         public MediatRRequest(TRequest request)

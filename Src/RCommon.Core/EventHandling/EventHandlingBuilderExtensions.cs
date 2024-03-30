@@ -33,13 +33,13 @@ namespace RCommon
         public static void AddProducer<T>(this IEventHandlingBuilder builder) 
             where T : class, IEventProducer
         {
-            builder.Services.TryAddSingleton<IEventProducer, T>();
+            builder.Services.AddSingleton<IEventProducer, T>();
         }
 
         public static void AddProducer<T>(this IEventHandlingBuilder builder, Func<IServiceProvider, T> getProducer) 
             where T : class, IEventProducer
         {
-            builder.Services.TryAddSingleton(getProducer);
+            builder.Services.AddSingleton(getProducer);
         }
 
         public static void AddProducer<T>(this IEventHandlingBuilder builder, T producer)

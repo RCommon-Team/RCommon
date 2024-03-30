@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MediatR;
+using RCommon.MediatR.Subscribers;
 
 namespace RCommon.MediatR.Producers
 {
@@ -18,10 +19,11 @@ namespace RCommon.MediatR.Producers
             _mediatorService = mediatorService;
         }
 
-        public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) 
-            where T : ISerializableEvent
+        public async Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default) 
+            where TEvent : ISerializableEvent
         {
-            await _mediatorService.Send(@event, cancellationToken);
+            Guard.IsNotNull(@event, nameof(@event));
+            await _mediatorService.Send(new MediatRRequest<TEvent>(@event), cancellationToken);
         }
     }
 }

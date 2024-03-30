@@ -21,14 +21,12 @@ namespace RCommon.Mediator.MediatR
         public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
 
         {
-            Console.WriteLine("MediatRService publishing notification: {0}", notification);
-            //return _mediator.Publish(new MediatRNotification<TNotification>(notification), cancellationToken);
             return _mediator.Publish(notification, cancellationToken);
         }
 
-        public Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+        public async Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
         {
-            return _mediator.Send(new MediatRRequest<TRequest, TResponse>(request), cancellationToken);
+            await _mediator.Send(request, cancellationToken);
         }
     }
 }
