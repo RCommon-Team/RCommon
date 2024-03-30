@@ -24,7 +24,7 @@ namespace RCommon.MediatR.Producers
             where TEvent : ISerializableEvent
         {
             Guard.IsNotNull(@event, nameof(@event));
-            await _mediatorService.Publish(new MediatRNotification<TEvent>(@event), cancellationToken);
+            await _mediatorService.Publish(@event, cancellationToken);
         }
     }
 }

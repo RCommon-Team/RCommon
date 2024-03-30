@@ -1,5 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator;
+using RCommon.MediatR;
+using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,23 +14,33 @@ namespace RCommon.Mediator.MediatR
 {
     public class MediatRBuilder : IMediatRBuilder
     {
-        private readonly IServiceCollection _services;
 
-        public MediatRBuilder(IServiceCollection services)
+        public MediatRBuilder(IRCommonBuilder builder)
         {
-            _services = services ?? throw new ArgumentNullException(nameof(services));
+
+
+            this.RegisterServices(builder.Services);
+            Services = builder.Services;
+
         }
 
-        public IMediatRBuilder AddMediatr(Action<MediatRServiceConfiguration> options) 
+        protected void RegisterServices(IServiceCollection services)
         {
-            this._services.AddMediatR(options);
+            services.AddSingleton<IMediatorAdapter, MediatRAdapter>();
+        }
+
+        public IMediatRBuilder Configure(Action<MediatRServiceConfiguration> options)
+        {
+            Services.AddMediatR(options);
             return this;
         }
 
-        public IMediatRBuilder AddMediatr(MediatRServiceConfiguration options)
+        public IMediatRBuilder Configure(MediatRServiceConfiguration options)
         {
-            this._services.AddMediatR(options);
+            Services.AddMediatR(options);
             return this;
         }
+
+        public IServiceCollection Services { get; }
     }
 }

@@ -27,8 +27,8 @@ namespace RCommon.MediatR
         protected void RegisterServices(IServiceCollection services)
         {   
 
-            services.AddSingleton<IMediatorService, MediatRService>();
-            services.AddTransient(typeof(IRequestHandler<,>), typeof(MediatRRequestHandler<,>));
+            services.AddSingleton<IMediatorAdapter, MediatRAdapter>();
+            //services.AddTransient(typeof(IRequestHandler<,>), typeof(MediatREventRequestHandler<,>));
         }
 
         public IServiceCollection Services { get; }

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RCommon.EventHandling;
 
 namespace RCommon.Mediator
 {
     public interface IMediatorService
     {
-        Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default);
-        Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default);
+        Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : ISerializableEvent;
+        Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : ISerializableEvent;
     }
 }

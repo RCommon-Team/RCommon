@@ -115,6 +115,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Messaging.MassTran
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Messaging.Wolverine", "Messaging\Examples.Messaging.Wolverine\Examples.Messaging.Wolverine.csproj", "{06FE76EC-C7D1-4C46-8047-22D58C8437A2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Mediator.MediatR", "Mediator\Examples.Mediator.MediatR\Examples.Mediator.MediatR.csproj", "{05B6EF05-8053-45D1-8649-1779B0D7D6C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -297,6 +299,10 @@ Global
 		{06FE76EC-C7D1-4C46-8047-22D58C8437A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06FE76EC-C7D1-4C46-8047-22D58C8437A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06FE76EC-C7D1-4C46-8047-22D58C8437A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05B6EF05-8053-45D1-8649-1779B0D7D6C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05B6EF05-8053-45D1-8649-1779B0D7D6C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05B6EF05-8053-45D1-8649-1779B0D7D6C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05B6EF05-8053-45D1-8649-1779B0D7D6C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -345,6 +351,7 @@ Global
 		{CEAA39C2-249C-44D0-94CF-8342CB35811D} = {783F8A99-F164-42E3-BD7C-09D432D02DEE}
 		{A7C5D513-08D7-4BBF-9CB9-307EE91DA81D} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
 		{06FE76EC-C7D1-4C46-8047-22D58C8437A2} = {35AE0870-0A6D-4F27-B534-B8DCDFD11A36}
+		{05B6EF05-8053-45D1-8649-1779B0D7D6C7} = {6509FEEC-F46C-4B03-82D4-8F2D78896160}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

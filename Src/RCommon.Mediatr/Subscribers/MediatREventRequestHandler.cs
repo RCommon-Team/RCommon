@@ -11,13 +11,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace RCommon.MediatR.Subscribers
 {
-    public class MediatRRequestHandler<TEvent, TRequest> : IRequestHandler<TRequest>
+    public class MediatREventRequestHandler<TEvent, TRequest> : IRequestHandler<TRequest>
         where TEvent : class, ISerializableEvent
         where TRequest : MediatRRequest<TEvent>
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public MediatRRequestHandler(IServiceProvider serviceProvider)
+        public MediatREventRequestHandler(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }

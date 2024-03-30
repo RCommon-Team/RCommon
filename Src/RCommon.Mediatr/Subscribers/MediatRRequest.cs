@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Linq;

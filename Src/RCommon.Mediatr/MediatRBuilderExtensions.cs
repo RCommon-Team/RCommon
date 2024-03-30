@@ -2,9 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.EventHandling;
+using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator;
 using RCommon.Mediator.MediatR;
 using RCommon.Mediator.MediatR.Behaviors;
+using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,10 +17,17 @@ namespace RCommon
     {
 
 
-        public static IRCommonBuilder AddMediatR(this IRCommonBuilder config, Action<MediatRServiceConfiguration> mediatrOptions )
+        public static void AddSubscriber<TEvent, TEventHandler>(this IMediatRBuilder builder)
+           where TEvent : class, ISerializableEvent
+           where TEventHandler : class, ISubscriber<TEvent>
         {
-            config.Services.AddMediatR(mediatrOptions);
-            return config;
+            builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
+
+            // For notifications which can be handled by multiple handlers
+            builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, MediatREventNotificationHandler<TEvent, MediatRNotification<TEvent>>>();
+
+            // For requests which only have one endpoint. This should only be raised if we use the IMediator.Send method
+            builder.Services.AddTransient<IRequestHandler<MediatRRequest<TEvent>>, MediatREventRequestHandler<TEvent, MediatRRequest<TEvent>>>();
         }
 
         public static IRCommonBuilder AddLoggingToMediatorPipeline(this IRCommonBuilder config)

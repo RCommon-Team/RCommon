@@ -12,18 +12,22 @@ namespace RCommon
 {
     public static class MediatorBuilderExtensions
     {
-        public static void AddEvent<T>(this IEventHandlingBuilder config)
-            where T : class, ISerializableEvent, IAppNotification
+        public static IRCommonBuilder WithMediator<T>(this IRCommonBuilder builder)
+            where T : IMediatorBuilder
         {
-            config.Services.TryAddTransient<T>();
+            return WithMediator<T>(builder, x => { });
         }
 
-        public static void AddEvent<T>(this IEventHandlingBuilder config, Func<IServiceProvider, T> getEvent)
-            where T : class, ISerializableEvent, IAppNotification
+        public static IRCommonBuilder WithMediator<T>(this IRCommonBuilder builder, Action<T> actions)
+            where T : IMediatorBuilder
         {
-            config.Services.TryAddTransient(getEvent);
+            builder.Services.AddSingleton<IMediatorService, MediatorService>();
+
+            // Event Handling Configurations 
+            var mediatorConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
+            actions(mediatorConfig);
+            return builder;
         }
 
-        
     }
 }

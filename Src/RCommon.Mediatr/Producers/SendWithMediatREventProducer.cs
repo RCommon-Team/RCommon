@@ -7,14 +7,15 @@ using System.Text;
 using System.Threading.Tasks;
 using MediatR;
 using RCommon.MediatR.Subscribers;
+using RCommon.Mediator;
 
 namespace RCommon.MediatR.Producers
 {
     public class SendWithMediatREventProducer : IEventProducer
     {
-        private readonly IMediator _mediatorService;
+        private readonly IMediatorService _mediatorService;
 
-        public SendWithMediatREventProducer(IMediator mediatorService)
+        public SendWithMediatREventProducer(IMediatorService mediatorService)
         {
             _mediatorService = mediatorService;
         }
@@ -23,7 +24,7 @@ namespace RCommon.MediatR.Producers
             where TEvent : ISerializableEvent
         {
             Guard.IsNotNull(@event, nameof(@event));
-            await _mediatorService.Send(new MediatRRequest<TEvent>(@event), cancellationToken);
+            await _mediatorService.Send(@event, cancellationToken);
         }
     }
 }

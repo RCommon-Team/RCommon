@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using RCommon.Mediator;
 
 namespace RCommon.MediatR.Subscribers
 {

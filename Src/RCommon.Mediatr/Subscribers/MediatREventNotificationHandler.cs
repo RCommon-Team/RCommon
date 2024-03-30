@@ -8,16 +8,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using RCommon.Mediator;
 
 namespace RCommon.MediatR.Subscribers
 {
-    public class MediatRNotificationHandler<TEvent, TNotification> : INotificationHandler<TNotification>
+    public class MediatREventNotificationHandler<TEvent, TNotification> : INotificationHandler<TNotification>
         where TEvent : class, ISerializableEvent
         where TNotification : MediatRNotification<TEvent>
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public MediatRNotificationHandler(IServiceProvider serviceProvider)
+        public MediatREventNotificationHandler(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }

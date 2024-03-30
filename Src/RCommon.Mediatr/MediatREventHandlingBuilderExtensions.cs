@@ -26,7 +26,6 @@ namespace RCommon.MediatR
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<IMediatREventHandlingBuilder> actions)
             where T : IMediatREventHandlingBuilder
         {
-
             // MediatR
             WithEventHandling<T>(builder, actions, mediatrActions =>
             {
@@ -40,10 +39,9 @@ namespace RCommon.MediatR
             Action<MediatRServiceConfiguration> mediatRActions)
             where T : IMediatREventHandlingBuilder
         {
+            builder.Services.AddTransient<IMediatorService, MediatorService>();
 
             // MediatR
-            //builder.Services.AddTransient(typeof(IMediatRNotificationHandler<>), typeof(MediatRNotificationHandler<>));
-            //builder.Services.AddTransient(typeof(MediatREventHandler<>));
             builder.Services.AddMediatR(mediatRActions);
 
             // This will wire up common event handling
@@ -60,10 +58,10 @@ namespace RCommon.MediatR
             builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
 
             // For notifications which can be handled by multiple handlers
-            builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, MediatRNotificationHandler<TEvent, MediatRNotification<TEvent>>>();
+            builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, MediatREventNotificationHandler<TEvent, MediatRNotification<TEvent>>>();
 
             // For requests which only have one endpoint. This should only be raised if we use the IMediator.Send method
-            builder.Services.AddTransient<IRequestHandler<MediatRRequest<TEvent>>, MediatRRequestHandler<TEvent, MediatRRequest<TEvent>>>();
+            builder.Services.AddTransient<IRequestHandler<MediatRRequest<TEvent>>, MediatREventRequestHandler<TEvent, MediatRRequest<TEvent>>>();
         }
     }
 }
