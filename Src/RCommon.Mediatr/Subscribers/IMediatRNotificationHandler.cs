@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.MediatR.Subscribers
 {
-    public interface IMediatREventHandler
+    public interface IMediatRNotificationHandler
     {
     }
 
-    public interface IMediatREventHandler<in TDistributedEvent> : IMediatREventHandler 
+    public interface IMediatREventHandler<in TDistributedEvent> : IMediatRNotificationHandler 
         where TDistributedEvent : class, ISerializableEvent
     {
     }

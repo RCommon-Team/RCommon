@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace RCommon.MediatR.Subscribers
 {
-    public class MediatREventHandler<TEvent> : IMediatREventHandler<TEvent>, INotificationHandler<TEvent>
+    public class MediatRNotificationHandler<TEvent> : IMediatREventHandler<TEvent>, INotificationHandler<TEvent>
         where TEvent : class, ISerializableEvent, INotification
     {
         private readonly ISubscriber<TEvent> _subscriber;
 
-        public MediatREventHandler(ISubscriber<TEvent> subscriber)
+        public MediatRNotificationHandler(ISubscriber<TEvent> subscriber)
         {
             _subscriber = subscriber;
         }

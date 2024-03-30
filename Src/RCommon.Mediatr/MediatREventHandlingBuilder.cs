@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RCommon.EventHandling;
 using RCommon.Mediator;
 using RCommon.Mediator.MediatR;
+using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

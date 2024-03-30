@@ -20,7 +20,7 @@ namespace Examples.EventHandling.MediatR
 
         public async Task HandleAsync(TestEvent notification, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine("{0} just handled this event {0}", new object[] { this.GetGenericTypeName(), notification });
+            Console.WriteLine("{0} just handled this event {1}", new object[] { this.GetGenericTypeName(), notification });
             await Task.CompletedTask;
         }
     }

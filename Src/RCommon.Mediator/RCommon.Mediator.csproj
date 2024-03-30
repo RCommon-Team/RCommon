@@ -39,5 +39,8 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Producers\" />
+	</ItemGroup>
 
 </Project>

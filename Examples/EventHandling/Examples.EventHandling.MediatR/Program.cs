@@ -6,11 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
-using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
-using RCommon.Mediator;
-using RCommon.Mediator.MediatR;
-using RCommon.Mediator.Producers;
 using RCommon.MediatR;
 using RCommon.MediatR.Producers;
 using System.Diagnostics;
@@ -34,10 +30,10 @@ try
                         {
                             
                             eventHandling.AddProducer<PublishWithMediatREventProducer>();
+                            //eventHandling.AddProducer<SendWithMediatREventProducer>();
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
                         });
 
-                    Console.WriteLine($"Total Services Registered:");
                     Console.WriteLine(services.GenerateServiceDescriptorsString());
 
                 }).Build();

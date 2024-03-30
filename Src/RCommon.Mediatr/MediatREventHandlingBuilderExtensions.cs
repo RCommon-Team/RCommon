@@ -42,8 +42,8 @@ namespace RCommon.MediatR
         {
 
             // MediatR
-            builder.Services.AddTransient(typeof(IMediatREventHandler<>), typeof(MediatREventHandler<>));
-            builder.Services.AddTransient(typeof(MediatREventHandler<>));
+            builder.Services.AddTransient(typeof(IMediatREventHandler<>), typeof(MediatRNotificationHandler<>));
+            //builder.Services.AddTransient(typeof(MediatREventHandler<>));
             builder.Services.AddMediatR(mediatRActions);
 
             // This will wire up common event handling
