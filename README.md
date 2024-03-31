@@ -11,6 +11,7 @@ We track bugs, enhancement requests, new feature requests, and general issues on
 
 ## Patterns & Abstractions Utilized
 * Specification
+* Mediator
 * Command Query Responsbility Segregation (CQRS)
 * Repository
 * Unit Of Work
@@ -22,6 +23,7 @@ We track bugs, enhancement requests, new feature requests, and general issues on
 * Data Transfer Objects (DTO)
 
 ## Pattern Implementations
+* Mediator: MediatR
 * Repository: Entity Framework Core, Dapper, Linq2Db
 * Message Bus: MassTransit, Wolverine
 * Email: SMTP, SendGrid
