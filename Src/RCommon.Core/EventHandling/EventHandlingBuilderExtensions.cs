@@ -33,13 +33,13 @@ namespace RCommon
         public static void AddProducer<T>(this IEventHandlingBuilder builder) 
             where T : class, IEventProducer
         {
-            builder.Services.TryAddSingleton<IEventProducer, T>();
+            builder.Services.AddSingleton<IEventProducer, T>();
         }
 
         public static void AddProducer<T>(this IEventHandlingBuilder builder, Func<IServiceProvider, T> getProducer) 
             where T : class, IEventProducer
         {
-            builder.Services.TryAddSingleton(getProducer);
+            builder.Services.AddSingleton(getProducer);
         }
 
         public static void AddProducer<T>(this IEventHandlingBuilder builder, T producer)
@@ -55,14 +55,14 @@ namespace RCommon
         }
 
         public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder builder)
-            where TEvent : class
+            where TEvent : class, ISerializableEvent
             where TEventHandler : class, ISubscriber<TEvent>
         {
             builder.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
         }
 
         public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder builder, Func<IServiceProvider, TEventHandler> getSubscriber)
-            where TEvent : class
+            where TEvent : class, ISerializableEvent
             where TEventHandler : class, ISubscriber<TEvent>
         {
             builder.Services.TryAddScoped(getSubscriber);

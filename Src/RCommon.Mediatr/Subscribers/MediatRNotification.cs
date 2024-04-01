@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Mediator.MediatR
+namespace RCommon.MediatR.Subscribers
 {
-    public class MediatRNotification<TEvent> : INotification
+    public class MediatRNotification<TEvent> : IMediatRNotification<TEvent>
     {
 
         public MediatRNotification(TEvent notification)
@@ -15,6 +15,6 @@ namespace RCommon.Mediator.MediatR
             Notification = notification;
         }
 
-        public TEvent Notification { get; }
+        public TEvent Notification { get; set; }
     }
 }

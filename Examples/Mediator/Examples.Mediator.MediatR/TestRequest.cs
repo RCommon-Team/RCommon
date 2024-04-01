@@ -8,19 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Examples.EventHandling.MediatR
+namespace Examples.Mediator.MediatR
 {
-    public class TestEvent : ISyncEvent
+    public class TestRequest : IAppRequest
     {
-        public TestEvent(DateTime dateTime, Guid guid)
+        public TestRequest(DateTime dateTime, Guid guid)
         {
             DateTime = dateTime;
             Guid = guid;
         }
 
-        public TestEvent()
+        public TestRequest()
         {
-                
+
         }
 
         public DateTime DateTime { get; }

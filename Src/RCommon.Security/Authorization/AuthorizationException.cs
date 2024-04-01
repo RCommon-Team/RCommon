@@ -36,15 +36,6 @@ namespace RCommon.Security.Authorization
         /// <summary>
         /// Creates a new <see cref="AuthorizationException"/> object.
         /// </summary>
-        public AuthorizationException(SerializationInfo serializationInfo, StreamingContext context)
-            : base(serializationInfo, context)
-        {
-
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="AuthorizationException"/> object.
-        /// </summary>
         /// <param name="message">Exception message</param>
         public AuthorizationException(string message)
             : base(message)

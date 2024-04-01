@@ -6,13 +6,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
-using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
-using RCommon.Mediator;
-using RCommon.Mediator.MediatR;
-using RCommon.Mediator.Producers;
 using RCommon.MediatR;
+using RCommon.MediatR.Producers;
 using System.Diagnostics;
+using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 try
 {
@@ -27,15 +26,12 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+                        .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
                         {
-                            eventHandling.AddProducer<PublishWithMediatorEventProducer>();
+                            eventHandling.AddProducer<PublishWithMediatREventProducer>();
+                            
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
-                            //services.AddTransient<IAppNotificationHandler<TestEvent>, TestEventHandler>();
                         });
-
-                    Console.WriteLine($"Total Services Registered:");
-                    Console.WriteLine(services.GenerateServiceDescriptorsString());
 
                 }).Build();
 
