@@ -5,6 +5,7 @@ using RCommon.EventHandling;
 using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator;
 using RCommon.Mediator.MediatR;
+using RCommon.Mediator.Subscribers;
 using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;

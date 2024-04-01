@@ -28,7 +28,6 @@ try
                     services.AddRCommon()
                         .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
                         {
-                            eventHandling.AddProducer<SendWithMediatREventProducer>();
                             eventHandling.AddProducer<PublishWithMediatREventProducer>();
                             
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();

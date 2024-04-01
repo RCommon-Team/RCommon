@@ -43,8 +43,10 @@ try
     Console.WriteLine("Example Starting");
     var mediatorService = host.Services.GetService<IMediatorService>();
     var notification = new TestNotification(DateTime.Now, Guid.NewGuid());
-    await mediatorService.Send(notification);
+    var request = new TestRequest(DateTime.Now, Guid.NewGuid());
+    
     await mediatorService.Publish(notification);
+    await mediatorService.Send(request);
 
     Console.WriteLine("Example Complete");
     Console.ReadLine();         
