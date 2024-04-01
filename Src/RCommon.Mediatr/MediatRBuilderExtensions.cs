@@ -40,7 +40,7 @@ namespace RCommon
         }
 
         public static void AddRequest<TRequest, TResponse, TEventHandler>(this IMediatRBuilder builder)
-           where TRequest : class, IAppRequest
+           where TRequest : class, IAppRequest<TResponse>
            where TResponse : class
            where TEventHandler : class, IAppRequestHandler<TRequest, TResponse>
         {
