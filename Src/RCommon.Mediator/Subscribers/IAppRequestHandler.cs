@@ -10,4 +10,9 @@ namespace RCommon.Mediator.Subscribers
     {
         public Task HandleAsync(TRequest request, CancellationToken cancellationToken = default);
     }
+
+    public interface IAppRequestHandler<TRequest, TResponse>
+    {
+        public Task<TResponse> HandleAsync(TRequest request, CancellationToken cancellationToken = default);
+    }
 }

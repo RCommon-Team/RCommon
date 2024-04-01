@@ -28,14 +28,27 @@ namespace RCommon
             builder.Services.AddTransient<INotificationHandler<MediatRNotification<T>>, MediatRNotificationHandler<T, MediatRNotification<T>>>();
         }
 
-        public static void AddRequest<T, TEventHandler>(this IMediatRBuilder builder)
-           where T : class, IAppRequest
-           where TEventHandler : class, IAppRequestHandler<T>
+        public static void AddRequest<TRequest, TEventHandler>(this IMediatRBuilder builder)
+           where TRequest : class, IAppRequest
+           where TEventHandler : class, IAppRequestHandler<TRequest>
         {
-            builder.Services.AddTransient<IAppRequestHandler<T>, TEventHandler>();
+            builder.Services.AddTransient<IAppRequestHandler<TRequest>, TEventHandler>();
 
             // For requests which only have one endpoint. This should only be raised if we use the IMediator.Send method
-            builder.Services.AddTransient<IRequestHandler<MediatRRequest<T>>, MediatRRequestHandler<T, MediatRRequest<T>>>();
+            builder.Services.AddTransient<IRequestHandler<MediatRRequest<TRequest>>, 
+                MediatRRequestHandler<TRequest, MediatRRequest<TRequest>>>();
+        }
+
+        public static void AddRequest<TRequest, TResponse, TEventHandler>(this IMediatRBuilder builder)
+           where TRequest : class, IAppRequest
+           where TResponse : class
+           where TEventHandler : class, IAppRequestHandler<TRequest, TResponse>
+        {
+            builder.Services.AddTransient<IAppRequestHandler<TRequest, TResponse>, TEventHandler>();
+
+            // For requests which only have one endpoint. This should only be raised if we use the IMediator.Send method
+            builder.Services.AddTransient<IRequestHandler<MediatRRequest<TRequest, TResponse>, TResponse>, 
+                MediatRRequestHandler<TRequest, MediatRRequest<TRequest, TResponse>, TResponse>>();
         }
 
         public static void AddLoggingToRequestPipeline(this IMediatRBuilder builder)

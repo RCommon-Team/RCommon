@@ -18,4 +18,15 @@ namespace RCommon.MediatR.Subscribers
 
         public TRequest Request { get; }
     }
+
+    public class MediatRRequest<TRequest, TResponse> : IMediatRRequest<TRequest, TResponse>
+    {
+
+        public MediatRRequest(TRequest request)
+        {
+            Request = request;
+        }
+
+        public TRequest Request { get; }
+    }
 }

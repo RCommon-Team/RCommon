@@ -10,4 +10,9 @@ namespace RCommon.Mediator.Subscribers
     {
 
     }
+
+    public interface IAppRequest<TResponse>
+    {
+
+    }
 }

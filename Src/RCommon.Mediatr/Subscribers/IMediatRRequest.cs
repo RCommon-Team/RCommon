@@ -8,7 +8,12 @@ namespace RCommon.MediatR.Subscribers
 
     }
 
-    public interface IMediatRRequest<TRequest> : IMediatRRequest
+    public interface IMediatRRequest<TResponse> : IRequest<TResponse>, IMediatRRequest
+    {
+
+    }
+
+    public interface IMediatRRequest<TRequest, TResponse> : IMediatRRequest<TResponse>
     {
         TRequest Request { get; }
     }

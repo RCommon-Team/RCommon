@@ -30,6 +30,7 @@ try
                         {
                             mediator.AddNotification<TestNotification, TestNotificationHandler>();
                             mediator.AddRequest<TestRequest, TestRequestHandler>();
+                            mediator.AddRequest<TestRequest, TestResponse, TestRequestHandlerWithResponse>();
 
                             // Additional configurations can be set like below
                             mediator.Configure(config =>
@@ -45,8 +46,11 @@ try
     var notification = new TestNotification(DateTime.Now, Guid.NewGuid());
     var request = new TestRequest(DateTime.Now, Guid.NewGuid());
     
-    await mediatorService.Publish(notification);
-    await mediatorService.Send(request);
+    await mediatorService.Publish(notification); // For multiple handlers
+    await mediatorService.Send(request); // For a single endpoint
+
+    var response = await mediatorService.Send<TestRequest, TestResponse>(request); // For a single endpoint with a response
+    Console.WriteLine("Response: {0}", response.Message);
 
     Console.WriteLine("Example Complete");
     Console.ReadLine();         

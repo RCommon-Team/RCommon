@@ -39,6 +39,11 @@ namespace RCommon.MediatR
         public async Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
         {
             await _mediator.Send(new MediatRRequest<TRequest>(request), cancellationToken);
-        } 
+        }
+
+        public async Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+        {
+            return await _mediator.Send<TResponse>(new MediatRRequest<TRequest, TResponse>(request), cancellationToken);
+        }
     }
 }
