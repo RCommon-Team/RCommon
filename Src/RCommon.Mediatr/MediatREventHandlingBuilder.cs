@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RCommon.EventHandling;
 using RCommon.Mediator;
 using RCommon.Mediator.MediatR;
+using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,26 +13,21 @@ using System.Threading.Tasks;
 
 namespace RCommon.MediatR
 {
-    public class MediatREventHandlingBuilder : IEventHandlingBuilder
+    public class MediatREventHandlingBuilder : IMediatREventHandlingBuilder
     {
-        public MediatREventHandlingBuilder(IServiceCollection services)
+        public MediatREventHandlingBuilder(IRCommonBuilder builder)
         {
-            Services = services;
-            this.RegisterServices(services);
+            
+
+            this.RegisterServices(builder.Services);
+            Services = builder.Services;
+
         }
 
         protected void RegisterServices(IServiceCollection services)
-        {
-            services.AddMediatR(mediatr =>
-            {
-                mediatr.RegisterServicesFromAssemblyContaining<MediatREventHandlingBuilder>();
-            });
+        {   
 
-            
-            services.AddSingleton<IMediatorService, MediatrService>();
-            //services.AddTransient(typeof(INotificationHandler<>), typeof(INotificationHandler<,>));
-            services.AddTransient(typeof(INotificationHandler<,>), typeof(MediatRNotificationHandler<,>));
-            services.AddTransient(typeof(IRequestHandler<,>), typeof(MediatRRequestHandler<,>));
+            services.AddSingleton<IMediatorAdapter, MediatRAdapter>();
         }
 
         public IServiceCollection Services { get; }

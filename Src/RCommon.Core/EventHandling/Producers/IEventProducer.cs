@@ -9,6 +9,7 @@ namespace RCommon.EventHandling.Producers
 {
     public interface IEventProducer
     {
-        Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent;
+        Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default) 
+            where TEvent : ISerializableEvent;
     }
 }

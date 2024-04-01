@@ -2,6 +2,7 @@
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using Microsoft.Extensions.Options;
+using RCommon.Core.Threading;
 using RCommon.Entities;
 using RCommon.Persistence;
 using System;
@@ -34,9 +35,14 @@ namespace RCommon.Persistence.Linq2Db
 
         public void PersistChanges()
         {
-            this._eventTracker.PublishLocalEvents();
+            AsyncHelper.RunSync(() => this.PersistChangesAsync());
             // Nothing to do here because persistence is handled in the underlying API. We'll need to handle Unit of work in a transaction.
             return;
+        }
+
+        public async Task PersistChangesAsync()
+        {
+            await this._eventTracker.EmitTransactionalEventsAsync();
         }
     }
 }

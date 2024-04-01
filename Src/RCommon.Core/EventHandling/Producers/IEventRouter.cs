@@ -22,7 +22,7 @@ namespace RCommon.EventHandling.Producers
         /// for <see cref="ISyncEvent"/> events and <see cref="IAsyncEvent"/> events.
         /// </summary>
         /// <returns>Async Task Result</returns>
-        Task RouteEvents();
+        Task RouteEventsAsync();
 
         /// <summary>
         /// Wires up all of the event producers for all events passed into parameters and then executes each <see cref="IEventProducer"/>
@@ -32,6 +32,6 @@ namespace RCommon.EventHandling.Producers
         /// producers that are registered.</param>
         /// <returns>Async Task Result</returns>
         /// <remarks>This will not send stored transactional events, only the events sent through the parameter.</remarks>
-        Task RouteEvents(IEnumerable<ISerializableEvent> transactionalEvents);
+        Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents);
     }
 }

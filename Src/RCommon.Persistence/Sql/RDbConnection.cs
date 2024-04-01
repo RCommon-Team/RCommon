@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using RCommon.Core.Threading;
 using RCommon.Entities;
 
 namespace RCommon.Persistence.Sql
@@ -13,12 +14,12 @@ namespace RCommon.Persistence.Sql
     public class RDbConnection : DisposableResource, IRDbConnection
     {
         private readonly IOptions<RDbConnectionOptions> _options;
-        private readonly IEntityEventTracker _eventTracker;
+        private readonly IEntityEventTracker _entityEventTracker;
 
-        public RDbConnection(IOptions<RDbConnectionOptions> options, IEntityEventTracker eventTracker)
+        public RDbConnection(IOptions<RDbConnectionOptions> options, IEntityEventTracker entityEventTracker)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            this._eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
+            this._entityEventTracker = entityEventTracker ?? throw new ArgumentNullException(nameof(entityEventTracker));
         }
 
         public DbConnection GetDbConnection()
@@ -36,9 +37,14 @@ namespace RCommon.Persistence.Sql
 
         public void PersistChanges()
         {
-            this._eventTracker.PublishLocalEvents();
+            AsyncHelper.RunSync(() => this.PersistChangesAsync());
             // Nothing to do here because this is a SQL Connection
             return;
+        }
+
+        public async Task PersistChangesAsync()
+        {
+            await this._entityEventTracker.EmitTransactionalEventsAsync();
         }
 
     }
