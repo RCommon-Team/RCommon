@@ -62,7 +62,7 @@ namespace RCommon
         }
 
         public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder builder, Func<IServiceProvider, TEventHandler> getSubscriber)
-            where TEvent : class
+            where TEvent : class, ISerializableEvent
             where TEventHandler : class, ISubscriber<TEvent>
         {
             builder.Services.TryAddScoped(getSubscriber);

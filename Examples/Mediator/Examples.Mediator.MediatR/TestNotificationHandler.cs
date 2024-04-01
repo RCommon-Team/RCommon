@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 
 namespace Examples.Mediator.MediatR
 {
-    public class TestNotificationHandler : ISubscriber<TestObject>
+    public class TestNotificationHandler : ISubscriber<TestNotification>
     {
         public TestNotificationHandler()
         {
 
         }
 
-        public async Task HandleAsync(TestObject @event, CancellationToken cancellationToken = default)
+        public async Task HandleAsync(TestNotification @event, CancellationToken cancellationToken = default)
         {
             Console.WriteLine("{0} just handled this notification {1}", new object[] { this.GetGenericTypeName(), @event });
             await Task.CompletedTask;

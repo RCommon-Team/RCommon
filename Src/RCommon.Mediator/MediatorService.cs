@@ -17,13 +17,11 @@ namespace RCommon.Mediator
         }
 
         public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
-            where TNotification : ISerializableEvent
         {
             return _mediatorAdapter.Publish(notification, cancellationToken);
         }
 
         public async Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
-            where TRequest : ISerializableEvent
         {
             await _mediatorAdapter.Send(request, cancellationToken);
         }

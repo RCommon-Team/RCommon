@@ -11,6 +11,7 @@ using RCommon.Security;
 using Microsoft.EntityFrameworkCore;
 using System.Transactions;
 using RCommon.Persistence.Transactions;
+using RCommon.Mediator.MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +31,11 @@ builder.Services.AddRCommon()
     })
     .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
     .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
-    .AddUnitOfWorkToMediatorPipeline()
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddLoggingToRequestPipeline();
+        mediator.AddUnitOfWorkToRequestPipeline();
+    })
     .WithPersistence<EFCorePerisistenceBuilder, DefaultUnitOfWorkBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
     {
         // Add all the DbContexts here

@@ -6,6 +6,7 @@ using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator;
 using RCommon.Mediator.MediatR;
 using RCommon.Mediator.MediatR.Behaviors;
+using RCommon.Mediator.Subscribers;
 using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
@@ -17,35 +18,39 @@ namespace RCommon
     {
 
 
-        public static void AddSubscriber<TEvent, TEventHandler>(this IMediatRBuilder builder)
-           where TEvent : class, ISerializableEvent
-           where TEventHandler : class, ISubscriber<TEvent>
+        public static void AddNotification<T, TEventHandler>(this IMediatRBuilder builder)
+           where T : class, IAppNotification
+           where TEventHandler : class, ISubscriber<T>
         {
-            builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
+            builder.Services.AddTransient<ISubscriber<T>, TEventHandler>();
 
             // For notifications which can be handled by multiple handlers
-            builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, MediatREventNotificationHandler<TEvent, MediatRNotification<TEvent>>>();
+            builder.Services.AddTransient<INotificationHandler<MediatRNotification<T>>, MediatRNotificationHandler<T, MediatRNotification<T>>>();
+        }
+
+        public static void AddRequest<T, TEventHandler>(this IMediatRBuilder builder)
+           where T : class, IAppRequest
+           where TEventHandler : class, IAppRequestHandler<T>
+        {
+            builder.Services.AddTransient<IAppRequestHandler<T>, TEventHandler>();
 
             // For requests which only have one endpoint. This should only be raised if we use the IMediator.Send method
-            builder.Services.AddTransient<IRequestHandler<MediatRRequest<TEvent>>, MediatREventRequestHandler<TEvent, MediatRRequest<TEvent>>>();
+            builder.Services.AddTransient<IRequestHandler<MediatRRequest<T>>, MediatRRequestHandler<T, MediatRRequest<T>>>();
         }
 
-        public static IRCommonBuilder AddLoggingToMediatorPipeline(this IRCommonBuilder config)
+        public static void AddLoggingToRequestPipeline(this IMediatRBuilder builder)
         {
-            config.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-            return config;
+            builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         }
 
-        public static IRCommonBuilder AddValidationToMediatorPipeline(this IRCommonBuilder config)
+        public static void AddValidationToRequestPipeline(this IMediatRBuilder builder)
         {
-            config.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
-            return config;
+            builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
         }
 
-        public static IRCommonBuilder AddUnitOfWorkToMediatorPipeline(this IRCommonBuilder config)
+        public static void AddUnitOfWorkToRequestPipeline(this IMediatRBuilder builder)
         {
-            config.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
-            return config;
+            builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
         }
 
     }

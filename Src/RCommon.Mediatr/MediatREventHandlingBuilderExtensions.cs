@@ -58,10 +58,7 @@ namespace RCommon.MediatR
             builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
 
             // For notifications which can be handled by multiple handlers
-            builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, MediatREventNotificationHandler<TEvent, MediatRNotification<TEvent>>>();
-
-            // For requests which only have one endpoint. This should only be raised if we use the IMediator.Send method
-            builder.Services.AddTransient<IRequestHandler<MediatRRequest<TEvent>>, MediatREventRequestHandler<TEvent, MediatRRequest<TEvent>>>();
+            builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, MediatREventHandler<TEvent, MediatRNotification<TEvent>>>();
         }
     }
 }
