@@ -28,7 +28,6 @@ namespace RCommon.MediatR
         {   
 
             services.AddSingleton<IMediatorAdapter, MediatRAdapter>();
-            //services.AddTransient(typeof(IRequestHandler<,>), typeof(MediatREventRequestHandler<,>));
         }
 
         public IServiceCollection Services { get; }

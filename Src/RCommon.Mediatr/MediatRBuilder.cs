@@ -7,6 +7,7 @@ using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,6 +28,11 @@ namespace RCommon.Mediator.MediatR
         protected void RegisterServices(IServiceCollection services)
         {
             services.AddSingleton<IMediatorAdapter, MediatRAdapter>();
+
+            services.AddMediatR(options =>
+            {
+                options.RegisterServicesFromAssemblies((typeof(MediatRBuilder).GetTypeInfo().Assembly));
+            });
         }
 
         public IMediatRBuilder Configure(Action<MediatRServiceConfiguration> options)

@@ -28,20 +28,22 @@ try
                     services.AddRCommon()
                         .WithMediator<MediatRBuilder>(mediator =>
                         {
-                            mediator.AddSubscriber<TestObject, TestNotificationHandler>();
+                            //mediator.AddSubscriber<TestObject, TestNotificationHandler>();
+                            mediator.AddSubscriber<TestObject, TestRequestHandler>();
+
+                            // Additional configurations can be set like below
                             mediator.Configure(config =>
                             {
                                 config.RegisterServicesFromAssemblies((typeof(Program).GetTypeInfo().Assembly));
                             });
                         });
 
-                    Console.WriteLine(services.GenerateServiceDescriptorsString());
-
                 }).Build();
 
     Console.WriteLine("Example Starting");
     var mediatorService = host.Services.GetService<IMediatorService>();
     var notification = new TestObject(DateTime.Now, Guid.NewGuid());
+    await mediatorService.Send(notification);
     await mediatorService.Publish(notification);
 
     Console.WriteLine("Example Complete");

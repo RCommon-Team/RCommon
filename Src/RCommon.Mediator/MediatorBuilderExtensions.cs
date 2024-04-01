@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using RCommon.EventHandling;
 using RCommon.Mediator;
 using System;
@@ -21,6 +22,7 @@ namespace RCommon
         public static IRCommonBuilder WithMediator<T>(this IRCommonBuilder builder, Action<T> actions)
             where T : IMediatorBuilder
         {
+
             builder.Services.AddSingleton<IMediatorService, MediatorService>();
 
             // Event Handling Configurations 

@@ -34,8 +34,6 @@ try
                             eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
                         });
 
-                    Console.WriteLine(services.GenerateServiceDescriptorsString());
-
                 }).Build();
 
     Console.WriteLine("Example Starting");
