@@ -38,7 +38,7 @@ namespace RCommon.MediatR.Subscribers
     }
 
     public class MediatRRequestHandler<T, TRequest, TResponse> : IRequestHandler<TRequest, TResponse>
-        where T : class, IAppRequest
+        where T : class, IAppRequest<TResponse>
         where TRequest : MediatRRequest<T, TResponse>
     {
         private readonly IServiceProvider _serviceProvider;
