@@ -21,7 +21,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
         public DeleteLeaveRequestCommandHandler(IGraphRepository<LeaveRequest> leaveRequestRepository)
         {
             this._leaveRequestRepository = leaveRequestRepository;
-            this._leaveRequestRepository.DataStoreName = "LeaveManagement";
+            this._leaveRequestRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
         }
 
         public async Task Handle(DeleteLeaveRequestCommand request, CancellationToken cancellationToken)

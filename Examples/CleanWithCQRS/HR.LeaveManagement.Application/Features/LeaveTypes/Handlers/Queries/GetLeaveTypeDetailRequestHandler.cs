@@ -24,7 +24,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries
         public GetLeaveTypeDetailRequestHandler(IGraphRepository<LeaveType> leaveTypeRepository, IMapper mapper)
         {
             _leaveTypeRepository = leaveTypeRepository;
-            this._leaveTypeRepository.DataStoreName = "LeaveManagement";
+            this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             _mapper = mapper;
         }
         public async Task<LeaveTypeDto> Handle(GetLeaveTypeDetailRequest request, CancellationToken cancellationToken)

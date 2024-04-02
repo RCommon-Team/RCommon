@@ -113,22 +113,6 @@ namespace RCommon
             InitializeEnvironmentInformation();
         }
 
-        /// <summary>
-        /// Constructor used for deserialization of the exception class.
-        /// </summary>
-        /// <param name="info">Represents the SerializationInfo of the exception.</param>
-        /// <param name="context">Represents the context information of the exception.</param>
-        protected BaseApplicationException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            machineName = info.GetString("machineName");
-            createdDateTime = info.GetDateTime("createdDateTime");
-            appDomainName = info.GetString("appDomainName");
-            threadIdentity = info.GetString("threadIdentity");
-            windowsIdentity = info.GetString("windowsIdentity");
-            additionalInformation = (NameValueCollection)info.GetValue("additionalInformation", typeof(NameValueCollection));
-        }
-
         #endregion
 
         #region Private Methods

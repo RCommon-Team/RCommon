@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace RCommon.Persistence
 {
-    public class UnsupportedDataStoreException : ApplicationException
+    public class UnsupportedDataStoreException : GeneralException
     {
 
         public UnsupportedDataStoreException(string message) :base(message)

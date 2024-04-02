@@ -46,8 +46,9 @@ namespace RCommon
             where TUnitOfWork : IUnitOfWorkBuilder
         {
             // Data Store Management
-            StaticDataStore.DataStores = (StaticDataStore.DataStores == null ? new System.Collections.Concurrent.ConcurrentDictionary<string, Type>() : StaticDataStore.DataStores);
-            config.Services.AddSingleton<IDataStoreRegistry, StaticDataStoreRegistry>();
+            StaticDataStore.DataStores = (StaticDataStore.DataStores == null ? new System.Collections.Concurrent.ConcurrentDictionary<string, Type>() 
+                : StaticDataStore.DataStores);
+            config.Services.AddScoped<IDataStoreRegistry, StaticDataStoreRegistry>();
 
             // Object Access and Unit of Work Configurations 
             var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { config.Services });
