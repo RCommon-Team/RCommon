@@ -27,8 +27,8 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
         {
             this._leaveAllocationRepository = leaveAllocationRepository;
             this._leaveTypeRepository = leaveTypeRepository;
-            this._leaveAllocationRepository.DataStoreName = "LeaveManagement";
-            this._leaveTypeRepository.DataStoreName = "LeaveManagement";
+            this._leaveAllocationRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
+            this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             _mapper = mapper;
         }
 

@@ -22,7 +22,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
         public DeleteLeaveAllocationCommandHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
         {
             this._leaveAllocationRepository = leaveAllocationRepository;
-            this._leaveAllocationRepository.DataStoreName = "LeaveManagement";
+            this._leaveAllocationRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             _mapper = mapper;
         }
 

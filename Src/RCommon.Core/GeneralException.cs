@@ -66,13 +66,6 @@ namespace RCommon
             _messageParameters = messageParameters;
         }
 
-        protected GeneralException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            _severity = (SeverityOptions)info.GetInt32("severity");
-            _debugMessage = info.GetString("message");
-        }
-
         public override string Message
         {
             get
