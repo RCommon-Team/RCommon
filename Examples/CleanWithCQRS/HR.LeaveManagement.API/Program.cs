@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Transactions;
 using RCommon.Persistence.Transactions;
 using RCommon.Mediator.MediatR;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,20 +34,24 @@ builder.Services.AddRCommon()
     .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
     .WithMediator<MediatRBuilder>(mediator =>
     {
+        mediator.Configure(config =>
+        {
+            config.RegisterServicesFromAssemblies((typeof(ApplicationServicesRegistration).GetTypeInfo().Assembly));
+        });
         mediator.AddLoggingToRequestPipeline();
         mediator.AddUnitOfWorkToRequestPipeline();
     })
     .WithPersistence<EFCorePerisistenceBuilder, DefaultUnitOfWorkBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
     {
         // Add all the DbContexts here
-        ef.AddDbContext<LeaveManagementDbContext>("LeaveManagementConnectionString", options =>
+        ef.AddDbContext<LeaveManagementDbContext>(DataStoreNamesConst.LeaveManagement, options =>
         {
             options.UseSqlServer(
-                builder.Configuration.GetConnectionString("LeaveManagementConnectionString"));
+                builder.Configuration.GetConnectionString(DataStoreNamesConst.LeaveManagement));
         });
         ef.SetDefaultDataStore(dataStore =>
         {
-            dataStore.DefaultDataStoreName = "LeaveManagementConnectionString";
+            dataStore.DefaultDataStoreName = DataStoreNamesConst.LeaveManagement;
         });
     }, unitOfWork =>
     {
@@ -73,6 +78,8 @@ builder.Services.AddCors(o =>
         .AllowAnyMethod()
         .AllowAnyHeader());
 });
+
+Console.WriteLine(builder.Services.GenerateServiceDescriptorsString());
 
 var app = builder.Build();
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RCommon.Persistence
 {
@@ -20,13 +21,18 @@ namespace RCommon.Persistence
         public TDataStore GetDataStore<TDataStore>(string dataStoreName)
             where TDataStore : IDataStore
         {
-            var dataStore = this._serviceProvider.GetService(StaticDataStore.DataStores.Where(x => x.Key == dataStoreName).FirstOrDefault().Value);
-            return (TDataStore) dataStore; 
+            var type = StaticDataStore.DataStores.Where(x => x.Key == dataStoreName).FirstOrDefault().Value;
+            Guard.Against<DataStoreNotFoundException>(type == null,
+                this.GetGenericTypeName() + " could not find a DataStore with the key of: " + dataStoreName);
+            return (TDataStore)this._serviceProvider.GetService(type);
         }
 
         public IDataStore GetDataStore(string dataStoreName)
         {
-            return (IDataStore)this._serviceProvider.GetService(StaticDataStore.DataStores.Where(x => x.Key == dataStoreName).FirstOrDefault().Value);
+            var type = StaticDataStore.DataStores.Where(x => x.Key == dataStoreName).FirstOrDefault().Value;
+            Guard.Against<DataStoreNotFoundException>(type == null, 
+                this.GetGenericTypeName() + " could not find a DataStore with the key of: " + dataStoreName);
+            return (IDataStore) this._serviceProvider.GetService(type);
         }
 
         public void RegisterDataStore<TDataStore>(TDataStore dataStore, string dataStoreName) 

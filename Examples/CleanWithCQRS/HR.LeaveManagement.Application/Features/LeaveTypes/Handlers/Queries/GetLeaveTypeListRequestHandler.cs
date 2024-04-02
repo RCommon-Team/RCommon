@@ -23,7 +23,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries
         public GetLeaveTypeListRequestHandler(IGraphRepository<LeaveType> leaveTypeRepository, IMapper mapper)
         {
             _leaveTypeRepository = leaveTypeRepository;
-            this._leaveTypeRepository.DataStoreName = "LeaveManagement";
+            this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             _mapper = mapper;
         }
 

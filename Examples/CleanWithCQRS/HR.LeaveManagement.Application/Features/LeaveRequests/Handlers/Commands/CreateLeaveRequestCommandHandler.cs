@@ -48,9 +48,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             _leaveTypeRepository = leaveTypeRepository;
             _leaveAllocationRepository = leaveAllocationRepository;
             _leaveRequestRepository = leaveRequestRepository;
-            this._leaveAllocationRepository.DataStoreName = "LeaveManagement";
-            this._leaveTypeRepository.DataStoreName = "LeaveManagement";
-            this._leaveRequestRepository.DataStoreName = "LeaveManagement";
+            this._leaveAllocationRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
+            this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
+            this._leaveRequestRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             _emailSender = emailSender;
             this._currentUser = currentUser;
             _emailSettings=emailSettings;
