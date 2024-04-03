@@ -4,7 +4,7 @@ using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
 using HR.LeaveManagement.Domain;
-using MediatR;
+using RCommon.Mediator.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,7 +15,7 @@ using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Commands
 {
-    public class UpdateLeaveAllocationCommandHandler : IRequestHandler<UpdateLeaveAllocationCommand, Unit>
+    public class UpdateLeaveAllocationCommandHandler : IAppRequestHandler<UpdateLeaveAllocationCommand>
     {
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
@@ -32,7 +32,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
             _mapper = mapper;
         }
 
-        public async Task<Unit> Handle(UpdateLeaveAllocationCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(UpdateLeaveAllocationCommand request, CancellationToken cancellationToken)
         {
             var validator = new UpdateLeaveAllocationDtoValidator(this._leaveTypeRepository);
             var validationResult = await validator.ValidateAsync(request.LeaveAllocationDto);
@@ -48,7 +48,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
             _mapper.Map(request.LeaveAllocationDto, leaveAllocation);
 
             await _leaveAllocationRepository.UpdateAsync(leaveAllocation);
-            return Unit.Value;
+            
         }
     }
 }

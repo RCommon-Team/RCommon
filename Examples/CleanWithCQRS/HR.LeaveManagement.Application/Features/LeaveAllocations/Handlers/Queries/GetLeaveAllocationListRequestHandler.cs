@@ -2,7 +2,7 @@
 using HR.LeaveManagement.Application.DTOs;
 using HR.LeaveManagement.Application.DTOs.LeaveAllocation;
 using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Queries;
-using MediatR;
+using RCommon.Mediator.Subscribers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +16,7 @@ using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Queries
 {
-    public class GetLeaveAllocationListRequestHandler : IRequestHandler<GetLeaveAllocationListRequest, List<LeaveAllocationDto>>
+    public class GetLeaveAllocationListRequestHandler : IAppRequestHandler<GetLeaveAllocationListRequest, List<LeaveAllocationDto>>
     {
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
@@ -35,7 +35,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
             this._userService = userService;
         }
 
-        public async Task<List<LeaveAllocationDto>> Handle(GetLeaveAllocationListRequest request, CancellationToken cancellationToken)
+        public async Task<List<LeaveAllocationDto>> HandleAsync(GetLeaveAllocationListRequest request, CancellationToken cancellationToken)
         {
             var leaveAllocations = new List<LeaveAllocation>();
             var allocations = new List<LeaveAllocationDto>();

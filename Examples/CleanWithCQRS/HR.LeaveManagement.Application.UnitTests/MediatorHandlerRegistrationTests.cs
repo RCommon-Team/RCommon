@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
-using MediatR;
 using NUnit.Framework;
+using RCommon.Mediator.Subscribers;
 using RCommon.TestBase;
 using Shouldly;
 using System;
@@ -35,12 +35,12 @@ namespace HR.LeaveManagement.Application.UnitTests
 
 		private static bool IsRequest(Type type)
 		{
-			return typeof(IBaseRequest).IsAssignableFrom(type);
+			return typeof(IAppRequest).IsAssignableFrom(type);
 		}
 
 		private static bool IsIRequestHandler(Type type)
 		{
-			return type.GetInterfaces().Any(interfaceType => interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
+			return type.GetInterfaces().Any(interfaceType => interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IAppRequestHandler<,>));
 		}
 
 		private static bool IsHandlerForRequest(Type handlerType, Type requestType)

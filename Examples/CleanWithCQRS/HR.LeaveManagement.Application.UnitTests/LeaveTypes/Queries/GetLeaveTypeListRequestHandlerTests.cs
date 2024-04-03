@@ -48,7 +48,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Queries
                 .Returns(() => Task.FromResult(testData as ICollection<LeaveType>));
             
             var handler = new GetLeaveTypeListRequestHandler(mock.Object, _mapper);
-            var result = await handler.Handle(new GetLeaveTypeListRequest(), CancellationToken.None);
+            var result = await handler.HandleAsync(new GetLeaveTypeListRequest(), CancellationToken.None);
 
             result.ShouldBeOfType<List<LeaveTypeDto>>();
             result.Count.ShouldBe(5);

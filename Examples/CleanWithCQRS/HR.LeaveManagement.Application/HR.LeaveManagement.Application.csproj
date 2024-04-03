@@ -8,12 +8,12 @@
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="13.0.1" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
-		<PackageReference Include="MediatR" Version="12.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.Mediator\RCommon.Mediator.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Models\RCommon.Models.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Persistence\RCommon.Persistence.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Security\RCommon.Security.csproj" />

@@ -3,7 +3,7 @@ using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
 using HR.LeaveManagement.Domain;
-using MediatR;
+using RCommon.Mediator.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,7 +14,7 @@ using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands
 {
-    public class DeleteLeaveRequestCommandHandler : IRequestHandler<DeleteLeaveRequestCommand>
+    public class DeleteLeaveRequestCommandHandler : IAppRequestHandler<DeleteLeaveRequestCommand>
     {
         private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
 
@@ -24,7 +24,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             this._leaveRequestRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
         }
 
-        public async Task Handle(DeleteLeaveRequestCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(DeleteLeaveRequestCommand request, CancellationToken cancellationToken)
         {
             var leaveRequest = await _leaveRequestRepository.FindAsync(request.Id);
 
