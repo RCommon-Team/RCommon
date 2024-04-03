@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,10 +21,10 @@ namespace HR.LeaveManagement.Api.Controllers
     [Authorize]
     public class LeaveTypesController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly IMediatorService _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public LeaveTypesController(IMediator mediator, IHttpContextAccessor httpContextAccessor)
+        public LeaveTypesController(IMediatorService mediator, IHttpContextAccessor httpContextAccessor)
         {
             _mediator = mediator;
             this._httpContextAccessor = httpContextAccessor;
@@ -33,7 +34,7 @@ namespace HR.LeaveManagement.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<List<LeaveTypeDto>>> Get()
         {
-            var leaveTypes = await _mediator.Send(new GetLeaveTypeListRequest());
+            var leaveTypes = await _mediator.Send< GetLeaveTypeListRequest, List<LeaveTypeDto>>(new GetLeaveTypeListRequest());
             return Ok(leaveTypes);
         }
 
@@ -41,7 +42,7 @@ namespace HR.LeaveManagement.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<LeaveTypeDto>> Get(int id)
         {
-            var leaveType = await _mediator.Send(new GetLeaveTypeDetailRequest { Id = id });
+            var leaveType = await _mediator.Send<GetLeaveTypeDetailRequest, LeaveTypeDto>(new GetLeaveTypeDetailRequest { Id = id });
             return Ok(leaveType);
         }
 
@@ -54,7 +55,7 @@ namespace HR.LeaveManagement.Api.Controllers
         {
             var user = _httpContextAccessor.HttpContext.User;
             var command = new CreateLeaveTypeCommand { LeaveTypeDto = leaveType };
-            var response = await _mediator.Send(command);
+            var response = await _mediator.Send<CreateLeaveTypeCommand, BaseCommandResponse>(command);
             return Ok(response);
         }
 
