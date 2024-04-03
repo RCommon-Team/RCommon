@@ -42,8 +42,8 @@ namespace RCommon.Persistence.Transactions
             services.AddScoped<IUnitOfWorkManager, UnitOfWorkScopeManager>();
 
             // Factory for Unit Of Work Scope
-            services.AddTransient<IUnitOfWork, UnitOfWorkScope>();
-            services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
+            services.AddScoped<IUnitOfWork, UnitOfWorkScope>();
+            services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();
             _services = services;
         }
 

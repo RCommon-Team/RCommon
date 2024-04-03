@@ -68,7 +68,7 @@ namespace RCommon
         /// <returns>Updated instance of <see cref="IRCommonBuilder"/>RCommon Configuration</returns>
         private static IRCommonBuilder WithChangeTracking(this IRCommonBuilder config)
         {
-            config.Services.AddTransient<IEventRouter, InMemoryTransactionalEventRouter>();
+            config.Services.AddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
             config.Services.AddScoped<IEntityEventTracker, InMemoryEntityEventTracker>();
             return config;
         }

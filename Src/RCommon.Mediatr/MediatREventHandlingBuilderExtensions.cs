@@ -40,7 +40,7 @@ namespace RCommon.MediatR
             Action<MediatRServiceConfiguration> mediatRActions)
             where T : IMediatREventHandlingBuilder
         {
-            builder.Services.AddTransient<IMediatorService, MediatorService>();
+            builder.Services.AddScoped<IMediatorService, MediatorService>();
 
             // MediatR
             builder.Services.AddMediatR(mediatRActions);
@@ -56,10 +56,10 @@ namespace RCommon.MediatR
             where TEvent : class, ISerializableEvent
             where TEventHandler : class, ISubscriber<TEvent>
         {
-            builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
+            builder.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
 
             // For notifications which can be handled by multiple handlers
-            builder.Services.AddTransient<INotificationHandler<MediatRNotification<TEvent>>, MediatREventHandler<TEvent, MediatRNotification<TEvent>>>();
+            builder.Services.AddScoped<INotificationHandler<MediatRNotification<TEvent>>, MediatREventHandler<TEvent, MediatRNotification<TEvent>>>();
         }
     }
 }

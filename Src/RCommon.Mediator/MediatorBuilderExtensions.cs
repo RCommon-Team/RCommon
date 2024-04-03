@@ -23,7 +23,7 @@ namespace RCommon
             where T : IMediatorBuilder
         {
 
-            builder.Services.AddSingleton<IMediatorService, MediatorService>();
+            builder.Services.AddScoped<IMediatorService, MediatorService>();
 
             // Event Handling Configurations 
             var mediatorConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
