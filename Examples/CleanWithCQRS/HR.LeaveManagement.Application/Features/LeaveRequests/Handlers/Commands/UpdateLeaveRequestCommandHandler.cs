@@ -5,7 +5,7 @@ using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Commands
 using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
 using HR.LeaveManagement.Domain;
-using MediatR;
+using RCommon.Mediator.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +16,7 @@ using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands
 {
-    public class UpdateLeaveRequestCommandHandler : IRequestHandler<UpdateLeaveRequestCommand, Unit>
+    public class UpdateLeaveRequestCommandHandler : IAppRequestHandler<UpdateLeaveRequestCommand>
     {
         private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
@@ -38,7 +38,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             _mapper = mapper;
         }
 
-        public async Task<Unit> Handle(UpdateLeaveRequestCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(UpdateLeaveRequestCommand request, CancellationToken cancellationToken)
         {
             var leaveRequest = await _leaveRequestRepository.FindAsync(request.Id);
 
@@ -73,7 +73,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                 }
             }
 
-            return Unit.Value;
+            
         }
     }
 }

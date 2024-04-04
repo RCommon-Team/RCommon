@@ -13,6 +13,22 @@ using System.Transactions;
 using RCommon.Persistence.Transactions;
 using RCommon.Mediator.MediatR;
 using System.Reflection;
+using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Commands;
+using HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Commands;
+using HR.LeaveManagement.Application.Responses;
+using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Queries;
+using HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Queries;
+using HR.LeaveManagement.Application.DTOs.LeaveAllocation;
+using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Commands;
+using HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands;
+using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
+using HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands;
+using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Queries;
+using HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries;
+using HR.LeaveManagement.Application.DTOs.LeaveRequest;
+using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
+using HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries;
+using HR.LeaveManagement.Application.DTOs.LeaveType;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +50,26 @@ builder.Services.AddRCommon()
     .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
     .WithMediator<MediatRBuilder>(mediator =>
     {
+        mediator.AddRequest<CreateLeaveAllocationCommand, BaseCommandResponse, CreateLeaveAllocationCommandHandler>();
+        mediator.AddRequest<DeleteLeaveAllocationCommand, DeleteLeaveAllocationCommandHandler>();
+        mediator.AddRequest<UpdateLeaveAllocationCommand, UpdateLeaveAllocationCommandHandler>();
+        mediator.AddRequest<GetLeaveAllocationDetailRequest, LeaveAllocationDto, GetLeaveAllocationDetailRequestHandler>();
+        mediator.AddRequest<GetLeaveAllocationListRequest, List<LeaveAllocationDto>, GetLeaveAllocationListRequestHandler>();
+        mediator.AddRequest<CreateLeaveAllocationCommand, BaseCommandResponse, CreateLeaveAllocationCommandHandler>();
+        mediator.AddRequest<DeleteLeaveAllocationCommand,  DeleteLeaveAllocationCommandHandler>();
+        mediator.AddRequest<UpdateLeaveAllocationCommand, UpdateLeaveAllocationCommandHandler>();
+        mediator.AddRequest<CreateLeaveRequestCommand, BaseCommandResponse, CreateLeaveRequestCommandHandler>();
+        mediator.AddRequest<DeleteLeaveRequestCommand, DeleteLeaveRequestCommandHandler>();
+        mediator.AddRequest<UpdateLeaveRequestCommand, UpdateLeaveRequestCommandHandler>();
+        mediator.AddRequest<CreateLeaveTypeCommand, BaseCommandResponse, CreateLeaveTypeCommandHandler>();
+        mediator.AddRequest<GetLeaveRequestDetailRequest, LeaveRequestDto, GetLeaveRequestDetailRequestHandler>();
+        mediator.AddRequest<GetLeaveRequestListRequest, List<LeaveRequestListDto>, GetLeaveRequestListRequestHandler>();
+        mediator.AddRequest<CreateLeaveTypeCommand, BaseCommandResponse, CreateLeaveTypeCommandHandler>();
+        mediator.AddRequest<DeleteLeaveTypeCommand, DeleteLeaveTypeCommandHandler>();
+        mediator.AddRequest<UpdateLeaveTypeCommand, UpdateLeaveTypeCommandHandler>();
+        mediator.AddRequest<GetLeaveTypeDetailRequest, LeaveTypeDto, GetLeaveTypeDetailRequestHandler>();
+        mediator.AddRequest<GetLeaveTypeListRequest, List<LeaveTypeDto>, GetLeaveTypeListRequestHandler>();
+
         mediator.Configure(config =>
         {
             config.RegisterServicesFromAssemblies((typeof(ApplicationServicesRegistration).GetTypeInfo().Assembly));

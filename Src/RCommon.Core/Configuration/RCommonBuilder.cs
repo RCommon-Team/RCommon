@@ -22,8 +22,7 @@ namespace RCommon
             Services = services;
 
             // Event Bus
-            //Services.AddSingleton<IEventBus, InMemoryEventBus>(); // Set up default event bus
-            services.AddSingleton<IEventBus>(sp =>
+            services.AddScoped<IEventBus>(sp =>
             {
                 return new InMemoryEventBus(sp, services);
             });
@@ -44,7 +43,7 @@ namespace RCommon
         {
             Guard.Against<RCommonBuilderException>(this._guidConfigured,
                 "Guid Generator has already been configured once. You cannot configure multiple times");
-            this.Services.AddTransient<IGuidGenerator, SimpleGuidGenerator>();
+            this.Services.AddScoped<IGuidGenerator, SimpleGuidGenerator>();
             this._guidConfigured = true;
             return this;
         }

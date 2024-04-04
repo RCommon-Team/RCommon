@@ -3,7 +3,7 @@ using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
 using HR.LeaveManagement.Domain;
-using MediatR;
+using RCommon.Mediator.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,7 +14,7 @@ using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Commands
 {
-    public class DeleteLeaveAllocationCommandHandler : IRequestHandler<DeleteLeaveAllocationCommand>
+    public class DeleteLeaveAllocationCommandHandler : IAppRequestHandler<DeleteLeaveAllocationCommand>
     {
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
@@ -26,7 +26,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
             _mapper = mapper;
         }
 
-        public async Task Handle(DeleteLeaveAllocationCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(DeleteLeaveAllocationCommand request, CancellationToken cancellationToken)
         {
             var leaveAllocation = await _leaveAllocationRepository.FindAsync(request.Id);
 
