@@ -27,7 +27,7 @@ namespace RCommon.MediatR
         protected void RegisterServices(IServiceCollection services)
         {   
 
-            services.AddSingleton<IMediatorAdapter, MediatRAdapter>();
+            services.AddScoped<IMediatorAdapter, MediatRAdapter>();
         }
 
         public IServiceCollection Services { get; }

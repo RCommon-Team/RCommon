@@ -5,6 +5,7 @@ using HR.LeaveManagement.Application.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RCommon.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +20,9 @@ namespace HR.LeaveManagement.Api.Controllers
     [Authorize]
     public class LeaveRequestsController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly IMediatorService _mediator;
 
-        public LeaveRequestsController(IMediator mediator)
+        public LeaveRequestsController(IMediatorService mediator)
         {
             _mediator = mediator;
         }
@@ -30,7 +31,7 @@ namespace HR.LeaveManagement.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<List<LeaveRequestListDto>>> Get(bool isLoggedInUser = false)
         {
-            var leaveRequests = await _mediator.Send(new GetLeaveRequestListRequest() { IsLoggedInUser = isLoggedInUser });
+            var leaveRequests = await _mediator.Send< GetLeaveRequestListRequest, List<LeaveRequestListDto>>(new GetLeaveRequestListRequest() { IsLoggedInUser = isLoggedInUser });
             return Ok(leaveRequests);
         }
 
@@ -38,7 +39,7 @@ namespace HR.LeaveManagement.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<LeaveRequestDto>> Get(int id)
         {
-            var leaveRequest = await _mediator.Send(new GetLeaveRequestDetailRequest { Id = id });
+            var leaveRequest = await _mediator.Send< GetLeaveRequestDetailRequest, LeaveRequestDto>(new GetLeaveRequestDetailRequest { Id = id });
             return Ok(leaveRequest);
         }
 
@@ -47,7 +48,7 @@ namespace HR.LeaveManagement.Api.Controllers
         public async Task<ActionResult<BaseCommandResponse>> Post([FromBody] CreateLeaveRequestDto leaveRequest)
         {
             var command = new CreateLeaveRequestCommand { LeaveRequestDto = leaveRequest };
-            var repsonse = await _mediator.Send(command);
+            var repsonse = await _mediator.Send< CreateLeaveRequestCommand, BaseCommandResponse>(command);
             return Ok(repsonse);
         }
 

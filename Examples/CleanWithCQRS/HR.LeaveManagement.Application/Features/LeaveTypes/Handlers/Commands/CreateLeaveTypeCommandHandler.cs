@@ -3,7 +3,7 @@ using HR.LeaveManagement.Application.DTOs.LeaveType.Validators;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
 using HR.LeaveManagement.Domain;
-using MediatR;
+using RCommon.Mediator.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +16,7 @@ using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
 {
-    public class CreateLeaveTypeCommandHandler : IRequestHandler<CreateLeaveTypeCommand, BaseCommandResponse>
+    public class CreateLeaveTypeCommandHandler : IAppRequestHandler<CreateLeaveTypeCommand, BaseCommandResponse>
     {
         private readonly IMapper _mapper;
         private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
@@ -27,7 +27,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
         }
 
-        public async Task<BaseCommandResponse> Handle(CreateLeaveTypeCommand request, CancellationToken cancellationToken)
+        public async Task<BaseCommandResponse> HandleAsync(CreateLeaveTypeCommand request, CancellationToken cancellationToken)
         {
             var response = new BaseCommandResponse();
             var validator = new CreateLeaveTypeDtoValidator();

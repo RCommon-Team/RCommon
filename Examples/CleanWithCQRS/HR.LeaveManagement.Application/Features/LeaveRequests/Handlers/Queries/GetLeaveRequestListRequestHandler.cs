@@ -4,7 +4,7 @@ using HR.LeaveManagement.Application.DTOs.LeaveRequest;
 using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Queries;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
-using MediatR;
+using RCommon.Mediator.Subscribers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -19,7 +19,7 @@ using RCommon.Persistence.Crud;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
 {
-    public class GetLeaveRequestListRequestHandler : IRequestHandler<GetLeaveRequestListRequest, List<LeaveRequestListDto>>
+    public class GetLeaveRequestListRequestHandler : IAppRequestHandler<GetLeaveRequestListRequest, List<LeaveRequestListDto>>
     {
         private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
         private readonly IMapper _mapper;
@@ -38,7 +38,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
             this._userService = userService;
         }
 
-        public async Task<List<LeaveRequestListDto>> Handle(GetLeaveRequestListRequest request, CancellationToken cancellationToken)
+        public async Task<List<LeaveRequestListDto>> HandleAsync(GetLeaveRequestListRequest request, CancellationToken cancellationToken)
         {
             var leaveRequests = new List<LeaveRequest>();
             var requests = new List<LeaveRequestListDto>();

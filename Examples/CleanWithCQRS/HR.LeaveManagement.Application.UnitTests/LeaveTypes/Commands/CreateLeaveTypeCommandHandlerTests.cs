@@ -56,7 +56,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
         [Test]
         public async Task Valid_LeaveType_Added()
         {
-            var result = await _handler.Handle(new CreateLeaveTypeCommand() { LeaveTypeDto = _leaveTypeDto }, CancellationToken.None);
+            var result = await _handler.HandleAsync(new CreateLeaveTypeCommand() { LeaveTypeDto = _leaveTypeDto }, CancellationToken.None);
 
             result.ShouldBeOfType<BaseCommandResponse>();
         }
@@ -66,7 +66,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
         {
             _leaveTypeDto.DefaultDays = -1;
 
-            var result = await _handler.Handle(new CreateLeaveTypeCommand() { LeaveTypeDto = _leaveTypeDto }, CancellationToken.None);
+            var result = await _handler.HandleAsync(new CreateLeaveTypeCommand() { LeaveTypeDto = _leaveTypeDto }, CancellationToken.None);
 
             //leaveTypes.Count.ShouldBe(3);
 
