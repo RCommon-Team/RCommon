@@ -105,6 +105,7 @@ class Build : NukeBuild
 
     Target Compile => _ => _
         .DependsOn(Restore)
+        .After(Pack)
         .Executes(() =>
         {
             Log.Information("Compiling solution");
@@ -154,7 +155,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.SendGrid")
                     .SetProject(Solution.GetProject("RCommon.SendGrid"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, email, emailing, sendgrid")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -172,7 +173,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.MassTransit")
                     .SetProject(Solution.GetProject("RCommon.MassTransit"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, masstransit, message bus, event bus, messaging, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -190,7 +191,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Wolverine")
                     .SetProject(Solution.GetProject("RCommon.Wolverine"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, Wolverine, messaging, message bus, event bus, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -208,7 +209,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Mediator")
                     .SetProject(Solution.GetProject("RCommon.Mediator"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, mediator abstraction, pub/sub, mediator pattern")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -226,7 +227,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.MediatR")
                     .SetProject(Solution.GetProject("RCommon.MediatR"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, MediatR, mediator implementation, pub/sub, mediator pattern")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -244,7 +245,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Dapper")
                     .SetProject(Solution.GetProject("RCommon.Dapper"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, dapper, dapper repository, repository pattern, crud, dapper extensions, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -262,7 +263,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.EFCore")
                     .SetProject(Solution.GetProject("RCommon.EFCore"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, entity framework, efcore, repository, crud, repository pattern, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -280,7 +281,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Linq2Db")
                     .SetProject(Solution.GetProject("RCommon.Linq2Db"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, linq2db, linqtosql, linqtodb, repository pattern, linq2db repository, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -298,7 +299,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Persistence")
                     .SetProject(Solution.GetProject("RCommon.Persistence"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, persistence abstractions, repository pattern, crud, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -316,7 +317,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.ApplicationServices")
                     .SetProject(Solution.GetProject("RCommon.ApplicationServices"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, application services, CQRS, auto web api, commands, command handlers, queries, query handlers, command bus, query bus, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -334,7 +335,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Authorization.Web")
                     .SetProject(Solution.GetProject("RCommon.Authorization.Web"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, web authorization, web security, web identity, bearer tokens, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -352,7 +353,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Core")
                     .SetProject(Solution.GetProject("RCommon.Core"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, infrastructure code, design patterns, design pattern abstractions, cloud pattern abstractions, persistence, event handling, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -370,7 +371,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Entities")
                     .SetProject(Solution.GetProject("RCommon.Entities"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, business entities, domain objects, domain model, ddd, domain events, event aware entities, entity helpers, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -388,7 +389,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Models")
                     .SetProject(Solution.GetProject("RCommon.Models"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, model helpers, dto, dto conversion, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -406,7 +407,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Security")
                     .SetProject(Solution.GetProject("RCommon.Security"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, security extensions, claims, identity, authorization, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -424,7 +425,7 @@ class Build : NukeBuild
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Web")
                     .SetProject(Solution.GetProject("RCommon.Web"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
+                    .SetPackageTags("RCommon, web extensions, asp.net core, c#, .NET")
                     .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
@@ -441,24 +442,24 @@ class Build : NukeBuild
         });
 
 
-    Target Push => _ => _
-       //.DependsOn(Pack)
-       .Requires(() => NuGetApiUrl)
-       .Requires(() => NuGetApiKey)
-       .Requires(() => Configuration.Equals(Configuration.Release))
-       .Executes(() =>
-       {
-           Glob.Files(Directory_NuGet, "*.nupkg")
-               .NotEmpty()
-               .Where(x => !x.EndsWith("symbols.nupkg"))
-               .ForEach(x =>
-               {
-                   DotNetTasks
-                   .DotNetNuGetPush(s => s
-                       .SetTargetPath(x)
-                       .SetSource(NuGetApiUrl)
-                       .SetApiKey(NuGetApiKey)
-                   );
-               });
-       });
+    //Target Push => _ => _
+    //   //.DependsOn(Pack)
+    //   .Requires(() => NuGetApiUrl)
+    //   .Requires(() => NuGetApiKey)
+    //   .Requires(() => Configuration.Equals(Configuration.Release))
+    //   .Executes(() =>
+    //   {
+    //       Glob.Files(Directory_NuGet, "*.nupkg")
+    //           .NotEmpty()
+    //           .Where(x => !x.EndsWith("symbols.nupkg"))
+    //           .ForEach(x =>
+    //           {
+    //               DotNetTasks
+    //               .DotNetNuGetPush(s => s
+    //                   .SetTargetPath(x)
+    //                   .SetSource(NuGetApiUrl)
+    //                   .SetApiKey(NuGetApiKey)
+    //               );
+    //           });
+    //   });
 }

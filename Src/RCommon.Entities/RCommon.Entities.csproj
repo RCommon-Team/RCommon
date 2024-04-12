@@ -2,34 +2,11 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
-	  <Version>2.0.0.8</Version>
-	  <Authors>Jason Webb</Authors>
-	  <Company>RCommon</Company>
-	  <Description>A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-	  <Copyright></Copyright>
-	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-	  <PackageIcon>rcommon-icon.png</PackageIcon>
-	  <PackageTags>RCommon, business entities, domain objects, domain model, ddd, domain events, event aware entities, entity helpers, c#, .NET</PackageTags>
-	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
-	  <FileVersion>2.0.0.0</FileVersion>
-	  <PackageIconUrl />
-	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\RCommon.Core\rcommon-icon.png">
-      <Pack>True</Pack>
-      <PackagePath>..\..\NuGet</PackagePath>
-    </None>
-  </ItemGroup>
-
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
+  </ItemGroup>	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
 		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
