@@ -73,14 +73,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Event Handling", "Event Han
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Build", "..\Build\Build.csproj", "{A83FB80E-2B41-403E-9529-FF0FA8E74045}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Build", "_Build", "{206A03B9-635F-4811-8519-8B02170B8CB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A83FB80E-2B41-403E-9529-FF0FA8E74045}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A83FB80E-2B41-403E-9529-FF0FA8E74045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04F96FF4-7229-4468-A486-086993EFD2A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{04F96FF4-7229-4468-A486-086993EFD2A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04F96FF4-7229-4468-A486-086993EFD2A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -181,6 +181,8 @@ Global
 		{397769BB-08F3-44DE-9BE6-90A73E0ABB76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{397769BB-08F3-44DE-9BE6-90A73E0ABB76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{397769BB-08F3-44DE-9BE6-90A73E0ABB76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A83FB80E-2B41-403E-9529-FF0FA8E74045}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A83FB80E-2B41-403E-9529-FF0FA8E74045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -208,6 +210,7 @@ Global
 		{CEDE1A60-3F6C-4F16-AC75-4477A646AD0D} = {EF78B8EE-80FF-45DE-9B82-352953B361A8}
 		{FC484848-D719-4AAD-91B0-EDDC434F946E} = {EF78B8EE-80FF-45DE-9B82-352953B361A8}
 		{397769BB-08F3-44DE-9BE6-90A73E0ABB76} = {6D73446A-6E32-4324-B524-E054334B394B}
+		{A83FB80E-2B41-403E-9529-FF0FA8E74045} = {206A03B9-635F-4811-8519-8B02170B8CB3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

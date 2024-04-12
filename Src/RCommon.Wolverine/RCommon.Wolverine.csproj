@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <None Include="..\RCommon.Core\rcommon-icon.png" Link="rcommon-icon.png">
-      <PackagePath></PackagePath>
+      <PackagePath>..\..\NuGet</PackagePath>
       <Pack>True</Pack>
     </None>
   </ItemGroup>

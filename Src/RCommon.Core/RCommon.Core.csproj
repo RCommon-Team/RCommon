@@ -48,7 +48,7 @@
 <ItemGroup>
     <None Include="rcommon-icon.png">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
+      <PackagePath>..\..\NuGet</PackagePath>
     </None>
   </ItemGroup>
 

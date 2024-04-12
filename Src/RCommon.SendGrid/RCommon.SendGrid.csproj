@@ -31,7 +31,7 @@
 	<ItemGroup>
 		<None Include="..\RCommon.Core\rcommon-icon.png">
 			<Pack>True</Pack>
-			<PackagePath></PackagePath>
+			<PackagePath>..\..\NuGet</PackagePath>
 		</None>
 	</ItemGroup>
 
