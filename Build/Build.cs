@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using GlobExpressions;
 using Nuke.Common;
@@ -10,8 +11,10 @@ using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
+using Nuke.Common.Tools.GitHub;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
+using Octokit;
 using Serilog;
 using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
@@ -37,7 +40,7 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main () => Execute<Build>(x => x.Compile);
+    public static int Main () => Execute<Build>(x => x.Compile, x => x.Pack);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -59,7 +62,7 @@ class Build : NukeBuild
     AbsolutePath Directory_NuGet => RootDirectory / "NuGet";
 
     [Parameter] string NuGetApiUrl = "https://api.nuget.org/v3/index.json";
-    [Parameter] string NuGetApiKey;
+    [Parameter][Secret] string NuGetApiKey;
 
     string Copyright = $"Copyright © Jason Webb {DateTime.Now.Year}";
 
@@ -73,8 +76,16 @@ class Build : NukeBuild
     Target Print => _ => _
     .Executes(() =>
     {
-        Log.Information("Branch = {Branch}", GitHubActions.Ref);
-        Log.Information("Commit = {Commit}", GitHubActions.Sha);
+        if (GitHubActions != null)
+        { 
+            Log.Information("Branch = {Branch}", GitHubActions.Ref);
+            Log.Information("Commit = {Commit}", GitHubActions.Sha);
+        }
+        var projects = Solution.GetAllProjects("RCommon*");
+        foreach (var project in projects)
+        {
+            Log.Information("Project: {0}", project.Path.ToString());
+        }
     });
 
     Target Print_Net_SDK => _ => _
@@ -86,7 +97,7 @@ class Build : NukeBuild
 
 
     Target Clean => _ => _
-        .Before(Restore)
+        .DependsOn(Print_Net_SDK)
         .Executes(() =>
         {
             Log.Information("Cleaning solution");
@@ -95,6 +106,7 @@ class Build : NukeBuild
         });
 
     Target Restore => _ => _
+        .DependsOn(Clean)
         .Executes(() =>
         {
             Log.Information("Restoring solution");
@@ -105,7 +117,6 @@ class Build : NukeBuild
 
     Target Compile => _ => _
         .DependsOn(Restore)
-        .After(Pack)
         .Executes(() =>
         {
             Log.Information("Compiling solution");
@@ -123,7 +134,8 @@ class Build : NukeBuild
         {
             Log.Information("Generating NuGet packages for projects in solution");
             int commitNum = 0;
-            string NuGetVersionCustom = GitVersion.NuGetVersionV2;
+            string NuGetVersionCustom = "2.0.0.8";
+
 
             //if it's not a tagged release - append the commit number to the package version
             //tagged commits on main have versions
@@ -131,14 +143,28 @@ class Build : NukeBuild
             //other commits have
             // - v0.3.0-beta1
 
-            if (Int32.TryParse(GitVersion.CommitsSinceVersionSource, out commitNum))
+            if (GitVersion != null && Int32.TryParse(GitVersion.CommitsSinceVersionSource, out commitNum))
+            {
+                Log.Information("Setting version.....");
                 NuGetVersionCustom = commitNum > 0 ? NuGetVersionCustom + $"{commitNum}" : NuGetVersionCustom;
+                Log.Information("Version #: {0}", NuGetVersionCustom);
+            }
+
+            Log.Information("Configuration: {0}", Configuration);
+            Log.Information("Solution: {0}", Solution.FileName);
+            var projects = Solution.GetAllProjects("RCommon*");
+            foreach (var project in projects)
+            {
+                Log.Information("Project: {0}", project.Name);
+            }
+            //Log.Information("Project: {0}", Solution.GetProject("RCommon.Emailing"));
+            //var path = projects.FirstOrDefault(x => x.Name == "RCommon.Emailing").Path.ToString();
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Emailing")
-                    .SetProject(Solution.GetProject("RCommon.Emailing"))
-                    .SetPackageTags("RCommon, emailing, email abstractions, smtp")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Emailing").Path.ToString())
+                    .SetPackageTags("RCommon emailing email abstractions smtp")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -154,9 +180,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.SendGrid")
-                    .SetProject(Solution.GetProject("RCommon.SendGrid"))
-                    .SetPackageTags("RCommon, email, emailing, sendgrid")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.SendGrid").Path.ToString())
+                    .SetPackageTags("RCommon email emailing sendgrid")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -172,9 +198,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.MassTransit")
-                    .SetProject(Solution.GetProject("RCommon.MassTransit"))
-                    .SetPackageTags("RCommon, masstransit, message bus, event bus, messaging, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.MassTransit").Path.ToString())
+                    .SetPackageTags("RCommon masstransit message bus event bus messaging")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -190,9 +216,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Wolverine")
-                    .SetProject(Solution.GetProject("RCommon.Wolverine"))
-                    .SetPackageTags("RCommon, Wolverine, messaging, message bus, event bus, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Wolverine").Path.ToString())
+                    .SetPackageTags("RCommon Wolverine messaging message bus event bus")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -208,9 +234,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Mediator")
-                    .SetProject(Solution.GetProject("RCommon.Mediator"))
-                    .SetPackageTags("RCommon, mediator abstraction, pub/sub, mediator pattern")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Mediator").Path.ToString())
+                    .SetPackageTags("RCommon mediator abstraction pubsub mediator pattern")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -226,9 +252,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.MediatR")
-                    .SetProject(Solution.GetProject("RCommon.MediatR"))
-                    .SetPackageTags("RCommon, MediatR, mediator implementation, pub/sub, mediator pattern")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.MediatR").Path.ToString())
+                    .SetPackageTags("RCommon MediatR mediator implementation pubsub mediator pattern")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -244,9 +270,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Dapper")
-                    .SetProject(Solution.GetProject("RCommon.Dapper"))
-                    .SetPackageTags("RCommon, dapper, dapper repository, repository pattern, crud, dapper extensions, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Dapper").Path.ToString())
+                    .SetPackageTags("RCommon dapper dapper repository repository pattern crud dapper extensions")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -262,9 +288,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.EFCore")
-                    .SetProject(Solution.GetProject("RCommon.EFCore"))
-                    .SetPackageTags("RCommon, entity framework, efcore, repository, crud, repository pattern, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.EFCore").Path.ToString())
+                    .SetPackageTags("RCommon entity framework efcore repository crud repository pattern")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -280,9 +306,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Linq2Db")
-                    .SetProject(Solution.GetProject("RCommon.Linq2Db"))
-                    .SetPackageTags("RCommon, linq2db, linqtosql, linqtodb, repository pattern, linq2db repository, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Linq2Db").Path.ToString())
+                    .SetPackageTags("RCommon linq2db linqtosql linqtodb repository pattern linq2db repository")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -298,9 +324,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Persistence")
-                    .SetProject(Solution.GetProject("RCommon.Persistence"))
-                    .SetPackageTags("RCommon, persistence abstractions, repository pattern, crud, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Persistence").Path.ToString())
+                    .SetPackageTags("RCommon persistence abstractions repository pattern crud")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -316,9 +342,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.ApplicationServices")
-                    .SetProject(Solution.GetProject("RCommon.ApplicationServices"))
-                    .SetPackageTags("RCommon, application services, CQRS, auto web api, commands, command handlers, queries, query handlers, command bus, query bus, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.ApplicationServices").Path.ToString())
+                    .SetPackageTags("RCommon application services CQRS auto web api commands command handlers queries query handlers command bus query bus")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -334,9 +360,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Authorization.Web")
-                    .SetProject(Solution.GetProject("RCommon.Authorization.Web"))
-                    .SetPackageTags("RCommon, web authorization, web security, web identity, bearer tokens, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Authorization.Web").Path.ToString())
+                    .SetPackageTags("RCommon web authorization web security web identity bearer tokens")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -352,9 +378,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Core")
-                    .SetProject(Solution.GetProject("RCommon.Core"))
-                    .SetPackageTags("RCommon, infrastructure code, design patterns, design pattern abstractions, cloud pattern abstractions, persistence, event handling, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Core").Path.ToString())
+                    .SetPackageTags("RCommon infrastructure code design patterns design pattern abstractions cloud pattern abstractions persistence event handling")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -370,9 +396,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Entities")
-                    .SetProject(Solution.GetProject("RCommon.Entities"))
-                    .SetPackageTags("RCommon, business entities, domain objects, domain model, ddd, domain events, event aware entities, entity helpers, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Entities").Path.ToString())
+                    .SetPackageTags("RCommon business entities domain objects domain model ddd domain events event aware entities entity helpers")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -388,9 +414,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Models")
-                    .SetProject(Solution.GetProject("RCommon.Models"))
-                    .SetPackageTags("RCommon, model helpers, dto, dto conversion, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Models").Path.ToString())
+                    .SetPackageTags("RCommon model helpers dto dto conversion")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -406,9 +432,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Security")
-                    .SetProject(Solution.GetProject("RCommon.Security"))
-                    .SetPackageTags("RCommon, security extensions, claims, identity, authorization, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Security").Path.ToString())
+                    .SetPackageTags("RCommon security extensions claims identity authorization")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -424,9 +450,9 @@ class Build : NukeBuild
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Web")
-                    .SetProject(Solution.GetProject("RCommon.Web"))
-                    .SetPackageTags("RCommon, web extensions, asp.net core, c#, .NET")
-                    .SetDescription("A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more.")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Web").Path.ToString())
+                    .SetPackageTags("RCommon web extensions aspnet core")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
                     .SetAuthors("Jason Webb")
@@ -462,4 +488,55 @@ class Build : NukeBuild
     //               );
     //           });
     //   });
+
+    //Target CreateRelease => _ => _
+    //   .DependsOn(Pack)
+    //   .Executes(() =>
+    //   {
+    //       Logger.Info("Started creating the release");
+    //       GitHubTasks.GitHubClient = new GitHubClient(new ProductHeaderValue(nameof(NukeBuild)))
+    //       {
+    //           Credentials = new Credentials(GithubRepositoryAuthToken)
+    //       };
+
+    //       var newRelease = new NewRelease(GitVersion.NuGetVersionV2)
+    //       {
+    //           TargetCommitish = GitVersion.Sha,
+    //           Draft = true,
+    //           Name = $"Release version {GitVersion.SemVer}",
+    //           Prerelease = false,
+    //           Body =
+    //           @$"See release notes in [docs](https://[YourSite]/{GitVersion.Major}.{GitVersion.Minor}/)"
+    //       };
+
+    //       var createdRelease = GitHubTasks.GitHubClient.Repository.Release.Create(GitRepository.GetGitHubOwner(), GitRepository.GetGitHubName(), newRelease).Result;
+    //       if (ArtifactsDirectory.GlobDirectories("*").Count > 0)
+    //       {
+    //           Logger.Warn(
+    //             $"Only files on the root of {ArtifactsDirectory} directory will be uploaded as release assets.");
+    //       }
+
+    //       ArtifactsDirectory.GlobFiles("*").ForEach(p => UploadReleaseAssetToGithub(createdRelease, p));
+    //       var _ = GitHubTasks.GitHubClient.Repository.Release
+    //         .Edit(GitRepository.GetGitHubOwner(), GitRepository.GetGitHubName(), createdRelease.Id, new ReleaseUpdate { Draft = false })
+    //         .Result;
+    //   });
+
+    //private void UploadReleaseAssetToGithub(Release release, AbsolutePath asset)
+    //{
+    //    if (!FileExists(asset))
+    //    {
+    //        return;
+    //    }
+
+    //    Logger.Info($"Started Uploading {Path.GetFileName(asset)} to the release.");
+    //    var releaseAssetUpload = new ReleaseAssetUpload
+    //    {
+    //        ContentType = "application/x-binary",
+    //        FileName = Path.GetFileName(asset),
+    //        RawData = File.OpenRead(asset)
+    //    };
+    //    var _ = GitHubTasks.GitHubClient.Repository.Release.UploadAsset(release, releaseAssetUpload).Result;
+    //    Logger.Success($"Done Uploading {Path.GetFileName(asset)} to the release.");
+    //}
 }
