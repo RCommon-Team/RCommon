@@ -2,30 +2,9 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
-	  <Version>2.0.0.8</Version>
-	  <Authors>Jason Webb</Authors>
-	  <Company>RCommon</Company>
-	  <Description>A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-	  <Copyright></Copyright>
-	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-	  <PackageIcon>rcommon-icon.png</PackageIcon>
-	  <PackageTags>RCommon, Wolverine wrapper, messaging, message bus, event bus, c#, .NET</PackageTags>
-	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
-	  <FileVersion>2.0.0.0</FileVersion>
-	  <PackageIconUrl />
-	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\RCommon.Core\rcommon-icon.png" Link="rcommon-icon.png">
-      <PackagePath></PackagePath>
-      <Pack>True</Pack>
-    </None>
-  </ItemGroup>
 
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
