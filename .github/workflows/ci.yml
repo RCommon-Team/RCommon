@@ -41,4 +41,4 @@ jobs:
       - name: 'Run: Compile, Pack, Push'
         run: ./build.cmd Compile Pack Push
         env:
-          NuGetApiKey: ${{ secrets.NUGET_API_KEY }}
+          NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
