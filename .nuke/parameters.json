@@ -1,4 +1,5 @@
 {
   "$schema": "./build.schema.json",
-  "Solution": "Src/RCommon.sln"
+  "Solution": "Src/RCommon.sln",
+  "Configuration": "Release"
 }

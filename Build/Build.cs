@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using GlobExpressions;
+using Microsoft.Build.Evaluation;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.GitHubActions;
@@ -20,17 +21,16 @@ using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 
-[GitHubActions(
-    "continuous",
+[GitHubActions("ci",
     GitHubActionsImage.UbuntuLatest,
-    On = new[] { GitHubActionsTrigger.Push },
-    InvokedTargets = new[] { nameof(Compile) },
+    InvokedTargets = new[] { nameof(Compile), nameof(Pack), nameof(Push) },
     OnPushIncludePaths = new[] {
         "Src/**",
         "Build/**"
     },
-    OnPushBranches = new[] { "main" },
-    AutoGenerate = false)]
+    OnPullRequestBranches = new[] { "main" },
+    AutoGenerate = true, 
+    ImportSecrets = new[] {"NuGetApiKey"})]
 [ShutdownDotNetAfterServerBuild]
 class Build : NukeBuild
 {
@@ -40,7 +40,7 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main () => Execute<Build>(x => x.Compile, x => x.Pack);
+    public static int Main () => Execute<Build>(build => build.Compile, build => build.Pack, build => build.Push);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -102,7 +102,7 @@ class Build : NukeBuild
         {
             Log.Information("Cleaning solution");
             Directory_Src.GlobDirectories("**/bin", "**/obj")
-                .ForEach(DeleteDirectory);
+                .ForEach(x => x.DeleteDirectory());
         });
 
     Target Restore => _ => _
@@ -468,26 +468,26 @@ class Build : NukeBuild
         });
 
 
-    //Target Push => _ => _
-    //   //.DependsOn(Pack)
-    //   .Requires(() => NuGetApiUrl)
-    //   .Requires(() => NuGetApiKey)
-    //   .Requires(() => Configuration.Equals(Configuration.Release))
-    //   .Executes(() =>
-    //   {
-    //       Glob.Files(Directory_NuGet, "*.nupkg")
-    //           .NotEmpty()
-    //           .Where(x => !x.EndsWith("symbols.nupkg"))
-    //           .ForEach(x =>
-    //           {
-    //               DotNetTasks
-    //               .DotNetNuGetPush(s => s
-    //                   .SetTargetPath(x)
-    //                   .SetSource(NuGetApiUrl)
-    //                   .SetApiKey(NuGetApiKey)
-    //               );
-    //           });
-    //   });
+    Target Push => _ => _
+       .DependsOn(Pack)
+       .Requires(() => NuGetApiUrl)
+       .Requires(() => NuGetApiKey)
+       .Requires(() => Configuration.Equals(Configuration.Release))
+       .Executes(() =>
+       {
+           Assert.NotNull(Glob.Files(Directory_NuGet, "*.nupkg", GlobOptions.MatchFullPath))
+               .Where(x => !x.EndsWith("symbols.nupkg"))
+               .ForEach(file =>
+               {
+                   Log.Information("Pushing nuget from path: {0}", Directory_NuGet/file);
+                   DotNetTasks
+                   .DotNetNuGetPush(s => s
+                       .SetTargetPath(Directory_NuGet/file)
+                       .SetSource(NuGetApiUrl)
+                       .SetApiKey(NuGetApiKey)
+                   );
+               });
+       });
 
     //Target CreateRelease => _ => _
     //   .DependsOn(Pack)
