@@ -31,6 +31,7 @@ namespace RCommon.EventHandling.Producers
             try
             {
                 Guard.IsNotNull(transactionalEvents, nameof(transactionalEvents));
+                _logger.LogInformation("{0} is routing transactional events to event producers.", this.GetGenericTypeName());
 
                 // Seperate Async events from Sync Events
                 var syncEvents = transactionalEvents.Where(x => x is ISyncEvent);
