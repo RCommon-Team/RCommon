@@ -1,6 +1,5 @@
 {
   "$schema": "./build.schema.json",
   "Solution": "Src/RCommon.sln",
-  "Configuration": "Release",
-  "NUGETAPIKEY": "v1:+IfO5v0voSnBGWyvd5RKGczRFSP0u5SaejpBSJRD492E2eI2yx49qzIfm5+DE4t0"
+  "Configuration": "Release"
 }
