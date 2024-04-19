@@ -2,20 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
-    <Version>2.0.0.8</Version>
-    <Authors>Jason Webb</Authors>
-    <Company>RCommon</Company>
-    <Description>A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-    <Copyright></Copyright>
-    <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-    <PackageIcon>rcommon-icon.png</PackageIcon>
-    <PackageTags>RCommon, language extensions, generic factories, abstractions, c#, .NET</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
-    <PackageIconUrl />
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RootNamespace>$(MSBuildProjectName.Replace(" ", "_").Replace(".Core", ""))</RootNamespace>
   </PropertyGroup>
 
@@ -44,12 +30,5 @@
 		<PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
 		<PackageReference Include="System.Text.Json" Version="8.0.3" />
 	</ItemGroup>
-	
-<ItemGroup>
-    <None Include="rcommon-icon.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
 
 </Project>
