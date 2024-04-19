@@ -59,6 +59,7 @@ namespace RCommon
         public static void AddValidationToRequestPipeline(this IMediatRBuilder builder)
         {
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehaviorForMediatR<,>));
         }
 
         public static void AddUnitOfWorkToRequestPipeline(this IMediatRBuilder builder)
