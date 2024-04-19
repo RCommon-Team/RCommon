@@ -30,7 +30,7 @@ using static Nuke.Common.IO.PathConstruction;
     },
     OnPullRequestBranches = new[] { "main" },
     AutoGenerate = true, 
-    ImportSecrets = new[] {"NuGetApiKey"})]
+    ImportSecrets = new[] {"NUGETAPIKEY"})]
 [ShutdownDotNetAfterServerBuild]
 class Build : NukeBuild
 {
@@ -62,7 +62,7 @@ class Build : NukeBuild
     AbsolutePath Directory_NuGet => RootDirectory / "NuGet";
 
     [Parameter] string NuGetApiUrl = "https://api.nuget.org/v3/index.json";
-    [Parameter][Secret] string NuGetApiKey;
+    [Parameter][Secret] string NUGETAPIKEY;
 
     string Copyright = $"Copyright © Jason Webb {DateTime.Now.Year}";
 
@@ -471,7 +471,7 @@ class Build : NukeBuild
     Target Push => _ => _
        .DependsOn(Pack)
        .Requires(() => NuGetApiUrl)
-       .Requires(() => NuGetApiKey)
+       .Requires(() => NUGETAPIKEY)
        .Requires(() => Configuration.Equals(Configuration.Release))
        .Executes(() =>
        {
@@ -484,7 +484,7 @@ class Build : NukeBuild
                    .DotNetNuGetPush(s => s
                        .SetTargetPath(Directory_NuGet/file)
                        .SetSource(NuGetApiUrl)
-                       .SetApiKey(NuGetApiKey)
+                       .SetApiKey(NUGETAPIKEY)
                    );
                });
        });
