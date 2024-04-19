@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Microsoft.Extensions.Logging;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
 using System;
@@ -12,15 +13,18 @@ namespace RCommon.MassTransit.Producers
     public class PublishWithMassTransitEventProducer : IEventProducer
     {
         private readonly IBus _bus;
+        private readonly ILogger<PublishWithMassTransitEventProducer> _logger;
 
-        public PublishWithMassTransitEventProducer(IBus bus)
+        public PublishWithMassTransitEventProducer(IBus bus, ILogger<PublishWithMassTransitEventProducer> logger)
         {
-            _bus = bus;
+            _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent
         {
-            Console.WriteLine("{0} publishing event {1} to MassTransit", new object[] { this.GetGenericTypeName(), @event });
+            Guard.IsNotNull(@event, nameof(@event));
+            _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event });
             await _bus.Publish(@event, cancellationToken);
         }
     }
