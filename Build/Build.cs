@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using GlobExpressions;
 using Microsoft.Build.Evaluation;
-using NuGet.Versioning;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.GitHubActions;
@@ -51,11 +50,6 @@ class Build : NukeBuild
     [Solution] readonly Solution Solution;
 
     [GitVersion] readonly GitVersion GitVersion;
-
-    [LatestNuGetVersion(
-    packageId: "RCommon.Core",
-    IncludePrerelease = true)]
-    readonly NuGetVersion NugetVersion;
 
     [GitRepository] readonly GitRepository GitRepository;
 

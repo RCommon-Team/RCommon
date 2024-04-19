@@ -4,19 +4,6 @@
     <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	  <Authors>Jason Webb</Authors>
-	  <Company>RCommon</Company>
-	  <Description>A cohesive set of infrastructure libraries for .NET 6, .NET 7, and .NET 8 that utilizes abstractions for persistence, unit of work/transactions, distributed events, distributed transactions, and more.</Description>
-	  <Copyright></Copyright>
-	  <PackageProjectUrl>https://github.com/Reactor2Team/RCommon</PackageProjectUrl>
-	  <PackageIcon>rcommon-icon.png</PackageIcon>
-	  <RepositoryUrl>https://github.com/Reactor2Team/RCommon</RepositoryUrl>
-	  <PackageTags>RCommon, emailing, sendgrid</PackageTags>
-	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <RepositoryType>GitHub</RepositoryType>
-	  <Version>2.0.0.8</Version>
-	  <PackageIconUrl />
-	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,12 +14,5 @@
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
     <ProjectReference Include="..\RCommon.Emailing\RCommon.Emailing.csproj" />
   </ItemGroup>
-
-	<ItemGroup>
-		<None Include="..\RCommon.Core\rcommon-icon.png">
-			<Pack>True</Pack>
-			<PackagePath></PackagePath>
-		</None>
-	</ItemGroup>
 
 </Project>
