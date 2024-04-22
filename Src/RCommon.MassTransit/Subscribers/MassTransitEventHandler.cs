@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Microsoft.Extensions.Logging;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Subscribers;
 using System;
@@ -12,16 +13,18 @@ namespace RCommon.MassTransit.Subscribers
     public class MassTransitEventHandler<TEvent> : IMassTransitEventHandler<TEvent>, IConsumer<TEvent>
         where TEvent : class, ISerializableEvent
     {
+        private readonly ILogger<MassTransitEventHandler<TEvent>> _logger;
         private readonly ISubscriber<TEvent> _subscriber;
 
-        public MassTransitEventHandler(ISubscriber<TEvent> subscriber)
+        public MassTransitEventHandler(ILogger<MassTransitEventHandler<TEvent>> logger, ISubscriber<TEvent> subscriber)
         {
-            _subscriber = subscriber;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _subscriber = subscriber ?? throw new ArgumentNullException(nameof(subscriber));
         }
 
         public async Task Consume(ConsumeContext<TEvent> context)
         {
-            Console.WriteLine("{0} handling event {1} from MassTransit", new object[] { this.GetGenericTypeName(), context.Message });
+            _logger.LogDebug("{0} handling event {1}", new object[] { this.GetGenericTypeName(), context.Message });
             await _subscriber.HandleAsync(context.Message);
         }
     }

@@ -18,11 +18,14 @@ namespace RCommon.EventHandling.Producers
             _eventBus = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) 
             where T : ISerializableEvent
         {
             Guard.IsNotNull(@event, nameof(@event));
-            _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event });
+            _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+
+            // This should already be using a Scoped publish method
             await _eventBus.PublishAsync(@event);
         }
     }

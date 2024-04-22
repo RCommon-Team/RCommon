@@ -74,8 +74,8 @@ namespace RCommon
         {
             
             // MassTransit Event Bus
-            builder.Services.AddTransient(typeof(IMassTransitEventHandler<>), typeof(MassTransitEventHandler<>));
-            builder.Services.AddTransient(typeof(MassTransitEventHandler<>));
+            builder.Services.AddScoped(typeof(IMassTransitEventHandler<>), typeof(MassTransitEventHandler<>));
+            builder.Services.AddScoped(typeof(MassTransitEventHandler<>));
             builder.AddMassTransit(actions);
 
             return builder;
