@@ -130,11 +130,12 @@ class Build : NukeBuild
 
     Target Pack => _ => _
         .DependsOn(Compile)
+        .Requires(() => GitRepository.IsOnMainBranch())
         .Executes(() =>
         {
             Log.Information("Generating NuGet packages for projects in solution");
             int commitNum = 0;
-            string NuGetVersionCustom = "2.0.0.869";
+            string NuGetVersionCustom = "2.0.0.870";
 
 
             //if it's not a tagged release - append the commit number to the package version
@@ -157,8 +158,7 @@ class Build : NukeBuild
             {
                 Log.Information("Project: {0}", project.Name);
             }
-            //Log.Information("Project: {0}", Solution.GetProject("RCommon.Emailing"));
-            //var path = projects.FirstOrDefault(x => x.Name == "RCommon.Emailing").Path.ToString();
+            
             DotNetTasks
                 .DotNetPack(_ => _
                     .SetPackageId("RCommon.Emailing")
@@ -470,6 +470,7 @@ class Build : NukeBuild
 
     Target Push => _ => _
        .DependsOn(Pack)
+       .Requires(() => GitRepository.IsOnMainBranch())
        .Requires(() => NuGetApiUrl)
        .Requires(() => NUGETAPIKEY)
        .Requires(() => Configuration.Equals(Configuration.Release))

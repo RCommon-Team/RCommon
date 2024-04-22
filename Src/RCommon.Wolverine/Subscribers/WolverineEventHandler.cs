@@ -1,4 +1,5 @@
-﻿using RCommon.EventHandling;
+﻿using Microsoft.Extensions.Logging;
+using RCommon.EventHandling;
 using RCommon.EventHandling.Subscribers;
 using System;
 using System.Collections.Generic;
@@ -13,16 +14,18 @@ namespace RCommon.MassTransit.Subscribers
         where TEvent : class, ISerializableEvent
     {
         private readonly ISubscriber<TEvent> _subscriber;
+        private readonly ILogger<WolverineEventHandler<TEvent>> _logger;
 
-        public WolverineEventHandler(ISubscriber<TEvent> subscriber)
+        public WolverineEventHandler(ISubscriber<TEvent> subscriber, ILogger<WolverineEventHandler<TEvent>> logger)
         {
-            _subscriber = subscriber;
+            _subscriber = subscriber ?? throw new ArgumentNullException(nameof(subscriber));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task HandleAsync(TEvent distributedEvent, CancellationToken cancellationToken = default)
+        public async Task HandleAsync(TEvent @event, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine("{0} handling event {1} from MassTransit", new object[] { this.GetGenericTypeName(), distributedEvent });
-            await _subscriber.HandleAsync(distributedEvent);
+            _logger.LogDebug("{0} handling event {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+            await _subscriber.HandleAsync(@event);
         }
     }
 }

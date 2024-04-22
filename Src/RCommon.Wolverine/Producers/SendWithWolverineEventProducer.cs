@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
 using System;
@@ -14,19 +15,24 @@ namespace RCommon.Wolverine.Producers
     {
         private readonly IMessageBus _messageBus;
         private readonly ILogger<SendWithWolverineEventProducer> _logger;
+        private readonly IServiceProvider _serviceProvider;
 
-        public SendWithWolverineEventProducer(IMessageBus messageBus, ILogger<SendWithWolverineEventProducer> logger)
+        public SendWithWolverineEventProducer(IMessageBus messageBus, ILogger<SendWithWolverineEventProducer> logger, IServiceProvider serviceProvider)
         {
             _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
 
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent
         {
             Guard.IsNotNull(@event, nameof(@event));
-            _logger.LogInformation("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event });
-            await _messageBus.SendAsync(@event);
+            using (IServiceScope scope = _serviceProvider.CreateScope())
+            {
+                _logger.LogInformation("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+                await _messageBus.SendAsync(@event);
+            }
         }
     }
 }
