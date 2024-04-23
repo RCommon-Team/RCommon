@@ -14,12 +14,12 @@ namespace RCommon.Entities
 
         public InMemoryEntityEventTracker(IEventRouter eventRouter)
         {
-            this._eventRouter = eventRouter;
+            this._eventRouter = eventRouter ?? throw new ArgumentNullException(nameof(eventRouter));
         }
 
         public void AddEntity(IBusinessEntity entity)
         {
-            Guard.Against<ArgumentNullException>(entity == null, $"Entity of type {entity.GetType().AssemblyQualifiedName} cannot be null");
+            Guard.Against<ArgumentNullException>(entity == null, $"Entity of type {entity.GetGenericTypeName()} cannot be null");
 
             if (entity.AllowEventTracking)
             {

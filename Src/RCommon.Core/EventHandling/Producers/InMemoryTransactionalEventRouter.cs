@@ -31,36 +31,48 @@ namespace RCommon.EventHandling.Producers
             try
             {
                 Guard.IsNotNull(transactionalEvents, nameof(transactionalEvents));
-                _logger.LogInformation("{0} is routing transactional events to event producers.", this.GetGenericTypeName());
 
-                // Seperate Async events from Sync Events
-                var syncEvents = transactionalEvents.Where(x => x is ISyncEvent);
-                var asyncEvents = transactionalEvents.Where(x => x is IAsyncEvent);
-                var eventProducers = _serviceProvider.GetServices<IEventProducer>();
-
-                // Produce the Synchronized Events first
-                foreach (var localEvent in syncEvents)
+                if (transactionalEvents.Any())
                 {
-                    foreach (var producer in eventProducers)
+                    _logger.LogInformation("{0} is routing {1} transactional events to event producers.", 
+                        new object[] { this.GetGenericTypeName(), transactionalEvents.Count().ToString() });
+
+                    // Seperate Async events from Sync Events
+                    var syncEvents = transactionalEvents.Where(x => x is ISyncEvent);
+                    var asyncEvents = transactionalEvents.Where(x => x is IAsyncEvent);
+                    var eventProducers = _serviceProvider.GetServices<IEventProducer>();
+
+                    // Produce the Synchronized Events first
+                    foreach (var localEvent in syncEvents)
                     {
-                        await producer.ProduceEventAsync(localEvent);
+                        foreach (var producer in eventProducers)
+                        {
+                            await producer.ProduceEventAsync(localEvent);
+                        }
+                    }
+
+                    // Produce the Async Events
+                    foreach (var localEvent in asyncEvents)
+                    {
+                        foreach (var producer in eventProducers)
+                        {
+                            await producer.ProduceEventAsync(localEvent).ConfigureAwait(false);
+                        }
                     }
                 }
-
-                // Produce the Async Events
-                foreach (var localEvent in asyncEvents)
-                {
-                    foreach (var producer in eventProducers)
-                    {
-                        await producer.ProduceEventAsync(localEvent).ConfigureAwait(false);
-                    }
-                }
-
             }
-            catch (ApplicationException ex)
+            catch(EventProductionException ex)
             {
-                _logger.LogError(ex, "An error occured while producing events through the EventRouter.");
+                _logger.LogError(ex, "An error occured while producing events through the EventRouter: {0}.", this.GetGenericTypeName());
                 throw;
+            }
+            catch (Exception ex)
+            {
+                var message = "An error occured while producing events through the EventRouter: {0}";
+                _logger.LogError(ex, message, this.GetGenericTypeName());
+                throw new EventProductionException(message,
+                    ex,
+                    new object[] { this.GetGenericTypeName() });
             }
         }
 

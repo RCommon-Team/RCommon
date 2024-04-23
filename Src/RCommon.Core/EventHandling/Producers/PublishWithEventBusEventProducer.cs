@@ -22,11 +22,21 @@ namespace RCommon.EventHandling.Producers
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) 
             where T : ISerializableEvent
         {
-            Guard.IsNotNull(@event, nameof(@event));
-            _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+            try
+            {
+                Guard.IsNotNull(@event, nameof(@event));
+                _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
 
-            // This should already be using a Scoped publish method
-            await _eventBus.PublishAsync(@event);
+                // This should already be using a Scoped publish method
+                await _eventBus.PublishAsync(@event);
+            }
+            catch (Exception ex)
+            {
+                throw new EventProductionException("An error occured in {0} while producing event {1}",
+                    ex,
+                    new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+            }
+
         }
     }
 }

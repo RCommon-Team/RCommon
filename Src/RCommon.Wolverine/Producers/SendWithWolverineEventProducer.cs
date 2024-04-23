@@ -27,12 +27,22 @@ namespace RCommon.Wolverine.Producers
 
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent
         {
-            Guard.IsNotNull(@event, nameof(@event));
-            using (IServiceScope scope = _serviceProvider.CreateScope())
+            try
             {
-                _logger.LogInformation("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
-                await _messageBus.SendAsync(@event);
+                Guard.IsNotNull(@event, nameof(@event));
+                using (IServiceScope scope = _serviceProvider.CreateScope())
+                {
+                    _logger.LogInformation("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+                    await _messageBus.SendAsync(@event);
+                }
             }
+            catch (Exception ex)
+            {
+                throw new EventProductionException("An error occured in {0} while producing event {1}",
+                    ex,
+                    new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+            }
+
         }
     }
 }

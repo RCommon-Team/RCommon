@@ -27,11 +27,20 @@ namespace RCommon.MassTransit.Producers
 
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent
         {
-            Guard.IsNotNull(@event, nameof(@event));
-            using (IServiceScope scope = _serviceProvider.CreateScope())
+            try
             {
-                _logger.LogInformation("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event });
-                await _bus.Send(@event, cancellationToken);
+                Guard.IsNotNull(@event, nameof(@event));
+                using (IServiceScope scope = _serviceProvider.CreateScope())
+                {
+                    _logger.LogInformation("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+                    await _bus.Send(@event, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new EventProductionException("An error occured in {0} while producing event {1}",
+                    ex,
+                    new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
             }
         }
     }
