@@ -53,7 +53,8 @@ namespace RCommon
 
         public static void AddLoggingToRequestPipeline(this IMediatRBuilder builder)
         {
-            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingRequestBehavior<,>));
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingRequestWithResponseBehavior<,>));
         }
 
         public static void AddValidationToRequestPipeline(this IMediatRBuilder builder)
@@ -64,7 +65,8 @@ namespace RCommon
 
         public static void AddUnitOfWorkToRequestPipeline(this IMediatRBuilder builder)
         {
-            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkRequestBehavior<,>));
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkRequestWithResponseBehavior<,>));
         }
 
     }
