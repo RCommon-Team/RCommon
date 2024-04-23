@@ -29,11 +29,20 @@ namespace RCommon.MediatR.Producers
         public async Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
             where TEvent : ISerializableEvent
         {
-            Guard.IsNotNull(@event, nameof(@event));
-            using (IServiceScope scope = _serviceProvider.CreateScope())
+            try
             {
-                _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
-                await _mediatorService.Publish(@event, cancellationToken);
+                Guard.IsNotNull(@event, nameof(@event));
+                using (IServiceScope scope = _serviceProvider.CreateScope())
+                {
+                    _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+                    await _mediatorService.Publish(@event, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new EventProductionException("An error occured in {0} while producing event {1}",
+                    ex,
+                    new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
             }
         }
     }
