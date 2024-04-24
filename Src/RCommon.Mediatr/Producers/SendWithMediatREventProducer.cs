@@ -34,7 +34,14 @@ namespace RCommon.MediatR.Producers
                 Guard.IsNotNull(@event, nameof(@event));
                 using (IServiceScope scope = _serviceProvider.CreateScope())
                 {
-                    _logger.LogInformation("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+                    }
+                    else
+                    {
+                        _logger.LogDebug("{0} sending event: {1}", new object[] { this.GetGenericTypeName(), @event });
+                    }
                     await _mediatorService.Send(@event, cancellationToken);
                 }
             }

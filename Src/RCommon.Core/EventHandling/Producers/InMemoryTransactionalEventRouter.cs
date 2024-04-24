@@ -34,29 +34,33 @@ namespace RCommon.EventHandling.Producers
 
                 if (transactionalEvents.Any())
                 {
-                    _logger.LogInformation("{0} is routing {1} transactional events to event producers.", 
-                        new object[] { this.GetGenericTypeName(), transactionalEvents.Count().ToString() });
+                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {transactionalEvents.Count().ToString()} transactional events to event producers.");
 
                     // Seperate Async events from Sync Events
                     var syncEvents = transactionalEvents.Where(x => x is ISyncEvent);
                     var asyncEvents = transactionalEvents.Where(x => x is IAsyncEvent);
                     var eventProducers = _serviceProvider.GetServices<IEventProducer>();
 
+                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {transactionalEvents.Count().ToString()} synchronized transactional events.");
+
                     // Produce the Synchronized Events first
-                    foreach (var localEvent in syncEvents)
+                    foreach (var @event in syncEvents)
                     {
+                        _logger.LogDebug($"{this.GetGenericTypeName()} is routing event: {@event}");
                         foreach (var producer in eventProducers)
                         {
-                            await producer.ProduceEventAsync(localEvent);
+                            await producer.ProduceEventAsync(@event);
                         }
                     }
 
+                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {transactionalEvents.Count().ToString()} asynchronous transactional events.");
+
                     // Produce the Async Events
-                    foreach (var localEvent in asyncEvents)
+                    foreach (var @event in asyncEvents)
                     {
                         foreach (var producer in eventProducers)
                         {
-                            await producer.ProduceEventAsync(localEvent).ConfigureAwait(false);
+                            await producer.ProduceEventAsync(@event).ConfigureAwait(false);
                         }
                     }
                 }

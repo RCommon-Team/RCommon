@@ -25,7 +25,14 @@ namespace RCommon.EventHandling.Producers
             try
             {
                 Guard.IsNotNull(@event, nameof(@event));
-                _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
+                }
+                else
+                {
+                    _logger.LogDebug("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event });
+                }
 
                 // This should already be using a Scoped publish method
                 await _eventBus.PublishAsync(@event);
