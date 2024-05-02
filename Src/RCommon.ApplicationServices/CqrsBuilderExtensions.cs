@@ -36,7 +36,22 @@ namespace RCommon
             builder.Services.AddTransient<IQueryHandler<TQuery, TResult>, TQueryHandler>();
         }
 
+        public static void AddQuery<TQuery, TQueryHandler, TResult>(this ICqrsBuilder builder)
+           where TQueryHandler : class, IQueryHandler<TQuery, TResult>
+           where TQuery : IQuery<TResult>
+        {
+            builder.Services.AddTransient<IQueryHandler<TQuery, TResult>, TQueryHandler>();
+        }
+
         public static void AddCommandHandler<TCommandHandler, TCommand, TResult>(this ICqrsBuilder builder)
+           where TCommandHandler : class, ICommandHandler<TResult, TCommand>
+           where TCommand : ICommand<TResult>
+            where TResult : IExecutionResult
+        {
+            builder.Services.AddTransient<ICommandHandler<TResult, TCommand>, TCommandHandler>();
+        }
+
+        public static void AddCommand<TCommand, TCommandHandler, TResult>(this ICqrsBuilder builder)
            where TCommandHandler : class, ICommandHandler<TResult, TCommand>
            where TCommand : ICommand<TResult>
             where TResult : IExecutionResult
