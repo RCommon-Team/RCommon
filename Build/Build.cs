@@ -135,7 +135,7 @@ class Build : NukeBuild
         {
             Log.Information("Generating NuGet packages for projects in solution");
             int commitNum = 0;
-            string NuGetVersionCustom = "2.0.0.876";
+            string NuGetVersionCustom = "2.0.0.877";
 
 
             //if it's not a tagged release - append the commit number to the package version
@@ -452,6 +452,24 @@ class Build : NukeBuild
                     .SetPackageId("RCommon.Web")
                     .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Web").Path.ToString())
                     .SetPackageTags("RCommon web extensions aspnet core")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.FluentValidation")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.FluentValidation").Path.ToString())
+                    .SetPackageTags("RCommon FluentValidation extensions validation")
                     .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
