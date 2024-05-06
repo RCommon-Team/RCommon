@@ -10,5 +10,11 @@ namespace Examples.ApplicationServices.CQRS
 {
     public class TestCommand : ICommand<IExecutionResult>
     {
+        public TestCommand(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; }
     }
 }

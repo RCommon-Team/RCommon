@@ -29,7 +29,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RCommon.ApplicationServices.Caching;
+using RCommon.ApplicationServices.Validation;
 using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Queries
@@ -45,16 +47,27 @@ namespace RCommon.ApplicationServices.Queries
         private readonly ILogger<QueryBus> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IMemoryCache _memoryCache;
+        private readonly IValidationService _validationService;
+        private readonly IOptions<CqrsValidationOptions> _validationOptions;
 
-        public QueryBus(ILogger<QueryBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache)
+        public QueryBus(ILogger<QueryBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache, IValidationService validationService,
+            IOptions<CqrsValidationOptions> validationOptions)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _memoryCache = memoryCache;
+            _validationService = validationService;
+            _validationOptions = validationOptions;
         }
 
-        public async Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken)
+        public async Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
         {
+            if (_validationOptions.Value != null && _validationOptions.Value.ValidateQueries)
+            {
+                // TODO: Would be nice to be able to take validation outcome and put in IQuery. Need some casting magic
+                await _validationService.ValidateAsync(query, true, cancellationToken);
+            }
+
             var queryType = query.GetType();
             var cacheItem = GetCacheItem(queryType);
 

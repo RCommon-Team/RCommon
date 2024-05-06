@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using RCommon.ApplicationServices.Validation;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator;
@@ -10,6 +11,7 @@ using RCommon.Mediator.Subscribers;
 using RCommon.MediatR.Subscribers;
 using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Text;
 
 namespace RCommon
@@ -61,6 +63,7 @@ namespace RCommon
         {
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehaviorForMediatR<,>));
+            builder.Services.AddScoped<IValidationService, ValidationService>();
         }
 
         public static void AddUnitOfWorkToRequestPipeline(this IMediatRBuilder builder)

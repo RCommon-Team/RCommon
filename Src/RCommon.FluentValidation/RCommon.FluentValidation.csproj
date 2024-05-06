@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FluentValidation" Version="11.9.1" />
+		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.1" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -29,6 +29,7 @@ namespace RCommon.ApplicationServices.Commands
 {
     public interface ICommandBus
     {
-        Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken) where TResult : IExecutionResult;
+        Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default) 
+            where TResult : IExecutionResult;
     }
 }

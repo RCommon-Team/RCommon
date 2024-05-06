@@ -22,6 +22,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
@@ -30,9 +31,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RCommon.ApplicationServices.Caching;
 using RCommon.ApplicationServices.Commands;
 using RCommon.ApplicationServices.ExecutionResults;
+using RCommon.ApplicationServices.Validation;
 using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Commands
@@ -42,18 +45,29 @@ namespace RCommon.ApplicationServices.Commands
         private readonly ILogger<CommandBus> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IMemoryCache _memoryCache;
+        private readonly IValidationService _validationService;
+        private readonly IOptions<CqrsValidationOptions> _validationOptions;
 
-        public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache)
+        public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache, IValidationService validationService, 
+            IOptions<CqrsValidationOptions> validationOptions)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _memoryCache = memoryCache;
+            _validationService = validationService;
+            _validationOptions = validationOptions;
         }
 
-        public async Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken)
+        public async Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
             where TResult : IExecutionResult
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
+
+            if (_validationOptions.Value != null && _validationOptions.Value.ValidateCommands)
+            {
+                // TODO: Would be nice to be able to take validation outcome and put in FailedExecutionResult. Need some casting magic
+                await _validationService.ValidateAsync(command, true, cancellationToken);
+            }
 
             if (_logger.IsEnabled(LogLevel.Trace))
             {

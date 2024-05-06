@@ -9,6 +9,6 @@ namespace RCommon.ApplicationServices.Queries
 {
     public interface IQueryBus
     {
-        Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken);
+        Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default);
     }
 }
