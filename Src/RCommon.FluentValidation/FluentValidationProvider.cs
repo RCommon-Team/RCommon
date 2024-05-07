@@ -42,7 +42,7 @@ namespace RCommon.FluentValidation
                 if (failures.Count != 0)
                 {
                     _logger.LogWarning("Validation errors - {CommandType} - Command: {@Command} - Errors: {@ValidationErrors}", target.GetGenericTypeName(), target, failures);
-                    string message = $"Validation Errors for type {typeof(T).Name}";
+                    string message = $"Validation Errors";
 
                     var faults = new List<ValidationFault>();
                     foreach (var failure in failures)
@@ -54,7 +54,7 @@ namespace RCommon.FluentValidation
 
                     if (throwOnFaults)
                     {
-                        throw new ApplicationServices.Validation.ValidationException(message, faults);
+                        throw new ApplicationServices.Validation.ValidationException(message, faults, true);
                     }
 
                 }
