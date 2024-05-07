@@ -13,6 +13,7 @@ We track bugs, enhancement requests, new feature requests, and general issues on
 * Specification
 * Mediator
 * Command Query Responsbility Segregation (CQRS)
+* Validations
 * Repository
 * Unit Of Work
 * Event Sourcing (Coming Soon)
@@ -27,6 +28,10 @@ We track bugs, enhancement requests, new feature requests, and general issues on
 * Repository: Entity Framework Core, Dapper, Linq2Db
 * Message Bus: MassTransit, Wolverine
 * Email: SMTP, SendGrid
+* Validation: FluentValidation
 
 ## Documentation
 We have begun maintaining and publishing our documentation at [https://docs.rcommon.com](https://docs.rcommon.com)
+
+##Status
+![Alt](https://repobeats.axiom.co/api/embed/15855081ce579ae0ea03577b9b5a6c2ae882fb7f.svg "Repobeats analytics image")
