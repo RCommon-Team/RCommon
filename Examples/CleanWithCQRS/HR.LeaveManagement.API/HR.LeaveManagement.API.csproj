@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.2">
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.4">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
@@ -16,8 +16,10 @@
   </ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.EfCore\RCommon.EFCore.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
+		<ProjectReference Include="..\..\..\Src\RCommon.FluentValidation\RCommon.FluentValidation.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.Mediatr\RCommon.MediatR.csproj" />
 		<ProjectReference Include="..\..\..\Src\RCommon.SendGrid\RCommon.SendGrid.csproj" />
 		<ProjectReference Include="..\HR.LeaveManagement.Application\HR.LeaveManagement.Application.csproj" />

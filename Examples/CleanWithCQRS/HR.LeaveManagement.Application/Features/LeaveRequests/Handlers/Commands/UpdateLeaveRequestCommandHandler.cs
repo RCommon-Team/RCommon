@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.ApplicationServices.Validation;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands
 {
@@ -22,12 +23,14 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IMapper _mapper;
+        private readonly IValidationService _validationService;
 
         public UpdateLeaveRequestCommandHandler(
             IGraphRepository<LeaveRequest> leaveRequestRepository,
             IReadOnlyRepository<LeaveType> leaveTypeRepository,
             IGraphRepository<LeaveAllocation> leaveAllocationRepository,
-             IMapper mapper)
+             IMapper mapper,
+             IValidationService validationService)
         {
             this._leaveRequestRepository = leaveRequestRepository;
             _leaveTypeRepository = leaveTypeRepository;
@@ -36,6 +39,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             this._leaveRequestRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             _mapper = mapper;
+            _validationService = validationService;
         }
 
         public async Task HandleAsync(UpdateLeaveRequestCommand request, CancellationToken cancellationToken)
@@ -47,10 +51,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
 
             if (request.LeaveRequestDto != null)
             {
-                var validator = new UpdateLeaveRequestDtoValidator(_leaveTypeRepository);
-                var validationResult = await validator.ValidateAsync(request.LeaveRequestDto);
+                var validationResult = await _validationService.ValidateAsync(request.LeaveRequestDto);
                 if (validationResult.IsValid == false)
-                    throw new ValidationException(validationResult);
+                    throw new ValidationException(validationResult.Errors);
 
                 _mapper.Map(request.LeaveRequestDto, leaveRequest);
 

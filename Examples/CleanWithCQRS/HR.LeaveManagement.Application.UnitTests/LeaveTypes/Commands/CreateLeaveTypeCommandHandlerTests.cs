@@ -10,6 +10,7 @@ using HR.LeaveManagement.Application.Responses;
 using HR.LeaveManagement.Domain;
 using Moq;
 using NUnit.Framework;
+using RCommon.ApplicationServices.Validation;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
 using Shouldly;
@@ -42,9 +43,10 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
 
             var testData = new List<LeaveType>();
             var mock = new Mock<IGraphRepository<LeaveType>>();
+            var validationMock = new Mock<IValidationService>();
             mock.Setup(x => x.AddAsync(TestDataActions.CreateLeaveTypeStub(), CancellationToken.None))
                 .Returns(() => Task.FromResult(new BaseCommandResponse()));
-            _handler = new CreateLeaveTypeCommandHandler(_mapper, mock.Object);
+            _handler = new CreateLeaveTypeCommandHandler(_mapper, mock.Object, validationMock.Object);
 
             _leaveTypeDto = new CreateLeaveTypeDto
             {

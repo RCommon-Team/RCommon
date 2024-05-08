@@ -23,6 +23,7 @@ using System.Net.Mail;
 using Microsoft.Extensions.Options;
 using RCommon.Emailing.SendGrid;
 using RCommon.Persistence.Crud;
+using RCommon.ApplicationServices.Validation;
 
 namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Commands
 {
@@ -32,6 +33,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
         private readonly ICurrentUser _currentUser;
         private readonly IOptions<SendGridEmailSettings> _emailSettings;
         private readonly IMapper _mapper;
+        private readonly IValidationService _validationService;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
@@ -43,7 +45,8 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             IEmailService emailSender,
             ICurrentUser currentUser,
             IOptions<SendGridEmailSettings> emailSettings,
-            IMapper mapper)
+            IMapper mapper,
+            IValidationService validationService)
         {
             _leaveTypeRepository = leaveTypeRepository;
             _leaveAllocationRepository = leaveAllocationRepository;
@@ -55,21 +58,19 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             this._currentUser = currentUser;
             _emailSettings=emailSettings;
             _mapper = mapper;
+            _validationService = validationService;
         }
 
         public async Task<BaseCommandResponse> HandleAsync(CreateLeaveRequestCommand request, CancellationToken cancellationToken)
         {
             var response = new BaseCommandResponse();
-            var validator = new CreateLeaveRequestDtoValidator(_leaveTypeRepository);
-            var validationResult = await validator.ValidateAsync(request.LeaveRequestDto);
+            var validationResult = await _validationService.ValidateAsync(request.LeaveRequestDto);
             var userId = _currentUser.FindClaimValue(CustomClaimTypes.Uid);
-            //_httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(
-                    //q => q.Type == CustomClaimTypes.Uid)?.Value;
 
             var allocation = _leaveAllocationRepository.FirstOrDefault(x=>x.EmployeeId == userId && x.LeaveTypeId == request.LeaveRequestDto.LeaveTypeId);
             if(allocation is null)
             {
-                validationResult.Errors.Add(new FluentValidation.Results.ValidationFailure(nameof(request.LeaveRequestDto.LeaveTypeId),
+                validationResult.Errors.Add(new ValidationFault(nameof(request.LeaveRequestDto.LeaveTypeId),
                     "You do not have any allocations for this leave type."));
             }
             else
@@ -77,7 +78,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                 int daysRequested = (int)(request.LeaveRequestDto.EndDate - request.LeaveRequestDto.StartDate).TotalDays;
                 if (daysRequested > allocation.NumberOfDays)
                 {
-                    validationResult.Errors.Add(new FluentValidation.Results.ValidationFailure(
+                    validationResult.Errors.Add(new ValidationFault(
                         nameof(request.LeaveRequestDto.EndDate), "You do not have enough days for this request"));
                 }
             }
@@ -102,7 +103,6 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                 try
                 {
                     var emailAddress = _currentUser.FindClaimValue(ClaimTypes.Email);
-                    //_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Email).Value;
 
                     var email = new MailMessage(new MailAddress(this._emailSettings.Value.FromEmailDefault, this._emailSettings.Value.FromNameDefault), 
                         new MailAddress(emailAddress))
