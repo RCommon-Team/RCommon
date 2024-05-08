@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Examples.ApplicationServices.CQRS.Validators
+namespace Examples.Validation.FluentValidation.Validators
 {
-    public class TestCommandValidator : AbstractValidator<TestCommand>
+    public class TestDtoValidator : AbstractValidator<TestDto>
     {
-        public TestCommandValidator()
+        public TestDtoValidator()
         {
             RuleFor(command => command.Message).NotNull().NotEmpty();
         }
