@@ -119,6 +119,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mediator", "Mediator", "{90
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.FluentValidation", "..\Src\RCommon.FluentValidation\RCommon.FluentValidation.csproj", "{BBBCCC2B-2218-4C32-96EE-C2153A23F643}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Validation", "Validation", "{0F54DCE2-27A5-4D07-B542-6D2A7B50D0EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.Validation.FluentValidation", "Validation\Examples.Validation.FluentValidation\Examples.Validation.FluentValidation.csproj", "{256821F9-8160-4819-B0A1-B769C5BBBBB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -309,6 +313,10 @@ Global
 		{BBBCCC2B-2218-4C32-96EE-C2153A23F643}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBBCCC2B-2218-4C32-96EE-C2153A23F643}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBBCCC2B-2218-4C32-96EE-C2153A23F643}.Release|Any CPU.Build.0 = Release|Any CPU
+		{256821F9-8160-4819-B0A1-B769C5BBBBB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{256821F9-8160-4819-B0A1-B769C5BBBBB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{256821F9-8160-4819-B0A1-B769C5BBBBB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{256821F9-8160-4819-B0A1-B769C5BBBBB6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -359,6 +367,8 @@ Global
 		{05B6EF05-8053-45D1-8649-1779B0D7D6C7} = {9085B4F5-E26A-471D-B25D-5D69B0337B02}
 		{9085B4F5-E26A-471D-B25D-5D69B0337B02} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
 		{BBBCCC2B-2218-4C32-96EE-C2153A23F643} = {3199F749-0082-41D0-91D3-ECED117F8B08}
+		{0F54DCE2-27A5-4D07-B542-6D2A7B50D0EC} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
+		{256821F9-8160-4819-B0A1-B769C5BBBBB6} = {0F54DCE2-27A5-4D07-B542-6D2A7B50D0EC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}

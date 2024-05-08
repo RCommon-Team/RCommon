@@ -8,8 +8,8 @@
   </PropertyGroup>
 
 <ItemGroup>
-	<PackageReference Include="Bogus" Version="35.5.0" />
-	<PackageReference Include="linq2db.SqlServer" Version="5.4.0" />
+	<PackageReference Include="Bogus" Version="35.5.1" />
+	<PackageReference Include="linq2db.SqlServer" Version="5.4.1" />
 	<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
 	<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
 	<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
