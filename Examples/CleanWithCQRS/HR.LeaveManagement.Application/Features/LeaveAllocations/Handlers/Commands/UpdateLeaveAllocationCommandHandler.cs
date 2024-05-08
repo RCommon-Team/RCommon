@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.ApplicationServices.Validation;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Commands
 {
@@ -20,25 +21,27 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
         private readonly IMapper _mapper;
+        private readonly IValidationService _validationService;
 
         public UpdateLeaveAllocationCommandHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository,
             IReadOnlyRepository<LeaveType> leaveTypeRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IValidationService validationService)
         {
             this._leaveAllocationRepository = leaveAllocationRepository;
             this._leaveTypeRepository = leaveTypeRepository;
             this._leaveAllocationRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             _mapper = mapper;
+            _validationService = validationService;
         }
 
         public async Task HandleAsync(UpdateLeaveAllocationCommand request, CancellationToken cancellationToken)
         {
-            var validator = new UpdateLeaveAllocationDtoValidator(this._leaveTypeRepository);
-            var validationResult = await validator.ValidateAsync(request.LeaveAllocationDto);
+            var validationResult = await _validationService.ValidateAsync(request.LeaveAllocationDto);
 
             if (validationResult.IsValid == false)
-                throw new ValidationException(validationResult);
+                throw new ValidationException(validationResult.Errors);
 
             var leaveAllocation = await _leaveAllocationRepository.FindAsync(request.LeaveAllocationDto.Id);
 

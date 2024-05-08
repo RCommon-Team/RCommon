@@ -16,6 +16,7 @@ using HR.LeaveManagement.Application.Contracts.Identity;
 using RCommon.Persistence;
 using HR.LeaveManagement.Domain.Specifications;
 using RCommon.Persistence.Crud;
+using RCommon.ApplicationServices.Validation;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Commands
 {
@@ -25,11 +26,13 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly IValidationService _validationService;
 
         public CreateLeaveAllocationCommandHandler(IGraphRepository<LeaveType> leaveTypeRepository,
             IGraphRepository<LeaveAllocation> leaveAllocationRepository,
             IUserService userService,
-            IMapper mapper)
+            IMapper mapper, 
+            IValidationService validationService)
         {
             this._leaveTypeRepository = leaveTypeRepository;
             this._leaveAllocationRepository = leaveAllocationRepository;
@@ -37,13 +40,13 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             this._userService = userService;
             _mapper = mapper;
+            _validationService = validationService;
         }
 
         public async Task<BaseCommandResponse> HandleAsync(CreateLeaveAllocationCommand request, CancellationToken cancellationToken)
         {
             var response = new BaseCommandResponse();
-            var validator = new CreateLeaveAllocationDtoValidator(_leaveTypeRepository);
-            var validationResult = await validator.ValidateAsync(request.LeaveAllocationDto);
+            var validationResult = await _validationService.ValidateAsync(request.LeaveAllocationDto);
 
             if (validationResult.IsValid == false)
             {

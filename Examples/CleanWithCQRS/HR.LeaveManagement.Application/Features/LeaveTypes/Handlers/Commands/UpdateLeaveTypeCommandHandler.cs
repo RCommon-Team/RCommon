@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.ApplicationServices.Validation;
 
 namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
 {
@@ -18,21 +19,22 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
     {
         private readonly IMapper _mapper;
         private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
+        private readonly IValidationService _validationService;
 
-        public UpdateLeaveTypeCommandHandler(IMapper mapper, IGraphRepository<LeaveType> leaveTypeRepository)
+        public UpdateLeaveTypeCommandHandler(IMapper mapper, IGraphRepository<LeaveType> leaveTypeRepository, IValidationService validationService)
         {
             _mapper = mapper;
             _leaveTypeRepository = leaveTypeRepository;
+            _validationService = validationService;
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
         }
 
         public async Task HandleAsync(UpdateLeaveTypeCommand request, CancellationToken cancellationToken)
         {
-            var validator = new UpdateLeaveTypeDtoValidator();
-            var validationResult = await validator.ValidateAsync(request.LeaveTypeDto);
+            var validationResult = await _validationService.ValidateAsync(request.LeaveTypeDto);
 
             if (validationResult.IsValid == false)
-                throw new ValidationException(validationResult);
+                throw new ValidationException(validationResult.Errors);
 
             var leaveType = await _leaveTypeRepository.FindAsync(request.LeaveTypeDto.Id);
 

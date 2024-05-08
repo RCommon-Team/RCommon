@@ -29,6 +29,8 @@ using HR.LeaveManagement.Application.DTOs.LeaveRequest;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries;
 using HR.LeaveManagement.Application.DTOs.LeaveType;
+using RCommon.ApplicationServices;
+using RCommon.FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,7 +58,7 @@ builder.Services.AddRCommon()
         mediator.AddRequest<GetLeaveAllocationDetailRequest, LeaveAllocationDto, GetLeaveAllocationDetailRequestHandler>();
         mediator.AddRequest<GetLeaveAllocationListRequest, List<LeaveAllocationDto>, GetLeaveAllocationListRequestHandler>();
         mediator.AddRequest<CreateLeaveAllocationCommand, BaseCommandResponse, CreateLeaveAllocationCommandHandler>();
-        mediator.AddRequest<DeleteLeaveAllocationCommand,  DeleteLeaveAllocationCommandHandler>();
+        mediator.AddRequest<DeleteLeaveAllocationCommand, DeleteLeaveAllocationCommandHandler>();
         mediator.AddRequest<UpdateLeaveAllocationCommand, UpdateLeaveAllocationCommandHandler>();
         mediator.AddRequest<CreateLeaveRequestCommand, BaseCommandResponse, CreateLeaveRequestCommandHandler>();
         mediator.AddRequest<DeleteLeaveRequestCommand, DeleteLeaveRequestCommandHandler>();
@@ -96,6 +98,10 @@ builder.Services.AddRCommon()
             options.AutoCompleteScope = true;
             options.DefaultIsolation = IsolationLevel.ReadCommitted;
         });
+    })
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining(typeof(ApplicationServicesRegistration));
     });
 
 // Add services to the container.
