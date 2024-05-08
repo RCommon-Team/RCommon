@@ -42,7 +42,7 @@ namespace HR.LeaveManagement.Api.Middleware
                 case BadRequestException badRequestException:
                     statusCode = HttpStatusCode.BadRequest;
                     break;
-                case ValidationException validationException:
+                case RCommon.ApplicationServices.Validation.ValidationException validationException:
                     statusCode = HttpStatusCode.BadRequest;
                     result = JsonConvert.SerializeObject(validationException.Errors);
                     break;
