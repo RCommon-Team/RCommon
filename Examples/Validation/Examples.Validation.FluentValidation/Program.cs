@@ -25,7 +25,7 @@ try
                         {
                             validation.AddValidatorsFromAssemblyContaining(typeof(TestDto));
                         });
-                    Console.WriteLine(services.GenerateServiceDescriptorsString());
+                    
                     services.AddTransient<ITestApplicationService, TestApplicationService>();
 
                 }).Build();

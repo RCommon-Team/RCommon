@@ -96,5 +96,17 @@ namespace RCommon
                 ? $"{nameParts[0]}<{new string(',', genericArguments.Length - 1)}>"
                 : $"{nameParts[0]}<{string.Join(",", genericArguments.Select(t => PrettyPrintRecursive(t, depth + 1)))}>";
         }
+
+        public static bool HasConstructorParameterOfType(this Type type, Predicate<Type> predicate)
+        {
+            return type.GetTypeInfo().GetConstructors()
+                .Any(c => c.GetParameters()
+                    .Any(p => predicate(p.ParameterType)));
+        }
+
+        public static bool IsAssignableTo<T>(this Type type)
+        {
+            return typeof(T).GetTypeInfo().IsAssignableFrom(type);
+        }
     }
 }

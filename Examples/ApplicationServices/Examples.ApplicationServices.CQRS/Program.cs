@@ -8,6 +8,7 @@ using RCommon.ApplicationServices;
 using RCommon.ApplicationServices.ExecutionResults;
 using RCommon.FluentValidation;
 using System.Diagnostics;
+using System.Reflection;
 
 try
 {
@@ -24,8 +25,13 @@ try
                     services.AddRCommon()
                         .WithCQRS<CqrsBuilder>(cqrs =>
                         {
-                            cqrs.AddQueryHandler<TestQueryHandler, TestQuery, TestDto>();
-                            cqrs.AddCommandHandler<TestCommandHandler, TestCommand, IExecutionResult>();
+                            // You can do it this way which is pretty straight forward but verbose
+                            //cqrs.AddQueryHandler<TestQueryHandler, TestQuery, TestDto>();
+                            //cqrs.AddCommandHandler<TestCommandHandler, TestCommand, IExecutionResult>();
+
+                            // Or this way which uses a little magic but is simple
+                            cqrs.AddCommandHandlers((typeof(Program).GetTypeInfo().Assembly));
+                            cqrs.AddQueryHandlers((typeof(Program).GetTypeInfo().Assembly));
                         })
                         .WithValidation<FluentValidationBuilder>(validation =>
                         {
@@ -37,7 +43,7 @@ try
                                 options.ValidateQueries = true;
                             });
                         });
-                    Console.WriteLine(services.GenerateServiceDescriptorsString());
+                    
                     services.AddTransient<ITestApplicationService, TestApplicationService>();
                     
                 }).Build();
