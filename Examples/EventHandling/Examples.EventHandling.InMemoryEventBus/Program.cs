@@ -6,6 +6,7 @@ using RCommon;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
 using System.Diagnostics;
+using System.Reflection;
 
 try
 {
@@ -23,7 +24,12 @@ try
                         .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
                         {
                             eventHandling.AddProducer<PublishWithEventBusEventProducer>();
-                            eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+
+                            // You can add subscribers this way which is pretty straight forward but verbose
+                            //eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+
+                            // Or this way which uses a little magic but is simple
+                            eventHandling.AddSubscribers((typeof(Program).GetTypeInfo().Assembly));
                         });
 
                 }).Build();

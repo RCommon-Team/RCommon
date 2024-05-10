@@ -53,19 +53,5 @@ namespace RCommon
                 builder.Services.TryAddSingleton(service);
             }
         }
-
-        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder builder)
-            where TEvent : class, ISerializableEvent
-            where TEventHandler : class, ISubscriber<TEvent>
-        {
-            builder.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
-        }
-
-        public static void AddSubscriber<TEvent, TEventHandler>(this IEventHandlingBuilder builder, Func<IServiceProvider, TEventHandler> getSubscriber)
-            where TEvent : class, ISerializableEvent
-            where TEventHandler : class, ISubscriber<TEvent>
-        {
-            builder.Services.TryAddScoped(getSubscriber);
-        }
     }
 }

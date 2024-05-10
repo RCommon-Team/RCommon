@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.EventHandling
 {
-    public class InMemoryEventBusBuilder : IEventHandlingBuilder
+    public class InMemoryEventBusBuilder : IInMemoryEventBusBuilder
     {
 
         public InMemoryEventBusBuilder(IRCommonBuilder builder)
