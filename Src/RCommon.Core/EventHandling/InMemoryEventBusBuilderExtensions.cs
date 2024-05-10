@@ -25,50 +25,5 @@ namespace RCommon.EventHandling
         {
             builder.Services.TryAddScoped(getSubscriber);
         }
-
-        public static void AddSubscribers(this IInMemoryEventBusBuilder builder, params Type[] queryHandlerTypes)
-        {
-            AddSubscribers(builder, (IEnumerable<Type>)queryHandlerTypes);
-        }
-
-        public static void AddSubscribers(this IInMemoryEventBusBuilder builder, Assembly fromAssembly,
-            Predicate<Type> predicate = null)
-        {
-            predicate = predicate ?? (t => true);
-            var subscribeSynchronousToTypes = fromAssembly
-                .GetTypes()
-                .Where(t => t.GetTypeInfo().GetInterfaces().Any(IsSubscriberInterface))
-                .Where(t => !t.HasConstructorParameterOfType(IsSubscriberInterface))
-                .Where(t => predicate(t));
-            AddSubscribers(builder, subscribeSynchronousToTypes);
-        }
-
-        public static void AddSubscribers(this IInMemoryEventBusBuilder builder, IEnumerable<Type> queryHandlerTypes)
-        {
-            foreach (var queryHandlerType in queryHandlerTypes)
-            {
-                var t = queryHandlerType;
-                if (t.GetTypeInfo().IsAbstract) continue;
-                var queryHandlerInterfaces = t
-                    .GetTypeInfo()
-                    .GetInterfaces()
-                    .Where(IsSubscriberInterface)
-                    .ToList();
-                if (!queryHandlerInterfaces.Any())
-                {
-                    throw new ArgumentException($"Type '{t.PrettyPrint()}' is not an '{typeof(ISubscriber<>).PrettyPrint()}'");
-                }
-
-                foreach (var queryHandlerInterface in queryHandlerInterfaces)
-                {
-                    builder.Services.AddTransient(queryHandlerInterface, t);
-                }
-            }
-        }
-
-        private static bool IsSubscriberInterface(this Type type)
-        {
-            return type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(ISubscriber<>);
-        }
     }
 }
