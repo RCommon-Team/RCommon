@@ -24,12 +24,7 @@ try
                         .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
                         {
                             eventHandling.AddProducer<PublishWithEventBusEventProducer>();
-
-                            // You can add subscribers this way which is pretty straight forward but verbose
-                            //eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
-
-                            // Or this way which uses a little magic but is simple
-                            eventHandling.AddSubscribers((typeof(Program).GetTypeInfo().Assembly));
+                            eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
                         });
 
                 }).Build();
