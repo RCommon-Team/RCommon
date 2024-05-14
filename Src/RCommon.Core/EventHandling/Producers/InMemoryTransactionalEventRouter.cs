@@ -41,7 +41,7 @@ namespace RCommon.EventHandling.Producers
                     var asyncEvents = transactionalEvents.Where(x => x is IAsyncEvent);
                     var eventProducers = _serviceProvider.GetServices<IEventProducer>();
 
-                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {transactionalEvents.Count().ToString()} synchronized transactional events.");
+                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} synchronized transactional events.");
 
                     // Produce the Synchronized Events first
                     foreach (var @event in syncEvents)
@@ -53,7 +53,7 @@ namespace RCommon.EventHandling.Producers
                         }
                     }
 
-                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {transactionalEvents.Count().ToString()} asynchronous transactional events.");
+                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {asyncEvents.Count().ToString()} asynchronous transactional events.");
 
                     // Produce the Async Events
                     foreach (var @event in asyncEvents)

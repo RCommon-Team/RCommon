@@ -312,12 +312,12 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var repo = new TestRepository(this.ServiceProvider);
 
             // Start Test
-            using (var scope = scopeFactory.Create())
+            await using (var scope = await scopeFactory.CreateAsync())
             {
                 var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
                 await customerRepo.AddAsync(customer);
-                scope.Commit();
+                await scope.CommitAsync();
             }
 
             Customer savedCustomer = await repo.Context.Set<Customer>()
@@ -337,7 +337,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
 
-            using (var scope = scopeFactory.Create())
+            await using (var scope = await scopeFactory.CreateAsync())
             {
                 customer = await customerRepo.FirstAsync(x => x.Id == customer.Id);
                 customer.LastName = "Changed";
@@ -347,7 +347,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().FirstAsync(x => x.Id == customer.Id);
-            Assert.That(customer.LastName == savedCustomer.LastName);
+            Assert.That(customer.LastName != savedCustomer.LastName);
         }
 
         [Test]
@@ -361,18 +361,18 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var repo = new TestRepository(this.ServiceProvider);
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = await scopeFactory.CreateAsync(TransactionMode.Default))
             {
                 var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
-                using (var scope2 = scopeFactory.Create(TransactionMode.Default))
+                await using (var scope2 = await scopeFactory.CreateAsync(TransactionMode.Default))
                 {
                     var orderRepo = this.ServiceProvider.GetService<ILinqRepository<Order>>();
                     await orderRepo.AddAsync(order);
-                    scope2.Commit();
+                    await scope2.CommitAsync();
                 }
-                scope.Commit();
+                await scope.CommitAsync();
             }
 
             Customer savedCustomer = null;
@@ -395,16 +395,16 @@ namespace RCommon.Persistence.Linq2Db.Tests
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var repo = new TestRepository(this.ServiceProvider);
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = await scopeFactory.CreateAsync(TransactionMode.Default))
             {
                 var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
-                using (var scope2 = scopeFactory.Create(TransactionMode.Default))
+                await using (var scope2 = await scopeFactory.CreateAsync(TransactionMode.Default))
                 {
                     var orderRepo = this.ServiceProvider.GetService<ILinqRepository<Order>>();
                     await orderRepo.AddAsync(order);
-                    scope2.Commit();
+                    await scope2.CommitAsync();
                 }
             } //Rollback.
 
@@ -433,10 +433,10 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             try
             {
-                using (var scope = scopeFactory.Create())
+                await using (var scope = await scopeFactory.CreateAsync())
                 {
                     await customerRepo.AddAsync(customer);
-                    using (var scope2 = scopeFactory.Create())
+                    await using (var scope2 = await scopeFactory.CreateAsync())
                     {
                         await salesPersonRepo.AddAsync(salesPerson);
                     } //child scope rollback.
@@ -462,14 +462,14 @@ namespace RCommon.Persistence.Linq2Db.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = await scopeFactory.CreateAsync(TransactionMode.Default))
             {
                 var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
                 var salesPersonRepo = this.ServiceProvider.GetService<ILinqRepository<SalesPerson>>();
 
                 await customerRepo.AddAsync(customer);
                 await salesPersonRepo.AddAsync(salesPerson);
-                scope.Commit();
+                await scope.CommitAsync();
             }
 
 
@@ -494,7 +494,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             var repo = new TestRepository(this.ServiceProvider);
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = await scopeFactory.CreateAsync(TransactionMode.Default))
             {
                 var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
                 var salesPersonRepo = this.ServiceProvider.GetService<ILinqRepository<SalesPerson>>();

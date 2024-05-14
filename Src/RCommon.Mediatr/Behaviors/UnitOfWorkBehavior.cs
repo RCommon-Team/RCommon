@@ -30,7 +30,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
 
             try
             {
-                using (var unitOfWork = this._unitOfWorkScopeFactory.Create(TransactionMode.Default))
+                await using (var unitOfWork = await this._unitOfWorkScopeFactory.CreateAsync(TransactionMode.Default))
                 {
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})",
                         this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName, request);
@@ -40,7 +40,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
                         this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName);
 
-                    unitOfWork.Commit();
+                    await unitOfWork.CommitAsync();
                 }
 
 
@@ -77,7 +77,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
 
             try
             {
-                using (var unitOfWork = this._unitOfWorkScopeFactory.Create(TransactionMode.Default))
+                await using (var unitOfWork = await this._unitOfWorkScopeFactory.CreateAsync(TransactionMode.Default))
                 {
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})",
                         this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName, request);
@@ -87,7 +87,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
                         this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName);
 
-                    unitOfWork.Commit();
+                    await unitOfWork.CommitAsync();
                 }
 
 

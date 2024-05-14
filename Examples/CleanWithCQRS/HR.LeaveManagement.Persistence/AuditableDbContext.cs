@@ -52,9 +52,9 @@ namespace HR.LeaveManagement.Persistence
             return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
 
-        public override void PersistChanges()
+        public override async Task PersistChangesAsync()
         {
-            base.PersistChanges();
+            await base.PersistChangesAsync();
         }
     }
 }

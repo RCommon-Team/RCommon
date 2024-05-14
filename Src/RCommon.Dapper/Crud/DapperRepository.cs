@@ -16,8 +16,8 @@ using System.Threading;
 using Microsoft.Extensions.Options;
 using Dommel;
 using RCommon.Collections;
-using RCommon.Persistence.Transactions;
 using RCommon.Persistence.Crud;
+using RCommon.Persistence.Transactions;
 
 namespace RCommon.Persistence.Dapper.Crud
 {
@@ -47,7 +47,7 @@ namespace RCommon.Persistence.Dapper.Crud
 
                     entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
-                    DispatchEvents();
+                    await DispatchEvents();
                     await db.InsertAsync(entity, cancellationToken: token);
 
                 }
@@ -81,7 +81,7 @@ namespace RCommon.Persistence.Dapper.Crud
 
                     entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
-                    DispatchEvents();
+                    await DispatchEvents();
                     await db.DeleteAsync(entity, cancellationToken: token);
                 }
                 catch (ApplicationException exception)
@@ -116,7 +116,7 @@ namespace RCommon.Persistence.Dapper.Crud
 
                     entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
-                    DispatchEvents();
+                    await DispatchEvents();
                     await db.UpdateAsync(entity, cancellationToken: token);
                 }
                 catch (ApplicationException exception)
@@ -316,14 +316,14 @@ namespace RCommon.Persistence.Dapper.Crud
             return await AnyAsync(specification.Predicate, token);
         }
 
-        protected void DispatchEvents()
+        protected async Task DispatchEvents()
         {
             try
             {
                 if (UnitOfWorkManager.CurrentUnitOfWork == null)
                 {
                     Guard.Against<NullReferenceException>(DataStore == null, "DataStore is null");
-                    DataStore.PersistChanges(); // This dispatches the events
+                    await DataStore.PersistChangesAsync(); // This dispatches the events
                 }
             }
             catch (ApplicationException exception)

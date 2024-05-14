@@ -1,6 +1,7 @@
 ﻿using RCommon.EventHandling.Producers;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace RCommon.Entities
                 }
             }
             await _eventRouter.RouteEventsAsync();
-            return true;
+            return await Task.FromResult(true);
         }
     }
 }

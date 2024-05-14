@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence
 {
-    public interface IDataStore : IDisposable, IAsyncDisposable
+    public interface IDataStore : IAsyncDisposable
     { 
 
-        void PersistChanges();
+        Task PersistChangesAsync();
         DbConnection GetDbConnection();
     }
 

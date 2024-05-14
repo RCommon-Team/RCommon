@@ -39,10 +39,10 @@ namespace RCommon.Persistence.Transactions
             services.AddScoped<IDataStoreEnlistmentProvider, ScopedDataStoreEnlistmentProvider>();
 
             // Transaction Management
-            services.AddScoped<IUnitOfWorkManager, UnitOfWorkScopeManager>();
+            services.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
 
             // Factory for Unit Of Work Scope
-            services.AddTransient<IUnitOfWork, UnitOfWorkScope>();
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
             _services = services;
         }

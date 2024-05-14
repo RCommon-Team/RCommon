@@ -33,13 +33,6 @@ namespace RCommon.Persistence.Linq2Db
             return this.Connection;
         }
 
-        public void PersistChanges()
-        {
-            AsyncHelper.RunSync(() => this.PersistChangesAsync());
-            // Nothing to do here because persistence is handled in the underlying API. We'll need to handle Unit of work in a transaction.
-            return;
-        }
-
         public async Task PersistChangesAsync()
         {
             await this._eventTracker.EmitTransactionalEventsAsync();

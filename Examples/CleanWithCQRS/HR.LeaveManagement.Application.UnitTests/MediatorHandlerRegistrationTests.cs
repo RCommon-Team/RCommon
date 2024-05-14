@@ -40,7 +40,7 @@ namespace HR.LeaveManagement.Application.UnitTests
 
 		private static bool IsIRequestHandler(Type type)
 		{
-			return type.GetInterfaces().Any(interfaceType => interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IAppRequestHandler<,>));
+			return type.GetInterfaces().Any(interfaceType => interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IAppRequestHandler<>));
 		}
 
 		private static bool IsHandlerForRequest(Type handlerType, Type requestType)

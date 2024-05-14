@@ -32,7 +32,10 @@ namespace RCommon.Persistence.EFCore
         public RCommonDbContext(DbContextOptions options)
             : base(options)
         {
-            
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
         }
 
         
@@ -42,9 +45,9 @@ namespace RCommon.Persistence.EFCore
             return base.Database.GetDbConnection();
         }
 
-        public virtual void PersistChanges()
+        public virtual async Task PersistChangesAsync()
         {
-            AsyncHelper.RunSync(() => this.SaveChangesAsync(true));
+            await this.SaveChangesAsync(true);
         }
 
 

@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 using LinqToDB.Tools;
 using LinqToDB.Data;
 using DataExtensions = LinqToDB.Tools.DataExtensions;
-using RCommon.Persistence.Transactions;
 using RCommon;
 using RCommon.Persistence.Crud;
+using RCommon.Persistence.Transactions;
 
 namespace RCommon.Persistence.Linq2Db.Crud
 {

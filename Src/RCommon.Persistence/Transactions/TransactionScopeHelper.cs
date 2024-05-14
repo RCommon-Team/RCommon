@@ -31,14 +31,14 @@ namespace RCommon.Persistence.Transactions
     public static class TransactionScopeHelper
     {
 
-        public static TransactionScope CreateScope(ILogger<UnitOfWorkScope> logger, IsolationLevel isolationLevel, TransactionMode txMode)
+        public static TransactionScope CreateScope(ILogger<UnitOfWork> logger, IUnitOfWork unitOfWork)
         {
-            if (txMode == TransactionMode.New)
+            if (unitOfWork.TransactionMode == TransactionMode.New)
             {
                 logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.RequiresNew");
-                return new TransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = isolationLevel }, TransactionScopeAsyncFlowOption.Enabled);
+                return new TransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = unitOfWork.IsolationLevel }, TransactionScopeAsyncFlowOption.Enabled);
             }
-            if (txMode == TransactionMode.Supress)
+            if (unitOfWork.TransactionMode == TransactionMode.Supress)
             {
                 logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Supress");
                 return new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);

@@ -33,8 +33,8 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
 
         public CreateLeaveTypeCommandHandlerTests()
         {
-            
-            var mapperConfig = new MapperConfiguration(c => 
+
+            var mapperConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<MappingProfile>();
             });
@@ -46,13 +46,17 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
             var validationMock = new Mock<IValidationService>();
             mock.Setup(x => x.AddAsync(TestDataActions.CreateLeaveTypeStub(), CancellationToken.None))
                 .Returns(() => Task.FromResult(new BaseCommandResponse()));
-            _handler = new CreateLeaveTypeCommandHandler(_mapper, mock.Object, validationMock.Object);
+
 
             _leaveTypeDto = new CreateLeaveTypeDto
             {
                 DefaultDays = 15,
                 Name = "Test DTO"
             };
+
+            validationMock.Setup(x => x.ValidateAsync(_leaveTypeDto, false, CancellationToken.None))
+                .Returns(() => Task.FromResult(new ValidationOutcome()));
+            _handler = new CreateLeaveTypeCommandHandler(_mapper, mock.Object, validationMock.Object);
         }
 
         [Test]

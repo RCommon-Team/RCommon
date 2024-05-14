@@ -218,7 +218,7 @@ namespace RCommon.Persistence.Dapper.Tests
             Customer savedCustomer = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x=> x.Id == customer.Id);
 
-            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer == null);
 
         }
 
@@ -233,12 +233,12 @@ namespace RCommon.Persistence.Dapper.Tests
             var repo = new TestRepository(this.ServiceProvider);
 
             // Start Test
-            using (var scope = scopeFactory.Create())
+            await using (var scope = await scopeFactory.CreateAsync())
             {
                 var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
 
                 await customerRepo.AddAsync(customer);
-                scope.Commit();
+                await scope.CommitAsync();
             }
 
             Customer savedCustomer = await repo.Context.Set<Customer>()
@@ -255,23 +255,21 @@ namespace RCommon.Persistence.Dapper.Tests
         {
             var repo = new TestRepository(this.ServiceProvider);
             var customer = repo.Prepare_UnitOfWork_Can_Rollback();
-            var target = customer.LastName;
 
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
+            var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
 
-            using (var scope = scopeFactory.Create())
+            await using (var scope = await scopeFactory.CreateAsync())
             {
-                var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
-                customer = await customerRepo.FindSingleOrDefaultAsync(x => x.City == customer.City);
+                //customer = await customerRepo.FindSingleOrDefaultAsync(x => x.Id == customer.Id);
                 customer.LastName = "Changed";
                 await customerRepo.UpdateAsync(customer);
-
             } //Dispose here as scope is not comitted.
 
             Customer savedCustomer = null;
-            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer.Id);
-            Assert.That(target == savedCustomer.LastName);
+            savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstAsync(x => x.Id == customer.Id);
+            Assert.That(customer.LastName != savedCustomer.LastName);
         }
 
         [Test]
@@ -285,18 +283,18 @@ namespace RCommon.Persistence.Dapper.Tests
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var repo = new TestRepository(this.ServiceProvider);
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = await scopeFactory.CreateAsync(TransactionMode.Default))
             {
                 var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
-                using (var scope2 = scopeFactory.Create(TransactionMode.Default))
+                await using (var scope2 = await scopeFactory.CreateAsync(TransactionMode.Default))
                 {
                     var orderRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Order>>();
                     await orderRepo.AddAsync(order);
-                    scope2.Commit();
+                    await scope2.CommitAsync();
                 }
-                scope.Commit();
+                await scope.CommitAsync();
             }
 
             Customer savedCustomer = null;
@@ -321,16 +319,16 @@ namespace RCommon.Persistence.Dapper.Tests
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
             var repo = new TestRepository(this.ServiceProvider);
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = await scopeFactory.CreateAsync(TransactionMode.Default))
             {
                 var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
                 await customerRepo.AddAsync(customer);
 
-                using (var scope2 = scopeFactory.Create(TransactionMode.Default))
+                await using (var scope2 = await scopeFactory.CreateAsync(TransactionMode.Default))
                 {
                     var orderRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Order>>();
                     await orderRepo.AddAsync(order);
-                    scope2.Commit();
+                    await scope2.CommitAsync();
                 }
             } //Rollback.
 
@@ -357,13 +355,13 @@ namespace RCommon.Persistence.Dapper.Tests
 
             try
             {
-                using (var scope = scopeFactory.Create())
+                await using (var scope = await scopeFactory.CreateAsync())
                 {
                     var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
                     var salesPersonRepo = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
 
                     await customerRepo.AddAsync(customer);
-                    using (var scope2 = scopeFactory.Create())
+                    await using (var scope2 = await scopeFactory.CreateAsync())
                     {
                         await salesPersonRepo.AddAsync(salesPerson);
                     } //child scope rollback.
@@ -389,14 +387,14 @@ namespace RCommon.Persistence.Dapper.Tests
             // Setup required services
             var scopeFactory = this.ServiceProvider.GetService<IUnitOfWorkFactory>();
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = await scopeFactory.CreateAsync(TransactionMode.Default))
             {
                 var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
                 var salesPersonRepo = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();
 
                 await customerRepo.AddAsync(customer);
                 await salesPersonRepo.AddAsync(salesPerson);
-                scope.Commit();
+                await scope.CommitAsync();
             }
 
 
@@ -423,7 +421,7 @@ namespace RCommon.Persistence.Dapper.Tests
 
             var repo = new TestRepository(this.ServiceProvider);
 
-            using (var scope = scopeFactory.Create(TransactionMode.Default))
+            await using (var scope = await scopeFactory.CreateAsync(TransactionMode.Default))
             {
                 var customerRepo = this.ServiceProvider.GetService<ISqlMapperRepository<Customer>>();
                 var salesPersonRepo = this.ServiceProvider.GetService<ISqlMapperRepository<SalesPerson>>();

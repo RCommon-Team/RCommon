@@ -35,13 +35,6 @@ namespace RCommon.Persistence.Sql
             return connection;
         }
 
-        public void PersistChanges()
-        {
-            AsyncHelper.RunSync(() => this.PersistChangesAsync());
-            // Nothing to do here because this is a SQL Connection
-            return;
-        }
-
         public async Task PersistChangesAsync()
         {
             await this._entityEventTracker.EmitTransactionalEventsAsync();

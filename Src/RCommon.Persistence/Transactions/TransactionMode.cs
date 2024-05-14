@@ -1,3 +1,4 @@
+
 namespace RCommon.Persistence.Transactions
 {
     /// <summary>

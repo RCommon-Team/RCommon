@@ -22,9 +22,6 @@ namespace RCommon.Persistence.Crud
         where TEntity : class, IBusinessEntity
     {
 
-        private string _dataStoreName;
-        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
-
         public GraphRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
             IUnitOfWorkManager unitOfWorkManager, IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
             :base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
