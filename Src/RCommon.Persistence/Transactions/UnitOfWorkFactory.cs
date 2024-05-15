@@ -24,7 +24,7 @@ namespace RCommon.Persistence.Transactions
         public async Task<IUnitOfWork> CreateAsync()
         {
             var unitOfWork = _serviceProvider.GetService<IUnitOfWork>();
-            await _eventBus.PublishAsync(new UnitOfWorkCreatedEvent(unitOfWork));
+            await _eventBus.PublishAsync(new UnitOfWorkCreatedEvent(unitOfWork.TransactionId));
             return unitOfWork;
         }
 
@@ -32,7 +32,7 @@ namespace RCommon.Persistence.Transactions
         {
             var unitOfWork = _serviceProvider.GetService<IUnitOfWork>();
             unitOfWork.TransactionMode = transactionMode;
-            await _eventBus.PublishAsync(new UnitOfWorkCreatedEvent(unitOfWork));
+            await _eventBus.PublishAsync(new UnitOfWorkCreatedEvent(unitOfWork.TransactionId));
             return unitOfWork;
         }
 
@@ -40,7 +40,7 @@ namespace RCommon.Persistence.Transactions
         {
             var unitOfWork = _serviceProvider.GetService<IUnitOfWork>();
             unitOfWork.TransactionMode = transactionMode;
-            await _eventBus.PublishAsync(new UnitOfWorkCreatedEvent(unitOfWork));
+            await _eventBus.PublishAsync(new UnitOfWorkCreatedEvent(unitOfWork.TransactionId));
             return unitOfWork;
         }
     }

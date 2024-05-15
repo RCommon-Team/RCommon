@@ -9,11 +9,11 @@ namespace RCommon.Persistence.Transactions
 {
     public record UnitOfWorkRolledBackEvent : ISyncEvent
     {
-        public UnitOfWorkRolledBackEvent(IUnitOfWork unitOfWork)
+        public UnitOfWorkRolledBackEvent(Guid transactionId)
         {
-            UnitOfWork = unitOfWork;
+            TransactionId = transactionId;
         }
 
-        public IUnitOfWork UnitOfWork { get; }
+        public Guid TransactionId { get; }
     }
 }

@@ -33,12 +33,12 @@ namespace RCommon.Mediator.MediatR.Behaviors
                 await using (var unitOfWork = await this._unitOfWorkScopeFactory.CreateAsync(TransactionMode.Default))
                 {
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})",
-                        this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName, request);
+                        this._unitOfWorkManager.CurrentUnitOfWorkTransactionId, typeName, request);
 
                     response = await next();
 
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
-                        this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName);
+                        this._unitOfWorkManager.CurrentUnitOfWorkTransactionId, typeName);
 
                     await unitOfWork.CommitAsync();
                 }

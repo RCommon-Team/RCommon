@@ -214,5 +214,22 @@ namespace RCommon.Persistence.Linq2Db.Crud
             entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
             EventTracker.AddEntity(entity);
         }
+
+        protected async Task DispatchEvents()
+        {
+            try
+            {
+                if (!UnitOfWorkManager.IsUnitOfWorkActive)
+                {
+                    Guard.Against<NullReferenceException>(DataConnection == null, "DataConnection is null");
+                    await DataConnection.PersistChangesAsync(); // This dispatches the events
+                }
+            }
+            catch (ApplicationException exception)
+            {
+                Logger.LogError(exception, "Error in {0}.DispatchEvents while executing on the Context.", GetType().FullName);
+                throw;
+            }
+        }
     }
 }

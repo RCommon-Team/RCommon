@@ -9,11 +9,11 @@ namespace RCommon.Persistence.Transactions
 {
     public record UnitOfWorkCommittedEvent : ISyncEvent
     {
-        public UnitOfWorkCommittedEvent(IUnitOfWork unitOfWork)
+        public UnitOfWorkCommittedEvent(Guid transactionId)
         {
-            UnitOfWork = unitOfWork;
+            TransactionId = transactionId;
         }
 
-        public IUnitOfWork UnitOfWork { get; }
+        public Guid TransactionId { get; }
     }
 }

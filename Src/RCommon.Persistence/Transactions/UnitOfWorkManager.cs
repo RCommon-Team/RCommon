@@ -17,6 +17,7 @@ namespace RCommon.Persistence.Transactions
         private readonly IEventBus _eventBus;
         private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
         private IUnitOfWork _currentUnitOfWork;
+        private Guid _currentUnitOfWorkTransactionId;
 
 
         public UnitOfWorkManager(ILogger<UnitOfWorkManager> logger, IEventBus eventBus, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider)
@@ -29,6 +30,7 @@ namespace RCommon.Persistence.Transactions
         public bool EnlistUnitOfWork(IUnitOfWork unitOfWork)
         {
             _currentUnitOfWork = unitOfWork;
+            _currentUnitOfWorkTransactionId = unitOfWork.TransactionId;
             _logger.LogInformation("UnitOfWork {0} Enlisted.", unitOfWork.TransactionId);
             return true;
         }
@@ -38,20 +40,20 @@ namespace RCommon.Persistence.Transactions
             _logger.LogInformation("UnitOfWork {0} Comitting.", unitOfWork.TransactionId);
             await FlushAsync(true, _dataStoreEnlistmentProvider.GetEnlistedDataStores(unitOfWork.TransactionId));
             _dataStoreEnlistmentProvider.RemoveEnlistedDataStores(unitOfWork.TransactionId);
-            await _eventBus.PublishAsync(new UnitOfWorkCommittedEvent(unitOfWork));
+            await _eventBus.PublishAsync(new UnitOfWorkCommittedEvent(unitOfWork.TransactionId));
         }
 
         public async Task RollbackUnitOfWorkAsync(IUnitOfWork unitOfWork)
         {
             _logger.LogInformation("UnitOfWork {0} Rolling Back.", unitOfWork.TransactionId);
-            await _eventBus.PublishAsync(new UnitOfWorkRolledBackEvent(unitOfWork));
+            await _eventBus.PublishAsync(new UnitOfWorkRolledBackEvent(unitOfWork.TransactionId));
         }
 
         public async Task CompleteUnitOfWorkAsync(IUnitOfWork unitOfWork)
         {
             _logger.LogInformation("UnitOfWork {0} Completing.", unitOfWork.TransactionId);
             _dataStoreEnlistmentProvider.RemoveEnlistedDataStores(unitOfWork.TransactionId);
-            await _eventBus.PublishAsync(new UnitOfWorkCompletedEvent(unitOfWork));
+            await _eventBus.PublishAsync(new UnitOfWorkCompletedEvent(unitOfWork.TransactionId));
         }
 
         private async Task FlushAsync(bool allowPersist, IList<IDataStore> dataStores)
@@ -70,14 +72,33 @@ namespace RCommon.Persistence.Transactions
             }
         }
 
-        /// <summary>
-        /// Gets the current <see cref="IUnitOfWork"/> instance.
-        /// </summary>
+
+        [Obsolete("Please use UnitOfWorkManager.CurrentUnitOfWorkTransactionId. Public access will be removed in a future version and be limited to derived types.")]
         public IUnitOfWork CurrentUnitOfWork
         {
+            // This should get removed as it exposes the UnitOfWork to modification outside this class.
             get
             {
                 return _currentUnitOfWork;
+            }
+        }
+
+        /// <summary>
+        /// Gets the current <see cref="IUnitOfWork"/> Transaction Id.
+        /// </summary>
+        public Guid CurrentUnitOfWorkTransactionId
+        {
+            get
+            {
+                return _currentUnitOfWorkTransactionId;
+            }
+        }
+
+        public bool IsUnitOfWorkActive
+        {
+            get
+            {
+                return (_currentUnitOfWork == null ? false : true);
             }
         }
 
