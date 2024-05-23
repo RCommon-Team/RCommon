@@ -47,9 +47,8 @@ namespace RCommon
             where TUnitOfWork : IUnitOfWorkBuilder
         {
             // Data Store Management
-            StaticDataStore.DataStores = (StaticDataStore.DataStores == null ? new System.Collections.Concurrent.ConcurrentDictionary<string, Type>() 
-                : StaticDataStore.DataStores);
-            builder.Services.AddScoped<IDataStoreRegistry, StaticDataStoreRegistry>();
+            builder.Services.AddScoped<IScopedDataStore, ScopedDataStore>();
+            builder.Services.AddScoped<IDataStoreRegistry, ScopedDataStoreRegistry>();
 
             // Object Access and Unit of Work Configurations 
             // Wire up the "out of the box" events/event handlers used in persistence. These are not transactional
@@ -60,7 +59,7 @@ namespace RCommon
             objectAccessActions(dataConfiguration);
             var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services });
             unitOfWorkActions(unitOfWorkConfiguration);
-            builder = WithChangeTracking(builder);
+            builder = WithEventTracking(builder);
             return builder;
         }
 
@@ -71,7 +70,7 @@ namespace RCommon
         /// </summary>
         /// <param name="builder">Instance of <see cref="IRCommonBuilder"/>passed in.</param>
         /// <returns>Updated instance of <see cref="IRCommonBuilder"/>RCommon Configuration</returns>
-        private static IRCommonBuilder WithChangeTracking(this IRCommonBuilder builder)
+        private static IRCommonBuilder WithEventTracking(this IRCommonBuilder builder)
         {
             builder.Services.AddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
             builder.Services.AddScoped<IEntityEventTracker, InMemoryEntityEventTracker>();

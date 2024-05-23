@@ -73,9 +73,9 @@ namespace RCommon.Persistence.Crud
                 var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
 
                 // Enlist Data Stores that are participating in transactions
-                if (this.UnitOfWorkManager.CurrentUnitOfWork != null)
+                if (this.UnitOfWorkManager.IsUnitOfWorkActive)
                 {
-                    this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWork.TransactionId, dataStore);
+                    this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWorkTransactionId, dataStore);
                 }
             }
         }
