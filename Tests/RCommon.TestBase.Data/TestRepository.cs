@@ -18,7 +18,7 @@ namespace RCommon.TestBase.Data
     {
         readonly DbContext _context;
         readonly IList<Action<DbContext>> _entityDeleteActions;
-        private IDataStoreRegistry _dataStoreRegistry;
+        private IDataStoreFactory _dataStoreFactory;
 
         public TestRepository(DbContext context)
         {
@@ -28,8 +28,8 @@ namespace RCommon.TestBase.Data
 
         public TestRepository(ServiceProvider serviceProvider)
         {
-            _dataStoreRegistry = serviceProvider.GetService<IDataStoreRegistry>();
-            _context = _dataStoreRegistry.GetDataStore<RCommonDbContext>("TestDbContext");
+            _dataStoreFactory = serviceProvider.GetService<IDataStoreFactory>();
+            _context = _dataStoreFactory.Resolve<TestDbContext>("TestDbContext");
             _entityDeleteActions = new List<Action<DbContext>>();
         }
 

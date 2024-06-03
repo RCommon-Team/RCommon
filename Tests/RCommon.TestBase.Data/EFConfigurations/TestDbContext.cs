@@ -42,8 +42,7 @@ namespace RCommon.TestBase.Data
         private readonly IConfiguration _configuration;
 
 
-        public TestDbContext(DbContextOptions<TestDbContext> options, IConfiguration configuration, 
-            IEntityEventTracker eventTracker) : base(options, eventTracker)
+        public TestDbContext(DbContextOptions<TestDbContext> options, IConfiguration configuration) : base(options)
         {
             _configuration = configuration;
         }

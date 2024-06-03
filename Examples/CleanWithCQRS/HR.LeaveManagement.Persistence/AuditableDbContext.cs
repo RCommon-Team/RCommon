@@ -17,9 +17,8 @@ namespace HR.LeaveManagement.Persistence
         private readonly ICurrentUser _currentUser;
         private readonly ISystemTime _systemTime;
 
-        public AuditableDbContext(DbContextOptions options, ICurrentUser currentUser, ISystemTime systemTime, 
-            IEntityEventTracker eventTracker) 
-            : base(options, eventTracker)
+        public AuditableDbContext(DbContextOptions options, ICurrentUser currentUser, ISystemTime systemTime) 
+            : base(options)
         {
             _currentUser = currentUser;
             this._systemTime = systemTime;
@@ -50,11 +49,6 @@ namespace HR.LeaveManagement.Persistence
 
             
             return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-        }
-
-        public override async Task PersistChangesAsync()
-        {
-            await base.PersistChangesAsync();
         }
     }
 }

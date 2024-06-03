@@ -21,15 +21,23 @@ namespace RCommon.Persistence.Crud
        where TEntity : class, IBusinessEntity
     {
         private string _dataStoreName;
-        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
+        private readonly IDataStoreFactory _dataStoreFactory;
 
-        public SqlRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider, 
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEntityEventTracker eventTracker, 
+        public SqlRepositoryBase(IDataStoreFactory dataStoreFactory, 
+            ILoggerFactory logger, IEntityEventTracker eventTracker, 
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
-            _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
-            UnitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (defaultDataStoreOptions is null)
+            {
+                throw new ArgumentNullException(nameof(defaultDataStoreOptions));
+            }
+
+            _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
             EventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
 
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null 
@@ -60,7 +68,7 @@ namespace RCommon.Persistence.Crud
         {
             get
             {
-                return this.DataStoreRegistry.GetDataStore<RDbConnection>(this.DataStoreName);
+                return this._dataStoreFactory.Resolve<RDbConnection>(this.DataStoreName);
             }
         }
 
@@ -70,19 +78,10 @@ namespace RCommon.Persistence.Crud
             set
             {
                 _dataStoreName = value;
-                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
-
-                // Enlist Data Stores that are participating in transactions
-                if (this.UnitOfWorkManager.IsUnitOfWorkActive)
-                {
-                    this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWorkTransactionId, dataStore);
-                }
             }
         }
 
-        public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
-        public IUnitOfWorkManager UnitOfWorkManager { get; }
         public IEntityEventTracker EventTracker { get; }
     }
 

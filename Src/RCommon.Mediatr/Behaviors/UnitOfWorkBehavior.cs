@@ -13,13 +13,11 @@ namespace RCommon.Mediator.MediatR.Behaviors
     {
         private readonly ILogger<UnitOfWorkRequestBehavior<TRequest, TResponse>> _logger;
         private readonly IUnitOfWorkFactory _unitOfWorkScopeFactory;
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public UnitOfWorkRequestBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
+        public UnitOfWorkRequestBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory,
             ILogger<UnitOfWorkRequestBehavior<TRequest, TResponse>> logger)
         {
             _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkFactory));
-            _unitOfWorkManager = unitOfWorkManager  ?? throw new ArgumentException(nameof(IUnitOfWorkManager)); 
             _logger = logger ?? throw new ArgumentException(nameof(ILogger));
         }
 
@@ -30,17 +28,17 @@ namespace RCommon.Mediator.MediatR.Behaviors
 
             try
             {
-                await using (var unitOfWork = await this._unitOfWorkScopeFactory.CreateAsync(TransactionMode.Default))
+                using (var unitOfWork = this._unitOfWorkScopeFactory.Create(TransactionMode.Default))
                 {
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})",
-                        this._unitOfWorkManager.CurrentUnitOfWorkTransactionId, typeName, request);
+                        unitOfWork.TransactionId, typeName, request);
 
                     response = await next();
 
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
-                        this._unitOfWorkManager.CurrentUnitOfWorkTransactionId, typeName);
+                        unitOfWork.TransactionId, typeName);
 
-                    await unitOfWork.CommitAsync();
+                    unitOfWork.Commit();
                 }
 
 
@@ -60,13 +58,11 @@ namespace RCommon.Mediator.MediatR.Behaviors
     {
         private readonly ILogger<UnitOfWorkRequestWithResponseBehavior<TRequest, TResponse>> _logger;
         private readonly IUnitOfWorkFactory _unitOfWorkScopeFactory;
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public UnitOfWorkRequestWithResponseBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory, IUnitOfWorkManager unitOfWorkManager,
+        public UnitOfWorkRequestWithResponseBehavior(IUnitOfWorkFactory unitOfWorkScopeFactory,
             ILogger<UnitOfWorkRequestWithResponseBehavior<TRequest, TResponse>> logger)
         {
             _unitOfWorkScopeFactory = unitOfWorkScopeFactory ?? throw new ArgumentException(nameof(IUnitOfWorkFactory));
-            _unitOfWorkManager = unitOfWorkManager ?? throw new ArgumentException(nameof(IUnitOfWorkManager));
             _logger = logger ?? throw new ArgumentException(nameof(ILogger));
         }
 
@@ -77,17 +73,17 @@ namespace RCommon.Mediator.MediatR.Behaviors
 
             try
             {
-                await using (var unitOfWork = await this._unitOfWorkScopeFactory.CreateAsync(TransactionMode.Default))
+                using (var unitOfWork = this._unitOfWorkScopeFactory.Create(TransactionMode.Default))
                 {
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})",
-                        this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName, request);
+                        unitOfWork.TransactionId, typeName, request);
 
                     response = await next();
 
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
-                        this._unitOfWorkManager.CurrentUnitOfWork.TransactionId, typeName);
+                        unitOfWork.TransactionId, typeName);
 
-                    await unitOfWork.CommitAsync();
+                    unitOfWork.Commit();
                 }
 
 

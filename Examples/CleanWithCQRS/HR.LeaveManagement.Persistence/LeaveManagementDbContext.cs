@@ -15,9 +15,8 @@ namespace HR.LeaveManagement.Persistence
     public class LeaveManagementDbContext : AuditableDbContext
     {
 
-        public LeaveManagementDbContext(DbContextOptions<LeaveManagementDbContext> options, ICurrentUser currentUser, ISystemTime systemTime, 
-            IEntityEventTracker eventTracker)
-            : base(options, currentUser, systemTime, eventTracker)
+        public LeaveManagementDbContext(DbContextOptions<LeaveManagementDbContext> options, ICurrentUser currentUser, ISystemTime systemTime)
+            : base(options, currentUser, systemTime)
         {
         }
 

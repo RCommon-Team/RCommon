@@ -20,14 +20,16 @@ namespace RCommon.Persistence.Crud
        where TEntity : IBusinessEntity
     {
         private string _dataStoreName;
-        private readonly IDataStoreEnlistmentProvider _dataStoreEnlistmentProvider;
+        private readonly IDataStoreFactory _dataStoreFactory;
 
-        public LinqRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            IUnitOfWorkManager unitOfWorkManager, IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+        public LinqRepositoryBase(IDataStoreFactory dataStoreFactory, 
+            IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
-            DataStoreRegistry = dataStoreRegistry ?? throw new ArgumentNullException(nameof(dataStoreRegistry));
-            _dataStoreEnlistmentProvider = dataStoreEnlistmentProvider ?? throw new ArgumentNullException(nameof(dataStoreEnlistmentProvider));
-            UnitOfWorkManager = unitOfWorkManager ?? throw new ArgumentNullException(nameof(unitOfWorkManager));
+            if (defaultDataStoreOptions is null)
+            {
+                throw new ArgumentNullException(nameof(defaultDataStoreOptions));
+            }
+            _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
             EventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
 
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
@@ -142,10 +144,7 @@ namespace RCommon.Persistence.Crud
         public abstract IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path);
 
         public abstract IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path);
-
-        public IDataStoreRegistry DataStoreRegistry { get; }
         public ILogger Logger { get; set; }
-        public IUnitOfWorkManager UnitOfWorkManager { get; }
         public IEntityEventTracker EventTracker { get; }
         public string DataStoreName
         {
@@ -153,13 +152,6 @@ namespace RCommon.Persistence.Crud
             set
             {
                 _dataStoreName = value;
-                var dataStore = this.DataStoreRegistry.GetDataStore(_dataStoreName);
-
-                // Enlist Data Stores that are participating in transactions
-                if (this.UnitOfWorkManager.IsUnitOfWorkActive)
-                {
-                    this._dataStoreEnlistmentProvider.EnlistDataStore(this.UnitOfWorkManager.CurrentUnitOfWorkTransactionId, dataStore);
-                }
             }
         }
     }

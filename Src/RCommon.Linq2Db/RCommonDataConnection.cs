@@ -21,8 +21,6 @@ namespace RCommon.Persistence.Linq2Db
         public RCommonDataConnection(IEntityEventTracker eventTracker, DataOptions linq2DbOptions)
             :base(linq2DbOptions)
         {
-            var options = linq2DbOptions ?? throw new ArgumentNullException(nameof(linq2DbOptions));
-            _eventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
             
         }
 
@@ -31,11 +29,6 @@ namespace RCommon.Persistence.Linq2Db
         public DbConnection GetDbConnection()
         {
             return this.Connection;
-        }
-
-        public async Task PersistChangesAsync()
-        {
-            await this._eventTracker.EmitTransactionalEventsAsync();
         }
     }
 }

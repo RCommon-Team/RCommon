@@ -35,11 +35,6 @@ namespace RCommon.Persistence.Transactions
 
         public DefaultUnitOfWorkBuilder(IServiceCollection services)
         {
-            // Data Store Management
-            services.AddScoped<IDataStoreEnlistmentProvider, ScopedDataStoreEnlistmentProvider>();
-
-            // Transaction Management
-            services.AddScoped<IUnitOfWorkManager, UnitOfWorkManager>();
 
             // Factory for Unit Of Work Scope
             services.AddTransient<IUnitOfWork, UnitOfWork>();

@@ -22,9 +22,9 @@ namespace RCommon.Persistence.Crud
         where TEntity : class, IBusinessEntity
     {
 
-        public GraphRepositoryBase(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            IUnitOfWorkManager unitOfWorkManager, IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            :base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
+        public GraphRepositoryBase(IDataStoreFactory dataStoreFactory,
+            IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            :base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
         {
             
         }

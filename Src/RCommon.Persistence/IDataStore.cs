@@ -9,8 +9,6 @@ namespace RCommon.Persistence
 {
     public interface IDataStore : IAsyncDisposable
     { 
-
-        Task PersistChangesAsync();
         DbConnection GetDbConnection();
     }
 

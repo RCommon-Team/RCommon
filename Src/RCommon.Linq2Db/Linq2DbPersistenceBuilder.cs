@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RCommon.Persistence.Linq2Db.Crud;
 using RCommon.Persistence.Crud;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace RCommon.Persistence.Linq2Db
 {
@@ -37,10 +38,9 @@ namespace RCommon.Persistence.Linq2Db
             Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
             Guard.Against<UnsupportedDataStoreException>(options == null, "You must set options to a value in order for them to be useful");
 
-            if (!StaticDataStore.DataStores.TryAdd(dataStoreName, typeof(TDataConnection)))
-            {
-                throw new UnsupportedDataStoreException($"The StaticDataStore refused to add the new DataStore name: {dataStoreName} of type: {typeof(TDataConnection).AssemblyQualifiedName}");
-            }
+            this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
+            this._services.TryAddTransient<TDataConnection>();
+            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDataConnection>(dataStoreName));
 
             _services.AddLinqToDBContext<TDataConnection>(options);
             return this;

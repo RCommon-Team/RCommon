@@ -15,19 +15,6 @@ namespace RCommon.Persistence.EFCore
 {
     public abstract class RCommonDbContext : DbContext, IDataStore
     {
-        private readonly IEntityEventTracker _entityEventTracker;
-
-
-        public RCommonDbContext(DbContextOptions options, IEntityEventTracker entityEventTracker)
-            : base(options)
-        {
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            this._entityEventTracker = entityEventTracker ?? throw new ArgumentNullException(nameof(entityEventTracker));
-        }
 
         public RCommonDbContext(DbContextOptions options)
             : base(options)
@@ -36,25 +23,14 @@ namespace RCommon.Persistence.EFCore
             {
                 throw new ArgumentNullException(nameof(options));
             }
+
         }
 
-        
+
 
         public DbConnection GetDbConnection()
         {
             return base.Database.GetDbConnection();
-        }
-
-        public virtual async Task PersistChangesAsync()
-        {
-            await this.SaveChangesAsync(true);
-        }
-
-
-        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
-        {
-            await this._entityEventTracker.EmitTransactionalEventsAsync();
-            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
     }
 }

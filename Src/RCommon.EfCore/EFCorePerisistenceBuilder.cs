@@ -2,8 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.EFCore;
@@ -34,11 +37,10 @@ namespace RCommon
             where TDbContext : RCommonDbContext
         {
             Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
-            
-            if (!StaticDataStore.DataStores.TryAdd(dataStoreName, typeof(TDbContext)))
-            {
-                throw new UnsupportedDataStoreException($"The StaticDataStore refused to add the new DataStore name: {dataStoreName} of type: {typeof(TDbContext).AssemblyQualifiedName}");
-            }
+
+            this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
+            //this._services.TryAddTransient<TDbContext>();
+            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDbContext>(dataStoreName));
             this._services.AddDbContext<TDbContext>(options, ServiceLifetime.Scoped); 
 
             return this;

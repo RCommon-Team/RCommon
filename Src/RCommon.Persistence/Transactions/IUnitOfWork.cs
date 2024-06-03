@@ -4,7 +4,7 @@ using System.Transactions;
 
 namespace RCommon.Persistence.Transactions
 {
-    public interface IUnitOfWork : IAsyncDisposable
+    public interface IUnitOfWork : IDisposable
     {
         bool AutoComplete { get; }
         IsolationLevel IsolationLevel { get; set; }
@@ -12,6 +12,6 @@ namespace RCommon.Persistence.Transactions
         Guid TransactionId { get; }
         TransactionMode TransactionMode { get; set; }
 
-        Task CommitAsync();
+        void Commit();
     }
 }

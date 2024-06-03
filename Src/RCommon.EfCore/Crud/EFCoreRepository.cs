@@ -35,6 +35,7 @@ namespace RCommon.Persistence.EFCore.Crud
         private IQueryable<TEntity> _repositoryQuery;
         private bool _tracking;
         private IIncludableQueryable<TEntity, object> _includableQueryable;
+        private readonly IDataStoreFactory _dataStoreFactory;
 
 
 
@@ -44,13 +45,29 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
         /// througout the HTTP request or the scope of the thread.</param>
         /// <param name="logger">Logger used throughout the application.</param>
-        public EFCoreRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEntityEventTracker eventTracker,
+        public EFCoreRepository(IDataStoreFactory dataStoreFactory,
+            ILoggerFactory logger, IEntityEventTracker eventTracker,
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
+            : base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
         {
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (eventTracker is null)
+            {
+                throw new ArgumentNullException(nameof(eventTracker));
+            }
+
+            if (defaultDataStoreOptions is null)
+            {
+                throw new ArgumentNullException(nameof(defaultDataStoreOptions));
+            }
+
             Logger = logger.CreateLogger(GetType().Name);
             _tracking = true;
+            _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
         }
 
         protected DbSet<TEntity> ObjectSet
@@ -231,7 +248,7 @@ namespace RCommon.Persistence.EFCore.Crud
         {
             get
             {
-                return DataStoreRegistry.GetDataStore<RCommonDbContext>(DataStoreName);
+                return this._dataStoreFactory.Resolve<RCommonDbContext>(this.DataStoreName);
             }
         }
 
@@ -240,15 +257,12 @@ namespace RCommon.Persistence.EFCore.Crud
             int affected = 0;
             try
             {
-                if (UnitOfWorkManager.CurrentUnitOfWork == null)
-                {
-                    affected = await ObjectContext.SaveChangesAsync(true, token); // This will dispatch the local events
-                }
+                affected = await ObjectContext.SaveChangesAsync(true, token);
             }
-            catch (ApplicationException exception)
+            catch (ApplicationException ex)
             {
-                Logger.LogError(exception, "Error in {0}.SaveAsync while executing on the Context.", GetType().FullName);
-                throw;
+                var persistEx = new PersistenceException($"Error in {this.GetGenericTypeName()}.SaveAsync while executing on the Context.", ex);
+                throw persistEx;
             }
 
             return affected;

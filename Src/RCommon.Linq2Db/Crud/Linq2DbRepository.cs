@@ -24,15 +24,32 @@ namespace RCommon.Persistence.Linq2Db.Crud
     {
         private IQueryable<TEntity> _repositoryQuery;
         private ILoadWithQueryable<TEntity, object> _includableQueryable;
+        private readonly IDataStoreFactory _dataStoreFactory;
 
-        public Linq2DbRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEntityEventTracker eventTracker,
+        public Linq2DbRepository(IDataStoreFactory dataStoreFactory,
+            ILoggerFactory logger, IEntityEventTracker eventTracker,
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreRegistry, dataStoreEnlistmentProvider, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
+            : base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
         {
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (eventTracker is null)
+            {
+                throw new ArgumentNullException(nameof(eventTracker));
+            }
+
+            if (defaultDataStoreOptions is null)
+            {
+                throw new ArgumentNullException(nameof(defaultDataStoreOptions));
+            }
+
             Logger = logger.CreateLogger(GetType().Name);
             _repositoryQuery = null;
             _includableQueryable = null;
+            _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
         }
 
 
@@ -40,7 +57,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
         {
             get
             {
-                return DataStoreRegistry.GetDataStore<RCommonDataConnection>(DataStoreName);
+                return this._dataStoreFactory.Resolve<RCommonDataConnection>(this.DataStoreName);
             }
         }
 
@@ -213,23 +230,6 @@ namespace RCommon.Persistence.Linq2Db.Crud
             await DataConnection.UpdateAsync(entity, token: token);
             entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
             EventTracker.AddEntity(entity);
-        }
-
-        protected async Task DispatchEvents()
-        {
-            try
-            {
-                if (!UnitOfWorkManager.IsUnitOfWorkActive)
-                {
-                    Guard.Against<NullReferenceException>(DataConnection == null, "DataConnection is null");
-                    await DataConnection.PersistChangesAsync(); // This dispatches the events
-                }
-            }
-            catch (ApplicationException exception)
-            {
-                Logger.LogError(exception, "Error in {0}.DispatchEvents while executing on the Context.", GetType().FullName);
-                throw;
-            }
         }
     }
 }

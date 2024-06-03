@@ -10,6 +10,7 @@ using RCommon.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Persistence.Dapper.Crud;
 using RCommon.Persistence.Crud;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace RCommon
 {
@@ -37,13 +38,15 @@ namespace RCommon
             Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
             Guard.Against<RDbConnectionException>(options == null, "You must configure the options for the RDbConnection for it to be useful");
 
-            if (!StaticDataStore.DataStores.TryAdd(dataStoreName, typeof(TDbConnection)))
-            {
-                throw new UnsupportedDataStoreException($"The StaticDataStore refused to add the new DataStore name: {dataStoreName} of type: {typeof(TDbConnection).AssemblyQualifiedName}");
-            }
-
             var dbContext = typeof(TDbConnection).AssemblyQualifiedName;
-            this._services.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
+            //this._services.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
+
+            this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
+            this._services.TryAddTransient(Type.GetType(dbContext));
+            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDbConnection>(dataStoreName));
+
+            //var dbContext = typeof(TDbConnection).AssemblyQualifiedName;
+            //this._services.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
             this._services.Configure(options);
 
             return this;

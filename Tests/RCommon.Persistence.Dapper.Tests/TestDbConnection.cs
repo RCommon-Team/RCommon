@@ -11,8 +11,8 @@ namespace RCommon.Persistence.Dapper.Tests
     public class TestDbConnection : RDbConnection
     {
 
-        public TestDbConnection(IOptions<RDbConnectionOptions> options, IEntityEventTracker eventTracker) 
-            : base(options, eventTracker)
+        public TestDbConnection(IOptions<RDbConnectionOptions> options) 
+            : base(options)
         {
             
         }

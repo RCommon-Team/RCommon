@@ -16,10 +16,9 @@ namespace RCommon.Persistence.Sql
         private readonly IOptions<RDbConnectionOptions> _options;
         private readonly IEntityEventTracker _entityEventTracker;
 
-        public RDbConnection(IOptions<RDbConnectionOptions> options, IEntityEventTracker entityEventTracker)
+        public RDbConnection(IOptions<RDbConnectionOptions> options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            this._entityEventTracker = entityEventTracker ?? throw new ArgumentNullException(nameof(entityEventTracker));
         }
 
         public DbConnection GetDbConnection()
@@ -33,11 +32,6 @@ namespace RCommon.Persistence.Sql
             connection.ConnectionString = this._options.Value.ConnectionString;
             
             return connection;
-        }
-
-        public async Task PersistChangesAsync()
-        {
-            await this._entityEventTracker.EmitTransactionalEventsAsync();
         }
 
     }

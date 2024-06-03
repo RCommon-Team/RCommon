@@ -8,7 +8,7 @@ namespace RCommon.Persistence.Transactions
 {
     public enum UnitOfWorkState
     {
-        Created =1,
+        Created = 1,
         CommitAttempted = 2,
         RolledBack = 3,
         Completed = 4,

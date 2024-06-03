@@ -25,10 +25,10 @@ namespace RCommon.Persistence.Dapper.Crud
         where TEntity : class, IBusinessEntity
     {
 
-        public DapperRepository(IDataStoreRegistry dataStoreRegistry, IDataStoreEnlistmentProvider dataStoreEnlistmentProvider,
-            ILoggerFactory logger, IUnitOfWorkManager unitOfWorkManager, IEntityEventTracker eventTracker,
+        public DapperRepository(IDataStoreFactory dataStoreFactory, 
+            ILoggerFactory logger, IEntityEventTracker eventTracker,
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreRegistry, dataStoreEnlistmentProvider, logger, unitOfWorkManager, eventTracker, defaultDataStoreOptions)
+            : base(dataStoreFactory, logger, eventTracker, defaultDataStoreOptions)
         {
             Logger = logger.CreateLogger(GetType().Name);
         }
@@ -48,7 +48,6 @@ namespace RCommon.Persistence.Dapper.Crud
                     await db.InsertAsync(entity, cancellationToken: token);
                     entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
-                    await DispatchEvents();
 
                 }
                 catch (ApplicationException exception)
@@ -82,7 +81,6 @@ namespace RCommon.Persistence.Dapper.Crud
                     await db.DeleteAsync(entity, cancellationToken: token);
                     entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
-                    await DispatchEvents();
                 }
                 catch (ApplicationException exception)
                 {
@@ -117,7 +115,6 @@ namespace RCommon.Persistence.Dapper.Crud
                     await db.UpdateAsync(entity, cancellationToken: token);
                     entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
-                    await DispatchEvents();
                 }
                 catch (ApplicationException exception)
                 {
@@ -314,23 +311,6 @@ namespace RCommon.Persistence.Dapper.Crud
         public override async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await AnyAsync(specification.Predicate, token);
-        }
-
-        protected async Task DispatchEvents()
-        {
-            try
-            {
-                if (!UnitOfWorkManager.IsUnitOfWorkActive)
-                {
-                    Guard.Against<NullReferenceException>(DataStore == null, "DataStore is null");
-                    await DataStore.PersistChangesAsync(); // This dispatches the events
-                }
-            }
-            catch (ApplicationException exception)
-            {
-                Logger.LogError(exception, "Error in {0}.DispatchEvents while executing on the Context.", GetType().FullName);
-                throw;
-            }
         }
 
 

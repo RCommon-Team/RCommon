@@ -47,8 +47,13 @@ namespace RCommon
             where TUnitOfWork : IUnitOfWorkBuilder
         {
             // Data Store Management
-            builder.Services.AddScoped<IScopedDataStore, ScopedDataStore>();
-            builder.Services.AddScoped<IDataStoreRegistry, ScopedDataStoreRegistry>();
+            //var dataStore = new ScopedDataStore();
+            //var dataStoreActions = new Action<ScopedDataStore>(x => {}); ;
+            //dataStoreActions(dataStore);
+            //builder.Services.Configure(dataStoreActions);
+            //builder.Services.AddScoped<IDataStoreRegistry, CachedDataStoreRegistry>();
+            //builder.Services.AddDistributedMemoryCache();
+            //builder.Services.AddScoped<IDataStoreFactory, DataStoreFactory>();
 
             // Object Access and Unit of Work Configurations 
             // Wire up the "out of the box" events/event handlers used in persistence. These are not transactional
