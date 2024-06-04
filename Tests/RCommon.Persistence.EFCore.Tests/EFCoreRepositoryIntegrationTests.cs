@@ -498,8 +498,8 @@ namespace RCommon.Persistence.EFCore.Tests
             Order savedOrder = null;
             savedCustomer = await repo.Context.Set<Customer>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == customer.Id);
             savedOrder = await repo.Context.Set<Order>().AsNoTracking().FirstOrDefaultAsync(x=>x.Id == order.Id);
-            Assert.That(savedCustomer != null);
-            Assert.That(savedOrder != null);
+            Assert.That(savedCustomer == null);
+            Assert.That(savedOrder == null);
         }
 
         [Test]

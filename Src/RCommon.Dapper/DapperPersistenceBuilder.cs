@@ -39,14 +39,10 @@ namespace RCommon
             Guard.Against<RDbConnectionException>(options == null, "You must configure the options for the RDbConnection for it to be useful");
 
             var dbContext = typeof(TDbConnection).AssemblyQualifiedName;
-            //this._services.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
 
             this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
             this._services.TryAddTransient(Type.GetType(dbContext));
             this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDbConnection>(dataStoreName));
-
-            //var dbContext = typeof(TDbConnection).AssemblyQualifiedName;
-            //this._services.AddTransient(Type.GetType(dbContext), Type.GetType(dbContext));
             this._services.Configure(options);
 
             return this;

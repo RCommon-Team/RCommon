@@ -39,10 +39,8 @@ namespace RCommon.Persistence.Linq2Db
             Guard.Against<UnsupportedDataStoreException>(options == null, "You must set options to a value in order for them to be useful");
 
             this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
-            this._services.TryAddTransient<TDataConnection>();
             this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDataConnection>(dataStoreName));
-
-            _services.AddLinqToDBContext<TDataConnection>(options);
+            this._services.AddLinqToDBContext<TDataConnection>(options);
             return this;
         }
 

@@ -13,8 +13,8 @@ namespace RCommon.Persistence.Linq2Db.Tests
 {
     public class TestDataConnection : RCommonDataConnection
     {
-        public TestDataConnection(IEntityEventTracker eventTracker, DataOptions linq2DbOptions) 
-            : base(eventTracker, linq2DbOptions)
+        public TestDataConnection(DataOptions linq2DbOptions) 
+            : base(linq2DbOptions)
         {
         }
 

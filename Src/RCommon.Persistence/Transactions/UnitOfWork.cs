@@ -29,8 +29,7 @@ namespace RCommon.Persistence.Transactions
             _state = UnitOfWorkState.Created;
             _transactionScope = TransactionScopeHelper.CreateScope(_logger, this);
         }
-        public UnitOfWork(ILogger<UnitOfWork> logger, IGuidGenerator guidGenerator, TransactionMode transactionMode, IsolationLevel isolationLevel,
-            IEventBus eventBus)
+        public UnitOfWork(ILogger<UnitOfWork> logger, IGuidGenerator guidGenerator, TransactionMode transactionMode, IsolationLevel isolationLevel)
         {
             _logger = logger;
             _guidGenerator = guidGenerator;
