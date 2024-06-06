@@ -27,7 +27,7 @@ namespace RCommon.Persistence
                 return (IDataStore)_provider.GetRequiredService(type);
             }
 
-            throw new ArgumentOutOfRangeException(nameof(name));
+            throw new DataStoreNotFoundException($"DataStore with name of {name} not found");
         }
 
         public TDataStore Resolve<TDataStore>(string name)
@@ -38,7 +38,7 @@ namespace RCommon.Persistence
                 return (TDataStore)_provider.GetRequiredService(type);
             }
 
-            throw new ArgumentOutOfRangeException(nameof(name));
+            throw new DataStoreNotFoundException($"DataStore with name of {name} not found");
         }
     }
 }

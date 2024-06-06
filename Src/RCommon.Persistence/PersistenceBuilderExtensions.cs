@@ -28,7 +28,6 @@ namespace RCommon
             where TObjectAccess : IPersistenceBuilder
             where TUnitOfWork : IUnitOfWorkBuilder
         {
-
             return WithPersistence<TObjectAccess, TUnitOfWork>(builder, objectAccessActions, x => { });
         }
 
@@ -37,7 +36,6 @@ namespace RCommon
             where TObjectAccess : IPersistenceBuilder
             where TUnitOfWork : IUnitOfWorkBuilder
         {
-
             return WithPersistence<TObjectAccess, TUnitOfWork>(builder, x => { }, uniOfWorkActions);
         }
 
@@ -46,20 +44,6 @@ namespace RCommon
             where TObjectAccess : IPersistenceBuilder
             where TUnitOfWork : IUnitOfWorkBuilder
         {
-            // Data Store Management
-            //var dataStore = new ScopedDataStore();
-            //var dataStoreActions = new Action<ScopedDataStore>(x => {}); ;
-            //dataStoreActions(dataStore);
-            //builder.Services.Configure(dataStoreActions);
-            //builder.Services.AddScoped<IDataStoreRegistry, CachedDataStoreRegistry>();
-            //builder.Services.AddDistributedMemoryCache();
-            //builder.Services.AddScoped<IDataStoreFactory, DataStoreFactory>();
-
-            // Object Access and Unit of Work Configurations 
-            // Wire up the "out of the box" events/event handlers used in persistence. These are not transactional
-            //builder.Services.AddScoped<ISubscriber<UnitOfWorkCreatedEvent>, UnitOfWorkCreatedHandler>();
-            //builder.Services.AddScoped<ISubscriber<UnitOfWorkCommittedEvent>, UnitOfWorkCommittedEventHandler>();
-
             var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services });
             objectAccessActions(dataConfiguration);
             var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services });

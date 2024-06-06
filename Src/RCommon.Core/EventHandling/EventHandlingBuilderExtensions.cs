@@ -24,6 +24,11 @@ namespace RCommon
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<T> actions)
             where T : IEventHandlingBuilder
         {
+            Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
+
+            this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
+            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDbContext>(dataStoreName));
+
             // Event Handling Configurations 
             var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
             actions(eventHandlingConfig);
