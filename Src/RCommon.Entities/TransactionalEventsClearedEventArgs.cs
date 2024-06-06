@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities
 {
-    public class EntityEvent<TEntity> : ISyncEvent
+    public class TransactionalEventsClearedEventArgs : EventArgs
     {
-        public EntityEvent(TEntity entity)
+        public TransactionalEventsClearedEventArgs(IBusinessEntity entity)
         {
             Entity = entity;
         }
 
-        public TEntity Entity { get; }
+        public IBusinessEntity Entity { get; }
     }
 }

@@ -44,10 +44,8 @@ namespace RCommon.Persistence.Dapper.Crud
                     {
                         await db.OpenAsync();
                     }
-
-                    await db.InsertAsync(entity, cancellationToken: token);
-                    entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
+                    await db.InsertAsync(entity, cancellationToken: token);
 
                 }
                 catch (ApplicationException exception)
@@ -78,9 +76,8 @@ namespace RCommon.Persistence.Dapper.Crud
                         await db.OpenAsync();
                     }
 
-                    await db.DeleteAsync(entity, cancellationToken: token);
-                    entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
+                    await db.DeleteAsync(entity, cancellationToken: token);
                 }
                 catch (ApplicationException exception)
                 {
@@ -112,9 +109,8 @@ namespace RCommon.Persistence.Dapper.Crud
                         await db.OpenAsync();
                     }
 
-                    await db.UpdateAsync(entity, cancellationToken: token);
-                    entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
                     EventTracker.AddEntity(entity);
+                    await db.UpdateAsync(entity, cancellationToken: token);
                 }
                 catch (ApplicationException exception)
                 {

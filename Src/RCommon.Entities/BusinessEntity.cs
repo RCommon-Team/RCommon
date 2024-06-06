@@ -20,9 +20,9 @@ namespace RCommon.Entities
         }
 
         
-        public event EventHandler<LocalEventsChangedEventArgs> LocalEventsAdded;
-        public event EventHandler<LocalEventsChangedEventArgs> LocalEventsRemoved;
-        public event EventHandler<LocalEventsClearedEventArgs> LocalEventsCleared;
+        public event EventHandler<TransactionalEventsChangedEventArgs> TransactionalEventAdded;
+        public event EventHandler<TransactionalEventsChangedEventArgs> TransactionalEventRemoved;
+        public event EventHandler<TransactionalEventsClearedEventArgs> TransactionalEventsCleared;
 
 
         /// <inheritdoc/>
@@ -47,42 +47,42 @@ namespace RCommon.Entities
         public void AddLocalEvent(ISerializableEvent eventItem)
         {
             _localEvents.Add(eventItem);
-            this.OnLocalEventsAdded(new LocalEventsChangedEventArgs(this, eventItem));
+            this.OnLocalEventsAdded(new TransactionalEventsChangedEventArgs(this, eventItem));
         }
 
         public void RemoveLocalEvent(ISerializableEvent eventItem)
         {
             _localEvents?.Remove(eventItem);
-            this.OnLocalEventsRemoved(new LocalEventsChangedEventArgs(this, eventItem));
+            this.OnLocalEventsRemoved(new TransactionalEventsChangedEventArgs(this, eventItem));
         }
 
         public void ClearLocalEvents()
         {
             _localEvents?.Clear();
-            this.OnLocalEventsCleared(new LocalEventsClearedEventArgs(this, this.LocalEvents));
+            this.OnLocalEventsCleared(new TransactionalEventsClearedEventArgs(this));
         }
 
-        protected void OnLocalEventsAdded(LocalEventsChangedEventArgs args)
+        protected void OnLocalEventsAdded(TransactionalEventsChangedEventArgs args)
         {
-            EventHandler<LocalEventsChangedEventArgs> handler = LocalEventsAdded;
+            EventHandler<TransactionalEventsChangedEventArgs> handler = TransactionalEventAdded;
             if (handler != null)
             {
                 handler(this, args);
             }
         }
 
-        protected void OnLocalEventsRemoved(LocalEventsChangedEventArgs args)
+        protected void OnLocalEventsRemoved(TransactionalEventsChangedEventArgs args)
         {
-            EventHandler<LocalEventsChangedEventArgs> handler = LocalEventsRemoved;
+            EventHandler<TransactionalEventsChangedEventArgs> handler = TransactionalEventRemoved;
             if (handler != null)
             {
                 handler(this, args);
             }
         }
 
-        protected void OnLocalEventsCleared(LocalEventsClearedEventArgs args)
+        protected void OnLocalEventsCleared(TransactionalEventsClearedEventArgs args)
         {
-            EventHandler<LocalEventsClearedEventArgs> handler = LocalEventsCleared;
+            EventHandler<TransactionalEventsClearedEventArgs> handler = TransactionalEventsCleared;
             if (handler != null)
             {
                 handler(this, args);

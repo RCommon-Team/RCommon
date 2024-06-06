@@ -120,26 +120,23 @@ namespace RCommon.Persistence.EFCore.Crud
 
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
-            await ObjectSet.AddAsync(entity, token);
-            entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
             EventTracker.AddEntity(entity);
+            await ObjectSet.AddAsync(entity, token);
             await SaveAsync(token);
         }
 
 
         public async override Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
-            ObjectSet.Remove(entity);
-            entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
             EventTracker.AddEntity(entity);
+            ObjectSet.Remove(entity);
             await SaveAsync();
         }
 
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
-            ObjectSet.Update(entity);
-            entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
             EventTracker.AddEntity(entity);
+            ObjectSet.Update(entity);
             await SaveAsync(token);
         }
 

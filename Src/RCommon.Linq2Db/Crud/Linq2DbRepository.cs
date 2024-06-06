@@ -119,9 +119,8 @@ namespace RCommon.Persistence.Linq2Db.Crud
 
         public async override Task AddAsync(TEntity entity, CancellationToken token = default)
         {
-            await DataConnection.InsertAsync(entity, token: token);
-            entity.AddLocalEvent(new EntityCreatedEvent<TEntity>(entity));
             EventTracker.AddEntity(entity);
+            await DataConnection.InsertAsync(entity, token: token);
         }
 
         public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
@@ -136,9 +135,8 @@ namespace RCommon.Persistence.Linq2Db.Crud
 
         public async override Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
-            await DataConnection.DeleteAsync(entity);
-            entity.AddLocalEvent(new EntityDeletedEvent<TEntity>(entity));
             EventTracker.AddEntity(entity);
+            await DataConnection.DeleteAsync(entity);
         }
 
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
@@ -227,9 +225,8 @@ namespace RCommon.Persistence.Linq2Db.Crud
 
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
-            await DataConnection.UpdateAsync(entity, token: token);
-            entity.AddLocalEvent(new EntityUpdatedEvent<TEntity>(entity));
             EventTracker.AddEntity(entity);
+            await DataConnection.UpdateAsync(entity, token: token);
         }
     }
 }

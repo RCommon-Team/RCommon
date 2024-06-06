@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities
 {
-    public class LocalEventsChangedEventArgs : EventArgs
+    public class TransactionalEventsChangedEventArgs : EventArgs
     {
-        public LocalEventsChangedEventArgs(IBusinessEntity entity, ISerializableEvent eventData)
+        public TransactionalEventsChangedEventArgs(IBusinessEntity entity, ISerializableEvent eventData)
         {
             Entity=entity;
             EventData=eventData;
