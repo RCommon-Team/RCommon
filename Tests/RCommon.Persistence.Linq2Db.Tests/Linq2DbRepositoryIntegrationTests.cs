@@ -163,7 +163,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
         }
 
         [Test]
-        public async Task Can_Query_Using_Paging_With_Specific_Params()
+        public async Task Can_Find_Using_Paging_With_Specific_Params()
         {
             var repo = new TestRepository(this.ServiceProvider);
             repo.Prepare_Can_query_using_paging_with_specific_params();
@@ -192,7 +192,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
         }
 
         [Test]
-        public async Task Can_Query_Using_Paging_With_Specification()
+        public async Task Can_Find_Using_Paging_With_Specification()
         {
             var repo = new TestRepository(this.ServiceProvider);
             repo.Prepare_Can_query_using_paging_with_specification();
@@ -225,7 +225,7 @@ namespace RCommon.Persistence.Linq2Db.Tests
         }
 
         [Test]
-        public async Task Can_Query_Using_Predicate_Builder()
+        public async Task Can_Find_Using_Predicate_Builder()
         {
             var repo = new TestRepository(this.ServiceProvider);
             repo.Prepare_Can_query_using_predicate_builder();
@@ -240,6 +240,84 @@ namespace RCommon.Persistence.Linq2Db.Tests
 
             Assert.That(customers.Count == 10);
             Assert.That(customers[4].FirstName == "Homer");
+
+            repo.CleanUpSeedData();
+        }
+
+        [Test]
+        public async Task Can_Query_Using_Paging_With_Specific_Params()
+        {
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.Prepare_Can_query_using_paging_with_specific_params();
+
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+
+            var customers = customerRepo
+                    .FindQuery(x => x.FirstName.StartsWith("Li"), x => x.LastName, true, 1, 10);
+
+            Assert.That(customers != null);
+            Assert.That(customers.Count() == 10);
+            Assert.That(customers.ToList()[4].FirstName == "Lisa");
+
+            customers = customerRepo
+                    .FindQuery(x => x.FirstName.StartsWith("li"), x => x.LastName, true, 2, 10);
+
+            Assert.That(customers != null);
+            Assert.That(customers.Count() == 10);
+            Assert.That(customers.ToList()[4].FirstName == "Lisa");
+
+            repo.CleanUpSeedData();
+        }
+
+        [Test]
+        public async Task Can_Query_Using_Paging_With_Specification()
+        {
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.Prepare_Can_query_using_paging_with_specification();
+
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+
+            var customerSearchSpec = new CustomerSearchSpec("ba", x => x.FirstName, true, 1, 10);
+
+            var customers = customerRepo
+                    .FindQuery(customerSearchSpec);
+
+            Assert.That(customers != null);
+            Assert.That(customers.Count() == 10);
+            Assert.That(customers.ToList()[4].FirstName == "Bart");
+
+            customerSearchSpec = new CustomerSearchSpec("ba", x => x.FirstName, true, 2, 10);
+
+            customers = customerRepo
+                    .FindQuery(customerSearchSpec);
+
+            Assert.That(customers != null);
+            Assert.That(customers.Count() == 10);
+
+            Assert.That(customers.ToList()[4].FirstName == "Bart");
+
+            repo.CleanUpSeedData();
+        }
+
+        [Test]
+        public async Task Can_Query_Using_Predicate_Builder()
+        {
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.Prepare_Can_query_using_predicate_builder();
+
+            var customerRepo = this.ServiceProvider.GetService<ILinqRepository<Customer>>();
+
+            var predicate = PredicateBuilder.True<Customer>(); // This allows us to build compound expressions
+            predicate.And(x => x.FirstName.StartsWith("Ho"));
+
+            var customers = customerRepo
+                    .FindQuery(predicate, x => x.LastName, true, 1, 10);
+
+            Assert.That(customers != null);
+            Assert.That(customers.Count() == 10);
+            Assert.That(customers.ToList()[4].FirstName == "Homer");
+
+            repo.CleanUpSeedData();
         }
 
 

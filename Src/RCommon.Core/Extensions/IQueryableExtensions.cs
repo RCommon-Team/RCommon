@@ -90,11 +90,11 @@ namespace RCommon
             return stringType.GetMethod(methodName, new Type[] { stringType });
         }
 
-        public static IPaginatedList<T> ToPaginatedList<T>(this IQueryable<T> source, int? pageIndex, int pageSize)
+        public static IPaginatedList<T> ToPaginatedList<T>(this IQueryable<T> source, int pageNumber = 1, int pageSize = 10)
         {
             Guard.IsNotNegativeOrZero(pageSize, "pageSize");
 
-            return new PaginatedList<T>(source, pageIndex, pageSize);
+            return new PaginatedList<T>(source, pageNumber, pageSize);
         }
 
     }

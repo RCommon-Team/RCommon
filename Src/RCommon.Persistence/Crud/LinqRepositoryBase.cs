@@ -137,9 +137,13 @@ namespace RCommon.Persistence.Crud
         public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
 
         public abstract Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
-            bool orderByAscending, int? pageIndex, int pageSize = 0,
+            bool orderByAscending, int pageNumber = 1, int pageSize = 0,
             CancellationToken token = default);
         public abstract Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
+
+        public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending, int pageNumber = 1, int pageSize = 0);
+        public abstract IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification);
 
         public abstract IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path);
 
