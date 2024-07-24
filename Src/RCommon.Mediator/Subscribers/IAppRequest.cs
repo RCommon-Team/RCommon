@@ -11,7 +11,7 @@ namespace RCommon.Mediator.Subscribers
 
     }
 
-    public interface IAppRequest<TResponse>
+    public interface IAppRequest<out TResponse>
     {
 
     }

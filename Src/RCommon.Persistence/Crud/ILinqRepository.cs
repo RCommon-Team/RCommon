@@ -17,9 +17,12 @@ namespace RCommon.Persistence.Crud
     {
         IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
         IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
+        IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending, int pageNumber = 1, int pageSize = 0);
+        IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification);
 
         Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
-            bool orderByAscending, int? pageIndex, int pageSize = 0,
+            bool orderByAscending, int pageNumber = 1, int pageSize = 0,
             CancellationToken token = default);
         Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
 

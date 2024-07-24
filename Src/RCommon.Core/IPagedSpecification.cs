@@ -9,7 +9,7 @@ namespace RCommon
 {
     public interface IPagedSpecification<T> : ISpecification<T>
     {
-        public int PageIndex { get; }
+        public int PageNumber { get; }
         public int PageSize { get; }
 
         public Expression<Func<T, object>> OrderByExpression { get; }

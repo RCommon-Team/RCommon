@@ -202,11 +202,11 @@ namespace RCommon.Persistence.EFCore.Crud
             {
                 query = FindCore(specification.Predicate).OrderByDescending(specification.OrderByExpression);
             }
-            return await Task.FromResult(query.ToPaginatedList(specification.PageIndex, specification.PageSize));
+            return await Task.FromResult(query.ToPaginatedList(specification.PageNumber, specification.PageSize));
         }
 
         public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
-            bool orderByAscending, int? pageIndex, int pageSize = 1,
+            bool orderByAscending, int pageNumber = 1, int pageSize = 1,
             CancellationToken token = default)
         {
             IQueryable<TEntity> query;
@@ -218,7 +218,27 @@ namespace RCommon.Persistence.EFCore.Crud
             {
                 query = FindCore(expression).OrderByDescending(orderByExpression);
             }
-            return await Task.FromResult(query.ToPaginatedList(pageIndex, pageSize));
+            return await Task.FromResult(query.ToPaginatedList(pageNumber, pageSize));
+        }
+        public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending, int pageNumber = 1, int pageSize = 0)
+        {
+            IQueryable<TEntity> query;
+            if (orderByAscending)
+            {
+                query = FindCore(expression).OrderBy(orderByExpression);
+            }
+            else
+            {
+                query = FindCore(expression).OrderByDescending(orderByExpression);
+            }
+            return query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+        }
+
+        public override IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification)
+        {
+            return this.FindQuery(specification.Predicate, specification.OrderByExpression, 
+                specification.OrderByAscending, specification.PageNumber, specification.PageSize);
         }
 
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
