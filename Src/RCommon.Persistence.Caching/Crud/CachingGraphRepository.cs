@@ -1,0 +1,176 @@
+﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Options;
+using RCommon.Collections;
+using RCommon.Entities;
+using RCommon.Persistence.Crud;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RCommon.Persistence.Caching.Crud
+{
+    public class CachingGraphRepository<TEntity> : IGraphRepository<TEntity>
+        where TEntity : class, IBusinessEntity
+    {
+        private readonly IGraphRepository<TEntity> _graphRepository;
+        private readonly IOptions<PersistenceCachingOptions> _cachingConfiguration;
+        private readonly IDistributedCache _distributedCache;
+
+        public CachingGraphRepository(IGraphRepository<TEntity> graphRepository, IOptions<PersistenceCachingOptions> cachingConfiguration, 
+            IDistributedCache distributedCache)
+        {
+            _graphRepository = graphRepository;
+            _cachingConfiguration = cachingConfiguration;
+            _distributedCache = distributedCache;
+        }
+
+        public bool Tracking { get => _graphRepository.Tracking; set => _graphRepository.Tracking = value; }
+
+        public Type ElementType => _graphRepository.ElementType;
+
+        public Expression Expression => _graphRepository.Expression;
+
+        public IQueryProvider Provider => _graphRepository.Provider;
+
+        public string DataStoreName { get => _graphRepository.DataStoreName; set => _graphRepository.DataStoreName = value; }
+
+        public async Task AddAsync(TEntity entity, CancellationToken token = default)
+        {
+            await _graphRepository.AddAsync(entity, token);
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _graphRepository.AnyAsync(expression, token);
+        }
+
+        public async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _graphRepository.AnyAsync(specification, token);
+        }
+
+        public async Task DeleteAsync(TEntity entity, CancellationToken token = default)
+        {
+            await _graphRepository.DeleteAsync(entity, token);
+        }
+
+        public async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
+        {
+            return await _graphRepository.FindAsync(primaryKey, token);
+        }
+
+        public IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
+        {
+            return _graphRepository.FindQuery(specification);
+        }
+
+        public IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression)
+        {
+            return _graphRepository.FindQuery(expression);
+        }
+
+        public IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0)
+        {
+            return _graphRepository.FindQuery(expression, orderByExpression, orderByAscending, pageNumber, pageSize);
+        }
+
+        public IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification)
+        {
+            return _graphRepository.FindQuery(specification);
+        }
+
+        public async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _graphRepository.FindSingleOrDefaultAsync(expression, token);
+        }
+
+        public async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _graphRepository.FindSingleOrDefaultAsync(specification, token);
+        }
+
+        public async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
+        {
+            return await _graphRepository.GetCountAsync(selectSpec, token);
+        }
+
+        public async Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _graphRepository.GetCountAsync(expression, token);
+        }
+
+        public IEnumerator<TEntity> GetEnumerator()
+        {
+            return _graphRepository.GetEnumerator();
+        }
+
+        public IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path)
+        {
+            return _graphRepository.Include(path);
+        }
+
+        public IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
+        {
+            return _graphRepository.ThenInclude<TPreviousProperty, TProperty>(path);
+        }
+
+        public async Task UpdateAsync(TEntity entity, CancellationToken token = default)
+        {
+            await _graphRepository.UpdateAsync(entity, token);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _graphRepository.GetEnumerator();
+        }
+
+        public async Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,
+            object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
+        {
+            return await _graphRepository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token);
+        }
+
+        public async Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _graphRepository.FindAsync(specification, token);
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _graphRepository.FindAsync(specification, token);
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _graphRepository.FindAsync(expression, token);
+        }
+
+        // Cached items
+
+        public async Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,
+            object>> orderByExpression, bool orderByAscending, string cacheKey, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
+        {
+            if (_distributedCache.get)
+            return await _graphRepository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token);
+        }
+
+        public async Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _graphRepository.FindAsync(specification, token);
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _graphRepository.FindAsync(specification, token);
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _graphRepository.FindAsync(expression, token);
+        }
+    }
+}

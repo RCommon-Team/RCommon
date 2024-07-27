@@ -115,7 +115,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.FluentValidation", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Validation", "Validation", "{0F54DCE2-27A5-4D07-B542-6D2A7B50D0EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.Validation.FluentValidation", "Validation\Examples.Validation.FluentValidation\Examples.Validation.FluentValidation.csproj", "{256821F9-8160-4819-B0A1-B769C5BBBBB6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Validation.FluentValidation", "Validation\Examples.Validation.FluentValidation\Examples.Validation.FluentValidation.csproj", "{256821F9-8160-4819-B0A1-B769C5BBBBB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Persistence.Caching", "..\Src\RCommon.Persistence.Caching\RCommon.Persistence.Caching.csproj", "{B66429EB-4B5F-42F9-9CD7-7334190A14F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.DistributedMemoryCache", "..\Src\RCommon.DistributedMemoryCache\RCommon.DistributedMemoryCache.csproj", "{DCF81616-F849-46BF-B7DE-1B30798418D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.RedisCache", "RCommon.RedisCache\RCommon.RedisCache.csproj", "{6F9A2678-49D1-4626-B0AF-176B95AF3A72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -299,6 +305,18 @@ Global
 		{256821F9-8160-4819-B0A1-B769C5BBBBB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{256821F9-8160-4819-B0A1-B769C5BBBBB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{256821F9-8160-4819-B0A1-B769C5BBBBB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B66429EB-4B5F-42F9-9CD7-7334190A14F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B66429EB-4B5F-42F9-9CD7-7334190A14F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B66429EB-4B5F-42F9-9CD7-7334190A14F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B66429EB-4B5F-42F9-9CD7-7334190A14F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCF81616-F849-46BF-B7DE-1B30798418D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCF81616-F849-46BF-B7DE-1B30798418D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCF81616-F849-46BF-B7DE-1B30798418D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCF81616-F849-46BF-B7DE-1B30798418D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F9A2678-49D1-4626-B0AF-176B95AF3A72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F9A2678-49D1-4626-B0AF-176B95AF3A72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F9A2678-49D1-4626-B0AF-176B95AF3A72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F9A2678-49D1-4626-B0AF-176B95AF3A72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -348,6 +366,8 @@ Global
 		{BBBCCC2B-2218-4C32-96EE-C2153A23F643} = {3199F749-0082-41D0-91D3-ECED117F8B08}
 		{0F54DCE2-27A5-4D07-B542-6D2A7B50D0EC} = {3234C3BB-1632-4684-838E-9D6D382D4D4D}
 		{256821F9-8160-4819-B0A1-B769C5BBBBB6} = {0F54DCE2-27A5-4D07-B542-6D2A7B50D0EC}
+		{DCF81616-F849-46BF-B7DE-1B30798418D0} = {3199F749-0082-41D0-91D3-ECED117F8B08}
+		{6F9A2678-49D1-4626-B0AF-176B95AF3A72} = {3199F749-0082-41D0-91D3-ECED117F8B08}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}
