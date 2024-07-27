@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.Persistence.Caching
+namespace RCommon.Json
 {
-    public class PersistenceCachingOptions
+    public class JsonDeserializeOptions
     {
     }
 }

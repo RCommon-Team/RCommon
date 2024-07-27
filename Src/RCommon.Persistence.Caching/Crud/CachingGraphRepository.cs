@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Options;
+﻿using RCommon.Caching;
 using RCommon.Collections;
 using RCommon.Entities;
 using RCommon.Persistence.Crud;
@@ -17,15 +16,10 @@ namespace RCommon.Persistence.Caching.Crud
         where TEntity : class, IBusinessEntity
     {
         private readonly IGraphRepository<TEntity> _graphRepository;
-        private readonly IOptions<PersistenceCachingOptions> _cachingConfiguration;
-        private readonly IDistributedCache _distributedCache;
 
-        public CachingGraphRepository(IGraphRepository<TEntity> graphRepository, IOptions<PersistenceCachingOptions> cachingConfiguration, 
-            IDistributedCache distributedCache)
+        public CachingGraphRepository(IGraphRepository<TEntity> graphRepository)
         {
             _graphRepository = graphRepository;
-            _cachingConfiguration = cachingConfiguration;
-            _distributedCache = distributedCache;
         }
 
         public bool Tracking { get => _graphRepository.Tracking; set => _graphRepository.Tracking = value; }

@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RCommon.Caching\RCommon.Caching.csproj" />
-    <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.Caching\RCommon.Caching.csproj" />
   </ItemGroup>
 
 </Project>
