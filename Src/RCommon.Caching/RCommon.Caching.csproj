@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+  </ItemGroup>
+
 </Project>

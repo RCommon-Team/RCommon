@@ -17,16 +17,12 @@ namespace RCommon.MediatR
     {
         public MediatREventHandlingBuilder(IRCommonBuilder builder)
         {
-            
-
             this.RegisterServices(builder.Services);
             Services = builder.Services;
-
         }
 
         protected void RegisterServices(IServiceCollection services)
         {   
-
             services.AddScoped<IMediatorAdapter, MediatRAdapter>();
         }
 

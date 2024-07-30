@@ -8,5 +8,13 @@ namespace RCommon.Json
 {
     public class JsonSerializeOptions
     {
+        public JsonSerializeOptions()
+        {
+            this.CamelCase = true;
+            this.Indented = false;
+        }
+
+        public bool CamelCase { get; set; }
+        public bool Indented { get; set; }
     }
 }

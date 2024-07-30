@@ -41,7 +41,6 @@ namespace RCommon.Mediator.MediatR.Behaviors
                     unitOfWork.Commit();
                 }
 
-
                 return response;
             }
             catch (Exception ex)
@@ -85,7 +84,6 @@ namespace RCommon.Mediator.MediatR.Behaviors
 
                     unitOfWork.Commit();
                 }
-
 
                 return response;
             }

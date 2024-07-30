@@ -24,6 +24,7 @@ namespace RCommon.ApplicationServices
             services.AddTransient<ICommandBus, CommandBus>();
             services.AddTransient<IQueryBus, QueryBus>();
             services.AddTransient<IMemoryCache, MemoryCache>(); // TODO: Allow CQRS configuration to choose caching strategy
+            
         }
 
         public IServiceCollection Services { get; }
