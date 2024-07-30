@@ -24,9 +24,7 @@ try
                         .WithCaching<MemoryCachingBuilder>(cache =>
                         {
 
-                            // Or this way which uses a little magic but is simple
-                            cqrs.AddCommandHandlers((typeof(Program).GetTypeInfo().Assembly));
-                            cqrs.AddQueryHandlers((typeof(Program).GetTypeInfo().Assembly));
+                            
                         });
                     
                     services.AddTransient<ITestApplicationService, TestApplicationService>();
@@ -35,11 +33,11 @@ try
 
     Console.WriteLine("Example Starting");
     var appService = host.Services.GetRequiredService<ITestApplicationService>();
-    var commandResult = await appService(new TestCommand("test"));
-    var queryResult = await appService.ExecuteTestQuery(new TestQuery());
+    await appService.SetCache();
+    await appService.GetCache();
 
-    Console.WriteLine(commandResult.ToString());
-    Console.WriteLine(queryResult.Message);
+    Console.WriteLine("");
+    Console.WriteLine("");
 
     Console.WriteLine("Example Complete");
     Console.ReadLine();

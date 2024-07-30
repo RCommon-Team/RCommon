@@ -7,4 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Src\RCommon.SystemTextJson\RCommon.SystemTextJson.csproj" />
+  </ItemGroup>
+
 </Project>

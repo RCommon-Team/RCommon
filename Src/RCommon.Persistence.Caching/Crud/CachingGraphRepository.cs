@@ -148,21 +148,21 @@ namespace RCommon.Persistence.Caching.Crud
         public async Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,
             object>> orderByExpression, bool orderByAscending, string cacheKey, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
         {
-            if (_distributedCache.get)
+            
             return await _graphRepository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token);
         }
 
-        public async Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
+        public async Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, string cacheKey, CancellationToken token = default)
         {
             return await _graphRepository.FindAsync(specification, token);
         }
 
-        public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, string cacheKey, CancellationToken token = default)
         {
             return await _graphRepository.FindAsync(specification, token);
         }
 
-        public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, string cacheKey, CancellationToken token = default)
         {
             return await _graphRepository.FindAsync(expression, token);
         }

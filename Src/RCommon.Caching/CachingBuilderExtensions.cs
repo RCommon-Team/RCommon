@@ -18,11 +18,10 @@ namespace RCommon.Caching
             where T : ICachingBuilder
         {
             Guard.IsNotNull(actions, nameof(actions));
-
-            // Event Handling Configurations 
             var cachingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
             actions(cachingConfig);
             return builder;
         }
+
     }
 }

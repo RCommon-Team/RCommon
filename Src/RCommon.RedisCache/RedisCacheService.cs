@@ -11,7 +11,7 @@ namespace RCommon.RedisCache
     {
         public RedisCacheService(IDistributedCache cache)
         {
-            cache.
+            
         }
     }
 }

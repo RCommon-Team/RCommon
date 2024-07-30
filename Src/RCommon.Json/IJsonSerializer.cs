@@ -8,10 +8,10 @@ namespace RCommon.Json
 {
     public interface IJsonSerializer
     {
-        public string Serialize(object obj, JsonSerializeOptions options);
+        public string Serialize(object obj, JsonSerializeOptions? options = null);
 
-        public T Deserialize<T>(string json, JsonDeserializeOptions options);
+        public T Deserialize<T>(string json, JsonDeserializeOptions? options = null);
 
-        public object Deserialize(Type type, string json, JsonDeserializeOptions options);
+        public object Deserialize(string json, Type type, JsonDeserializeOptions? options = null);
     }
 }

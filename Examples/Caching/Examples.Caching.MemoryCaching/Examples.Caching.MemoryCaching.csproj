@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\RCommon.MemoryCache\RCommon.MemoryCache.csproj" />
+    <ProjectReference Include="..\..\..\Src\RCommon.MemoryCache\RCommon.MemoryCache.csproj" />
   </ItemGroup>
 
 </Project>

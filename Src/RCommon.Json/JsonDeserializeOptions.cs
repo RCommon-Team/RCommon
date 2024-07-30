@@ -8,5 +8,11 @@ namespace RCommon.Json
 {
     public class JsonDeserializeOptions
     {
+        public JsonDeserializeOptions()
+        {
+            this.CamelCase = true;   
+        }
+
+        public bool CamelCase { get; set; }
     }
 }
