@@ -56,13 +56,16 @@ namespace RCommon.EventHandling.Producers
                     _logger.LogInformation($"{this.GetGenericTypeName()} is routing {asyncEvents.Count().ToString()} asynchronous transactional events.");
 
                     // Produce the Async Events
+                    var eventTaskList = new List<Task>();
                     foreach (var @event in asyncEvents)
                     {
                         foreach (var producer in eventProducers)
                         {
-                            await producer.ProduceEventAsync(@event).ConfigureAwait(false);
+                            eventTaskList.Add(producer.ProduceEventAsync(@event));
                         }
                     }
+
+                    await Task.WhenAll(eventTaskList);
                 }
             }
             catch(EventProductionException ex)
