@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.MemoryCache
 {
-    public interface IMemoryCachingBuilder : ICachingBuilder
+    public interface IDistributedMemoryCachingBuilder : IDistributedCachingBuilder
     {
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RCommon.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace RCommon.MemoryCache
 {
-    public class MemoryCachingBuilder : IInMemoryCachingBuilder
+    public class DistributedMemoryCacheBuilder : IDistributedMemoryCachingBuilder
     {
-        public MemoryCachingBuilder(IRCommonBuilder builder)
+        public DistributedMemoryCacheBuilder(IRCommonBuilder builder)
         {
             Services = builder.Services;
             this.RegisterServices(Services);
@@ -18,7 +17,7 @@ namespace RCommon.MemoryCache
 
         protected void RegisterServices(IServiceCollection services)
         {
-            
+
         }
 
         public IServiceCollection Services { get; }
