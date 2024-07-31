@@ -145,8 +145,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.SystemTextJson", ".
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RCommon.MemoryCache", "..\Src\RCommon.MemoryCache\RCommon.MemoryCache.csproj", "{F5277287-1776-494B-92EE-7237D1B8949B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.DistibutedMemoryCache", "..\Src\RCommon.DistibutedMemoryCache\RCommon.DistibutedMemoryCache.csproj", "{0BCA99B2-86A4-40DF-B42D-7AD9F8BC4C49}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -377,10 +375,6 @@ Global
 		{F5277287-1776-494B-92EE-7237D1B8949B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5277287-1776-494B-92EE-7237D1B8949B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5277287-1776-494B-92EE-7237D1B8949B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0BCA99B2-86A4-40DF-B42D-7AD9F8BC4C49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0BCA99B2-86A4-40DF-B42D-7AD9F8BC4C49}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0BCA99B2-86A4-40DF-B42D-7AD9F8BC4C49}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0BCA99B2-86A4-40DF-B42D-7AD9F8BC4C49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -441,7 +435,6 @@ Global
 		{8F5C5AD3-8310-47A7-BB30-42C054D032E2} = {A53F8891-29D2-449D-B9BA-062D19EC7834}
 		{6C07FC1A-4339-42AA-AF5F-83570F81A5A4} = {3199F749-0082-41D0-91D3-ECED117F8B08}
 		{F5277287-1776-494B-92EE-7237D1B8949B} = {3199F749-0082-41D0-91D3-ECED117F8B08}
-		{0BCA99B2-86A4-40DF-B42D-7AD9F8BC4C49} = {3199F749-0082-41D0-91D3-ECED117F8B08}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B0CD26D-8067-4667-863E-6B0EE7EDAA42}
