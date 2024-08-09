@@ -1,6 +1,5 @@
-﻿using RCommon.ApplicationServices.Commands;
-using RCommon.ApplicationServices.ExecutionResults;
-using RCommon.ApplicationServices.Queries;
+﻿using Microsoft.Extensions.Caching.Distributed;
+using RCommon.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,23 +10,24 @@ namespace Examples.Caching.RedisCaching
 {
     public class TestApplicationService : ITestApplicationService
     {
-        private readonly ICommandBus _commandBus;
-        private readonly IQueryBus _queryBus;
+        private readonly IDistributedCache _distributedCache;
+        private readonly IJsonSerializer _serializer;
 
-        public TestApplicationService(ICommandBus commandBus, IQueryBus queryBus)
+        public TestApplicationService(IDistributedCache distributedCache, IJsonSerializer serializer)
         {
-            _commandBus = commandBus;
-            _queryBus = queryBus;
+            _distributedCache = distributedCache;
+            _serializer = serializer;
         }
 
-        public async Task<TestDto> ExecuteTestQuery(TestQuery query)
+        public void SetDistributedMemoryCache(string key, Type type, object data)
         {
-            return await _queryBus.DispatchQueryAsync(query, CancellationToken.None);
+            _distributedCache.Set(key, Encoding.UTF8.GetBytes(_serializer.Serialize(data, type)));
         }
 
-        public async Task<IExecutionResult> ExecuteTestCommand(TestCommand command)
+        public TestDto GetDistributedMemoryCache(string key)
         {
-            return await _commandBus.DispatchCommandAsync(command, CancellationToken.None);
+            var cache = _distributedCache.Get(key);
+            return _serializer.Deserialize<TestDto>(Encoding.UTF8.GetString(cache));
         }
     }
 }

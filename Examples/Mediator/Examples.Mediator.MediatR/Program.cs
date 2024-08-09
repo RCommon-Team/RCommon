@@ -31,7 +31,7 @@ try
                             mediator.AddNotification<TestNotification, TestNotificationHandler>();
                             mediator.AddRequest<TestRequest, TestRequestHandler>();
                             mediator.AddRequest<TestRequestWithResponse, TestResponse, TestRequestHandlerWithResponse>();
-
+                            
                             // Additional configurations can be set like below
                             mediator.Configure(config =>
                             {

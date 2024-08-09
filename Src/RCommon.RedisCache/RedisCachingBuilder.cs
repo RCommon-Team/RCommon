@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.RedisCache
 {
-    public class RedisCachingBuilder : IDistributedCachingBuilder
+    public class RedisCachingBuilder : IRedisCachingBuilder
     {
         public RedisCachingBuilder(IRCommonBuilder builder)
         {

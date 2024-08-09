@@ -52,5 +52,20 @@ namespace RCommon.JsonNet
             
             return JsonConvert.SerializeObject(obj, _settings);
         }
+
+        public string Serialize(object obj, Type type, JsonSerializeOptions? options = null)
+        {
+            if (options != null && options.CamelCase)
+            {
+                _settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            }
+
+            if (options != null && options.Indented)
+            {
+                _settings.Formatting = Formatting.Indented;
+            }
+
+            return JsonConvert.SerializeObject(obj, type, _settings);
+        }
     }
 }

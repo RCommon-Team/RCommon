@@ -58,5 +58,20 @@ namespace RCommon.SystemTextJson
             
             return JsonSerializer.Serialize(obj, _jsonOptions);
         }
+
+        public string Serialize(object obj, Type type, JsonSerializeOptions? options = null)
+        {
+            if (options != null)
+            {
+                _jsonOptions.WriteIndented = options.Indented;
+
+                if (options.CamelCase)
+                {
+                    _jsonOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                }
+            }
+
+            return JsonSerializer.Serialize(obj, type, _jsonOptions);
+        }
     }
 }

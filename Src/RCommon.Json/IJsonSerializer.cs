@@ -10,6 +10,8 @@ namespace RCommon.Json
     {
         public string Serialize(object obj, JsonSerializeOptions? options = null);
 
+        public string Serialize(object obj, Type type, JsonSerializeOptions? options = null);
+
         public T Deserialize<T>(string json, JsonDeserializeOptions? options = null);
 
         public object Deserialize(string json, Type type, JsonDeserializeOptions? options = null);

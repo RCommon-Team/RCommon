@@ -41,31 +41,23 @@ namespace RCommon.EventHandling.Producers
                     var asyncEvents = transactionalEvents.Where(x => x is IAsyncEvent);
                     var eventProducers = _serviceProvider.GetServices<IEventProducer>();
 
-                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} synchronized transactional events.");
-
-                    // Produce the Synchronized Events first
-                    foreach (var @event in syncEvents)
+                    if (syncEvents.Any() && asyncEvents.Any())
                     {
-                        _logger.LogDebug($"{this.GetGenericTypeName()} is routing event: {@event}");
-                        foreach (var producer in eventProducers)
-                        {
-                            await producer.ProduceEventAsync(@event);
-                        }
+                        // Produce the Synchronized Events first
+                        _logger.LogInformation($"{this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} synchronized transactional events.");
+                        await this.ProduceSyncEvents(syncEvents, eventProducers);
+
+                        // Produce the Async Events
+                        _logger.LogInformation($"{this.GetGenericTypeName()} is routing {asyncEvents.Count().ToString()} asynchronous transactional events.");
+                        await this.ProduceAsyncEvents(asyncEvents, eventProducers);
+                    }
+                    else
+                    {
+                        // Send as synchronized by default
+                        _logger.LogInformation($"No sync/async events found. {this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} as synchronized transactional events by default.");
+                        await this.ProduceSyncEvents(transactionalEvents, eventProducers);
                     }
 
-                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {asyncEvents.Count().ToString()} asynchronous transactional events.");
-
-                    // Produce the Async Events
-                    var eventTaskList = new List<Task>();
-                    foreach (var @event in asyncEvents)
-                    {
-                        foreach (var producer in eventProducers)
-                        {
-                            eventTaskList.Add(producer.ProduceEventAsync(@event));
-                        }
-                    }
-
-                    await Task.WhenAll(eventTaskList);
                 }
             }
             catch(EventProductionException ex)
@@ -80,6 +72,31 @@ namespace RCommon.EventHandling.Producers
                 throw new EventProductionException(message,
                     ex,
                     new object[] { this.GetGenericTypeName() });
+            }
+        }
+
+        private async Task ProduceAsyncEvents(IEnumerable<ISerializableEvent> asyncEvents, IEnumerable<IEventProducer> eventProducers)
+        {
+            var eventTaskList = new List<Task>();
+            foreach (var @event in asyncEvents)
+            {
+                foreach (var producer in eventProducers)
+                {
+                    eventTaskList.Add(producer.ProduceEventAsync(@event));
+                }
+            }
+            await Task.WhenAll(eventTaskList);
+        }
+
+        private async Task ProduceSyncEvents(IEnumerable<ISerializableEvent> syncEvents, IEnumerable<IEventProducer> eventProducers)
+        {
+            foreach (var @event in syncEvents)
+            {
+                _logger.LogDebug($"{this.GetGenericTypeName()} is routing event: {@event}");
+                foreach (var producer in eventProducers)
+                {
+                    await producer.ProduceEventAsync(@event);
+                }
             }
         }
 

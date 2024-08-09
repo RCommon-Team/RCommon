@@ -21,23 +21,38 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithCaching<MemoryCachingBuilder>(cache =>
+                        .WithMemoryCaching<MemoryCachingBuilder>(cache =>
                         {
-
-                            
+                            cache.Configure(x =>
+                            {
+                                x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
+                            });
+                        })
+                        .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
+                        {
+                            cache.Configure(x =>
+                            {
+                                x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
+                            });
                         });
-                    
+
                     services.AddTransient<ITestApplicationService, TestApplicationService>();
                     
                 }).Build();
 
     Console.WriteLine("Example Starting");
     var appService = host.Services.GetRequiredService<ITestApplicationService>();
-    await appService.SetCache();
-    await appService.GetCache();
 
-    Console.WriteLine("");
-    Console.WriteLine("");
+    // In Memory Cache
+    appService.SetMemoryCache("test-key", new TestDto("test data 1"));
+    var testData1 = appService.GetMemoryCache("test-key");
+
+    // In Memory Distributed Cache
+    appService.SetDistributedMemoryCache("test-key", typeof(TestDto), new TestDto("test data 2"));
+    var testData2 = appService.GetDistributedMemoryCache("test-key");
+
+    Console.WriteLine(testData1.Message);
+    Console.WriteLine(testData2.Message);
 
     Console.WriteLine("Example Complete");
     Console.ReadLine();

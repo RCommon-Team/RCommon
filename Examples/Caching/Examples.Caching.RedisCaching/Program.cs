@@ -1,12 +1,10 @@
-﻿using Examples.ApplicationServices.CQRS.Validators;
-using Examples.Caching.RedisCaching;
+﻿using Examples.Caching.RedisCaching;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
-using RCommon.ApplicationServices;
-using RCommon.ApplicationServices.ExecutionResults;
-using RCommon.FluentValidation;
+using RCommon.Caching;
+using RCommon.RedisCache;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -23,38 +21,27 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithCQRS<CqrsBuilder>(cqrs =>
+                        .WithDistributedCaching<RedisCachingBuilder>(cache =>
                         {
-                            // You can do it this way which is pretty straight forward but verbose
-                            //cqrs.AddQueryHandler<TestQueryHandler, TestQuery, TestDto>();
-                            //cqrs.AddCommandHandler<TestCommandHandler, TestCommand, IExecutionResult>();
-
-                            // Or this way which uses a little magic but is simple
-                            cqrs.AddCommandHandlers((typeof(Program).GetTypeInfo().Assembly));
-                            cqrs.AddQueryHandlers((typeof(Program).GetTypeInfo().Assembly));
-                        })
-                        .WithValidation<FluentValidationBuilder>(validation =>
-                        {
-                            validation.AddValidatorsFromAssemblyContaining(typeof(TestCommand));
-
-                            validation.UseWithCqrs(options =>
+                            cache.Configure(redis =>
                             {
-                                options.ValidateCommands = true;
-                                options.ValidateQueries = true;
+                                // Redis Configuration
                             });
+
                         });
-                    
+
                     services.AddTransient<ITestApplicationService, TestApplicationService>();
-                    
+
                 }).Build();
 
     Console.WriteLine("Example Starting");
     var appService = host.Services.GetRequiredService<ITestApplicationService>();
-    var commandResult = await appService.ExecuteTestCommand(new TestCommand("test"));
-    var queryResult = await appService.ExecuteTestQuery(new TestQuery());
 
-    Console.WriteLine(commandResult.ToString());
-    Console.WriteLine(queryResult.Message);
+    // In Memory Distributed Cache
+    appService.SetDistributedMemoryCache("test-key", typeof(TestDto), new TestDto("test data 1"));
+    var testData1 = appService.GetDistributedMemoryCache("test-key");
+
+    Console.WriteLine(testData1.Message);
 
     Console.WriteLine("Example Complete");
     Console.ReadLine();
@@ -64,4 +51,5 @@ catch (Exception ex)
     Console.WriteLine(ex.ToString());
 
 }
+
 

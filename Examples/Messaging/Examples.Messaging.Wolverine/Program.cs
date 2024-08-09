@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using RCommon;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
+using RCommon.Wolverine;
 using RCommon.Wolverine.Producers;
 using System.Diagnostics;
 using Wolverine;
@@ -26,7 +27,7 @@ try
         {
             // Configure RCommon
             services.AddRCommon()
-                .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+                .WithEventHandling<WolverineEventHandlingBuilder>(eventHandling =>
                 {
                     eventHandling.AddProducer<PublishWithWolverineEventProducer>();
                     eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
