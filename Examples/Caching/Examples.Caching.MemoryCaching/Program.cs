@@ -23,7 +23,7 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithJsonSerialization<JsonNetBuilder>()
+                        .WithJsonSerialization<JsonNetBuilder>() // Distributed memory caching requires serialization
                         .WithMemoryCaching<MemoryCachingBuilder>(cache =>
                         {
                             cache.Configure(x =>

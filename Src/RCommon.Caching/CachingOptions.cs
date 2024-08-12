@@ -8,5 +8,11 @@ namespace RCommon.Caching
 {
     public class CachingOptions
     {
+        public CachingOptions()
+        {
+            
+        }
+
+        
     }
 }
