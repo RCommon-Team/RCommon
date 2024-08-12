@@ -1,9 +1,11 @@
 ﻿using Examples.Caching.RedisCaching;
+using RCommon.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
 using RCommon.Caching;
+using RCommon.JsonNet;
 using RCommon.RedisCache;
 using System.Diagnostics;
 using System.Reflection;
@@ -21,6 +23,7 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
+                        .WithJsonSerialization<JsonNetBuilder>()
                         .WithDistributedCaching<RedisCachingBuilder>(cache =>
                         {
                             cache.Configure(redis =>

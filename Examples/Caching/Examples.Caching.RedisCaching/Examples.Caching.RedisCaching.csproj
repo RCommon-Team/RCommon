@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Src\RCommon.JsonNet\RCommon.JsonNet.csproj" />
+    <ProjectReference Include="..\..\..\Src\RCommon.Json\RCommon.Json.csproj" />
     <ProjectReference Include="..\..\..\Src\RCommon.RedisCache\RCommon.RedisCache.csproj" />
   </ItemGroup>
 

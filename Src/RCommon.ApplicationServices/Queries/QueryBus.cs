@@ -88,6 +88,7 @@ namespace RCommon.ApplicationServices.Queries
 
         private CacheItem GetCacheItem(Type queryType)
         {
+            if 
             return _memoryCache.GetOrCreate(
                 CacheKey.With(GetType(), queryType.GetCacheKey()),
                 e =>

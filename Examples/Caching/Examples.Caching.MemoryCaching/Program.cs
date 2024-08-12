@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
 using RCommon.Caching;
+using RCommon.Json;
+using RCommon.JsonNet;
 using RCommon.MemoryCache;
 using System.Diagnostics;
 using System.Reflection;
@@ -21,6 +23,7 @@ try
                 {
                     // Configure RCommon
                     services.AddRCommon()
+                        .WithJsonSerialization<JsonNetBuilder>()
                         .WithMemoryCaching<MemoryCachingBuilder>(cache =>
                         {
                             cache.Configure(x =>

@@ -19,7 +19,8 @@ try
                 .ConfigureServices(services =>
                 {
                     // Configure RCommon
-                    services.AddRCommon();
+                    services.AddRCommon()
+                        .WithJsonSerialization<JsonNetBuilder>();
                     
                     services.AddTransient<ITestApplicationService, TestApplicationService>();
                     
