@@ -29,7 +29,8 @@ try
                             cache.Configure(x =>
                             {
                                 x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
-                            });
+                            })
+                            .CacheDynamicallyCompiledExpressions();
                         })
                         .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
                         {

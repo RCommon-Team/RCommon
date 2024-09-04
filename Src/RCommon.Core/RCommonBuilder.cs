@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
+using Microsoft.Extensions.Options;
 
 namespace RCommon
 {
@@ -20,6 +21,8 @@ namespace RCommon
         {
             Guard.Against<NullReferenceException>(services == null, "IServiceCollection cannot be null");
             Services = services;
+
+            this.Services.Configure<CachingOptions>(x => { x.CachingEnabled = false; });
 
             // Event Bus
             services.AddSingleton<IEventBus>(sp =>

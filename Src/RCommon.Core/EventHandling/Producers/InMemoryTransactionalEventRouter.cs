@@ -45,17 +45,17 @@ namespace RCommon.EventHandling.Producers
                     {
                         // Produce the Synchronized Events first
                         _logger.LogInformation($"{this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} synchronized transactional events.");
-                        await this.ProduceSyncEvents(syncEvents, eventProducers);
+                        await this.ProduceSyncEvents(syncEvents, eventProducers).ConfigureAwait(false);
 
                         // Produce the Async Events
                         _logger.LogInformation($"{this.GetGenericTypeName()} is routing {asyncEvents.Count().ToString()} asynchronous transactional events.");
-                        await this.ProduceAsyncEvents(asyncEvents, eventProducers);
+                        await this.ProduceAsyncEvents(asyncEvents, eventProducers).ConfigureAwait(false);
                     }
                     else
                     {
                         // Send as synchronized by default
                         _logger.LogInformation($"No sync/async events found. {this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} as synchronized transactional events by default.");
-                        await this.ProduceSyncEvents(transactionalEvents, eventProducers);
+                        await this.ProduceSyncEvents(transactionalEvents, eventProducers).ConfigureAwait(false);
                     }
 
                 }
@@ -95,14 +95,14 @@ namespace RCommon.EventHandling.Producers
                 _logger.LogDebug($"{this.GetGenericTypeName()} is routing event: {@event}");
                 foreach (var producer in eventProducers)
                 {
-                    await producer.ProduceEventAsync(@event);
+                    await producer.ProduceEventAsync(@event).ConfigureAwait(false);
                 }
             }
         }
 
         public async Task RouteEventsAsync()
         {
-            await this.RouteEventsAsync(this._storedTransactionalEvents);
+            await this.RouteEventsAsync(this._storedTransactionalEvents).ConfigureAwait(false);
             this._storedTransactionalEvents.Clear();
         }
 

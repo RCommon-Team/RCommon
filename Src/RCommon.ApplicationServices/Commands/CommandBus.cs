@@ -47,15 +47,17 @@ namespace RCommon.ApplicationServices.Commands
         private readonly IMemoryCache _memoryCache;
         private readonly IValidationService _validationService;
         private readonly IOptions<CqrsValidationOptions> _validationOptions;
+        private readonly CachingOptions _cachingOptions;
 
         public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache, IValidationService validationService, 
-            IOptions<CqrsValidationOptions> validationOptions)
+            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _memoryCache = memoryCache;
             _validationService = validationService;
             _validationOptions = validationOptions;
+            _cachingOptions = cachingOptions.Value;
         }
 
         public async Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
@@ -131,34 +133,46 @@ namespace RCommon.ApplicationServices.Commands
             >.HandleAsync);
         private CommandExecutionDetails GetCommandExecutionDetails(Type commandType)
         {
-            return _memoryCache.GetOrCreate(
-                CacheKey.With(GetType(), commandType.GetCacheKey()),
-                e =>
-                {
-                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
-                    var commandInterfaceType = commandType
+            if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
+            {
+                var memoryCache = this._serviceProvider.GetService<IMemoryCache>();
+                Guard.IsNotNull(memoryCache, nameof(memoryCache));
+
+                return memoryCache.GetOrCreate(
+                    CacheKey.With(GetType(), commandType.GetCacheKey()),
+                    e =>
+                    {
+                        e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
+                        return this.BuildCommandDetails(commandType);
+                    });
+            }
+            return this.BuildCommandDetails(commandType);
+        }
+
+        private CommandExecutionDetails BuildCommandDetails(Type commandType)
+        {
+            var commandInterfaceType = commandType
                         .GetTypeInfo()
                         .GetInterfaces()
                         .Single(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommand<>));
-                    var commandTypes = commandInterfaceType.GetTypeInfo().GetGenericArguments();
+            var commandTypes = commandInterfaceType.GetTypeInfo().GetGenericArguments();
 
-                    var commandHandlerType = typeof(ICommandHandler<,>)
-                        .MakeGenericType(commandTypes[0], commandType);
+            var commandHandlerType = typeof(ICommandHandler<,>)
+                .MakeGenericType(commandTypes[0], commandType);
 
-                    _logger.LogDebug(
-                        "Command {CommandType} is resolved by {CommandHandlerType}",
-                        commandType.PrettyPrint(),
-                        commandHandlerType.PrettyPrint());
+            _logger.LogDebug(
+                "Command {CommandType} is resolved by {CommandHandlerType}",
+                commandType.PrettyPrint(),
+                commandHandlerType.PrettyPrint());
 
-                    var invokeExecuteAsync = ReflectionHelper.CompileMethodInvocation<Func<ICommandHandler, ICommand, CancellationToken, Task>>(
-                        commandHandlerType, NameOfExecuteCommand);
+            var invokeExecuteAsync = ReflectionHelper.CompileMethodInvocation<Func<ICommandHandler, ICommand, CancellationToken, Task>>(
+                commandHandlerType, NameOfExecuteCommand);
 
-                    return new CommandExecutionDetails
-                    {
-                        CommandHandlerType = commandHandlerType,
-                        Invoker = invokeExecuteAsync
-                    };
-                });
+            return new CommandExecutionDetails
+            {
+                CommandHandlerType = commandHandlerType,
+                Invoker = invokeExecuteAsync
+            };
         }
     }
 }

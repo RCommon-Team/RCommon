@@ -15,5 +15,21 @@ namespace RCommon.MemoryCache
             builder.Services.AddMemoryCache(actions);
             return builder;
         }
+
+        /// <summary>
+        /// This greatly improves performance across various areas of RCommon which use generics and reflection heavily 
+        /// to compile expressions and lambdas
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IInMemoryCachingBuilder CacheDynamicallyCompiledExpressions(this IInMemoryCachingBuilder builder)
+        {
+            builder.Services.Configure<CachingOptions>(x => 
+            { 
+                x.CachingEnabled = true; 
+                x.CacheDynamicallyCompiledExpressions = true; 
+            });
+            return builder;
+        }
     }
 }
