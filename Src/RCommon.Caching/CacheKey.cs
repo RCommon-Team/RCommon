@@ -22,15 +22,20 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using Newtonsoft.Json;
-using RCommon.Entities.ValueObjects;
 
-namespace RCommon.ApplicationServices.Caching
+namespace RCommon.Caching
 {
-    [JsonConverter(typeof(SingleValueObjectConverter))]
-    public class CacheKey : SingleValueObject<string>
+    public class CacheKey
     {
         public const int MaxLength = 256;
+
+        public CacheKey(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                throw new ArgumentNullException(nameof(value));
+            if (value.Length > MaxLength)
+                throw new ArgumentOutOfRangeException(nameof(value), value, $"Cache keys can maximum be '{MaxLength}' in length");
+        }
 
         public static CacheKey With(params string[] keys)
         {
@@ -40,14 +45,6 @@ namespace RCommon.ApplicationServices.Caching
         public static CacheKey With(Type ownerType, params string[] keys)
         {
             return With($"{ownerType.GetCacheKey()}:{string.Join("-", keys)}");
-        }
-
-        public CacheKey(string value) : base(value)
-        {
-            if (string.IsNullOrEmpty(value))
-                throw new ArgumentNullException(nameof(value));
-            if (value.Length > MaxLength)
-                throw new ArgumentOutOfRangeException(nameof(value), value, $"Cache keys can maximum be '{MaxLength}' in length");
         }
     }
 }

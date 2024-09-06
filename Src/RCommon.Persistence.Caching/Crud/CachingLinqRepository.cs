@@ -1,4 +1,5 @@
-﻿using RCommon.Collections;
+﻿using RCommon.Caching;
+using RCommon.Collections;
 using RCommon.Entities;
 using RCommon.Persistence.Crud;
 using System;
@@ -15,122 +16,156 @@ namespace RCommon.Persistence.Caching.Crud
     public class CachingLinqRepository<TEntity> : ILinqRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        public Type ElementType => throw new NotImplementedException();
+        private readonly IGraphRepository<TEntity> _repository;
+        private readonly ICacheService _cacheService;
 
-        public Expression Expression => throw new NotImplementedException();
-
-        public IQueryProvider Provider => throw new NotImplementedException();
-
-        public string DataStoreName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-        public Task AddAsync(TEntity entity, CancellationToken token = default)
+        public CachingLinqRepository(IGraphRepository<TEntity> repository, ICommonFactory<PersistenceCachingStrategy, ICacheService> cacheFactory)
         {
-            throw new NotImplementedException();
+            _repository = repository;
+            _cacheService = cacheFactory.Create(PersistenceCachingStrategy.Default);
         }
 
-        public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public Type ElementType => _repository.ElementType;
+
+        public Expression Expression => _repository.Expression;
+
+        public IQueryProvider Provider => _repository.Provider;
+
+        public string DataStoreName { get => _repository.DataStoreName; set => _repository.DataStoreName = value; }
+
+        public async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await _repository.AddAsync(entity, token);
         }
 
-        public Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.AnyAsync(expression, token);
         }
 
-        public Task DeleteAsync(TEntity entity, CancellationToken token = default)
+        public async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.AnyAsync(specification, token);
         }
 
-        public Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
+        public async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await _repository.DeleteAsync(entity, token);
         }
 
-        public Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
+        public async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
-        {
-            throw new NotImplementedException();
+            return await _repository.FindAsync(primaryKey, token);
         }
 
         public IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
-            throw new NotImplementedException();
+            return _repository.FindQuery(specification);
         }
 
         public IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression)
         {
-            throw new NotImplementedException();
+            return _repository.FindQuery(expression);
         }
 
         public IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0)
         {
-            throw new NotImplementedException();
+            return _repository.FindQuery(expression, orderByExpression, orderByAscending, pageNumber, pageSize);
         }
 
         public IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification)
         {
-            throw new NotImplementedException();
+            return _repository.FindQuery(specification);
         }
 
-        public Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.FindSingleOrDefaultAsync(expression, token);
         }
 
-        public Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        public async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.FindSingleOrDefaultAsync(specification, token);
         }
 
-        public Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
+        public async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.GetCountAsync(selectSpec, token);
         }
 
-        public Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public async Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.GetCountAsync(expression, token);
         }
 
         public IEnumerator<TEntity> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return _repository.GetEnumerator();
         }
 
         public IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
-            throw new NotImplementedException();
+            return _repository.Include(path);
         }
 
         public IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
         {
-            throw new NotImplementedException();
+            return _repository.ThenInclude<TPreviousProperty, TProperty>(path);
         }
 
-        public Task UpdateAsync(TEntity entity, CancellationToken token = default)
+        public async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await _repository.UpdateAsync(entity, token);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return _repository.GetEnumerator();
+        }
+
+        public async Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,
+            object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
+        {
+            return await _repository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token);
+        }
+
+        public async Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _repository.FindAsync(specification, token);
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _repository.FindAsync(specification, token);
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _repository.FindAsync(expression, token);
+        }
+
+        // Cached items
+
+        public async Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,
+            object>> orderByExpression, bool orderByAscending, string cacheKey, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
+        {
+
+            return await _repository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token);
+        }
+
+        public async Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, string cacheKey, CancellationToken token = default)
+        {
+            return await _repository.FindAsync(specification, token);
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, string cacheKey, CancellationToken token = default)
+        {
+            return await _repository.FindAsync(specification, token);
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, string cacheKey, CancellationToken token = default)
+        {
+            return await _repository.FindAsync(expression, token);
         }
     }
 }

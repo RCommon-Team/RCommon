@@ -28,14 +28,13 @@ using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RCommon.ApplicationServices.Caching;
 using RCommon.ApplicationServices.Commands;
 using RCommon.ApplicationServices.ExecutionResults;
 using RCommon.ApplicationServices.Validation;
+using RCommon.Caching;
 using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Commands
@@ -44,19 +43,19 @@ namespace RCommon.ApplicationServices.Commands
     {
         private readonly ILogger<CommandBus> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IMemoryCache _memoryCache;
         private readonly IValidationService _validationService;
         private readonly IOptions<CqrsValidationOptions> _validationOptions;
+        private readonly ICacheService _cacheService;
         private readonly CachingOptions _cachingOptions;
 
-        public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache, IValidationService validationService, 
-            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions)
+        public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IValidationService validationService, 
+            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions, ICommonFactory<ExpressionCachingStrategy, ICacheService> cacheFactory)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
-            _memoryCache = memoryCache;
             _validationService = validationService;
             _validationOptions = validationOptions;
+            _cacheService = cacheFactory.Create(ExpressionCachingStrategy.Default);
             _cachingOptions = cachingOptions.Value;
         }
 
@@ -135,16 +134,7 @@ namespace RCommon.ApplicationServices.Commands
         {
             if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
             {
-                var memoryCache = this._serviceProvider.GetService<IMemoryCache>();
-                Guard.IsNotNull(memoryCache, nameof(memoryCache));
-
-                return memoryCache.GetOrCreate(
-                    CacheKey.With(GetType(), commandType.GetCacheKey()),
-                    e =>
-                    {
-                        e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
-                        return this.BuildCommandDetails(commandType);
-                    });
+                return _cacheService.GetOrCreate(CacheKey.With(GetType(), commandType.GetCacheKey()), this.BuildCommandDetails(commandType));
             }
             return this.BuildCommandDetails(commandType);
         }

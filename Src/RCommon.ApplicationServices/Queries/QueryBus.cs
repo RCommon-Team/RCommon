@@ -26,12 +26,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RCommon.ApplicationServices.Caching;
 using RCommon.ApplicationServices.Validation;
+using RCommon.Caching;
 using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Queries
@@ -49,15 +48,17 @@ namespace RCommon.ApplicationServices.Queries
         private readonly IValidationService _validationService;
         private readonly IOptions<CqrsValidationOptions> _validationOptions;
         private readonly CachingOptions _cachingOptions;
+        private readonly ICacheService _cacheService;
 
         public QueryBus(ILogger<QueryBus> logger, IServiceProvider serviceProvider, IValidationService validationService,
-            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions)
+            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions, ICommonFactory<ExpressionCachingStrategy, ICacheService> cacheFactory)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _validationService = validationService;
             _validationOptions = validationOptions;
             _cachingOptions = cachingOptions.Value;
+            _cacheService = cacheFactory.Create(ExpressionCachingStrategy.Default);
         }
 
         public async Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
@@ -90,16 +91,8 @@ namespace RCommon.ApplicationServices.Queries
         {
             if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
             {
-                var memoryCache = this._serviceProvider.GetService<IMemoryCache>();
-                Guard.IsNotNull(memoryCache, nameof(memoryCache));
-
-                return memoryCache.GetOrCreate(
-                    CacheKey.With(GetType(), queryType.GetCacheKey()),
-                    e =>
-                    {
-                        e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
-                        return this.BuildHandlerFuncMapping(queryType);
-                    });
+                return _cacheService.GetOrCreate(CacheKey.With(GetType(), queryType.GetCacheKey()), 
+                    this.BuildHandlerFuncMapping(queryType));
             }
             return this.BuildHandlerFuncMapping(queryType);
             

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Crud
 {
-    public interface IGraphRepository<TEntity> : ILinqRepository<TEntity>, IEagerLoadableQueryable<TEntity>
+    public interface IGraphRepository<TEntity> : ILinqRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
 

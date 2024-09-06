@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace RCommon.MemoryCache
 {
-    public class MemoryCachingBuilder : IInMemoryCachingBuilder
+    public class InMemoryCachingBuilder : IInMemoryCachingBuilder
     {
-        public MemoryCachingBuilder(IRCommonBuilder builder)
+        public InMemoryCachingBuilder(IRCommonBuilder builder)
         {
             Services = builder.Services;
             this.RegisterServices(Services);

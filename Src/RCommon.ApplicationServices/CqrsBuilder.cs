@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using RCommon.ApplicationServices.Commands;
 using RCommon.ApplicationServices.Queries;
 using RCommon.EventHandling;

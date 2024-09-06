@@ -1,4 +1,5 @@
-﻿using RCommon.Caching;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RCommon.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,5 +10,6 @@ namespace RCommon.Persistence.Caching
 {
     public interface IPersistenceCachingBuilder
     {
+        public IServiceCollection Services { get; }
     }
 }

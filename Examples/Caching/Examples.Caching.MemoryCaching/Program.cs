@@ -24,13 +24,13 @@ try
                     // Configure RCommon
                     services.AddRCommon()
                         .WithJsonSerialization<JsonNetBuilder>() // Distributed memory caching requires serialization
-                        .WithMemoryCaching<MemoryCachingBuilder>(cache =>
+                        .WithMemoryCaching<InMemoryCachingBuilder>(cache =>
                         {
                             cache.Configure(x =>
                             {
                                 x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
-                            })
-                            .CacheDynamicallyCompiledExpressions();
+                            });
+                            cache.CacheDynamicallyCompiledExpressions();
                         })
                         .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
                         {
