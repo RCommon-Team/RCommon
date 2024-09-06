@@ -6,9 +6,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace RCommon.Serialization.Json
+namespace RCommon.SystemTextJson
 {
-    public class JsonByteEnumConverter<T> : JsonConverter<T> where T : Enum
+    public class JsonIntEnumConverter<T> : JsonConverter<T> where T : Enum
     {
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert,
             JsonSerializerOptions options)
@@ -20,7 +20,7 @@ namespace RCommon.Serialization.Json
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             Enum test = (Enum)Enum.Parse(typeof(T), value.ToString());
-            writer.WriteNumberValue(Convert.ToByte(test));
+            writer.WriteNumberValue(Convert.ToInt32(test));
         }
     }
 }
