@@ -31,6 +31,7 @@ namespace RCommon.Persistence.Linq2Db
             services.AddTransient(typeof(ILinqRepository<>), typeof(Linq2DbRepository<>));
         }
 
+        public IServiceCollection Services => _services;
 
         public ILinq2DbPersistenceBuilder AddDataConnection<TDataConnection>(string dataStoreName, Func<IServiceProvider, DataOptions, DataOptions> options)
             where TDataConnection : RCommonDataConnection

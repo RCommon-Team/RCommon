@@ -1,5 +1,6 @@
 ﻿using RCommon.Collections;
 using RCommon.Entities;
+using RCommon.Persistence.Crud;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.Crud
 {
-    public interface ICachingGraphRepository<TEntity>
+    public interface ICachingGraphRepository<TEntity> : IGraphRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
         Task<IPaginatedList<TEntity>> FindAsync(object cacheKey, Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0, CancellationToken token = default);

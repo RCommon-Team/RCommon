@@ -32,6 +32,7 @@ namespace RCommon
             services.AddTransient(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
         }
 
+        public IServiceCollection Services => _services;
 
         public IEFCorePersistenceBuilder AddDbContext<TDbContext>(string dataStoreName, Action<DbContextOptionsBuilder>? options = null)
             where TDbContext : RCommonDbContext

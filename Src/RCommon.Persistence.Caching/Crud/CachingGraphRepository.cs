@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.Crud
 {
-    public class CachingGraphRepository<TEntity> : IGraphRepository<TEntity>, ICachingGraphRepository<TEntity>
+    public class CachingGraphRepository<TEntity> : ICachingGraphRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
         private readonly IGraphRepository<TEntity> _repository;

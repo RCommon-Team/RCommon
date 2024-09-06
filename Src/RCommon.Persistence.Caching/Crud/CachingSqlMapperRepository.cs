@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.Crud
 {
-    public class CachingSqlMapperRepository<TEntity> : ISqlMapperRepository<TEntity>, ICachingSqlMapperRepository<TEntity>
+    public class CachingSqlMapperRepository<TEntity> : ICachingSqlMapperRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
         private readonly ISqlMapperRepository<TEntity> _repository;

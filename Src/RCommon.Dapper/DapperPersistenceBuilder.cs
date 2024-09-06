@@ -31,6 +31,7 @@ namespace RCommon
             
         }
 
+        public IServiceCollection Services => _services;
 
         public IDapperBuilder AddDbConnection<TDbConnection>(string dataStoreName, Action<RDbConnectionOptions> options)
             where TDbConnection : IRDbConnection

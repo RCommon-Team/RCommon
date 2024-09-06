@@ -1,4 +1,5 @@
 ﻿using RCommon.Entities;
+using RCommon.Persistence.Crud;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.Crud
 {
-    public interface ICachingSqlMapperRepository<TEntity>
+    public interface ICachingSqlMapperRepository<TEntity> : ISqlMapperRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
         Task<ICollection<TEntity>> FindAsync(object cacheKey, ISpecification<TEntity> specification, CancellationToken token = default);
