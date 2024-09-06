@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RCommon.Caching;
+using RCommon.Persistence.Caching.Crud;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,9 @@ namespace RCommon.Persistence.Caching
 
         protected void RegisterServices(IServiceCollection services)
         {
-
+            services.AddTransient(typeof(ICachingGraphRepository<>), typeof(CachingGraphRepository<>));
+            services.AddTransient(typeof(ICachingLinqRepository<>), typeof(CachingLinqRepository<>));
+            services.AddTransient(typeof(ICachingSqlMapperRepository<>), typeof(CachingSqlMapperRepository<>));
         }
 
         public IServiceCollection Services { get; }

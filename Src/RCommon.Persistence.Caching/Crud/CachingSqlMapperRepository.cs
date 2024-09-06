@@ -10,79 +10,93 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.Crud
 {
-    public class CachingSqlMapperRepository<TEntity> : ISqlMapperRepository<TEntity>
+    public class CachingSqlMapperRepository<TEntity> : ISqlMapperRepository<TEntity>, ICachingSqlMapperRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        private readonly IGraphRepository<TEntity> _repository;
+        private readonly ISqlMapperRepository<TEntity> _repository;
         private readonly ICacheService _cacheService;
 
-        public CachingSqlMapperRepository(IGraphRepository<TEntity> repository, ICommonFactory<PersistenceCachingStrategy, ICacheService> cacheFactory)
+        public CachingSqlMapperRepository(ISqlMapperRepository<TEntity> repository, ICommonFactory<PersistenceCachingStrategy, ICacheService> cacheFactory)
         {
             _repository = repository;
             _cacheService = cacheFactory.Create(PersistenceCachingStrategy.Default);
         }
 
-        public string TableName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string DataStoreName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string TableName { get => _repository.TableName; set => _repository.TableName = value; }
+        public string DataStoreName { get => _repository.DataStoreName; set => _repository.DataStoreName = value; }
 
-        public Task AddAsync(TEntity entity, CancellationToken token = default)
+        public async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await _repository.AddAsync(entity, token);
         }
 
-        public Task<bool> AnyAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public async Task<bool> AnyAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.AnyAsync(expression, token);
         }
 
-        public Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        public async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.AnyAsync(specification, token);
         }
 
-        public Task DeleteAsync(TEntity entity, CancellationToken token = default)
+        public async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await _repository.DeleteAsync(entity, token);
         }
 
-        public Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.FindAsync(specification, token);
         }
 
-        public Task<ICollection<TEntity>> FindAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public async Task<ICollection<TEntity>> FindAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.FindAsync(expression, token);
         }
 
-        public Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
+        public async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.FindAsync(primaryKey, token);
         }
 
-        public Task<TEntity> FindSingleOrDefaultAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public async Task<TEntity> FindSingleOrDefaultAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.FindSingleOrDefaultAsync(expression, token);
         }
 
-        public Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        public async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.FindSingleOrDefaultAsync(specification, token);
         }
 
-        public Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
+        public async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.GetCountAsync(selectSpec, token);
         }
 
-        public Task<long> GetCountAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        public async Task<long> GetCountAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            return await _repository.GetCountAsync(expression, token);
         }
 
-        public Task UpdateAsync(TEntity entity, CancellationToken token = default)
+        public async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            await _repository.UpdateAsync(entity, token);
+        }
+
+        // Cached Items
+
+        public async Task<ICollection<TEntity>> FindAsync(object cacheKey, ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _cacheService.GetOrCreateAsync(cacheKey,
+                await _repository.FindAsync(specification, token));
+        }
+
+        public async Task<ICollection<TEntity>> FindAsync(object cacheKey, System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _cacheService.GetOrCreateAsync(cacheKey,
+                await _repository.FindAsync(expression, token));
         }
     }
 }

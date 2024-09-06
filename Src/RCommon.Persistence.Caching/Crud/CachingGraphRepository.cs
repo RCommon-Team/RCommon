@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.Crud
 {
-    public class CachingGraphRepository<TEntity> : IGraphRepository<TEntity>
+    public class CachingGraphRepository<TEntity> : IGraphRepository<TEntity>, ICachingGraphRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
         private readonly IGraphRepository<TEntity> _repository;
@@ -148,26 +148,29 @@ namespace RCommon.Persistence.Caching.Crud
 
         // Cached items
 
-        public async Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,
-            object>> orderByExpression, bool orderByAscending, string cacheKey, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
+        public async Task<IPaginatedList<TEntity>> FindAsync(object cacheKey, Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,
+            object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
         {
-            
-            return await _repository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token);
+            return await _cacheService.GetOrCreateAsync(cacheKey, 
+                await _repository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token));
         }
 
-        public async Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, string cacheKey, CancellationToken token = default)
+        public async Task<IPaginatedList<TEntity>> FindAsync(object cacheKey, IPagedSpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _repository.FindAsync(specification, token);
+            return await _cacheService.GetOrCreateAsync(cacheKey,
+                await _repository.FindAsync(specification, token));
         }
 
-        public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, string cacheKey, CancellationToken token = default)
+        public async Task<ICollection<TEntity>> FindAsync(object cacheKey, ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _repository.FindAsync(specification, token);
+            return await _cacheService.GetOrCreateAsync(cacheKey,
+                 await _repository.FindAsync(specification, token));
         }
 
-        public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, string cacheKey, CancellationToken token = default)
+        public async Task<ICollection<TEntity>> FindAsync(object cacheKey, Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await _repository.FindAsync(expression, token);
+            return await _cacheService.GetOrCreateAsync(cacheKey,
+                await _repository.FindAsync(expression, token));
         }
     }
 }
