@@ -135,7 +135,7 @@ class Build : NukeBuild
         {
             Log.Information("Generating NuGet packages for projects in solution");
             int commitNum = 0;
-            string NuGetVersionCustom = "2.0.0.884";
+            string NuGetVersionCustom = "2.1.0";
 
 
             //if it's not a tagged release - append the commit number to the package version
@@ -470,6 +470,168 @@ class Build : NukeBuild
                     .SetPackageId("RCommon.FluentValidation")
                     .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.FluentValidation").Path.ToString())
                     .SetPackageTags("RCommon FluentValidation extensions validation")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.Caching")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Caching").Path.ToString())
+                    .SetPackageTags("RCommon Caching abstractions")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.Persistence.Caching")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Persistence.Caching").Path.ToString())
+                    .SetPackageTags("RCommon Persistence Caching Data Cache")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.Persistence.Caching.MemoryCache")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Persistence.Caching.MemoryCache").Path.ToString())
+                    .SetPackageTags("RCommon Persistence Caching Memory InMemory")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.Persistence.Caching.RedisCache")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Persistence.Caching.RedisCache").Path.ToString())
+                    .SetPackageTags("RCommon Persistence Caching Redis Cache StackExchange")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.RedisCache")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.RedisCache").Path.ToString())
+                    .SetPackageTags("RCommon Caching Redis Cache StackExchange")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.MemoryCache")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.MemoryCache").Path.ToString())
+                    .SetPackageTags("RCommon Caching Memory Cache InMemory Distributed Memory")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.Json")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.Json").Path.ToString())
+                    .SetPackageTags("RCommon Json serialization abstractions")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.JsonNet")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.JsonNet").Path.ToString())
+                    .SetPackageTags("RCommon Newtonsoft Json.NET serilization ")
+                    .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
+                    .SetConfiguration(Configuration)
+                    .SetCopyright(Copyright)
+                    .SetAuthors("Jason Webb")
+                    .SetPackageIconUrl("https://avatars.githubusercontent.com/u/96881178?s=200&v=4")
+                    .SetRepositoryUrl("https://github.com/RCommon-Team/RCommon")
+                    .SetPackageProjectUrl("https://rcommon.com")
+                    .SetPackageLicenseUrl("https://licenses.nuget.org/Apache-2.0")
+                    .SetVersion(NuGetVersionCustom)
+                    .SetNoDependencies(true)
+                    .SetOutputDirectory(Directory_NuGet)
+                    .EnableNoBuild()
+                    .EnableNoRestore());
+            DotNetTasks
+                .DotNetPack(_ => _
+                    .SetPackageId("RCommon.SystemTextJson")
+                    .SetProject(projects.FirstOrDefault(x => x.Name == "RCommon.SystemTextJson").Path.ToString())
+                    .SetPackageTags("RCommon System.Text.Json serialization")
                     .SetDescription("A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling persistence unit of work mediator distributed messaging event bus CQRS email and more")
                     .SetConfiguration(Configuration)
                     .SetCopyright(Copyright)
