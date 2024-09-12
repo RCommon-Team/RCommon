@@ -22,8 +22,9 @@ try
 var host = Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
                 {
-                    ConfigurationContainer.Configuration = builder
-                        .Build();
+                    builder
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    ConfigurationContainer.Configuration = builder.Build();
                 })
                 .ConfigureServices(services =>
                 {
