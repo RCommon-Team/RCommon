@@ -748,5 +748,34 @@ namespace RCommon.Persistence.EFCore.Tests
             Assert.That(savedCustomer.Orders.Count == 10);
         }
 
+        [Test]
+        public async Task Can_Eager_Load_Repository_And_Find_Async()
+        {
+            var testData = new List<Customer>();
+
+            // Generate Test Data
+            var repo = new TestRepository(this.ServiceProvider);
+            repo.PersistSeedData(testData);
+
+            var customer = TestDataActions.CreateCustomerStub();
+            for (int i = 0; i < 10; i++)
+            {
+                var order = TestDataActions.CreateOrderStub(x => x.Customer = customer);
+                customer.Orders.Add(order);
+                testData.Add(customer);
+            }
+            repo.PersistSeedData(testData);
+
+            var customerRepo = this.ServiceProvider.GetService<IGraphRepository<Customer>>();
+            customerRepo.Include(x => x.Orders);
+            var savedCustomer = await customerRepo
+                    .FindAsync(customer.Id);
+
+            Assert.That(savedCustomer != null);
+            Assert.That(savedCustomer.Id == customer.Id);
+            Assert.That(savedCustomer.Orders != null);
+            Assert.That(savedCustomer.Orders.Count == 10);
+        }
+
     }
 }
