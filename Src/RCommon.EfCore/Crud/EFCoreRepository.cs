@@ -89,12 +89,13 @@ namespace RCommon.Persistence.EFCore.Crud
 
         public override IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
-            _includableQueryable = RepositoryQuery.Include(path);
+            _includableQueryable = ObjectContext.Set<TEntity>().Include(path);
             return this;
         }
 
         public override IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
         {
+            // TODO: This is likely a bug. The received is incorrect. 
             _repositoryQuery = _includableQueryable.ThenInclude(path);
             return this;
         }
