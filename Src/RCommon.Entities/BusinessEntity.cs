@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using PropertyChanged;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using RCommon.EventHandling;

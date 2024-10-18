@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using RCommon.Persistence.Sql;
+﻿using RCommon.Persistence.Sql;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
