@@ -29,7 +29,7 @@ namespace RCommon.TestBase.Data
         public TestRepository(ServiceProvider serviceProvider)
         {
             _dataStoreFactory = serviceProvider.GetService<IDataStoreFactory>();
-            _context = _dataStoreFactory.Resolve<TestDbContext>("TestDbContext");
+            _context = _dataStoreFactory.Resolve<RCommonDbContext>("TestDbContext");
             _entityDeleteActions = new List<Action<DbContext>>();
         }
 

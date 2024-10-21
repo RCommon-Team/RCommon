@@ -5,6 +5,6 @@ namespace RCommon
 {
     public interface IDapperBuilder : IPersistenceBuilder
     {
-        IDapperBuilder AddDbConnection<TDbConnection>(string dataStoreName, Action<RDbConnectionOptions> options) where TDbConnection : IRDbConnection;
+        IDapperBuilder AddDbConnection<TDbConnection>(string dataStoreName, Action<RDbConnectionOptions> options) where TDbConnection : RDbConnection;
     }
 }
