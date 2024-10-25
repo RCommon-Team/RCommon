@@ -21,15 +21,26 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace RCommon.ApplicationServices.ExecutionResults
+using System.Collections.Generic;
+using System.Linq;
+
+namespace RCommon.Models.ExecutionResults
 {
-    public class SuccessExecutionResult : ExecutionResult
+    public abstract class ExecutionResult : IExecutionResult
     {
-        public override bool IsSuccess { get; } = true;
+        private static readonly IExecutionResult SuccessResult = new SuccessExecutionResult();
+        private static readonly IExecutionResult FailedResult = new FailedExecutionResult(Enumerable.Empty<string>());
+
+        public static IExecutionResult Success() => SuccessResult;
+        public static IExecutionResult Failed() => FailedResult;
+        public static IExecutionResult Failed(IEnumerable<string> errors) => new FailedExecutionResult(errors);
+        public static IExecutionResult Failed(params string[] errors) => new FailedExecutionResult(errors);
+
+        public abstract bool IsSuccess { get; }
 
         public override string ToString()
         {
-            return "Successful execution";
+            return $"ExecutionResult - IsSuccess:{IsSuccess}";
         }
     }
 }

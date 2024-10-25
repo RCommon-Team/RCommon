@@ -24,23 +24,25 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RCommon.ApplicationServices.ExecutionResults
+namespace RCommon.Models.ExecutionResults
 {
-    public abstract class ExecutionResult : IExecutionResult
+    public class FailedExecutionResult : ExecutionResult
     {
-        private static readonly IExecutionResult SuccessResult = new SuccessExecutionResult();
-        private static readonly IExecutionResult FailedResult = new FailedExecutionResult(Enumerable.Empty<string>());
+        public IReadOnlyCollection<string> Errors { get; }
 
-        public static IExecutionResult Success() => SuccessResult;
-        public static IExecutionResult Failed() => FailedResult;
-        public static IExecutionResult Failed(IEnumerable<string> errors) => new FailedExecutionResult(errors);
-        public static IExecutionResult Failed(params string[] errors) => new FailedExecutionResult(errors);
+        public FailedExecutionResult(
+            IEnumerable<string> errors)
+        {
+            Errors = (errors ?? Enumerable.Empty<string>()).ToList();
+        }
 
-        public abstract bool IsSuccess { get; }
+        public override bool IsSuccess { get; } = false;
 
         public override string ToString()
         {
-            return $"ExecutionResult - IsSuccess:{IsSuccess}";
+            return Errors.Any()
+                ? $"Failed execution due to: {string.Join(", ", Errors)}"
+                : "Failed execution";
         }
     }
 }

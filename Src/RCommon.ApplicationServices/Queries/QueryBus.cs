@@ -31,6 +31,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RCommon.ApplicationServices.Validation;
 using RCommon.Caching;
+using RCommon.Models.Queries;
 using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Queries

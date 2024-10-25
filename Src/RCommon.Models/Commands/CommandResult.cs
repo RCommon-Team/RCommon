@@ -1,13 +1,13 @@
-﻿using RCommon.ApplicationServices.ExecutionResults;
+﻿using RCommon.Models.ExecutionResults;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.Commands
+namespace RCommon.Models.Commands
 {
-    public class CommandResult<TExecutionResult> : ICommandResult<TExecutionResult> 
+    public class CommandResult<TExecutionResult> : ICommandResult<TExecutionResult>
         where TExecutionResult : IExecutionResult
     {
         public TExecutionResult Result { get; }

@@ -31,10 +31,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RCommon.ApplicationServices.Commands;
-using RCommon.ApplicationServices.ExecutionResults;
 using RCommon.ApplicationServices.Validation;
 using RCommon.Caching;
+using RCommon.Models.Commands;
+using RCommon.Models.ExecutionResults;
 using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Commands

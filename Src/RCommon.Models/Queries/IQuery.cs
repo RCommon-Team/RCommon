@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.ApplicationServices.Queries
+namespace RCommon.Models.Queries
 {
     public interface IQuery
     {

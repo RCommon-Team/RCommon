@@ -1,6 +1,6 @@
-﻿using RCommon.ApplicationServices.ExecutionResults;
+﻿using RCommon.Models.ExecutionResults;
 
-namespace RCommon.ApplicationServices.Commands
+namespace RCommon.Models.Commands
 {
     public interface ICommandResult<TExecutionResult> where TExecutionResult : IExecutionResult
     {

@@ -9,6 +9,7 @@ using RCommon.Caching;
 using RCommon.MemoryCache;
 using RCommon.Persistence;
 using RCommon.Persistence.Caching;
+using RCommon.Persistence.EFCore;
 using RCommon.Persistence.Transactions;
 using RCommon.TestBase;
 using RCommon.TestBase.Data;
@@ -58,9 +59,7 @@ var host = Host.CreateDefaultBuilder(args)
                 }).Build();
 
     Console.WriteLine("Seeding Data");
-    var dataStoreFactory = host.Services.GetService<IDataStoreFactory>();
-    var context = dataStoreFactory.Resolve<TestDbContext>("TestDbContext");
-    var repo = new TestRepository(context);
+    var repo = new TestRepository(host.Services);
     repo.Prepare_Can_Find_Async_With_Expression();
 
     Console.WriteLine("Example Starting");
