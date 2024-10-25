@@ -1,6 +1,6 @@
 ﻿namespace RCommon.Models
 {
-    public interface ISearchPaginatedListRequest
+    public interface ISearchPaginatedListRequest : IModel
     {
         string SearchString { get; set; }
     }

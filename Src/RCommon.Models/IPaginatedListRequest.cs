@@ -1,6 +1,6 @@
 ﻿namespace RCommon.Models
 {
-    public interface IPaginatedListRequest
+    public interface IPaginatedListRequest : IModel
     {
         int PageNumber { get; set; }
         int? PageSize { get; set; }

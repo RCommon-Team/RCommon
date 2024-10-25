@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Models.Commands
 {
-    public class CommandResult<TExecutionResult> : ICommandResult<TExecutionResult>
+    public record CommandResult<TExecutionResult> : ICommandResult<TExecutionResult>
         where TExecutionResult : IExecutionResult
     {
         public TExecutionResult Result { get; }

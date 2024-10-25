@@ -23,7 +23,7 @@
 
 namespace RCommon.Models.ExecutionResults
 {
-    public class SuccessExecutionResult : ExecutionResult
+    public record SuccessExecutionResult : ExecutionResult
     {
         public override bool IsSuccess { get; } = true;
 

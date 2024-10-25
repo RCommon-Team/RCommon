@@ -26,7 +26,7 @@ using System.Linq;
 
 namespace RCommon.Models.ExecutionResults
 {
-    public abstract class ExecutionResult : IExecutionResult
+    public abstract record ExecutionResult : IExecutionResult
     {
         private static readonly IExecutionResult SuccessResult = new SuccessExecutionResult();
         private static readonly IExecutionResult FailedResult = new FailedExecutionResult(Enumerable.Empty<string>());

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Models.Commands
 {
-    public interface ICommand
+    public interface ICommand : IModel
     {
     }
 

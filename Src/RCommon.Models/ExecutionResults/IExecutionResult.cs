@@ -23,7 +23,7 @@
 
 namespace RCommon.Models.ExecutionResults
 {
-    public interface IExecutionResult
+    public interface IExecutionResult : IModel
     {
         bool IsSuccess { get; }
     }

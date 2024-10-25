@@ -26,7 +26,7 @@ using System.Linq;
 
 namespace RCommon.Models.ExecutionResults
 {
-    public class FailedExecutionResult : ExecutionResult
+    public record FailedExecutionResult : ExecutionResult
     {
         public IReadOnlyCollection<string> Errors { get; }
 
