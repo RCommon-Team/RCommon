@@ -9,6 +9,7 @@ using RCommon.Caching;
 using RCommon.MemoryCache;
 using RCommon.Persistence;
 using RCommon.Persistence.Caching;
+using RCommon.Persistence.Caching.MemoryCache;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.Transactions;
 using RCommon.TestBase;
@@ -44,7 +45,7 @@ var host = Host.CreateDefaultBuilder(args)
                             {
                                 dataStore.DefaultDataStoreName = "TestDbContext";
                             });
-                            ef.EnablePersistenceCaching(); // This gives us access to the caching repository interfaces/implementations
+                            ef.AddInMemoryPersistenceCaching(); // This gives us access to the caching repository interfaces/implementations
                         })
                         .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
                         {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.Caching;
+using RCommon.Persistence.Caching.Crud;
 using RCommon.RedisCache;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,14 @@ namespace RCommon.Persistence.Caching.RedisCache
     public static class IPersistenceCachingBuilderExtensions
     {
 
-        public static IPersistenceCachingBuilder AddRedisPersistenceCaching(this IPersistenceCachingBuilder builder)
+        public static void AddRedisPersistenceCaching(this IPersistenceBuilder builder)
         {
+            // Add Caching repositories
+            builder.Services.TryAddTransient(typeof(ICachingGraphRepository<>), typeof(CachingGraphRepository<>));
+            builder.Services.TryAddTransient(typeof(ICachingLinqRepository<>), typeof(CachingLinqRepository<>));
+            builder.Services.TryAddTransient(typeof(ICachingSqlMapperRepository<>), typeof(CachingSqlMapperRepository<>));
+
+            // Add Caching services
             builder.Services.TryAddTransient<Func<PersistenceCachingStrategy, ICacheService>>(serviceProvider => strategy =>
             {
                 switch (strategy)
@@ -32,7 +39,6 @@ namespace RCommon.Persistence.Caching.RedisCache
                 x.CachingEnabled = true;
                 x.CacheDynamicallyCompiledExpressions = true;
             });
-            return builder;
         }
     }
 }
