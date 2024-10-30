@@ -21,8 +21,6 @@ namespace RCommon.TestBase
         private ServiceProvider _serviceProvider;
         private Microsoft.Extensions.Logging.ILogger _logger;
 
-        static object _configureLock = new object();
-
         public TestBootstrapper()
         {
 

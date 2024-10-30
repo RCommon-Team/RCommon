@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using RCommon.Persistence.Sql;
+﻿using RCommon.Persistence.Sql;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -31,9 +30,10 @@ namespace RCommon
             
         }
 
+        public IServiceCollection Services => _services;
 
         public IDapperBuilder AddDbConnection<TDbConnection>(string dataStoreName, Action<RDbConnectionOptions> options)
-            where TDbConnection : IRDbConnection
+            where TDbConnection : RDbConnection
         {
             Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
             Guard.Against<RDbConnectionException>(options == null, "You must configure the options for the RDbConnection for it to be useful");
@@ -42,7 +42,7 @@ namespace RCommon
 
             this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
             this._services.TryAddTransient(Type.GetType(dbContext));
-            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDbConnection>(dataStoreName));
+            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<RDbConnection, TDbConnection>(dataStoreName));
             this._services.Configure(options);
 
             return this;

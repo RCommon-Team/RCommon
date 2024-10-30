@@ -26,10 +26,10 @@ namespace RCommon.TestBase.Data
             _entityDeleteActions = new List<Action<DbContext>>();
         }
 
-        public TestRepository(ServiceProvider serviceProvider)
+        public TestRepository(IServiceProvider serviceProvider)
         {
             _dataStoreFactory = serviceProvider.GetService<IDataStoreFactory>();
-            _context = _dataStoreFactory.Resolve<TestDbContext>("TestDbContext");
+            _context = _dataStoreFactory.Resolve<RCommonDbContext>("TestDbContext");
             _entityDeleteActions = new List<Action<DbContext>>();
         }
 

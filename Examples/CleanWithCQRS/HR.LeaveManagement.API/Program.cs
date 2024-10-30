@@ -79,7 +79,7 @@ builder.Services.AddRCommon()
         mediator.AddLoggingToRequestPipeline();
         mediator.AddUnitOfWorkToRequestPipeline();
     })
-    .WithPersistence<EFCorePerisistenceBuilder, DefaultUnitOfWorkBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+    .WithPersistence<EFCorePerisistenceBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
     {
         // Add all the DbContexts here
         ef.AddDbContext<LeaveManagementDbContext>(DataStoreNamesConst.LeaveManagement, options =>
@@ -91,7 +91,8 @@ builder.Services.AddRCommon()
         {
             dataStore.DefaultDataStoreName = DataStoreNamesConst.LeaveManagement;
         });
-    }, unitOfWork =>
+    })
+    .WithUnitOfWork<DefaultUnitOfWorkBuilder>(unitOfWork =>
     {
         unitOfWork.SetOptions(options =>
         {

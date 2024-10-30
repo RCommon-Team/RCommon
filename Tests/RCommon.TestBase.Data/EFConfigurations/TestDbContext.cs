@@ -70,7 +70,8 @@ namespace RCommon.TestBase.Data
         {
             if (_configuration != null)
             {
-                optionsBuilder.UseSqlServer(_configuration.GetConnectionString(@"TestDbContext"));
+                string connString = _configuration.GetConnectionString(@"TestDbContext");
+                optionsBuilder.UseSqlServer(connString);
                 optionsBuilder.UseLoggerFactory(EFUnitTestLoggingFactory)
                     .EnableSensitiveDataLogging();
             }

@@ -31,6 +31,7 @@ namespace RCommon.Persistence.Linq2Db
             services.AddTransient(typeof(ILinqRepository<>), typeof(Linq2DbRepository<>));
         }
 
+        public IServiceCollection Services => _services;
 
         public ILinq2DbPersistenceBuilder AddDataConnection<TDataConnection>(string dataStoreName, Func<IServiceProvider, DataOptions, DataOptions> options)
             where TDataConnection : RCommonDataConnection
@@ -39,7 +40,7 @@ namespace RCommon.Persistence.Linq2Db
             Guard.Against<UnsupportedDataStoreException>(options == null, "You must set options to a value in order for them to be useful");
 
             this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
-            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDataConnection>(dataStoreName));
+            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<RCommonDataConnection, TDataConnection>(dataStoreName));
             this._services.AddLinqToDBContext<TDataConnection>(options);
             return this;
         }

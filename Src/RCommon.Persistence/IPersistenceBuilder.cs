@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace RCommon
@@ -8,5 +9,6 @@ namespace RCommon
     public interface IPersistenceBuilder
     {
         IPersistenceBuilder SetDefaultDataStore(Action<DefaultDataStoreOptions> options);
+        IServiceCollection Services { get; }
     }
 }

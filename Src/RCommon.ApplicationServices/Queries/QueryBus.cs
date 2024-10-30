@@ -26,19 +26,19 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RCommon.ApplicationServices.Caching;
 using RCommon.ApplicationServices.Validation;
+using RCommon.Caching;
+using RCommon.Models.Queries;
 using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Queries
 {
     public class QueryBus : IQueryBus
     {
-        private class CacheItem
+        private class HandlerFuncMapping
         {
             public Type QueryHandlerType { get; set; }
             public Func<IQueryHandler, IQuery, CancellationToken, Task> HandlerFunc { get; set; }
@@ -46,18 +46,20 @@ namespace RCommon.ApplicationServices.Queries
 
         private readonly ILogger<QueryBus> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IMemoryCache _memoryCache;
         private readonly IValidationService _validationService;
         private readonly IOptions<CqrsValidationOptions> _validationOptions;
+        private readonly CachingOptions _cachingOptions;
+        private readonly ICacheService _cacheService;
 
-        public QueryBus(ILogger<QueryBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache, IValidationService validationService,
-            IOptions<CqrsValidationOptions> validationOptions)
+        public QueryBus(ILogger<QueryBus> logger, IServiceProvider serviceProvider, IValidationService validationService,
+            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions, ICommonFactory<ExpressionCachingStrategy, ICacheService> cacheFactory)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
-            _memoryCache = memoryCache;
             _validationService = validationService;
             _validationOptions = validationOptions;
+            _cachingOptions = cachingOptions.Value;
+            _cacheService = cacheFactory.Create(ExpressionCachingStrategy.Default);
         }
 
         public async Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
@@ -69,45 +71,50 @@ namespace RCommon.ApplicationServices.Queries
             }
 
             var queryType = query.GetType();
-            var cacheItem = GetCacheItem(queryType);
+            var handlerFunc = GetHandlerFuncMapping(queryType);
 
-            var queryHandler = (IQueryHandler)_serviceProvider.GetRequiredService(cacheItem.QueryHandlerType);
+            var queryHandler = (IQueryHandler)_serviceProvider.GetRequiredService(handlerFunc.QueryHandlerType);
             if (_logger.IsEnabled(LogLevel.Trace))
             {
                 _logger.LogTrace(
                     "Executing query {QueryType} ({QueryHandlerType}) by using query handler {QueryHandlerType}",
                     queryType.PrettyPrint(),
-                    cacheItem.QueryHandlerType.PrettyPrint(),
+                    handlerFunc.QueryHandlerType.PrettyPrint(),
                     queryHandler.GetType().PrettyPrint());
             }
 
-            var task = (Task<TResult>)cacheItem.HandlerFunc(queryHandler, query, cancellationToken);
+            var task = (Task<TResult>)handlerFunc.HandlerFunc(queryHandler, query, cancellationToken);
 
             return await task.ConfigureAwait(false);
         }
 
-        private CacheItem GetCacheItem(Type queryType)
+        private HandlerFuncMapping GetHandlerFuncMapping(Type queryType)
         {
-            return _memoryCache.GetOrCreate(
-                CacheKey.With(GetType(), queryType.GetCacheKey()),
-                e =>
-                {
-                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
-                    var queryInterfaceType = queryType
+            if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
+            {
+                return _cacheService.GetOrCreate(CacheKey.With(GetType(), queryType.GetCacheKey()), 
+                    () => this.BuildHandlerFuncMapping(queryType));
+            }
+            return this.BuildHandlerFuncMapping(queryType);
+            
+        }
+
+        private HandlerFuncMapping BuildHandlerFuncMapping(Type queryType)
+        {
+            var queryInterfaceType = queryType
                         .GetTypeInfo()
                         .GetInterfaces()
                         .Single(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(IQuery<>));
-                    var queryHandlerType = typeof(IQueryHandler<,>).MakeGenericType(queryType, queryInterfaceType.GetTypeInfo().GetGenericArguments()[0]);
-                    var invokeExecuteQueryAsync = ReflectionHelper.CompileMethodInvocation<Func<IQueryHandler, IQuery, CancellationToken, Task>>(
-                        queryHandlerType,
-                        "HandleAsync",
-                        queryType, typeof(CancellationToken));
-                    return new CacheItem
-                    {
-                        QueryHandlerType = queryHandlerType,
-                        HandlerFunc = invokeExecuteQueryAsync
-                    };
-                });
+            var queryHandlerType = typeof(IQueryHandler<,>).MakeGenericType(queryType, queryInterfaceType.GetTypeInfo().GetGenericArguments()[0]);
+            var invokeExecuteQueryAsync = ReflectionHelper.CompileMethodInvocation<Func<IQueryHandler, IQuery, CancellationToken, Task>>(
+                queryHandlerType,
+                "HandleAsync",
+                queryType, typeof(CancellationToken));
+            return new HandlerFuncMapping
+            {
+                QueryHandlerType = queryHandlerType,
+                HandlerFunc = invokeExecuteQueryAsync
+            };
         }
     }
 }

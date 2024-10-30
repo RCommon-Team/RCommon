@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using RCommon.ApplicationServices.Commands;
 using RCommon.ApplicationServices.Queries;
 using RCommon.EventHandling;
@@ -23,7 +22,7 @@ namespace RCommon.ApplicationServices
         {
             services.AddTransient<ICommandBus, CommandBus>();
             services.AddTransient<IQueryBus, QueryBus>();
-            services.AddTransient<IMemoryCache, MemoryCache>(); // TODO: Allow CQRS configuration to choose caching strategy
+            
         }
 
         public IServiceCollection Services { get; }

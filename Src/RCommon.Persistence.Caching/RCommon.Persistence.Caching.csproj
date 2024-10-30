@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;</TargetFrameworks>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.Caching\RCommon.Caching.csproj" />
+    <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

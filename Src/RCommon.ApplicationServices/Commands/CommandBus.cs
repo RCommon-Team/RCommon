@@ -28,14 +28,13 @@ using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RCommon.ApplicationServices.Caching;
-using RCommon.ApplicationServices.Commands;
-using RCommon.ApplicationServices.ExecutionResults;
 using RCommon.ApplicationServices.Validation;
+using RCommon.Caching;
+using RCommon.Models.Commands;
+using RCommon.Models.ExecutionResults;
 using RCommon.Reflection;
 
 namespace RCommon.ApplicationServices.Commands
@@ -44,18 +43,20 @@ namespace RCommon.ApplicationServices.Commands
     {
         private readonly ILogger<CommandBus> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IMemoryCache _memoryCache;
         private readonly IValidationService _validationService;
         private readonly IOptions<CqrsValidationOptions> _validationOptions;
+        private readonly ICacheService _cacheService;
+        private readonly CachingOptions _cachingOptions;
 
-        public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IMemoryCache memoryCache, IValidationService validationService, 
-            IOptions<CqrsValidationOptions> validationOptions)
+        public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IValidationService validationService, 
+            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions, ICommonFactory<ExpressionCachingStrategy, ICacheService> cacheFactory)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
-            _memoryCache = memoryCache;
             _validationService = validationService;
             _validationOptions = validationOptions;
+            _cacheService = cacheFactory.Create(ExpressionCachingStrategy.Default);
+            _cachingOptions = cachingOptions.Value;
         }
 
         public async Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
@@ -131,34 +132,37 @@ namespace RCommon.ApplicationServices.Commands
             >.HandleAsync);
         private CommandExecutionDetails GetCommandExecutionDetails(Type commandType)
         {
-            return _memoryCache.GetOrCreate(
-                CacheKey.With(GetType(), commandType.GetCacheKey()),
-                e =>
-                {
-                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
-                    var commandInterfaceType = commandType
+            if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
+            {
+                return _cacheService.GetOrCreate(CacheKey.With(GetType(), commandType.GetCacheKey()), () => this.BuildCommandDetails(commandType));
+            }
+            return this.BuildCommandDetails(commandType);
+        }
+
+        private CommandExecutionDetails BuildCommandDetails(Type commandType)
+        {
+            var commandInterfaceType = commandType
                         .GetTypeInfo()
                         .GetInterfaces()
                         .Single(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommand<>));
-                    var commandTypes = commandInterfaceType.GetTypeInfo().GetGenericArguments();
+            var commandTypes = commandInterfaceType.GetTypeInfo().GetGenericArguments();
 
-                    var commandHandlerType = typeof(ICommandHandler<,>)
-                        .MakeGenericType(commandTypes[0], commandType);
+            var commandHandlerType = typeof(ICommandHandler<,>)
+                .MakeGenericType(commandTypes[0], commandType);
 
-                    _logger.LogDebug(
-                        "Command {CommandType} is resolved by {CommandHandlerType}",
-                        commandType.PrettyPrint(),
-                        commandHandlerType.PrettyPrint());
+            _logger.LogDebug(
+                "Command {CommandType} is resolved by {CommandHandlerType}",
+                commandType.PrettyPrint(),
+                commandHandlerType.PrettyPrint());
 
-                    var invokeExecuteAsync = ReflectionHelper.CompileMethodInvocation<Func<ICommandHandler, ICommand, CancellationToken, Task>>(
-                        commandHandlerType, NameOfExecuteCommand);
+            var invokeExecuteAsync = ReflectionHelper.CompileMethodInvocation<Func<ICommandHandler, ICommand, CancellationToken, Task>>(
+                commandHandlerType, NameOfExecuteCommand);
 
-                    return new CommandExecutionDetails
-                    {
-                        CommandHandlerType = commandHandlerType,
-                        Invoker = invokeExecuteAsync
-                    };
-                });
+            return new CommandExecutionDetails
+            {
+                CommandHandlerType = commandHandlerType,
+                Invoker = invokeExecuteAsync
+            };
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using RCommon.ApplicationServices.ExecutionResults;
-using RCommon.ApplicationServices.Validation;
+﻿using RCommon.ApplicationServices.Validation;
 
 namespace Examples.Validation.FluentValidation
 {

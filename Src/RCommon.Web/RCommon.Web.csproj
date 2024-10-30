@@ -1,15 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net6.0;net7.0;net8.0;</TargetFrameworks>
-  </PropertyGroup>  <ItemGroup>
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
-  </ItemGroup>
+	  <TargetFrameworks>net8.0;</TargetFrameworks>
+  </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Attributes\" />

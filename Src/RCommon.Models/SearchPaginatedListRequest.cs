@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RCommon.Models
 {
-    public class SearchPaginatedListRequest : PaginatedListRequest, ISearchPaginatedListRequest
+    public record SearchPaginatedListRequest : PaginatedListRequest, ISearchPaginatedListRequest
     {
         public SearchPaginatedListRequest()
         {

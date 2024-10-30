@@ -38,7 +38,7 @@ namespace RCommon.Persistence.Dapper.Tests
                 {
                     guidOptions.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString;
                 })
-                .WithPersistence<EFCorePerisistenceBuilder, DefaultUnitOfWorkBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .WithPersistence<EFCorePerisistenceBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
                     ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
@@ -46,17 +46,9 @@ namespace RCommon.Persistence.Dapper.Tests
                         ef.UseSqlServer(
                         this.Configuration.GetConnectionString("TestDbContext"));
                     });
-                }, unitOfWork =>
-                {
-                    unitOfWork.SetOptions(options =>
-                    {
-                        options.AutoCompleteScope = false;
-                        options.DefaultIsolation = System.Transactions.IsolationLevel.ReadCommitted;
-                    });
                 })
-                .WithPersistence<DapperPersistenceBuilder, DefaultUnitOfWorkBuilder>(objectAccessActions: dapper =>
+                .WithPersistence<DapperPersistenceBuilder>(dapper =>
                 {
-
                     dapper.AddDbConnection<TestDbConnection>("TestDbConnection", db =>
                     {
                         db.DbFactory = SqlClientFactory.Instance;
@@ -73,7 +65,8 @@ namespace RCommon.Persistence.Dapper.Tests
                     {
                         dataStore.DefaultDataStoreName = "TestDbConnection";
                     });
-                }, unitOfWork =>
+                })
+                .WithUnitOfWork<DefaultUnitOfWorkBuilder>(unitOfWork =>
                 {
                     unitOfWork.SetOptions(options =>
                     {

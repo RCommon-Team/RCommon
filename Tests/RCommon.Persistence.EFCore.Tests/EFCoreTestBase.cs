@@ -30,7 +30,7 @@ namespace RCommon.Persistence.EFCore.Tests
             services.AddRCommon()
                 .WithSequentialGuidGenerator(guid => guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
                 .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
-                .WithPersistence<EFCorePerisistenceBuilder, DefaultUnitOfWorkBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+                .WithPersistence<EFCorePerisistenceBuilder>(ef => // Repository/ORM configuration. We could easily swap out to Linq2Db without impact to domain service up through the stack
                 {
                     // Add all the DbContexts here
                     ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
@@ -42,7 +42,8 @@ namespace RCommon.Persistence.EFCore.Tests
                     {
                         dataStore.DefaultDataStoreName = "TestDbContext";
                     });
-                }, unitOfWork => 
+                })
+                .WithUnitOfWork<DefaultUnitOfWorkBuilder>(unitOfWork =>
                 {
                     unitOfWork.SetOptions(options =>
                     {

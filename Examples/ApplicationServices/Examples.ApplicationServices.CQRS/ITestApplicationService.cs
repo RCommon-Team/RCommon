@@ -1,4 +1,4 @@
-﻿using RCommon.ApplicationServices.ExecutionResults;
+﻿using RCommon.Models.ExecutionResults;
 
 namespace Examples.ApplicationServices.CQRS
 {

@@ -35,7 +35,7 @@ namespace RCommon.EventHandling.Producers
                 }
 
                 // This should already be using a Scoped publish method
-                await _eventBus.PublishAsync(@event);
+                await _eventBus.PublishAsync(@event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

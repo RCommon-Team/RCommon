@@ -32,22 +32,23 @@ namespace RCommon
             services.AddTransient(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
         }
 
+        public IServiceCollection Services => _services;
 
         public IEFCorePersistenceBuilder AddDbContext<TDbContext>(string dataStoreName, Action<DbContextOptionsBuilder>? options = null)
             where TDbContext : RCommonDbContext
         {
             Guard.Against<UnsupportedDataStoreException>(dataStoreName.IsNullOrEmpty(), "You must set a name for the Data Store");
 
-            this._services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
-            this._services.Configure<DataStoreFactoryOptions>(options => options.Register<TDbContext>(dataStoreName));
-            this._services.AddDbContext<TDbContext>(options, ServiceLifetime.Scoped); 
+            _services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
+            _services.Configure<DataStoreFactoryOptions>(options => options.Register<RCommonDbContext, TDbContext>(dataStoreName));
+            _services.AddDbContext<TDbContext>(options, ServiceLifetime.Scoped);
 
             return this;
         }
 
         public IPersistenceBuilder SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
-            this._services.Configure(options);
+            _services.Configure(options);
             return this;
         }
     }

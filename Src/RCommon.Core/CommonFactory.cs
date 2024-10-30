@@ -6,21 +6,21 @@ using System.Text;
 
 namespace RCommon
 {
-    public class CommonFactory<T> : ICommonFactory<T>
+    public class CommonFactory<TResult> : ICommonFactory<TResult>
     {
-        private readonly Func<T> _initFunc;
+        private readonly Func<TResult> _initFunc;
 
-        public CommonFactory(Func<T> initFunc)
+        public CommonFactory(Func<TResult> initFunc)
         {
             _initFunc = initFunc;
         }
 
-        public T Create()
+        public TResult Create()
         {
             return _initFunc();
         }
 
-        public T Create(Action<T> customize)
+        public TResult Create(Action<TResult> customize)
         {
             var concreteObject = _initFunc();
             customize(concreteObject);

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Text.Json.Serialization;
-using RCommon.Serialization.Json;
 using RCommon.Collections;
 
 namespace RCommon.Models
@@ -131,7 +129,6 @@ namespace RCommon.Models
 
         protected abstract IQueryable<TOut> CastItems(IQueryable<TSource> source);
 
-        [JsonIgnore]
         public virtual Expression<Func<TSource, object>> SortExpression { get => _sortExpression; set => _sortExpression = value; }
 
         public List<TOut> Items { get; set; }
@@ -144,7 +141,6 @@ namespace RCommon.Models
 
         public string SortBy { get; set; }
 
-        [JsonConverter(typeof(JsonByteEnumConverter<SortDirectionEnum>))]
         public SortDirectionEnum SortDirection { get; set; }
 
         public bool HasPreviousPage
@@ -283,7 +279,6 @@ namespace RCommon.Models
             Items = query.AsQueryable().ToList();
         }
 
-        [JsonIgnore]
         public virtual Expression<Func<TSource, object>> SortExpression { get => _sortExpression; set => _sortExpression = value; }
 
         public List<TSource> Items { get; set; }
@@ -296,7 +291,6 @@ namespace RCommon.Models
 
         public string SortBy { get; set; }
 
-        [JsonConverter(typeof(JsonByteEnumConverter<SortDirectionEnum>))]
         public SortDirectionEnum SortDirection { get; set; }
 
         public bool HasPreviousPage
@@ -315,4 +309,5 @@ namespace RCommon.Models
             }
         }
     }
+
 }
