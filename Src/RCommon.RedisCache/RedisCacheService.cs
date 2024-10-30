@@ -24,14 +24,14 @@ namespace RCommon.RedisCache
             _jsonSerializer = jsonSerializer;
         }
 
-        public TData GetOrCreate<TData>(object key, TData data)
+        public TData GetOrCreate<TData>(object key, Func<TData> data)
         {
             var json = _distributedCache.GetString(key.ToString());
 
             if (json == null)
             {
-                _distributedCache.SetString(key.ToString(), _jsonSerializer.Serialize(data));
-                return data;
+                _distributedCache.SetString(key.ToString(), _jsonSerializer.Serialize(data()));
+                return data();
             }
             else
             {
@@ -39,14 +39,14 @@ namespace RCommon.RedisCache
             }
         }
 
-        public async Task<TData> GetOrCreateAsync<TData>(object key, TData data)
+        public async Task<TData> GetOrCreateAsync<TData>(object key, Func<TData> data)
         {
             var json = await _distributedCache.GetStringAsync(key.ToString()).ConfigureAwait(false);
 
             if (json == null)
             {
-                await _distributedCache.SetStringAsync(key.ToString(), _jsonSerializer.Serialize(data)).ConfigureAwait(false);
-                return data;
+                await _distributedCache.SetStringAsync(key.ToString(), _jsonSerializer.Serialize(data())).ConfigureAwait(false);
+                return data();
             }
             else
             {

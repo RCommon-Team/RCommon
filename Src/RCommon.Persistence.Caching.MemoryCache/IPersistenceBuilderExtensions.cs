@@ -12,11 +12,17 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.MemoryCache
 {
-    public static class IPersistenceCachingBuilderExtensions
+    public static class IPersistenceBuilderExtensions
     {
         public static void AddInMemoryPersistenceCaching(this IPersistenceBuilder builder)
         {
             // Add Caching services
+            builder.Services.TryAddTransient<ICacheService, InMemoryCacheService>();
+            builder.Services.TryAddTransient<InMemoryCacheService>();
+            builder.Services.TryAddTransient<ICommonFactory<PersistenceCachingStrategy, ICacheService>, CommonFactory<PersistenceCachingStrategy, ICacheService>>();
+            ConfigureCachingOptions(builder);
+
+            // Add Caching Factory
             builder.Services.TryAddTransient<Func<PersistenceCachingStrategy, ICacheService>>(serviceProvider => strategy =>
             {
                 switch (strategy)
@@ -27,13 +33,18 @@ namespace RCommon.Persistence.Caching.MemoryCache
                         return serviceProvider.GetService<InMemoryCacheService>();
                 }
             });
-            builder.Services.TryAddTransient<ICommonFactory<PersistenceCachingStrategy, ICacheService>, CommonFactory<PersistenceCachingStrategy, ICacheService>>();
-            ConfigureCachingOptions(builder);
+            
         }
 
         public static void AddDistributedMemoryPersistenceCaching(this IPersistenceBuilder builder)
         {
             // Add Caching services
+            builder.Services.TryAddTransient<ICacheService, DistributedMemoryCacheService>();
+            builder.Services.TryAddTransient<DistributedMemoryCacheService>();
+            builder.Services.TryAddTransient<ICommonFactory<PersistenceCachingStrategy, ICacheService>, CommonFactory<PersistenceCachingStrategy, ICacheService>>();
+            ConfigureCachingOptions(builder);
+
+            // Add Caching Factory
             builder.Services.TryAddTransient<Func<PersistenceCachingStrategy, ICacheService>>(serviceProvider => strategy =>
             {
                 switch (strategy)
@@ -43,10 +54,7 @@ namespace RCommon.Persistence.Caching.MemoryCache
                     default:
                         return serviceProvider.GetService<DistributedMemoryCacheService>();
                 }
-            });
-            builder.Services.TryAddTransient<ICommonFactory<PersistenceCachingStrategy, ICacheService>, CommonFactory<PersistenceCachingStrategy, ICacheService>>();
-            ConfigureCachingOptions(builder);
-            
+            });            
         }
 
         private static void ConfigureCachingOptions(IPersistenceBuilder builder, Action<CachingOptions> configure = null)

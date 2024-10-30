@@ -27,6 +27,14 @@ namespace RCommon.RedisCache
         /// <remarks>The most performant way to do this is through InMemoryCache but this works fine</remarks>
         public static IRedisCachingBuilder CacheDynamicallyCompiledExpressions(this IRedisCachingBuilder builder)
         {
+            builder.Services.TryAddTransient<ICacheService, RedisCacheService>();
+            builder.Services.TryAddTransient<ICommonFactory<ExpressionCachingStrategy, ICacheService>, CommonFactory<ExpressionCachingStrategy, ICacheService>>();
+
+            builder.Services.Configure<CachingOptions>(x =>
+            {
+                x.CachingEnabled = true;
+                x.CacheDynamicallyCompiledExpressions = true;
+            });
             builder.Services.TryAddTransient<Func<ExpressionCachingStrategy, ICacheService>>(serviceProvider => strategy =>
             {
                 switch (strategy)
@@ -37,13 +45,7 @@ namespace RCommon.RedisCache
                         return serviceProvider.GetService<RedisCacheService>();
                 }
             });
-            builder.Services.TryAddTransient<ICommonFactory<ExpressionCachingStrategy, ICacheService>, CommonFactory<ExpressionCachingStrategy, ICacheService>>();
-
-            builder.Services.Configure<CachingOptions>(x =>
-            {
-                x.CachingEnabled = true;
-                x.CacheDynamicallyCompiledExpressions = true;
-            });
+            
             return builder;
         }
     }

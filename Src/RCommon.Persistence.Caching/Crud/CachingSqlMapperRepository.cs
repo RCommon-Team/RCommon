@@ -89,14 +89,16 @@ namespace RCommon.Persistence.Caching.Crud
 
         public async Task<ICollection<TEntity>> FindAsync(object cacheKey, ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _cacheService.GetOrCreateAsync(cacheKey,
-                await _repository.FindAsync(specification, token));
+            var data = await _cacheService.GetOrCreateAsync(cacheKey,
+                async () => await _repository.FindAsync(specification, token));
+            return await data;
         }
 
         public async Task<ICollection<TEntity>> FindAsync(object cacheKey, System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await _cacheService.GetOrCreateAsync(cacheKey,
-                await _repository.FindAsync(expression, token));
+            var data = await _cacheService.GetOrCreateAsync(cacheKey,
+                async () => await _repository.FindAsync(expression, token));
+            return await data;
         }
     }
 }

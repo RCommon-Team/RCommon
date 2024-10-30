@@ -151,26 +151,30 @@ namespace RCommon.Persistence.Caching.Crud
         public async Task<IPaginatedList<TEntity>> FindAsync(object cacheKey, Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,
             object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0, CancellationToken token = default)
         {
-            return await _cacheService.GetOrCreateAsync(cacheKey, 
-                await _repository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token));
+            var data = await _cacheService.GetOrCreateAsync(cacheKey, 
+                async () => await _repository.FindAsync(expression, orderByExpression, orderByAscending, pageNumber, pageSize, token));
+            return await data;
         }
 
         public async Task<IPaginatedList<TEntity>> FindAsync(object cacheKey, IPagedSpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _cacheService.GetOrCreateAsync(cacheKey,
-                await _repository.FindAsync(specification, token));
+            var data = await _cacheService.GetOrCreateAsync(cacheKey,
+                async () => await _repository.FindAsync(specification, token));
+            return await data;
         }
 
         public async Task<ICollection<TEntity>> FindAsync(object cacheKey, ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _cacheService.GetOrCreateAsync(cacheKey,
-                 await _repository.FindAsync(specification, token));
+            var data = await _cacheService.GetOrCreateAsync(cacheKey,
+                 async () => await _repository.FindAsync(specification, token));
+            return await data;
         }
 
         public async Task<ICollection<TEntity>> FindAsync(object cacheKey, Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await _cacheService.GetOrCreateAsync(cacheKey,
-                await _repository.FindAsync(expression, token));
+            var data = await _cacheService.GetOrCreateAsync(cacheKey,
+                async () => await _repository.FindAsync(expression, token));
+            return await data;
         }
     }
 }

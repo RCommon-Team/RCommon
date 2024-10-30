@@ -8,7 +8,7 @@ namespace RCommon.Caching
 {
     public interface ICacheService
     {
-        TData GetOrCreate<TData>(object key, TData data);
-        Task<TData> GetOrCreateAsync<TData>(object key, TData data);
+        TData GetOrCreate<TData>(object key, Func<TData> data);
+        Task<TData> GetOrCreateAsync<TData>(object key, Func<TData> data);
     }
 }

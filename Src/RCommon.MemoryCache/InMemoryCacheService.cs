@@ -21,22 +21,20 @@ namespace RCommon.MemoryCache
             _memoryCache = memoryCache;
         }
 
-        public TData GetOrCreate<TData>(object key, TData data)
+        public TData GetOrCreate<TData>(object key, Func<TData> data)
         {
-            _memoryCache.GetOrCreate<TData>(key, cacheEntry =>
+            return _memoryCache.GetOrCreate<TData>(key, cacheEntry =>
             {
-                return data;
+                return data();
             });
-            return data;
         }
 
-        public async Task<TData> GetOrCreateAsync<TData>(object key, TData data)
+        public async Task<TData> GetOrCreateAsync<TData>(object key, Func<TData> data)
         {
-            await _memoryCache.GetOrCreateAsync<TData>(key, async cacheEntry =>
+            return await _memoryCache.GetOrCreateAsync<TData>(key, async cacheEntry =>
             {
-                return await Task.FromResult(data);
+                return await Task.FromResult(data());
             }).ConfigureAwait(false);
-            return data;
         }
     }
 }

@@ -19,18 +19,14 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 try
-{ 
-
+{
 var host = Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((context, builder) =>
-                {
-                    builder
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                    ConfigurationContainer.Configuration = builder.Build();
-                })
                 .ConfigureServices(services =>
                 {
-                    services.AddSingleton<IConfiguration>(ConfigurationContainer.Configuration);
+                    var builder = new ConfigurationBuilder()
+                        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                    var config = builder.Build();
+                    services.AddSingleton<IConfiguration>(config);
 
                     // Configure RCommon
                     services.AddRCommon()
@@ -39,7 +35,7 @@ var host = Host.CreateDefaultBuilder(args)
                             // Add all the DbContexts here
                             ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
                             {
-                                ef.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=RCommon_TestDatabase;Trusted_Connection=True;MultipleActiveResultSets=true");
+                                ef.UseSqlServer(config.GetConnectionString("TestDbContext"));
                             });
                             ef.SetDefaultDataStore(dataStore =>
                             {
@@ -47,7 +43,7 @@ var host = Host.CreateDefaultBuilder(args)
                             });
                             ef.AddInMemoryPersistenceCaching(); // This gives us access to the caching repository interfaces/implementations
                         })
-                        .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
+                        .WithMemoryCaching<InMemoryCachingBuilder>(cache =>
                         {
                             cache.Configure(x =>
                             {
@@ -68,9 +64,11 @@ var host = Host.CreateDefaultBuilder(args)
 
     Console.WriteLine("Hitting the database w/ a query");
     var customers = await appService.GetCustomers("my-test-key");
+    Console.WriteLine(customers);
 
     Console.WriteLine("Hitting the cache");
     customers = await appService.GetCustomers("my-test-key");
+    Console.WriteLine(customers);
 
     Console.WriteLine("Example Complete");
     repo.CleanUpSeedData();

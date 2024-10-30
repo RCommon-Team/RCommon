@@ -93,7 +93,7 @@ namespace RCommon.ApplicationServices.Queries
             if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
             {
                 return _cacheService.GetOrCreate(CacheKey.With(GetType(), queryType.GetCacheKey()), 
-                    this.BuildHandlerFuncMapping(queryType));
+                    () => this.BuildHandlerFuncMapping(queryType));
             }
             return this.BuildHandlerFuncMapping(queryType);
             

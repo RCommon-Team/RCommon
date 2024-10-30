@@ -134,7 +134,7 @@ namespace RCommon.ApplicationServices.Commands
         {
             if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
             {
-                return _cacheService.GetOrCreate(CacheKey.With(GetType(), commandType.GetCacheKey()), this.BuildCommandDetails(commandType));
+                return _cacheService.GetOrCreate(CacheKey.With(GetType(), commandType.GetCacheKey()), () => this.BuildCommandDetails(commandType));
             }
             return this.BuildCommandDetails(commandType);
         }

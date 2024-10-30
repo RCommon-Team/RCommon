@@ -37,6 +37,7 @@ namespace RCommon.MemoryCache
                         return serviceProvider.GetService<InMemoryCacheService>();
                 }
             });
+            builder.Services.TryAddTransient<ICacheService, InMemoryCacheService>();
             builder.Services.TryAddTransient<ICommonFactory<ExpressionCachingStrategy, ICacheService>, CommonFactory<ExpressionCachingStrategy, ICacheService>>();
             
             builder.Services.Configure<CachingOptions>(x =>
