@@ -45,17 +45,16 @@ namespace RCommon.ApplicationServices.Commands
         private readonly IServiceProvider _serviceProvider;
         private readonly IValidationService _validationService;
         private readonly IOptions<CqrsValidationOptions> _validationOptions;
-        private readonly ICacheService _cacheService;
+        private ICacheService _cacheService;
         private readonly CachingOptions _cachingOptions;
 
         public CommandBus(ILogger<CommandBus> logger, IServiceProvider serviceProvider, IValidationService validationService, 
-            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions, ICommonFactory<ExpressionCachingStrategy, ICacheService> cacheFactory)
+            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _validationService = validationService;
             _validationOptions = validationOptions;
-            _cacheService = cacheFactory.Create(ExpressionCachingStrategy.Default);
             _cachingOptions = cachingOptions.Value;
         }
 
@@ -134,6 +133,9 @@ namespace RCommon.ApplicationServices.Commands
         {
             if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
             {
+                var cachingFactory = _serviceProvider.GetService<ICommonFactory<ExpressionCachingStrategy, ICacheService>>();
+                Guard.Against<InvalidCacheException>(cachingFactory == null, "We could not properly inject the caching factory: 'ICommonFactory<ExpressionCachingStrategy, ICacheService>>' into the CommandBus");
+                _cacheService = cachingFactory.Create(ExpressionCachingStrategy.Default);
                 return _cacheService.GetOrCreate(CacheKey.With(GetType(), commandType.GetCacheKey()), () => this.BuildCommandDetails(commandType));
             }
             return this.BuildCommandDetails(commandType);

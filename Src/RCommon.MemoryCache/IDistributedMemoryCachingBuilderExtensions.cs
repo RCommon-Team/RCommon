@@ -24,9 +24,17 @@ namespace RCommon.MemoryCache
         /// </summary>
         /// <param name="builder">Builder</param>
         /// <returns>Same builder to allow chaining</returns>
-        /// <remarks>The most performant way to do this is through InMemoryCache but this works fine</remarks>
+        /// <remarks>This is the most performant way to cache expressions!</remarks>
         public static IDistributedMemoryCachingBuilder CacheDynamicallyCompiledExpressions(this IDistributedMemoryCachingBuilder builder)
         {
+
+            // Add Caching services
+            builder.Services.TryAddTransient<ICacheService, DistributedMemoryCacheService>();
+            builder.Services.TryAddTransient<DistributedMemoryCacheService>();
+            builder.Services.TryAddTransient<ICommonFactory<ExpressionCachingStrategy, ICacheService>, CommonFactory<ExpressionCachingStrategy, ICacheService>>();
+            ConfigureCachingOptions(builder);
+
+            // Add Caching Factory
             builder.Services.TryAddTransient<Func<ExpressionCachingStrategy, ICacheService>>(serviceProvider => strategy =>
             {
                 switch (strategy)
@@ -37,14 +45,26 @@ namespace RCommon.MemoryCache
                         return serviceProvider.GetService<DistributedMemoryCacheService>();
                 }
             });
-            builder.Services.TryAddTransient<ICommonFactory<ExpressionCachingStrategy, ICacheService>, CommonFactory<ExpressionCachingStrategy, ICacheService>>();
 
-            builder.Services.Configure<CachingOptions>(x =>
-            {
-                x.CachingEnabled = true;
-                x.CacheDynamicallyCompiledExpressions = true;
-            });
             return builder;
+        }
+
+        private static void ConfigureCachingOptions(IDistributedMemoryCachingBuilder builder, Action<CachingOptions> configure = null)
+        {
+
+            if (configure == null)
+            {
+                builder.Services.Configure<CachingOptions>(x =>
+                {
+                    x.CachingEnabled = true;
+                    x.CacheDynamicallyCompiledExpressions = true;
+                });
+            }
+            else
+            {
+                builder.Services.Configure(configure);
+            }
+
         }
     }
 }
