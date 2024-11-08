@@ -49,17 +49,16 @@ namespace RCommon.ApplicationServices.Queries
         private readonly IValidationService _validationService;
         private readonly IOptions<CqrsValidationOptions> _validationOptions;
         private readonly CachingOptions _cachingOptions;
-        private readonly ICacheService _cacheService;
+        private ICacheService _cacheService;
 
         public QueryBus(ILogger<QueryBus> logger, IServiceProvider serviceProvider, IValidationService validationService,
-            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions, ICommonFactory<ExpressionCachingStrategy, ICacheService> cacheFactory)
+            IOptions<CqrsValidationOptions> validationOptions, IOptions<CachingOptions> cachingOptions)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _validationService = validationService;
             _validationOptions = validationOptions;
             _cachingOptions = cachingOptions.Value;
-            _cacheService = cacheFactory.Create(ExpressionCachingStrategy.Default);
         }
 
         public async Task<TResult> DispatchQueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
@@ -92,6 +91,9 @@ namespace RCommon.ApplicationServices.Queries
         {
             if (_cachingOptions.CachingEnabled && _cachingOptions.CacheDynamicallyCompiledExpressions)
             {
+                var cachingFactory = _serviceProvider.GetService<ICommonFactory<ExpressionCachingStrategy, ICacheService>>();
+                Guard.Against<InvalidCacheException>(cachingFactory == null, "We could not properly inject the caching factory: 'ICommonFactory<ExpressionCachingStrategy, ICacheService>>' into the QueryBus");
+                _cacheService = cachingFactory.Create(ExpressionCachingStrategy.Default);
                 return _cacheService.GetOrCreate(CacheKey.With(GetType(), queryType.GetCacheKey()), 
                     () => this.BuildHandlerFuncMapping(queryType));
             }
