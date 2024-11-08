@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Src\RCommon.ApplicationServices\RCommon.ApplicationServices.csproj" />
     <ProjectReference Include="..\..\..\Src\RCommon.FluentValidation\RCommon.FluentValidation.csproj" />
+    <ProjectReference Include="..\..\..\Src\RCommon.MemoryCache\RCommon.MemoryCache.csproj" />
   </ItemGroup>
 
 </Project>
