@@ -23,9 +23,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace RCommon.Models.ExecutionResults
 {
+    [DataContract]
     public record FailedExecutionResult : ExecutionResult
     {
         public IReadOnlyCollection<string> Errors { get; }
@@ -36,6 +38,7 @@ namespace RCommon.Models.ExecutionResults
             Errors = (errors ?? Enumerable.Empty<string>()).ToList();
         }
 
+        [DataMember]
         public override bool IsSuccess { get; } = false;
 
         public override string ToString()

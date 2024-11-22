@@ -14,9 +14,16 @@ namespace RCommon.Models
             SortDirection = SortDirectionEnum.None;
         }
 
+        [DataMember]
         public virtual int PageNumber { get; set; }
+
+        [DataMember]
         public virtual int? PageSize { get; set; }
+
+        [DataMember]
         public virtual string SortBy { get; set; }
+
+        [DataMember]
         public virtual SortDirectionEnum SortDirection { get; set; }
     }
 }

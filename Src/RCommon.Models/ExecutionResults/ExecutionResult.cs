@@ -23,9 +23,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace RCommon.Models.ExecutionResults
 {
+    [DataContract]
     public abstract record ExecutionResult : IExecutionResult
     {
         private static readonly IExecutionResult SuccessResult = new SuccessExecutionResult();
@@ -36,6 +38,7 @@ namespace RCommon.Models.ExecutionResults
         public static IExecutionResult Failed(IEnumerable<string> errors) => new FailedExecutionResult(errors);
         public static IExecutionResult Failed(params string[] errors) => new FailedExecutionResult(errors);
 
+        [DataMember]
         public abstract bool IsSuccess { get; }
 
         public override string ToString()
