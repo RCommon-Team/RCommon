@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using System.Text;
 using RCommon.Collections;
 
@@ -11,6 +12,7 @@ namespace RCommon.Models
     /// Represents a Data Transfer Object (DTO) that is typically used to encapsulate a PaginatedList so that it can be
     /// delivered to the application layer. This should be an immutable object.
     /// </summary>
+    [DataContract]
     public abstract record PaginatedListModel<TSource, TOut> : IModel
         where TSource : class
         where TOut : class
@@ -131,18 +133,28 @@ namespace RCommon.Models
 
         public virtual Expression<Func<TSource, object>> SortExpression { get => _sortExpression; set => _sortExpression = value; }
 
+        [DataMember]
         public List<TOut> Items { get; set; }
 
+        [DataMember]
         public int? PageSize { get; set; }
+
+        [DataMember]
         public int PageNumber { get; set; }
 
+        [DataMember]
         public int TotalPages { get; set; }
+
+        [DataMember]
         public int TotalCount { get; set; }
 
+        [DataMember]
         public string SortBy { get; set; }
 
+        [DataMember]
         public SortDirectionEnum SortDirection { get; set; }
 
+        [DataMember]
         public bool HasPreviousPage
         {
             get
@@ -151,6 +163,7 @@ namespace RCommon.Models
             }
         }
 
+        [DataMember]
         public bool HasNextPage
         {
             get
@@ -164,6 +177,7 @@ namespace RCommon.Models
     /// Represents a Data Transfer Object (DTO) that is typically used to encapsulate a PaginatedList so that it can be
     /// delivered to the application layer. This should be an immutable object.
     /// </summary>
+    [DataContract]
     public abstract record PaginatedListModel<TSource> : IModel
         where TSource : class
     {
@@ -281,18 +295,28 @@ namespace RCommon.Models
 
         public virtual Expression<Func<TSource, object>> SortExpression { get => _sortExpression; set => _sortExpression = value; }
 
+        [DataMember]
         public List<TSource> Items { get; set; }
 
+        [DataMember]
         public int? PageSize { get; set; }
+
+        [DataMember]
         public int PageNumber { get; set; }
 
+        [DataMember]
         public int TotalPages { get; set; }
+
+        [DataMember]
         public int TotalCount { get; set; }
 
+        [DataMember]
         public string SortBy { get; set; }
 
+        [DataMember]
         public SortDirectionEnum SortDirection { get; set; }
 
+        [DataMember]
         public bool HasPreviousPage
         {
             get
@@ -301,6 +325,7 @@ namespace RCommon.Models
             }
         }
 
+        [DataMember]
         public bool HasNextPage
         {
             get
