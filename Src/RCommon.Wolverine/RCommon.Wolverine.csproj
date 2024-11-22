@@ -7,7 +7,7 @@
   </PropertyGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
-		<PackageReference Include="WolverineFx" Version="3.1.0" />
+		<PackageReference Include="WolverineFx" Version="3.3.0" />
 	</ItemGroup>
 
   <ItemGroup>
