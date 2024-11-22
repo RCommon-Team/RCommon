@@ -1,29 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "properties": {
-    "CI": {
-      "type": "boolean"
-    },
-    "Configuration": {
-      "type": "string",
-      "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)",
-      "enum": [
-        "Debug",
-        "Release"
-      ]
-    },
-    "NUGETAPIKEY": {
-      "type": "string",
-      "default": "Secrets must be entered via 'nuke :secrets [profile]'"
-    },
-    "NuGetApiUrl": {
-      "type": "string"
-    },
-    "Solution": {
-      "type": "string",
-      "description": "Path to a solution file that is automatically loaded"
-    }
-  },
   "definitions": {
     "Host": {
       "type": "string",
@@ -125,5 +101,35 @@
       }
     }
   },
-  "$ref": "#/definitions/NukeBuild"
+  "allOf": [
+    {
+      "properties": {
+        "CI": {
+          "type": "boolean"
+        },
+        "Configuration": {
+          "type": "string",
+          "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)",
+          "enum": [
+            "Debug",
+            "Release"
+          ]
+        },
+        "NUGETAPIKEY": {
+          "type": "string",
+          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
+        },
+        "NuGetApiUrl": {
+          "type": "string"
+        },
+        "Solution": {
+          "type": "string",
+          "description": "Path to a solution file that is automatically loaded"
+        }
+      }
+    },
+    {
+      "$ref": "#/definitions/NukeBuild"
+    }
+  ]
 }
