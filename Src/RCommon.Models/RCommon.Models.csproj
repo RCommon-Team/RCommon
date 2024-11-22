@@ -2,8 +2,4 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>net8.0;</TargetFrameworks>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
-  </ItemGroup></Project>
+  </PropertyGroup></Project>
