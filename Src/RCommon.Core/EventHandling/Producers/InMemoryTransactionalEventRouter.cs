@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,13 +18,13 @@ namespace RCommon.EventHandling.Producers
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<InMemoryTransactionalEventRouter> _logger;
-        private List<ISerializableEvent> _storedTransactionalEvents;
+        private ConcurrentQueue<ISerializableEvent> _storedTransactionalEvents;
 
         public InMemoryTransactionalEventRouter(IServiceProvider serviceProvider, ILogger<InMemoryTransactionalEventRouter> logger)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _storedTransactionalEvents = new List<ISerializableEvent>();
+            _storedTransactionalEvents = new ConcurrentQueue<ISerializableEvent>();
         }
 
         public async Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents)
@@ -39,23 +40,28 @@ namespace RCommon.EventHandling.Producers
                     // Seperate Async events from Sync Events
                     var syncEvents = transactionalEvents.Where(x => x is ISyncEvent);
                     var asyncEvents = transactionalEvents.Where(x => x is IAsyncEvent);
+                    var remainingEvents = transactionalEvents.Where(x => x is not IAsyncEvent && x is not ISyncEvent);
                     var eventProducers = _serviceProvider.GetServices<IEventProducer>();
 
-                    if (syncEvents.Any() && asyncEvents.Any())
+                    if (syncEvents.Any())
                     {
                         // Produce the Synchronized Events first
                         _logger.LogInformation($"{this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} synchronized transactional events.");
                         await this.ProduceSyncEvents(syncEvents, eventProducers).ConfigureAwait(false);
+                    }
 
+                    if (asyncEvents.Any())
+                    {
                         // Produce the Async Events
                         _logger.LogInformation($"{this.GetGenericTypeName()} is routing {asyncEvents.Count().ToString()} asynchronous transactional events.");
                         await this.ProduceAsyncEvents(asyncEvents, eventProducers).ConfigureAwait(false);
                     }
-                    else
+                    
+                    if (remainingEvents.Any()) // Could be ISerializable events left over that are not marked as ISyncEvent or IAsyncEvent
                     {
                         // Send as synchronized by default
-                        _logger.LogInformation($"No sync/async events found. {this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} as synchronized transactional events by default.");
-                        await this.ProduceSyncEvents(transactionalEvents, eventProducers).ConfigureAwait(false);
+                        _logger.LogInformation($"No sync/async events found. {this.GetGenericTypeName()} is routing {remainingEvents.Count().ToString()} serializable events as synchronized transactional events by default.");
+                        await this.ProduceSyncEvents(remainingEvents, eventProducers).ConfigureAwait(false);
                     }
 
                 }
@@ -100,16 +106,59 @@ namespace RCommon.EventHandling.Producers
             }
         }
 
+        /// <summary>
+        /// Routes all transactional events. This will loop until we have removed all the events from the concurrent queue. 
+        /// </summary>
+        /// <returns>Completed Task</returns>
+        /// <remarks>This should help us avoid race conditions e.g. a subscriber/event handler adds new events while we are processing the current list</remarks>
         public async Task RouteEventsAsync()
         {
-            await this.RouteEventsAsync(this._storedTransactionalEvents).ConfigureAwait(false);
-            this._storedTransactionalEvents.Clear();
+            
+            while (_storedTransactionalEvents.Any()) 
+            {
+                var currentEvents = new List<ISerializableEvent>();
+                _storedTransactionalEvents.ForEach(x => currentEvents.Add(x));
+                await this.RouteEventsAsync(currentEvents).ConfigureAwait(false);
+                RemoveEvents(currentEvents);
+            }
+        }
+
+        private void RemoveEvents(IEnumerable<ISerializableEvent> events)
+        {
+            foreach (var @event in events)
+            {
+                var item = @event;
+
+                for (int i = 1; i <= 4; i++) // Try 4 times
+                {
+                    if (!RemoveEvent(item))
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    if (i == 4)
+                    {
+                        throw new EventProductionException($"Could not Dequeue event {item}");
+                    }
+                }
+                
+            }
+        }
+
+        private bool RemoveEvent(ISerializableEvent @event)
+        {
+            bool success = _storedTransactionalEvents.TryDequeue(out @event);
+            return success;
         }
 
         public void AddTransactionalEvent(ISerializableEvent serializableEvent)
         {
             Guard.IsNotNull(serializableEvent, nameof(serializableEvent));
-            _storedTransactionalEvents.Add(serializableEvent);
+            _storedTransactionalEvents.Enqueue(serializableEvent);
         }
 
         public void AddTransactionalEvents(IEnumerable<ISerializableEvent> serializableEvents)
