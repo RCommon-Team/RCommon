@@ -17,12 +17,12 @@ namespace RCommon.Models
         where TOut : class
     {
 
-        protected PaginatedListModel(IOrderedQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
+        protected PaginatedListModel(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
         {
             PaginateQueryable(source, paginatedListRequest);
         }
 
-        protected void PaginateQueryable(IOrderedQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
+        protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
         {
             if (source == null)
             {
@@ -97,12 +97,12 @@ namespace RCommon.Models
         where TSource : class
     {
 
-        protected PaginatedListModel(IOrderedQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
+        protected PaginatedListModel(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
         {
             PaginateQueryable(source, paginatedListRequest);
         }
 
-        protected void PaginateQueryable(IOrderedQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
+        protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
         {
             if (source == null)
             {
