@@ -1,4 +1,5 @@
 ﻿using RCommon.EventHandling;
+using RCommon.Models.Events;
 using System.Collections.Generic;
 
 namespace RCommon.Entities

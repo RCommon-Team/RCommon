@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using RCommon.Models.Events;
 
 namespace RCommon.EventHandling.Producers
 {

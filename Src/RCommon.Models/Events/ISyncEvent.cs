@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RCommon.EventHandling
+namespace RCommon.Models.Events
 {
     public interface ISyncEvent : ISerializableEvent
     {

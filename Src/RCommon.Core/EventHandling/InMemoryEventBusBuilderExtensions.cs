@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.EventHandling.Subscribers;
+using RCommon.Models.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;

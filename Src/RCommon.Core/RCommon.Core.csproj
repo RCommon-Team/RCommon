@@ -12,4 +12,8 @@
 		<PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
+	</ItemGroup>
+
 </Project>

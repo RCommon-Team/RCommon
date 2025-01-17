@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
-using RCommon.EventHandling;
 using RCommon.EventHandling.Subscribers;
+using RCommon.Models.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
