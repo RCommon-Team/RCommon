@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using RCommon.Models.Events;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace RCommon.EventHandling.Producers

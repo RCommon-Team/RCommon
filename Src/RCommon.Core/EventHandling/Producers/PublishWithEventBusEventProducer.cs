@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using RCommon.Models.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;

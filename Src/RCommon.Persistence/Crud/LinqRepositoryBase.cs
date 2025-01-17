@@ -123,6 +123,8 @@ namespace RCommon.Persistence.Crud
 
         public abstract IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
+        public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending);
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
         public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
         public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);

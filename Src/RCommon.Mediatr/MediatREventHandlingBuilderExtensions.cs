@@ -1,12 +1,12 @@
 ﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using RCommon.EventHandling;
 using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator;
 using RCommon.Mediator.MediatR;
 using RCommon.Mediator.Subscribers;
 using RCommon.MediatR.Subscribers;
+using RCommon.Models.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;

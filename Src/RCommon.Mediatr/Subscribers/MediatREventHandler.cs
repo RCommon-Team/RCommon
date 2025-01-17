@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using RCommon.EventHandling;
+using RCommon.Models.Events;
 using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator.MediatR;
 using System;

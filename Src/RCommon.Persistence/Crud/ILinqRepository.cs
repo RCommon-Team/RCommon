@@ -21,6 +21,9 @@ namespace RCommon.Persistence.Crud
             bool orderByAscending, int pageNumber = 1, int pageSize = 0);
         IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification);
 
+        IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending);
+
         Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int pageNumber = 1, int pageSize = 0,
             CancellationToken token = default);

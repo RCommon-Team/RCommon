@@ -18,7 +18,7 @@ namespace RCommon.Models
         public virtual int PageNumber { get; set; }
 
         [DataMember]
-        public virtual int? PageSize { get; set; }
+        public virtual int PageSize { get; set; }
 
         [DataMember]
         public virtual string SortBy { get; set; }

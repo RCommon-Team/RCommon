@@ -12,6 +12,7 @@ using RCommon.EventHandling.Producers;
 using RCommon.EventHandling.Subscribers;
 using RCommon.MassTransit;
 using RCommon.MassTransit.Subscribers;
+using RCommon.Models.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;

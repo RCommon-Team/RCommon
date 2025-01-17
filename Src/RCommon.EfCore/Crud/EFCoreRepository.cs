@@ -243,6 +243,21 @@ namespace RCommon.Persistence.EFCore.Crud
             return query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
         }
 
+        public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending)
+        {
+            IQueryable<TEntity> query;
+            if (orderByAscending)
+            {
+                query = FindCore(expression).OrderBy(orderByExpression);
+            }
+            else
+            {
+                query = FindCore(expression).OrderByDescending(orderByExpression);
+            }
+            return query;
+        }
+
         public override IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification)
         {
             return this.FindQuery(specification.Predicate, specification.OrderByExpression, 

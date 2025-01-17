@@ -17,27 +17,12 @@ namespace RCommon.Models
         where TOut : class
     {
 
-        private Expression<Func<TSource, object>> _sortExpression = null;
-
-        protected PaginatedListModel(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false)
+        protected PaginatedListModel(IOrderedQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
         {
-            PaginateQueryable(source, paginatedListRequest, skipTotal);
+            PaginateQueryable(source, paginatedListRequest);
         }
 
-        private IQueryable<TSource> Sort(IQueryable<TSource> source)
-        {
-
-            if (this._sortExpression == null)
-            {
-                return source;
-            }
-
-            return SortDirection == SortDirectionEnum.Descending
-                ? source.OrderByDescending(this._sortExpression)
-                : source.OrderBy(this._sortExpression);
-        }
-
-        protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false, bool skipSort = false)
+        protected void PaginateQueryable(IOrderedQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
         {
             if (source == null)
             {
@@ -51,38 +36,23 @@ namespace RCommon.Models
 
             SortBy = paginatedListRequest.SortBy ?? "id";
             SortDirection = paginatedListRequest.SortDirection;
-
             PageSize = paginatedListRequest.PageSize;
             PageNumber = paginatedListRequest.PageNumber;
+            TotalCount = source.Count();
+            TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0);
 
-            if (!skipTotal)
-            {
-                TotalCount = source.Count();
-                TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0) ?? 1;
-            }
-
-            var query = skipSort ? source : Sort(source);
-
-            if (PageSize.HasValue)
-            {
-                query = query.Skip(PageSize.Value * (PageNumber - 1)).Take(PageSize.Value);
-            }
+            var query = source.Skip(PageSize * (PageNumber - 1)).Take(PageSize);
 
             Items = CastItems(query).ToList();
         }
 
         protected abstract IQueryable<TOut> CastItems(IQueryable<TSource> source);
 
-        public virtual Expression<Func<TSource, object>> GetSortExpression()
-        {
-            return _sortExpression;
-        }
-
         [DataMember]
         public List<TOut> Items { get; set; }
 
         [DataMember]
-        public int? PageSize { get; set; }
+        public int PageSize { get; set; }
 
         [DataMember]
         public int PageNumber { get; set; }
@@ -127,27 +97,12 @@ namespace RCommon.Models
         where TSource : class
     {
 
-        private Expression<Func<TSource, object>> _sortExpression = null;
-
-        protected PaginatedListModel(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false)
+        protected PaginatedListModel(IOrderedQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
         {
-            PaginateQueryable(source, paginatedListRequest, skipTotal);
+            PaginateQueryable(source, paginatedListRequest);
         }
 
-        private IQueryable<TSource> Sort(IQueryable<TSource> source)
-        {
-
-            if (this._sortExpression == null)
-            {
-                return source;
-            }
-
-            return SortDirection == SortDirectionEnum.Descending
-                ? source.OrderByDescending(this._sortExpression)
-                : source.OrderBy(this._sortExpression);
-        }
-
-        protected void PaginateQueryable(IQueryable<TSource> source, PaginatedListRequest paginatedListRequest, bool skipTotal = false, bool skipSort = false)
+        protected void PaginateQueryable(IOrderedQueryable<TSource> source, PaginatedListRequest paginatedListRequest)
         {
             if (source == null)
             {
@@ -161,36 +116,19 @@ namespace RCommon.Models
 
             SortBy = paginatedListRequest.SortBy ?? "id";
             SortDirection = paginatedListRequest.SortDirection;
-
             PageSize = paginatedListRequest.PageSize;
             PageNumber = paginatedListRequest.PageNumber;
+            TotalCount = source.Count();
+            TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0);
 
-            if (!skipTotal)
-            {
-                TotalCount = source.Count();
-                TotalPages = TotalCount / PageSize + (TotalCount % PageSize > 0 ? 1 : 0) ?? 1;
-            }
-
-            var query = skipSort ? source : Sort(source);
-
-            if (PageSize.HasValue)
-            {
-                query = query.Skip(PageSize.Value * (PageNumber - 1)).Take(PageSize.Value);
-            }
-
-            Items = query.ToList();
-        }
-
-        public virtual Expression<Func<TSource, object>> GetSortExpression()
-        {
-            return _sortExpression;
+            Items = source.Skip(PageSize * (PageNumber - 1)).Take(PageSize).ToList();
         }
 
         [DataMember]
         public List<TSource> Items { get; set; }
 
         [DataMember]
-        public int? PageSize { get; set; }
+        public int PageSize { get; set; }
 
         [DataMember]
         public int PageNumber { get; set; }

@@ -1,7 +1,7 @@
 ﻿using MediatR;
-using RCommon.EventHandling;
 using RCommon.Mediator;
 using RCommon.Mediator.Subscribers;
+using RCommon.Models.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;

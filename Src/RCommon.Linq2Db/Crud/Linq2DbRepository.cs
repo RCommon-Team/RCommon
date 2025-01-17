@@ -224,6 +224,21 @@ namespace RCommon.Persistence.Linq2Db.Crud
                  specification.OrderByAscending, specification.PageNumber, specification.PageSize);
         }
 
+        public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
+            bool orderByAscending)
+        {
+            IQueryable<TEntity> query;
+            if (orderByAscending)
+            {
+                query = FindCore(expression).OrderBy(orderByExpression);
+            }
+            else
+            {
+                query = FindCore(expression).OrderByDescending(orderByExpression);
+            }
+            return query;
+        }
+
         public async override Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await RepositoryQuery.SingleOrDefaultAsync(expression, token);

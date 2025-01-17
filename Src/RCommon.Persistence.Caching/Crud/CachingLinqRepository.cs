@@ -73,6 +73,11 @@ namespace RCommon.Persistence.Caching.Crud
             return _repository.FindQuery(expression, orderByExpression, orderByAscending, pageNumber, pageSize);
         }
 
+        public IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, bool orderByAscending)
+        {
+            return _repository.FindQuery(expression, orderByExpression, orderByAscending);
+        }
+
         public IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification)
         {
             return _repository.FindQuery(specification);

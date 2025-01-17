@@ -1,5 +1,4 @@
-﻿using RCommon.EventHandling;
-using RCommon.EventHandling.Producers;
+﻿using RCommon.EventHandling.Producers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +9,7 @@ using RCommon.MediatR.Subscribers;
 using RCommon.Mediator;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using RCommon.Models.Events;
 
 namespace RCommon.MediatR.Producers
 {
