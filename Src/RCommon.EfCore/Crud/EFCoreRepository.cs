@@ -141,6 +141,16 @@ namespace RCommon.Persistence.EFCore.Crud
             await SaveAsync();
         }
 
+        public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await this.DeleteManyAsync(specification.Predicate, token);
+        }
+
+        public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await this.FindQuery(expression).ExecuteDeleteAsync(token);
+        }
+
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
