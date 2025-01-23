@@ -18,6 +18,7 @@ using Dommel;
 using RCommon.Collections;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.Transactions;
+using static Dapper.SqlMapper;
 
 namespace RCommon.Persistence.Dapper.Crud
 {
@@ -93,6 +94,40 @@ namespace RCommon.Persistence.Dapper.Crud
                 }
 
             }
+        }
+
+        public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            await using (var db = DataStore.GetDbConnection())
+            {
+                try
+                {
+                    if (db.State == ConnectionState.Closed)
+                    {
+                        await db.OpenAsync();
+                    }
+
+                    return await db.DeleteMultipleAsync(expression, cancellationToken: token); 
+                }
+                catch (ApplicationException exception)
+                {
+                    Logger.LogError(exception, "Error in {0}.DeleteAsync while executing on the DbConnection.", GetType().FullName);
+                    throw;
+                }
+                finally
+                {
+                    if (db.State == ConnectionState.Open)
+                    {
+                        await db.CloseAsync();
+                    }
+                }
+
+            }
+        }
+
+        public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await DeleteManyAsync(specification.Predicate, token);
         }
 
 

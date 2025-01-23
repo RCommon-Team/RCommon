@@ -4,6 +4,7 @@ using RCommon.Persistence.Crud;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,6 +84,16 @@ namespace RCommon.Persistence.Caching.Crud
         public async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             await _repository.UpdateAsync(entity, token);
+        }
+
+        public async Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _repository.DeleteManyAsync(specification, token);
+        }
+
+        public async Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _repository.DeleteManyAsync(expression, token);
         }
 
         // Cached Items

@@ -149,6 +149,16 @@ namespace RCommon.Persistence.Caching.Crud
             return await _repository.FindAsync(expression, token);
         }
 
+        public async Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await _repository.DeleteManyAsync(specification, token);
+        }
+
+        public async Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await _repository.DeleteManyAsync(expression, token);
+        }
+
         // Cached items
 
         public async Task<IPaginatedList<TEntity>> FindAsync(object cacheKey, Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity,

@@ -52,7 +52,8 @@ namespace RCommon.Persistence.Crud
 
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
         public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
-      
+        public abstract Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+        public abstract Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
         public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);
         public abstract Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default);
         public abstract Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);

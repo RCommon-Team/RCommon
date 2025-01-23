@@ -139,6 +139,16 @@ namespace RCommon.Persistence.Linq2Db.Crud
             await DataConnection.DeleteAsync(entity);
         }
 
+        public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
+        {
+            return await FindQuery(expression).DeleteAsync(token);
+        }
+
+        public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
+        {
+            return await DeleteManyAsync(specification.Predicate, token);
+        }
+
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
             return FindCore(specification.Predicate);

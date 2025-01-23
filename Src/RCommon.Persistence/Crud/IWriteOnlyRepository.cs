@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,9 +27,25 @@ namespace RCommon.Persistence.Crud
         /// <param name="entity">An instance of <typeparamref name="TEntity"/> that should be
         /// updated in the database.</param>
         /// /// <param name="token">Cancellation Token</param>
-        /// <remarks>Implementors of this method must handle the Delete scneario. </remarks>
+        /// <remarks>Implementors of this method must handle the Delete scenario. </remarks>
         /// <returns>Task</returns>
         Task DeleteAsync(TEntity entity, CancellationToken token = default);
+
+        /// <summary>
+        /// Deletes entities matching the criteria of the specification
+        /// </summary>
+        /// <param name="specification">Query specification</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Count of entities affected</returns>
+        Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
+        /// <summary>
+        /// Deletes entities matching the criteria of the expression
+        /// </summary>
+        /// <param name="expression">Query expression</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Count of entities affected</returns>
+        Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
 
         /// <summary>
         /// Marks the changes of an existing entity to be updated in the store.
