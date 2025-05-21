@@ -135,7 +135,7 @@ class Build : NukeBuild
         {
             Log.Information("Generating NuGet packages for projects in solution");
             int commitNum = 0;
-            string NuGetVersionCustom = "2.1.2.3";
+            string NuGetVersionCustom = "2.1.2.4";
 
 
             //if it's not a tagged release - append the commit number to the package version
