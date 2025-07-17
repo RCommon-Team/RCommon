@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
@@ -33,6 +35,9 @@ jobs:
       - name: Get MinVer version
         id: minver
         run: echo "version=$(minver)" >> $GITHUB_OUTPUT
+
+      - name: Show MinVer version
+        run: echo "MinVer version is ${{ steps.minver.outputs.version }}"
 
       - name: Pack NuGet packages with MinVer versioning
         run: |
