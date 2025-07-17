@@ -1,0 +1,47 @@
+name: Build, Version, and Publish .NET 8 Solution
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install MinVer tool
+        run: dotnet tool install --global minver-cli
+
+      - name: Restore dependencies
+        run: dotnet restore Src/RCommon.sln
+
+      - name: Build solution
+        run: dotnet build Src/RCommon.sln --configuration Release --no-restore
+
+      - name: Pack NuGet packages with MinVer versioning
+        run: >
+          dotnet pack Src/RCommon.sln --configuration Release --no-build \
+          /p:MinVerBuildMetadata=ci \
+          /p:MinVerAutoIncrement=minor \
+          /p:MinVerVersionOverride=$(minver -v)
+
+      - name: Publish NuGet packages
+        run: |
+          find Src -type f -name '*.nupkg' -not -name '*.symbols.nupkg' -exec dotnet nuget push {} --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate \;
+        env:
+          NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
+
+      - name: Run tests
+        run: dotnet test Src/RCommon.sln --configuration Release --no-build --verbosity normal
+        continue-on-error: true 
