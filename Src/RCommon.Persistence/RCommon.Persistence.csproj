@@ -2,6 +2,17 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>net8.0;</TargetFrameworks>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <Title>RCommon.Persistence</Title>
+	  <PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
+	  <PackageTags>RCommon; Persistence Abstractions; ORM; Unit of Work; SQL Strategy; ORM Strategy; CRUD;</PackageTags>
+	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Description>A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more</Description>
+	  <RepositoryUrl>https://github.com/RCommon-Team/RCommon</RepositoryUrl>
+	  <Company>RCommon</Company>
+	  <Authors>Jason Webb</Authors>
+	  <PackageIcon>RCommon-Icon.jpg</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,5 +24,12 @@
     <Folder Include="EventSourcing\" />
     <Folder Include="Projections\" />
   </ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\RCommon-Icon.jpg">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>
