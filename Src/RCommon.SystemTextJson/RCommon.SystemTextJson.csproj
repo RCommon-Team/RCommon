@@ -13,6 +13,7 @@
 		<Company>RCommon</Company>
 		<Authors>Jason Webb</Authors>
 		<PackageIcon>RCommon-Icon.jpg</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +29,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Json\RCommon.Json.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </Content>
   </ItemGroup>
 
 </Project>

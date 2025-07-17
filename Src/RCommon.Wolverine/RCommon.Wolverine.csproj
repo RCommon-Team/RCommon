@@ -13,6 +13,7 @@
 	  <Company>RCommon</Company>
 	  <Authors>Jason Webb</Authors>
 	  <PackageIcon>RCommon-Icon.jpg</PackageIcon>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -35,6 +36,13 @@
   <ItemGroup>
     <Folder Include="EventSourcing\" />
     <Folder Include="Projections\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </Content>
   </ItemGroup>
 
 </Project>

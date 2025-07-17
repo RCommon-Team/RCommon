@@ -13,6 +13,7 @@
 	  <Company>RCommon</Company>
 	  <Authors>Jason Webb</Authors>
 	  <PackageIcon>RCommon-Icon.jpg</PackageIcon>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -25,6 +26,13 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</Content>
 	</ItemGroup>
 
 </Project>
