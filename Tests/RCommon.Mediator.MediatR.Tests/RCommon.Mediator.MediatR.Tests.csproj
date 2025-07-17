@@ -11,9 +11,9 @@
   <ItemGroup>
 	  <PackageReference Include="Bogus" Version="35.6.3" />
 	  <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.16" />
-	  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
-	  <PackageReference Include="MSTest.TestAdapter" Version="3.9.0" />
-	  <PackageReference Include="MSTest.TestFramework" Version="3.9.0" />
+	  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+	  <PackageReference Include="MSTest.TestAdapter" Version="3.9.3" />
+	  <PackageReference Include="MSTest.TestFramework" Version="3.9.3" />
 	  <PackageReference Include="coverlet.collector" Version="6.0.4">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Src\RCommon.Mediatr\RCommon.MediatR.csproj" />
-    <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
   </ItemGroup>
 
 </Project>
