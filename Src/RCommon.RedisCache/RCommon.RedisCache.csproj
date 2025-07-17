@@ -2,6 +2,17 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;</TargetFrameworks>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>RCommon.RedisCache</Title>
+		<PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
+		<PackageTags>RCommon; RedisCache; StackExchangeRedis; Caching; Distributed Cache</PackageTags>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<Description>A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more</Description>
+		<RepositoryUrl>https://github.com/RCommon-Team/RCommon</RepositoryUrl>
+		<Company>RCommon</Company>
+		<Authors>Jason Webb</Authors>
+		<PackageIcon>RCommon-Icon.jpg</PackageIcon>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +23,12 @@
     <ProjectReference Include="..\RCommon.Caching\RCommon.Caching.csproj" />
     <ProjectReference Include="..\RCommon.Json\RCommon.Json.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\RCommon-Icon.jpg">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>

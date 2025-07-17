@@ -6,7 +6,14 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>RCommon.Core</Title>
     <PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
-    <PackageTags>RCommon; emailing; email; abstractions; smtp;</PackageTags>
+    <PackageTags>RCommon; Core Utilities; Factory Patterns; Bootstapper;</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Description>A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more</Description>
+    <RepositoryUrl>https://github.com/RCommon-Team/RCommon</RepositoryUrl>
+    <Company>RCommon</Company>
+    <Authors>Jason Webb</Authors>
+    <PackageIcon>RCommon-Icon.jpg</PackageIcon>
   </PropertyGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
@@ -17,7 +24,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
+	  <None Include="..\..\RCommon-Icon.jpg">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
+	</ItemGroup>
 </Project>
