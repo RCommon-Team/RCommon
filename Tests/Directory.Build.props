@@ -1,0 +1,10 @@
+<Project>
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="4.5.0" PrivateAssets="all" />
+  </ItemGroup>
+  <PropertyGroup>
+    <MinVerGenerateAssemblyVersion>true</MinVerGenerateAssemblyVersion>
+    <MinVerGenerateFileVersion>true</MinVerGenerateFileVersion>
+    <MinVerGenerateInformationalVersion>true</MinVerGenerateInformationalVersion>
+  </PropertyGroup>
+</Project> 

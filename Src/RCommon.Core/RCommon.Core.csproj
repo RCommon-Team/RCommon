@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;</TargetFrameworks>
     <RootNamespace>$(MSBuildProjectName.Replace(" ", "_").Replace(".Core", ""))</RootNamespace>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>RCommon.Core</Title>
+    <PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
+    <PackageTags>RCommon; emailing; email; abstractions; smtp;</PackageTags>
   </PropertyGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
