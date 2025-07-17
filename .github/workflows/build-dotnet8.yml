@@ -35,11 +35,11 @@ jobs:
         run: echo "version=$(minver)" >> $GITHUB_OUTPUT
 
       - name: Pack NuGet packages with MinVer versioning
-        run: >
+        run: |
           dotnet pack Src/RCommon.sln --configuration Release --no-build \
-          /p:MinVerBuildMetadata=ci \
-          /p:MinVerAutoIncrement=minor \
-          /p:MinVerVersionOverride=${{ steps.minver.outputs.version }}
+            /p:MinVerBuildMetadata=ci \
+            /p:MinVerAutoIncrement=minor \
+            /p:MinVerVersionOverride=${{ steps.minver.outputs.version }}
 
       - name: Publish NuGet packages
         run: |
