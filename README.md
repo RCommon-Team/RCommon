@@ -38,4 +38,4 @@ We track bugs, enhancement requests, new feature requests, and general issues on
 We are maintaining and publishing our documentation at [https://docs.rcommon.com](https://docs.rcommon.com)
 
 ## Stats
-![Alt](https://repobeats.axiom.co/api/embed/15855081ce579ae0ea03577b9b5a6c2ae882fb7f.svg "Repobeats analytics image")
+![Alt](https://repobeats.axiom.co/api/embed/79bab6079995bd0d448b0f69686e7c2c99a15224.svg "Repobeats analytics image")
