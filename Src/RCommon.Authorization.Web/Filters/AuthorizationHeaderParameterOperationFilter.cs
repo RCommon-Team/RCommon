@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.Swagger; // Add this if needed for OperationFilterContext
+using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace RCommon.Authorization.Web.Filters
             if (isAuthorized && !allowAnonymous)
             {
                 if (operation.Parameters == null)
+                    
                     operation.Parameters = new List<OpenApiParameter>();
 
 

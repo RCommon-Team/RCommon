@@ -1,27 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net8.0;</TargetFrameworks>
+	  <TargetFrameworks>net9.0</TargetFrameworks>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Bogus" Version="35.6.3" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
-		<PackageReference Include="MSTest.TestAdapter" Version="3.9.0" />
-		<PackageReference Include="MSTest.TestFramework" Version="3.9.0" />
+		<PackageReference Include="Bogus" Version="35.6.4" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+		<PackageReference Include="MSTest.TestAdapter" Version="4.0.1" />
+		<PackageReference Include="MSTest.TestFramework" Version="4.0.1" />
 		<PackageReference Include="coverlet.collector" Version="6.0.4">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="NUnit" Version="4.3.2" />
+		<PackageReference Include="NUnit" Version="4.4.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
 	  <ProjectReference Include="..\RCommon.TestBase\RCommon.TestBase.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="MinVer" Version="6.0.0" />
 	</ItemGroup>
 
 </Project>

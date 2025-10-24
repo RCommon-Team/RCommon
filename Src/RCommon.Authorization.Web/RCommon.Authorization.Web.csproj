@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net8.0;</TargetFrameworks>
+	  <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <Title>RCommon.Authorization.Web</Title>
 	  <PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
@@ -16,9 +16,13 @@
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="8.1.1" />
-  </ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="8.1.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.6" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Include="..\..\RCommon-Icon.jpg">

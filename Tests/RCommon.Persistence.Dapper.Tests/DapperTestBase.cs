@@ -1,5 +1,4 @@
 ﻿
-using Dapper.FluentMap.Dommel;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +19,6 @@ using RCommon.TestBase;
 using RCommon.TestBase.Data;
 using RCommon.Persistence.Dapper;
 using RCommon.Persistence.EFCore;
-using RCommon.Persistence.Dapper.Tests.Configurations;
 using RCommon.Persistence.Transactions;
 
 namespace RCommon.Persistence.Dapper.Tests
@@ -54,13 +52,7 @@ namespace RCommon.Persistence.Dapper.Tests
                         db.DbFactory = SqlClientFactory.Instance;
                         db.ConnectionString = this.Configuration.GetConnectionString("TestDbConnection");
                     });
-                    dapper.AddFluentMappings(mappings =>
-                    {
-                        mappings.AddMap(new CustomerMap());
-                        mappings.AddMap(new SalesPersonMap());
-                        mappings.AddMap(new OrderMap());
-                        mappings.ForDommel();
-                    });
+                    
                     dapper.SetDefaultDataStore(dataStore =>
                     {
                         dataStore.DefaultDataStoreName = "TestDbConnection";
