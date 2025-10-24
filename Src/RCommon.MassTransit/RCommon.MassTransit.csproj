@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net8.0;</TargetFrameworks>
+	  <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <Title>RCommon.MassTransit</Title>
 	  <PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="8.4.1" />
+    <PackageReference Include="MassTransit" Version="8.5.5" />
   </ItemGroup>
 
   <ItemGroup>
