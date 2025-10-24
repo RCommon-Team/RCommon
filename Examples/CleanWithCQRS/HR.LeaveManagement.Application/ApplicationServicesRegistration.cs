@@ -11,7 +11,7 @@ namespace HR.LeaveManagement.Application
     {
         public static IServiceCollection ConfigureApplicationServices(this IServiceCollection services)
         {
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            services.AddAutoMapper(x => x.AddProfile(new MappingProfile()));
 
             return services;
         }

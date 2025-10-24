@@ -30,7 +30,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Queries
             var mapperConfig = new MapperConfiguration(c => 
             {
                 c.AddProfile<MappingProfile>();
-            });
+            }, null);
 
             _mapper = mapperConfig.CreateMapper();
         }

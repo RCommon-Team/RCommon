@@ -37,7 +37,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
             var mapperConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<MappingProfile>();
-            });
+            }, null);
 
             _mapper = mapperConfig.CreateMapper();
 

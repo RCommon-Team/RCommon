@@ -4,6 +4,8 @@ using HR.LeaveManagement.MVC.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Reflection;
 using HR.LeaveManagement.MVC.Middleware;
+using Microsoft.Extensions.DependencyInjection;
+using HR.LeaveManagement.MVC;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +26,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddTransient<IAuthenticationService, AuthenticationService>();
 
 builder.Services.AddHttpClient<IClient, Client>(cl => cl.BaseAddress = new Uri("https://localhost:7273"));
-builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+builder.Services.AddAutoMapper(x => x.AddProfile(new MappingProfile()));
 
 builder.Services.AddScoped<ILeaveTypeService, LeaveTypeService>();
 builder.Services.AddScoped<ILeaveAllocationService, LeaveAllocationService>();
