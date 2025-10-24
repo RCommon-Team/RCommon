@@ -1,4 +1,4 @@
-name: Build, Version, and Publish .NET 8 Solution
+name: Build, Version, and Publish .NET 8/9 Solution
 
 on:
   push:
@@ -22,6 +22,20 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      - name: Install MinVer tool
+        run: dotnet tool install --global minver-cli
+
+      - name: Restore dependencies
+        run: dotnet restore Src/RCommon.sln
+
+      - name: Build solution
+        run: dotnet build Src/RCommon.sln --configuration Release --no-restore
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
 
       - name: Install MinVer tool
         run: dotnet tool install --global minver-cli
