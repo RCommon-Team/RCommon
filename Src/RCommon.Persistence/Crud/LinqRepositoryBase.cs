@@ -126,6 +126,7 @@ namespace RCommon.Persistence.Crud
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending);
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
+        public abstract Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default);
         public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
         public abstract Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
         public abstract Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default);

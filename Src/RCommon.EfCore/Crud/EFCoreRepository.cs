@@ -317,6 +317,24 @@ namespace RCommon.Persistence.EFCore.Crud
 
             return affected;
         }
+        /// <summary>
+        /// Adds a range of transient entities to be tracked and persisted by the repository.
+        /// </summary>
+        /// <param name="entities">Collection of entities to persist.</param>
+        /// <param name="token">Cancellation token.</param>
+        public override async Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default)
+        {
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
+
+            // track each entity prior to adding
+            foreach (var entity in entities)
+            {
+                EventTracker.AddEntity(entity);
+            }
+
+            await ObjectSet.AddRangeAsync(entities, token);
+            await SaveAsync(token);
+        }
     }
 }
 

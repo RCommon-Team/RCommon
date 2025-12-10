@@ -111,5 +111,15 @@ namespace RCommon.Persistence.Caching.Crud
                 async () => await _repository.FindAsync(expression, token));
             return await data;
         }
+        /// <summary>
+        /// Adds a range of entities by delegating to the underlying repository.
+        /// </summary>
+        /// <param name="entities">Collection of entities to persist.</param>
+        /// <param name="token">Cancellation token.</param>
+        public async Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default)
+        {
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
+            await _repository.AddRangeAsync(entities, token);
+        }
     }
 }
