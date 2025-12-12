@@ -22,6 +22,15 @@ namespace RCommon.Persistence.Crud
         Task AddAsync(TEntity entity, CancellationToken token = default);
 
         /// <summary>
+        /// Adds multiple transient instances of <paramref name="entities"/> to be tracked
+        /// and persisted by the repository.
+        /// </summary>
+        /// <param name="entities">A collection of <typeparamref name="TEntity"/> instances to be persisted.</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Task</returns>
+        Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default);
+
+        /// <summary>
         /// Marks the changes of an existing entity to be deleted from the store.
         /// </summary>
         /// <param name="entity">An instance of <typeparamref name="TEntity"/> that should be

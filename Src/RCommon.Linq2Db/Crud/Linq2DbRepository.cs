@@ -274,5 +274,24 @@ namespace RCommon.Persistence.Linq2Db.Crud
             EventTracker.AddEntity(entity);
             await DataConnection.UpdateAsync(entity, token: token);
         }
+
+        /// <summary>
+        /// Adds a range of transient entities to be persisted using Linq2Db. 
+        /// Loops through the records and inserts them one by one.
+        /// </summary>
+        /// <param name="entities">Collection of entities to persist.</param>
+        /// <param name="token">Cancellation token.</param>
+        public override async Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default)
+        {
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
+
+            // Iterate through each entity, track it and insert asynchronously.
+            foreach (var entity in entities)
+            {
+                EventTracker.AddEntity(entity);
+                await DataConnection.InsertAsync(entity, token: token);
+            }
+        }
+
     }
 }

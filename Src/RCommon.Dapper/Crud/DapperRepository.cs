@@ -344,6 +344,43 @@ namespace RCommon.Persistence.Dapper.Crud
             return await AnyAsync(specification.Predicate, token);
         }
 
+        /// <summary>
+        /// Adds a range of transient entities to be persisted using Dapper.
+        /// </summary>
+        /// <param name="entities">Collection of entities to persist.</param>
+        /// <param name="token">Cancellation token.</param>
+        public override async Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default)
+        {
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
 
+            await using (var db = DataStore.GetDbConnection())
+            {
+                try
+                {
+                    if (db.State == ConnectionState.Closed)
+                    {
+                        await db.OpenAsync();
+                    }
+
+                    foreach (var entity in entities)
+                    {
+                        EventTracker.AddEntity(entity);
+                        await db.InsertAsync(entity, cancellationToken: token);
+                    }
+                }
+                catch (ApplicationException exception)
+                {
+                    Logger.LogError(exception, "Error in {0}.AddRangeAsync while executing on the DbConnection.", GetType().FullName);
+                    throw;
+                }
+                finally
+                {
+                    if (db.State == ConnectionState.Open)
+                    {
+                        await db.CloseAsync();
+                    }
+                }
+            }
+        }
     }
 }
