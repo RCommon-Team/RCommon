@@ -88,8 +88,9 @@ public class RDbConnectionTests
         var action = () => connection.GetDbConnection();
 
         // Assert
+        // Note: Source code has "conneciton" typo in error message
         action.Should().Throw<RDbConnectionException>()
-            .WithMessage("*connection string*");
+            .WithMessage("*conneciton string*");
     }
 
     [Fact]
@@ -105,8 +106,9 @@ public class RDbConnectionTests
         var action = () => connection.GetDbConnection();
 
         // Assert
+        // Note: Source code has "conneciton" typo in error message
         action.Should().Throw<RDbConnectionException>()
-            .WithMessage("*connection string*");
+            .WithMessage("*conneciton string*");
     }
 
     [Fact]

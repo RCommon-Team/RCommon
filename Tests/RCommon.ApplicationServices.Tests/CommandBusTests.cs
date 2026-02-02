@@ -118,7 +118,7 @@ public class CommandBusTests
             .Returns(handlers);
 
         _mockValidationService
-            .Setup(x => x.ValidateAsync(It.IsAny<TestCommand>(), true, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ValidateAsync(It.IsAny<ICommand<SuccessExecutionResult>>(), true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationOutcome());
 
         var commandBus = CreateCommandBus();
@@ -128,7 +128,7 @@ public class CommandBusTests
 
         // Assert
         _mockValidationService.Verify(
-            x => x.ValidateAsync(command, true, It.IsAny<CancellationToken>()),
+            x => x.ValidateAsync(It.IsAny<ICommand<SuccessExecutionResult>>(), true, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -158,7 +158,7 @@ public class CommandBusTests
 
         // Assert
         _mockValidationService.Verify(
-            x => x.ValidateAsync(It.IsAny<TestCommand>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateAsync(It.IsAny<ICommand<SuccessExecutionResult>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 

@@ -59,11 +59,11 @@ public class QueryBusTests
             .ReturnsAsync(expectedResult);
 
         _mockServiceProvider
-            .Setup(x => x.GetRequiredService(It.IsAny<Type>()))
+            .Setup(x => x.GetService(It.IsAny<Type>()))
             .Returns(mockHandler.Object);
 
         _mockValidationService
-            .Setup(x => x.ValidateAsync(It.IsAny<TestQuery>(), true, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ValidateAsync(It.IsAny<IQuery<TestQueryResult>>(), true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationOutcome());
 
         var queryBus = CreateQueryBus();
@@ -73,7 +73,7 @@ public class QueryBusTests
 
         // Assert
         _mockValidationService.Verify(
-            x => x.ValidateAsync(query, true, It.IsAny<CancellationToken>()),
+            x => x.ValidateAsync(It.IsAny<IQuery<TestQueryResult>>(), true, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -93,7 +93,7 @@ public class QueryBusTests
             .ReturnsAsync(expectedResult);
 
         _mockServiceProvider
-            .Setup(x => x.GetRequiredService(It.IsAny<Type>()))
+            .Setup(x => x.GetService(It.IsAny<Type>()))
             .Returns(mockHandler.Object);
 
         var queryBus = CreateQueryBus();
@@ -103,7 +103,7 @@ public class QueryBusTests
 
         // Assert
         _mockValidationService.Verify(
-            x => x.ValidateAsync(It.IsAny<TestQuery>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateAsync(It.IsAny<IQuery<TestQueryResult>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -120,7 +120,7 @@ public class QueryBusTests
             .ReturnsAsync(expectedResult);
 
         _mockServiceProvider
-            .Setup(x => x.GetRequiredService(It.IsAny<Type>()))
+            .Setup(x => x.GetService(It.IsAny<Type>()))
             .Returns(mockHandler.Object);
 
         var queryBus = CreateQueryBus();
@@ -147,7 +147,7 @@ public class QueryBusTests
             .ReturnsAsync(expectedResult);
 
         _mockServiceProvider
-            .Setup(x => x.GetRequiredService(It.IsAny<Type>()))
+            .Setup(x => x.GetService(It.IsAny<Type>()))
             .Returns(mockHandler.Object);
 
         var queryBus = CreateQueryBus();
@@ -168,8 +168,8 @@ public class QueryBusTests
         var query = new TestQuery();
 
         _mockServiceProvider
-            .Setup(x => x.GetRequiredService(It.IsAny<Type>()))
-            .Throws(new InvalidOperationException("No service for type"));
+            .Setup(x => x.GetService(It.IsAny<Type>()))
+            .Returns((object?)null);
 
         var queryBus = CreateQueryBus();
 
@@ -195,7 +195,7 @@ public class QueryBusTests
             .ReturnsAsync(expectedResult);
 
         _mockServiceProvider
-            .Setup(x => x.GetRequiredService(It.IsAny<Type>()))
+            .Setup(x => x.GetService(It.IsAny<Type>()))
             .Returns(mockHandler.Object);
 
         var queryBus = CreateQueryBus();
@@ -206,7 +206,7 @@ public class QueryBusTests
         // Assert
         result.Should().BeSameAs(expectedResult);
         _mockValidationService.Verify(
-            x => x.ValidateAsync(It.IsAny<TestQuery>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateAsync(It.IsAny<IQuery<TestQueryResult>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }

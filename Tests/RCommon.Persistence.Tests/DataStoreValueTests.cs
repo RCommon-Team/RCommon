@@ -12,7 +12,7 @@ public class DataStoreValueTests
     {
         // Arrange
         var name = "TestDataStore";
-        var baseType = typeof(IDataStoreValueTestBase);
+        var baseType = typeof(DataStoreValueTestBase);
         var concreteType = typeof(DataStoreValueTestConcrete);
 
         // Act
@@ -30,7 +30,7 @@ public class DataStoreValueTests
     {
         // Arrange
         var name = "TestDataStore";
-        var baseType = typeof(IDataStoreValueTestBase);
+        var baseType = typeof(DataStoreValueTestBase);
         var concreteType = typeof(UnrelatedDataStore);
 
         // Act
@@ -46,7 +46,7 @@ public class DataStoreValueTests
     {
         // Arrange
         var expectedName = "MyDataStore";
-        var value = new DataStoreValue(expectedName, typeof(IDataStoreValueTestBase), typeof(DataStoreValueTestConcrete));
+        var value = new DataStoreValue(expectedName, typeof(DataStoreValueTestBase), typeof(DataStoreValueTestConcrete));
 
         // Act
         var actualName = value.Name;
@@ -59,7 +59,7 @@ public class DataStoreValueTests
     public void BaseType_ReturnsCorrectType()
     {
         // Arrange
-        var expectedBaseType = typeof(IDataStoreValueTestBase);
+        var expectedBaseType = typeof(DataStoreValueTestBase);
         var value = new DataStoreValue("TestStore", expectedBaseType, typeof(DataStoreValueTestConcrete));
 
         // Act
@@ -74,7 +74,7 @@ public class DataStoreValueTests
     {
         // Arrange
         var expectedConcreteType = typeof(DataStoreValueTestConcrete);
-        var value = new DataStoreValue("TestStore", typeof(IDataStoreValueTestBase), expectedConcreteType);
+        var value = new DataStoreValue("TestStore", typeof(DataStoreValueTestBase), expectedConcreteType);
 
         // Act
         var actualConcreteType = value.ConcreteType;
@@ -92,7 +92,7 @@ public class DataStoreValueTests
     public void Constructor_WithVariousNames_AcceptsAllNames(string name)
     {
         // Arrange & Act
-        var value = new DataStoreValue(name, typeof(IDataStoreValueTestBase), typeof(DataStoreValueTestConcrete));
+        var value = new DataStoreValue(name, typeof(DataStoreValueTestBase), typeof(DataStoreValueTestConcrete));
 
         // Assert
         value.Name.Should().Be(name);
@@ -102,7 +102,7 @@ public class DataStoreValueTests
     public void Constructor_WithNullName_AcceptsNull()
     {
         // Arrange & Act
-        var value = new DataStoreValue(null!, typeof(IDataStoreValueTestBase), typeof(DataStoreValueTestConcrete));
+        var value = new DataStoreValue(null!, typeof(DataStoreValueTestBase), typeof(DataStoreValueTestConcrete));
 
         // Assert
         value.Name.Should().BeNull();
@@ -112,7 +112,7 @@ public class DataStoreValueTests
     public void Properties_AreReadOnly()
     {
         // Arrange
-        var value = new DataStoreValue("Test", typeof(IDataStoreValueTestBase), typeof(DataStoreValueTestConcrete));
+        var value = new DataStoreValue("Test", typeof(DataStoreValueTestBase), typeof(DataStoreValueTestConcrete));
 
         // Assert - Verify properties are get-only (compile-time check)
         // If the code compiles, this test passes as the properties are defined as get-only
@@ -122,15 +122,18 @@ public class DataStoreValueTests
     }
 }
 
-// Test helper interfaces and classes
-public interface IDataStoreValueTestBase : IDataStore
+// Test helper classes - must use class inheritance (not interfaces)
+// because DataStoreValue checks concreteType.BaseType == baseType
+public abstract class DataStoreValueTestBase : IDataStore
 {
+    public virtual DbConnection GetDbConnection() => null!;
+    public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
-public class DataStoreValueTestConcrete : IDataStoreValueTestBase
+public class DataStoreValueTestConcrete : DataStoreValueTestBase
 {
-    public DbConnection GetDbConnection() => null!;
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public override DbConnection GetDbConnection() => null!;
+    public override ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
 public class UnrelatedDataStore : IDataStore

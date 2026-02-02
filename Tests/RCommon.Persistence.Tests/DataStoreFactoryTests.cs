@@ -40,7 +40,7 @@ public class DataStoreFactoryTests
         var dataStoreName = "TestDataStore";
         var mockDataStore = new Mock<TestDataStore>();
 
-        _options.Register<ITestDataStore, TestDataStore>(dataStoreName);
+        _options.Register<TestDataStoreBase, TestDataStore>(dataStoreName);
         _mockServiceProvider
             .Setup(x => x.GetService(typeof(TestDataStore)))
             .Returns(mockDataStore.Object);
@@ -48,11 +48,11 @@ public class DataStoreFactoryTests
         var factory = new DataStoreFactory(_mockServiceProvider.Object, _mockOptions.Object);
 
         // Act
-        var result = factory.Resolve<ITestDataStore>(dataStoreName);
+        var result = factory.Resolve<TestDataStoreBase>(dataStoreName);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().BeAssignableTo<ITestDataStore>();
+        result.Should().BeAssignableTo<TestDataStoreBase>();
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class DataStoreFactoryTests
         var factory = new DataStoreFactory(_mockServiceProvider.Object, _mockOptions.Object);
 
         // Act
-        var action = () => factory.Resolve<ITestDataStore>("NonExistentDataStore");
+        var action = () => factory.Resolve<TestDataStoreBase>("NonExistentDataStore");
 
         // Assert
         action.Should().Throw<DataStoreNotFoundException>()
@@ -74,12 +74,12 @@ public class DataStoreFactoryTests
     {
         // Arrange
         var dataStoreName = "TestDataStore";
-        _options.Register<ITestDataStore, TestDataStore>(dataStoreName);
+        _options.Register<TestDataStoreBase, TestDataStore>(dataStoreName);
 
         var factory = new DataStoreFactory(_mockServiceProvider.Object, _mockOptions.Object);
 
         // Act
-        var action = () => factory.Resolve<IAnotherDataStore>(dataStoreName);
+        var action = () => factory.Resolve<AnotherDataStoreBase>(dataStoreName);
 
         // Assert
         action.Should().Throw<DataStoreNotFoundException>();
@@ -94,7 +94,7 @@ public class DataStoreFactoryTests
         // Arrange
         var mockDataStore = new Mock<TestDataStore>();
 
-        _options.Register<ITestDataStore, TestDataStore>(dataStoreName);
+        _options.Register<TestDataStoreBase, TestDataStore>(dataStoreName);
         _mockServiceProvider
             .Setup(x => x.GetService(typeof(TestDataStore)))
             .Returns(mockDataStore.Object);
@@ -102,7 +102,7 @@ public class DataStoreFactoryTests
         var factory = new DataStoreFactory(_mockServiceProvider.Object, _mockOptions.Object);
 
         // Act
-        var result = factory.Resolve<ITestDataStore>(dataStoreName);
+        var result = factory.Resolve<TestDataStoreBase>(dataStoreName);
 
         // Assert
         result.Should().NotBeNull();
@@ -118,8 +118,8 @@ public class DataStoreFactoryTests
         var mockDataStore1 = new Mock<TestDataStore>();
         var mockDataStore2 = new Mock<TestDataStore>();
 
-        _options.Register<ITestDataStore, TestDataStore>(dataStore1Name);
-        _options.Register<ITestDataStore, TestDataStore>(dataStore2Name);
+        _options.Register<TestDataStoreBase, TestDataStore>(dataStore1Name);
+        _options.Register<TestDataStoreBase, TestDataStore>(dataStore2Name);
 
         _mockServiceProvider
             .Setup(x => x.GetService(typeof(TestDataStore)))
@@ -128,7 +128,7 @@ public class DataStoreFactoryTests
         var factory = new DataStoreFactory(_mockServiceProvider.Object, _mockOptions.Object);
 
         // Act
-        var result = factory.Resolve<ITestDataStore>(dataStore1Name);
+        var result = factory.Resolve<TestDataStoreBase>(dataStore1Name);
 
         // Assert
         result.Should().NotBeNull();
@@ -136,23 +136,28 @@ public class DataStoreFactoryTests
     }
 }
 
-// Test helper interfaces and classes
-public interface ITestDataStore : IDataStore
+// Test helper classes - must use class inheritance (not interfaces)
+// because DataStoreValue checks concreteType.BaseType == baseType
+public abstract class TestDataStoreBase : IDataStore
 {
+    public virtual DbConnection GetDbConnection() => null!;
+    public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
-public class TestDataStore : ITestDataStore
+public class TestDataStore : TestDataStoreBase
 {
-    public DbConnection GetDbConnection() => null!;
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public override DbConnection GetDbConnection() => null!;
+    public override ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
-public interface IAnotherDataStore : IDataStore
+public abstract class AnotherDataStoreBase : IDataStore
 {
+    public virtual DbConnection GetDbConnection() => null!;
+    public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
-public class AnotherDataStore : IAnotherDataStore
+public class AnotherDataStore : AnotherDataStoreBase
 {
-    public DbConnection GetDbConnection() => null!;
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public override DbConnection GetDbConnection() => null!;
+    public override ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

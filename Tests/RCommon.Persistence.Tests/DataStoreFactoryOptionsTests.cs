@@ -26,13 +26,13 @@ public class DataStoreFactoryOptionsTests
         var dataStoreName = "TestDataStore";
 
         // Act
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>(dataStoreName);
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>(dataStoreName);
 
         // Assert
         options.Values.Should().HaveCount(1);
         options.Values.Should().Contain(x =>
             x.Name == dataStoreName &&
-            x.BaseType == typeof(ITestDataStoreForOptions) &&
+            x.BaseType == typeof(TestDataStoreForOptionsBase) &&
             x.ConcreteType == typeof(TestDataStoreForOptions));
     }
 
@@ -42,10 +42,10 @@ public class DataStoreFactoryOptionsTests
         // Arrange
         var options = new DataStoreFactoryOptions();
         var dataStoreName = "TestDataStore";
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>(dataStoreName);
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>(dataStoreName);
 
         // Act
-        var action = () => options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>(dataStoreName);
+        var action = () => options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>(dataStoreName);
 
         // Assert
         action.Should().Throw<UnsupportedDataStoreException>()
@@ -58,10 +58,10 @@ public class DataStoreFactoryOptionsTests
         // Arrange
         var options = new DataStoreFactoryOptions();
         var dataStoreName = "TestDataStore";
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>(dataStoreName);
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>(dataStoreName);
 
         // Act
-        options.Register<IAnotherDataStoreForOptions, AnotherDataStoreForOptions>(dataStoreName);
+        options.Register<AnotherDataStoreForOptionsBase, AnotherDataStoreForOptions>(dataStoreName);
 
         // Assert
         options.Values.Should().HaveCount(2);
@@ -74,8 +74,8 @@ public class DataStoreFactoryOptionsTests
         var options = new DataStoreFactoryOptions();
 
         // Act
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>("DataStore1");
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>("DataStore2");
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>("DataStore1");
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>("DataStore2");
 
         // Assert
         options.Values.Should().HaveCount(2);
@@ -92,7 +92,7 @@ public class DataStoreFactoryOptionsTests
         var options = new DataStoreFactoryOptions();
 
         // Act
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>(dataStoreName);
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>(dataStoreName);
 
         // Assert
         options.Values.Should().HaveCount(1);
@@ -106,9 +106,9 @@ public class DataStoreFactoryOptionsTests
         var options = new DataStoreFactoryOptions();
 
         // Act
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>("DataStore1");
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>("DataStore2");
-        options.Register<ITestDataStoreForOptions, TestDataStoreForOptions>("DataStore3");
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>("DataStore1");
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>("DataStore2");
+        options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>("DataStore3");
 
         // Assert
         options.Values.Should().HaveCount(3);
@@ -128,23 +128,28 @@ public class DataStoreFactoryOptionsTests
     }
 }
 
-// Test helper interfaces and classes
-public interface ITestDataStoreForOptions : IDataStore
+// Test helper classes - must use class inheritance (not interfaces)
+// because DataStoreValue checks concreteType.BaseType == baseType
+public abstract class TestDataStoreForOptionsBase : IDataStore
 {
+    public virtual DbConnection GetDbConnection() => null!;
+    public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
-public class TestDataStoreForOptions : ITestDataStoreForOptions
+public class TestDataStoreForOptions : TestDataStoreForOptionsBase
 {
-    public DbConnection GetDbConnection() => null!;
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public override DbConnection GetDbConnection() => null!;
+    public override ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
-public interface IAnotherDataStoreForOptions : IDataStore
+public abstract class AnotherDataStoreForOptionsBase : IDataStore
 {
+    public virtual DbConnection GetDbConnection() => null!;
+    public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
-public class AnotherDataStoreForOptions : IAnotherDataStoreForOptions
+public class AnotherDataStoreForOptions : AnotherDataStoreForOptionsBase
 {
-    public DbConnection GetDbConnection() => null!;
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public override DbConnection GetDbConnection() => null!;
+    public override ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
