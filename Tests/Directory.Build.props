@@ -1,10 +1,45 @@
 <Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableMSTestRunner>false</EnableMSTestRunner>
+    <UseMicrosoftTestingPlatform>false</UseMicrosoftTestingPlatform>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- XUnit Testing Framework -->
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+
+    <!-- Mocking -->
+    <PackageReference Include="Moq" Version="4.20.72" />
+
+    <!-- Test Data Generation -->
+    <PackageReference Include="Bogus" Version="35.6.5" />
+
+    <!-- Assertions -->
+    <PackageReference Include="FluentAssertions" Version="8.2.0" />
+
+    <!-- Code Coverage -->
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="MinVer" Version="5.0.0" PrivateAssets="all" />
   </ItemGroup>
+
   <PropertyGroup>
     <MinVerGenerateAssemblyVersion>true</MinVerGenerateAssemblyVersion>
     <MinVerGenerateFileVersion>true</MinVerGenerateFileVersion>
     <MinVerGenerateInformationalVersion>true</MinVerGenerateInformationalVersion>
   </PropertyGroup>
-</Project> 
+</Project>

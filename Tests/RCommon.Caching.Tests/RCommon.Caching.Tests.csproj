@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <EnableMSTestRunner>false</EnableMSTestRunner>
+    <UseMicrosoftTestingPlatform>false</UseMicrosoftTestingPlatform>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.Caching\RCommon.Caching.csproj" />
+    <ProjectReference Include="..\RCommon.TestBase.XUnit\RCommon.TestBase.XUnit.csproj" />
+  </ItemGroup>
+
+</Project>

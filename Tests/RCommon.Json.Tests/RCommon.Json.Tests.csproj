@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <EnableMSTestRunner>false</EnableMSTestRunner>
+    <UseMicrosoftTestingPlatform>false</UseMicrosoftTestingPlatform>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.Json\RCommon.Json.csproj" />
+    <ProjectReference Include="..\RCommon.TestBase.XUnit\RCommon.TestBase.XUnit.csproj" />
+  </ItemGroup>
+
+</Project>
