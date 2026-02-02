@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc.Authorization;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Swashbuckle.AspNetCore.Swagger; // Add this if needed for OperationFilterContext
+#if NET10_0_OR_GREATER
+using Microsoft.OpenApi;
+#else
 using Microsoft.OpenApi.Models;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,10 +23,12 @@ namespace RCommon.Authorization.Web.Filters
 
             if (isAuthorized && !allowAnonymous)
             {
+#if NET10_0_OR_GREATER
+                operation.Parameters ??= [];
+#else
                 if (operation.Parameters == null)
-                    
                     operation.Parameters = new List<OpenApiParameter>();
-
+#endif
 
                 operation.Parameters.Add(new OpenApiParameter
                 {

@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+#if NET10_0_OR_GREATER
+using Microsoft.OpenApi;
+#else
 using Microsoft.OpenApi.Models;
+#endif
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
@@ -22,6 +26,17 @@ namespace RCommon.Authorization.Web.Filters
             operation.Responses.TryAdd("401", new OpenApiResponse { Description = "Unauthorized" });
             operation.Responses.TryAdd("403", new OpenApiResponse { Description = "Forbidden" });
 
+#if NET10_0_OR_GREATER
+            var oAuthScheme = new OpenApiSecuritySchemeReference("oauth2");
+
+            operation.Security = new List<OpenApiSecurityRequirement>
+                {
+                    new OpenApiSecurityRequirement
+                    {
+                        [ oAuthScheme ] = new List<string> { "api" }
+                    }
+                };
+#else
             var oAuthScheme = new OpenApiSecurityScheme
             {
                 Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
@@ -34,6 +49,7 @@ namespace RCommon.Authorization.Web.Filters
                         [ oAuthScheme ] = new [] { "api" }
                     }
                 };
+#endif
         }
     }
 }

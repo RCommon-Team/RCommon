@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <RootNamespace>$(MSBuildProjectName.Replace(" ", "_").Replace(".Core", ""))</RootNamespace>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>RCommon.Core</Title>
@@ -17,6 +17,14 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+		<PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
+	</ItemGroup>
+
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.10" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.10" />
@@ -24,7 +32,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
 		<PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
 	</ItemGroup>
-	
+
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
@@ -49,5 +57,9 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="MinVer" Version="7.0.0" />
 	</ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>RCommon.RedisCache</Title>
 		<PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
@@ -24,6 +24,10 @@
 		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10" />
 	</ItemGroup>
 
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.2" />
+	</ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Caching\RCommon.Caching.csproj" />
     <ProjectReference Include="..\RCommon.Json\RCommon.Json.csproj" />
@@ -41,6 +45,10 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="MinVer" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

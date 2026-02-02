@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+	  <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <Title>RCommon.Mediator</Title>
 	  <PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
@@ -33,6 +33,10 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="MinVer" Version="7.0.0" />
 	</ItemGroup>
 
 </Project>

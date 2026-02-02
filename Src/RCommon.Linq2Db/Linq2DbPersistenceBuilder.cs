@@ -1,6 +1,5 @@
 ﻿using LinqToDB;
 using LinqToDB.Configuration;
-using LinqToDB.AspNet;
 using LinqToDB.Mapping;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Persistence;
@@ -13,6 +12,7 @@ using System.Threading.Tasks;
 using RCommon.Persistence.Linq2Db.Crud;
 using RCommon.Persistence.Crud;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using LinqToDB.Extensions.DependencyInjection;
 
 namespace RCommon.Persistence.Linq2Db
 {

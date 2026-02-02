@@ -16,6 +16,7 @@ using RCommon;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.Transactions;
 using LinqToDB.Linq;
+using LinqToDB.Async;
 
 namespace RCommon.Persistence.Linq2Db.Crud
 {
