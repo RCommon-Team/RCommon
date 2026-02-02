@@ -1,4 +1,4 @@
-name: Build, Version, and Publish .NET 8/9 Solution
+name: Build, Test, and Publish .NET 8/9/10 Solution
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,33 +18,55 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET 8
+      - name: Setup .NET SDKs
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
 
-      - name: Install MinVer tool
+      - name: Restore dotnet tools
+        run: dotnet tool restore
+
+      - name: Install MinVer CLI
         run: dotnet tool install --global minver-cli
 
       - name: Restore dependencies
         run: dotnet restore Src/RCommon.sln
 
-      - name: Build solution
+      - name: Build solution (all target frameworks)
         run: dotnet build Src/RCommon.sln --configuration Release --no-restore
 
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
+      - name: Run tests with coverage
+        run: |
+          dotnet test Src/RCommon.sln \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --settings Tests/coverage.runsettings \
+            --results-directory Tests/TestResults
+
+      - name: Generate coverage report
+        run: |
+          dotnet reportgenerator \
+            -reports:"Tests/TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"Tests/TestResults/CoverageReport" \
+            -reporttypes:"Cobertura;HtmlSummary"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
         with:
-          dotnet-version: '9.0.x'
+          name: coverage-report
+          path: Tests/TestResults/CoverageReport/
 
-      - name: Install MinVer tool
-        run: dotnet tool install --global minver-cli
-
-      - name: Restore dependencies
-        run: dotnet restore Src/RCommon.sln
-
-      - name: Build solution
-        run: dotnet build Src/RCommon.sln --configuration Release --no-restore
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: Tests/TestResults/CoverageReport/Cobertura.xml
+          fail_ci_if_error: false
+        continue-on-error: true
 
       - name: Get MinVer version
         id: minver
@@ -60,12 +82,36 @@ jobs:
             /p:MinVerAutoIncrement=minor \
             /p:MinVerVersionOverride=${{ steps.minver.outputs.version }}
 
+      - name: Upload NuGet packages artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: |
+            Src/**/*.nupkg
+            !Src/**/*.symbols.nupkg
+
+  publish:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Download NuGet packages
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: packages
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
       - name: Publish NuGet packages
         run: |
-          find Src -type f -name '*.nupkg' -not -name '*.symbols.nupkg' -exec dotnet nuget push {} --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate \;
+          find packages -type f -name '*.nupkg' -not -name '*.symbols.nupkg' \
+            -exec dotnet nuget push {} \
+              --api-key ${{ secrets.NUGETAPIKEY }} \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate \;
         env:
           NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
-
-      - name: Run tests
-        run: dotnet test Src/RCommon.sln --configuration Release --no-build --verbosity normal
-        continue-on-error: true 
