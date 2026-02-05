@@ -25,7 +25,7 @@ public class PublishWithEventBusEventProducerTests
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Arrange & Act
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
 
         // Assert
         producer.Should().NotBeNull();
@@ -35,7 +35,7 @@ public class PublishWithEventBusEventProducerTests
     public void Constructor_WithNullEventBus_ThrowsArgumentNullException()
     {
         // Arrange & Act
-        var act = () => new PublishWithEventBusEventProducer(null!, _mockLogger.Object);
+        var act = () => new PublishWithEventBusEventProducer(null!, _mockLogger.Object, new EventSubscriptionManager());
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("eventBus");
@@ -45,10 +45,20 @@ public class PublishWithEventBusEventProducerTests
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
         // Arrange & Act
-        var act = () => new PublishWithEventBusEventProducer(_mockEventBus.Object, null!);
+        var act = () => new PublishWithEventBusEventProducer(_mockEventBus.Object, null!, new EventSubscriptionManager());
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    [Fact]
+    public void Constructor_WithNullSubscriptionManager_ThrowsArgumentNullException()
+    {
+        // Arrange & Act
+        var act = () => new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("subscriptionManager");
     }
 
     #endregion
@@ -62,7 +72,7 @@ public class PublishWithEventBusEventProducerTests
         _mockEventBus.Setup(x => x.PublishAsync(It.IsAny<ISerializableEvent>()))
             .Returns(Task.CompletedTask);
 
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<ISerializableEvent>();
 
         // Act
@@ -76,7 +86,7 @@ public class PublishWithEventBusEventProducerTests
     public async Task ProduceEventAsync_WithNullEvent_ThrowsException()
     {
         // Arrange
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
 
         // Act
         var act = async () => await producer.ProduceEventAsync<ISerializableEvent>(null!);
@@ -93,7 +103,7 @@ public class PublishWithEventBusEventProducerTests
         _mockEventBus.Setup(x => x.PublishAsync(It.IsAny<ISerializableEvent>()))
             .ThrowsAsync(new InvalidOperationException("EventBus error"));
 
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<ISerializableEvent>();
 
         // Act
@@ -110,7 +120,7 @@ public class PublishWithEventBusEventProducerTests
         _mockEventBus.Setup(x => x.PublishAsync(It.IsAny<ISerializableEvent>()))
             .Returns(Task.CompletedTask);
 
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<ISerializableEvent>();
         var cancellationToken = new CancellationToken();
 
@@ -129,7 +139,7 @@ public class PublishWithEventBusEventProducerTests
     public void PublishWithEventBusEventProducer_ImplementsIEventProducer()
     {
         // Arrange & Act
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
 
         // Assert
         producer.Should().BeAssignableTo<IEventProducer>();
@@ -147,7 +157,7 @@ public class PublishWithEventBusEventProducerTests
             .Returns(Task.CompletedTask);
         _mockLogger.Setup(x => x.IsEnabled(LogLevel.Information)).Returns(true);
 
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<ISerializableEvent>();
 
         // Act
@@ -165,7 +175,7 @@ public class PublishWithEventBusEventProducerTests
             .Returns(Task.CompletedTask);
         _mockLogger.Setup(x => x.IsEnabled(LogLevel.Information)).Returns(false);
 
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<ISerializableEvent>();
 
         // Act
@@ -186,7 +196,7 @@ public class PublishWithEventBusEventProducerTests
         _mockEventBus.Setup(x => x.PublishAsync(It.IsAny<ISerializableEvent>()))
             .Returns(Task.CompletedTask);
 
-        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object);
+        var producer = new PublishWithEventBusEventProducer(_mockEventBus.Object, _mockLogger.Object, new EventSubscriptionManager());
         var events = Enumerable.Range(1, 10)
             .Select(_ => new Mock<ISerializableEvent>().Object)
             .ToList();

@@ -36,7 +36,8 @@ public class PublishWithWolverineEventProducerTests
         return new PublishWithWolverineEventProducer(
             _mockMessageBus.Object,
             _mockLogger.Object,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
     }
 
     [Fact]
@@ -46,7 +47,8 @@ public class PublishWithWolverineEventProducerTests
         var action = () => new PublishWithWolverineEventProducer(
             null!,
             _mockLogger.Object,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -60,7 +62,8 @@ public class PublishWithWolverineEventProducerTests
         var action = () => new PublishWithWolverineEventProducer(
             _mockMessageBus.Object,
             null!,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -74,11 +77,27 @@ public class PublishWithWolverineEventProducerTests
         var action = () => new PublishWithWolverineEventProducer(
             _mockMessageBus.Object,
             _mockLogger.Object,
-            null!);
+            null!,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
             .WithParameterName("serviceProvider");
+    }
+
+    [Fact]
+    public void Constructor_WithNullSubscriptionManager_ThrowsArgumentNullException()
+    {
+        // Act
+        var action = () => new PublishWithWolverineEventProducer(
+            _mockMessageBus.Object,
+            _mockLogger.Object,
+            _mockServiceProvider.Object,
+            null!);
+
+        // Assert
+        action.Should().Throw<ArgumentNullException>()
+            .WithParameterName("subscriptionManager");
     }
 
     [Fact]

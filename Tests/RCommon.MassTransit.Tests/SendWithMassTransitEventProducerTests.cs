@@ -38,7 +38,8 @@ public class SendWithMassTransitEventProducerTests
         return new SendWithMassTransitEventProducer(
             _mockBus.Object,
             _mockLogger.Object,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
     }
 
     [Fact]
@@ -48,7 +49,8 @@ public class SendWithMassTransitEventProducerTests
         var action = () => new SendWithMassTransitEventProducer(
             null!,
             _mockLogger.Object,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -62,7 +64,8 @@ public class SendWithMassTransitEventProducerTests
         var action = () => new SendWithMassTransitEventProducer(
             _mockBus.Object,
             null!,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -76,11 +79,27 @@ public class SendWithMassTransitEventProducerTests
         var action = () => new SendWithMassTransitEventProducer(
             _mockBus.Object,
             _mockLogger.Object,
-            null!);
+            null!,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
             .WithParameterName("serviceProvider");
+    }
+
+    [Fact]
+    public void Constructor_WithNullSubscriptionManager_ThrowsArgumentNullException()
+    {
+        // Act
+        var action = () => new SendWithMassTransitEventProducer(
+            _mockBus.Object,
+            _mockLogger.Object,
+            _mockServiceProvider.Object,
+            null!);
+
+        // Assert
+        action.Should().Throw<ArgumentNullException>()
+            .WithParameterName("subscriptionManager");
     }
 
     [Fact]

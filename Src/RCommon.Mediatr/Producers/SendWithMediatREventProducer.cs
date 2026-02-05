@@ -18,20 +18,30 @@ namespace RCommon.MediatR.Producers
         private readonly IMediatorService _mediatorService;
         private readonly ILogger<SendWithMediatREventProducer> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly EventSubscriptionManager _subscriptionManager;
 
-        public SendWithMediatREventProducer(IMediatorService mediatorService, ILogger<SendWithMediatREventProducer> logger, IServiceProvider serviceProvider)
+        public SendWithMediatREventProducer(IMediatorService mediatorService, ILogger<SendWithMediatREventProducer> logger,
+            IServiceProvider serviceProvider, EventSubscriptionManager subscriptionManager)
         {
             _mediatorService = mediatorService ?? throw new ArgumentNullException(nameof(mediatorService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _subscriptionManager = subscriptionManager ?? throw new ArgumentNullException(nameof(subscriptionManager));
         }
 
-        public async Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default) 
+        public async Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
             where TEvent : ISerializableEvent
         {
             try
             {
                 Guard.IsNotNull(@event, nameof(@event));
+
+                if (!_subscriptionManager.ShouldProduceEvent(this.GetType(), typeof(TEvent)))
+                {
+                    _logger.LogDebug("{0} skipping event {1} - not subscribed to this producer",
+                        new object[] { this.GetGenericTypeName(), typeof(TEvent).Name });
+                    return;
+                }
                 using (IServiceScope scope = _serviceProvider.CreateScope())
                 {
                     if (_logger.IsEnabled(LogLevel.Information))

@@ -24,6 +24,9 @@ namespace RCommon
 
             this.Services.Configure<CachingOptions>(x => { x.CachingEnabled = false; });
 
+            // Event Subscription Manager - tracks which events are routed to which producers
+            services.AddSingleton(new EventSubscriptionManager());
+
             // Event Bus
             services.AddSingleton<IEventBus>(sp =>
             {

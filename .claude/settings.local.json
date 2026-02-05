@@ -27,7 +27,8 @@
       "Bash(\"Tests/RCommon.Mediatr.Tests/bin/Debug/net10.0/RCommon.Mediatr.Tests.exe\")",
       "Bash(for dir in RCommon.*.Tests)",
       "Bash(do echo \"=== $dir ===\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(git add:*)"
     ]
   }
 }

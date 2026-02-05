@@ -60,6 +60,10 @@ namespace RCommon.MediatR
 
             // For notifications which can be handled by multiple handlers
             builder.Services.AddScoped<INotificationHandler<MediatRNotification<TEvent>>, MediatREventHandler<TEvent, MediatRNotification<TEvent>>>();
+
+            // Register event-to-producer subscription so the router only sends this event to producers on this builder
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
         }
     }
 }

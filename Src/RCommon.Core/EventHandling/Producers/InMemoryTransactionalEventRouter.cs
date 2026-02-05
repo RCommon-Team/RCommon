@@ -19,12 +19,15 @@ namespace RCommon.EventHandling.Producers
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<InMemoryTransactionalEventRouter> _logger;
+        private readonly EventSubscriptionManager _subscriptionManager;
         private ConcurrentQueue<ISerializableEvent> _storedTransactionalEvents;
 
-        public InMemoryTransactionalEventRouter(IServiceProvider serviceProvider, ILogger<InMemoryTransactionalEventRouter> logger)
+        public InMemoryTransactionalEventRouter(IServiceProvider serviceProvider, ILogger<InMemoryTransactionalEventRouter> logger,
+            EventSubscriptionManager subscriptionManager)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _subscriptionManager = subscriptionManager ?? throw new ArgumentNullException(nameof(subscriptionManager));
             _storedTransactionalEvents = new ConcurrentQueue<ISerializableEvent>();
         }
 
@@ -87,7 +90,8 @@ namespace RCommon.EventHandling.Producers
             var eventTaskList = new List<Task>();
             foreach (var @event in asyncEvents)
             {
-                foreach (var producer in eventProducers)
+                var filteredProducers = _subscriptionManager.GetProducersForEvent(eventProducers, @event.GetType());
+                foreach (var producer in filteredProducers)
                 {
                     eventTaskList.Add(producer.ProduceEventAsync(@event));
                 }
@@ -100,7 +104,8 @@ namespace RCommon.EventHandling.Producers
             foreach (var @event in syncEvents)
             {
                 _logger.LogDebug($"{this.GetGenericTypeName()} is routing event: {@event}");
-                foreach (var producer in eventProducers)
+                var filteredProducers = _subscriptionManager.GetProducersForEvent(eventProducers, @event.GetType());
+                foreach (var producer in filteredProducers)
                 {
                     await producer.ProduceEventAsync(@event).ConfigureAwait(false);
                 }

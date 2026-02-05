@@ -36,7 +36,8 @@ public class SendWithWolverineEventProducerTests
         return new SendWithWolverineEventProducer(
             _mockMessageBus.Object,
             _mockLogger.Object,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
     }
 
     [Fact]
@@ -46,7 +47,8 @@ public class SendWithWolverineEventProducerTests
         var action = () => new SendWithWolverineEventProducer(
             null!,
             _mockLogger.Object,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -60,7 +62,8 @@ public class SendWithWolverineEventProducerTests
         var action = () => new SendWithWolverineEventProducer(
             _mockMessageBus.Object,
             null!,
-            _mockServiceProvider.Object);
+            _mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -74,11 +77,27 @@ public class SendWithWolverineEventProducerTests
         var action = () => new SendWithWolverineEventProducer(
             _mockMessageBus.Object,
             _mockLogger.Object,
-            null!);
+            null!,
+            new EventSubscriptionManager());
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
             .WithParameterName("serviceProvider");
+    }
+
+    [Fact]
+    public void Constructor_WithNullSubscriptionManager_ThrowsArgumentNullException()
+    {
+        // Act
+        var action = () => new SendWithWolverineEventProducer(
+            _mockMessageBus.Object,
+            _mockLogger.Object,
+            _mockServiceProvider.Object,
+            null!);
+
+        // Assert
+        action.Should().Throw<ArgumentNullException>()
+            .WithParameterName("subscriptionManager");
     }
 
     [Fact]

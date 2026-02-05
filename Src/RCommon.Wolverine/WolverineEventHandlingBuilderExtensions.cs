@@ -23,6 +23,10 @@ namespace RCommon
             where TEventHandler : class, ISubscriber<TEvent>
         {
             builder.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
+
+            // Register event-to-producer subscription so the router only sends this event to producers on this builder
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
         }
 
         public static void AddSubscriber<TEvent, TEventHandler>(this IWolverineEventHandlingBuilder builder, Func<IServiceProvider, TEventHandler> getSubscriber)
@@ -30,6 +34,10 @@ namespace RCommon
             where TEventHandler : class, ISubscriber<TEvent>
         {
             builder.Services.TryAddScoped(getSubscriber);
+
+            // Register event-to-producer subscription so the router only sends this event to producers on this builder
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
         }
     }
 }

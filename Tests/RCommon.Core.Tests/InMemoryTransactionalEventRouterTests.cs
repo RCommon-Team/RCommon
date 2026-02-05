@@ -28,7 +28,7 @@ public class InMemoryTransactionalEventRouterTests
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Arrange & Act
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
 
         // Assert
         router.Should().NotBeNull();
@@ -38,7 +38,7 @@ public class InMemoryTransactionalEventRouterTests
     public void Constructor_WithNullServiceProvider_ThrowsArgumentNullException()
     {
         // Arrange & Act
-        var act = () => new InMemoryTransactionalEventRouter(null!, _mockLogger.Object);
+        var act = () => new InMemoryTransactionalEventRouter(null!, _mockLogger.Object, new EventSubscriptionManager());
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("serviceProvider");
@@ -48,10 +48,20 @@ public class InMemoryTransactionalEventRouterTests
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
         // Arrange & Act
-        var act = () => new InMemoryTransactionalEventRouter(_serviceProvider, null!);
+        var act = () => new InMemoryTransactionalEventRouter(_serviceProvider, null!, new EventSubscriptionManager());
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    [Fact]
+    public void Constructor_WithNullSubscriptionManager_ThrowsArgumentNullException()
+    {
+        // Arrange & Act
+        var act = () => new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("subscriptionManager");
     }
 
     #endregion
@@ -62,7 +72,7 @@ public class InMemoryTransactionalEventRouterTests
     public void AddTransactionalEvent_WithValidEvent_AddsToQueue()
     {
         // Arrange
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<ISerializableEvent>();
 
         // Act
@@ -76,7 +86,7 @@ public class InMemoryTransactionalEventRouterTests
     public void AddTransactionalEvent_WithNullEvent_ThrowsArgumentNullException()
     {
         // Arrange
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
 
         // Act
         var act = () => router.AddTransactionalEvent(null!);
@@ -93,7 +103,7 @@ public class InMemoryTransactionalEventRouterTests
     public void AddTransactionalEvents_WithValidEvents_AddsAllToQueue()
     {
         // Arrange
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
         var events = new List<ISerializableEvent>
         {
             new Mock<ISerializableEvent>().Object,
@@ -111,7 +121,7 @@ public class InMemoryTransactionalEventRouterTests
     public void AddTransactionalEvents_WithNullCollection_ThrowsArgumentNullException()
     {
         // Arrange
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
 
         // Act
         var act = () => router.AddTransactionalEvents(null!);
@@ -128,7 +138,7 @@ public class InMemoryTransactionalEventRouterTests
     public async Task RouteEventsAsync_WithEmptyCollection_CompletesSuccessfully()
     {
         // Arrange
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
         var events = Enumerable.Empty<ISerializableEvent>();
 
         // Act
@@ -142,7 +152,7 @@ public class InMemoryTransactionalEventRouterTests
     public async Task RouteEventsAsync_WithNullCollection_ThrowsEventProductionException()
     {
         // Arrange
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
 
         // Act
         var act = async () => await router.RouteEventsAsync(null!);
@@ -164,7 +174,7 @@ public class InMemoryTransactionalEventRouterTests
         services.AddSingleton(mockProducer.Object);
         var serviceProvider = services.BuildServiceProvider();
 
-        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<ISyncEvent>();
         mockEvent.As<ISerializableEvent>();
         var events = new List<ISerializableEvent> { mockEvent.As<ISerializableEvent>().Object };
@@ -189,7 +199,7 @@ public class InMemoryTransactionalEventRouterTests
         services.AddSingleton(mockProducer.Object);
         var serviceProvider = services.BuildServiceProvider();
 
-        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<IAsyncEvent>();
         mockEvent.As<ISerializableEvent>();
         var events = new List<ISerializableEvent> { mockEvent.As<ISerializableEvent>().Object };
@@ -209,7 +219,7 @@ public class InMemoryTransactionalEventRouterTests
     public async Task RouteEventsAsync_WithNoStoredEvents_CompletesSuccessfully()
     {
         // Arrange
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
 
         // Act
         var act = async () => await router.RouteEventsAsync();
@@ -231,7 +241,7 @@ public class InMemoryTransactionalEventRouterTests
         services.AddSingleton(mockProducer.Object);
         var serviceProvider = services.BuildServiceProvider();
 
-        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
 
         var mockEvent1 = new Mock<ISyncEvent>();
         mockEvent1.As<ISerializableEvent>();
@@ -256,7 +266,7 @@ public class InMemoryTransactionalEventRouterTests
     public void InMemoryTransactionalEventRouter_ImplementsIEventRouter()
     {
         // Arrange & Act
-        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(_serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
 
         // Assert
         router.Should().BeAssignableTo<IEventRouter>();
@@ -279,7 +289,7 @@ public class InMemoryTransactionalEventRouterTests
         services.AddSingleton(mockProducer.Object);
         var serviceProvider = services.BuildServiceProvider();
 
-        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object);
+        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
         var mockEvent = new Mock<ISyncEvent>();
         mockEvent.As<ISerializableEvent>();
         var events = new List<ISerializableEvent> { mockEvent.As<ISerializableEvent>().Object };

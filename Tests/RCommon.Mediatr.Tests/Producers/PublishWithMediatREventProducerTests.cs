@@ -26,7 +26,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider.Object);
+            mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         producer.Should().NotBeNull();
@@ -44,7 +45,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider.Object);
+            mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         producer.Should().BeAssignableTo<IEventProducer>();
@@ -61,7 +63,8 @@ public class PublishWithMediatREventProducerTests
         Action act = () => new PublishWithMediatREventProducer(
             null!,
             mockLogger.Object,
-            mockServiceProvider.Object);
+            mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
@@ -78,7 +81,8 @@ public class PublishWithMediatREventProducerTests
         Action act = () => new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             null!,
-            mockServiceProvider.Object);
+            mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
@@ -95,6 +99,26 @@ public class PublishWithMediatREventProducerTests
         Action act = () => new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
+            null!,
+            new EventSubscriptionManager());
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Constructor_WithNullSubscriptionManager_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var mockMediatorService = new Mock<IMediatorService>();
+        var mockLogger = new Mock<ILogger<PublishWithMediatREventProducer>>();
+        var mockServiceProvider = new Mock<IServiceProvider>();
+
+        // Act
+        Action act = () => new PublishWithMediatREventProducer(
+            mockMediatorService.Object,
+            mockLogger.Object,
+            mockServiceProvider.Object,
             null!);
 
         // Assert
@@ -120,7 +144,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider);
+            mockServiceProvider,
+            new EventSubscriptionManager());
 
         var @event = new TestSerializableEvent { EventId = Guid.NewGuid(), Message = "Test" };
 
@@ -150,7 +175,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider);
+            mockServiceProvider,
+            new EventSubscriptionManager());
 
         var eventId = Guid.NewGuid();
         var @event = new TestSerializableEvent { EventId = eventId, Message = "TestMessage" };
@@ -181,7 +207,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider);
+            mockServiceProvider,
+            new EventSubscriptionManager());
 
         var @event = new TestSerializableEvent { EventId = Guid.NewGuid(), Message = "Test" };
         using var cts = new CancellationTokenSource();
@@ -217,7 +244,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider.Object);
+            mockServiceProvider.Object,
+            new EventSubscriptionManager());
 
         var @event = new TestSerializableEvent { EventId = Guid.NewGuid(), Message = "Test" };
 
@@ -245,7 +273,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider);
+            mockServiceProvider,
+            new EventSubscriptionManager());
 
         var @event = new TestSerializableEvent { EventId = Guid.NewGuid(), Message = "Test" };
 
@@ -274,7 +303,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider);
+            mockServiceProvider,
+            new EventSubscriptionManager());
 
         // Act
         Func<Task> act = async () => await producer.ProduceEventAsync<TestSerializableEvent>(null!);
@@ -298,7 +328,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider);
+            mockServiceProvider,
+            new EventSubscriptionManager());
 
         var @event = new TestSerializableEvent { EventId = Guid.NewGuid(), Message = "Test" };
 
@@ -326,7 +357,8 @@ public class PublishWithMediatREventProducerTests
         var producer = new PublishWithMediatREventProducer(
             mockMediatorService.Object,
             mockLogger.Object,
-            mockServiceProvider);
+            mockServiceProvider,
+            new EventSubscriptionManager());
 
         var eventId = Guid.NewGuid();
         var @event = new ComplexSerializableEvent

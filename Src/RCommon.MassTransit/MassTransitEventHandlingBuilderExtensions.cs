@@ -88,6 +88,10 @@ namespace RCommon
         {
             builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
             builder.AddConsumer<MassTransitEventHandler<TEvent>>();
+
+            // Register event-to-producer subscription so the router only sends this event to producers on this builder
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
         }
 
     }

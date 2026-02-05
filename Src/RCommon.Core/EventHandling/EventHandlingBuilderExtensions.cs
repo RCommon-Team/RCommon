@@ -24,22 +24,30 @@ namespace RCommon
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<T> actions)
             where T : IEventHandlingBuilder
         {
-            // Event Handling Configurations 
+            // Event Handling Configurations
             var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder });
             actions(eventHandlingConfig);
             return builder;
         }
 
-        public static void AddProducer<T>(this IEventHandlingBuilder builder) 
+        public static void AddProducer<T>(this IEventHandlingBuilder builder)
             where T : class, IEventProducer
         {
             builder.Services.AddSingleton<IEventProducer, T>();
+
+            // Track which producer type is associated with this builder type
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            subscriptionManager?.AddProducerForBuilder(builder.GetType(), typeof(T));
         }
 
-        public static void AddProducer<T>(this IEventHandlingBuilder builder, Func<IServiceProvider, T> getProducer) 
+        public static void AddProducer<T>(this IEventHandlingBuilder builder, Func<IServiceProvider, T> getProducer)
             where T : class, IEventProducer
         {
             builder.Services.AddSingleton(getProducer);
+
+            // Track which producer type is associated with this builder type
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            subscriptionManager?.AddProducerForBuilder(builder.GetType(), typeof(T));
         }
 
         public static void AddProducer<T>(this IEventHandlingBuilder builder, T producer)
@@ -52,6 +60,20 @@ namespace RCommon
             {
                 builder.Services.TryAddSingleton(service);
             }
+
+            // Track which producer type is associated with this builder type
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            subscriptionManager?.AddProducerForBuilder(builder.GetType(), typeof(T));
+        }
+
+        /// <summary>
+        /// Retrieves the <see cref="EventSubscriptionManager"/> singleton instance from the service collection
+        /// during configuration time (before the service provider is built).
+        /// </summary>
+        public static EventSubscriptionManager? GetSubscriptionManager(this IServiceCollection services)
+        {
+            var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(EventSubscriptionManager));
+            return descriptor?.ImplementationInstance as EventSubscriptionManager;
         }
     }
 }
