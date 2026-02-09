@@ -16,13 +16,33 @@ using RCommon.Persistence.Transactions;
 
 namespace RCommon.Persistence.Crud
 {
+    /// <summary>
+    /// Abstract base class for LINQ-enabled repositories that provides common queryable infrastructure,
+    /// event tracking, and data store resolution for entities of type <typeparamref name="TEntity"/>.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type, which must implement <see cref="IBusinessEntity"/>.</typeparam>
+    /// <remarks>
+    /// This class implements <see cref="IQueryable{T}"/> by delegating to the abstract <see cref="RepositoryQuery"/>
+    /// property, which concrete implementations must provide. It also handles default data store name assignment
+    /// from <see cref="DefaultDataStoreOptions"/>.
+    /// </remarks>
     public abstract class LinqRepositoryBase<TEntity> : DisposableResource, ILinqRepository<TEntity>
        where TEntity : IBusinessEntity
     {
-        private string _dataStoreName;
+        private string _dataStoreName = default!;
         private readonly IDataStoreFactory _dataStoreFactory;
 
-        public LinqRepositoryBase(IDataStoreFactory dataStoreFactory, 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LinqRepositoryBase{TEntity}"/> class.
+        /// </summary>
+        /// <param name="dataStoreFactory">The factory used to resolve named data stores.</param>
+        /// <param name="eventTracker">The entity event tracker for publishing domain events.</param>
+        /// <param name="defaultDataStoreOptions">Options specifying the default data store name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when <paramref name="dataStoreFactory"/>, <paramref name="eventTracker"/>, or
+        /// <paramref name="defaultDataStoreOptions"/> is <c>null</c>.
+        /// </exception>
+        public LinqRepositoryBase(IDataStoreFactory dataStoreFactory,
             IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
         {
             if (defaultDataStoreOptions is null)
@@ -32,6 +52,7 @@ namespace RCommon.Persistence.Crud
             _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
             EventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
 
+            // Apply default data store name if configured, so repositories work without explicit name assignment
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
                 && !defaultDataStoreOptions.Value.DefaultDataStoreName.IsNullOrEmpty())
             {
@@ -121,40 +142,93 @@ namespace RCommon.Persistence.Crud
             return RepositoryQuery.Where(specification.Predicate).AsQueryable();
         }
 
+        /// <inheritdoc />
         public abstract IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification);
+
+        /// <inheritdoc />
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression);
+
+        /// <inheritdoc />
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending);
+
+        /// <inheritdoc />
         public abstract Task AddAsync(TEntity entity, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
 
+        /// <inheritdoc />
         public abstract Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int pageNumber = 1, int pageSize = 0,
             CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default);
 
+        /// <inheritdoc />
         public abstract IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int pageNumber = 1, int pageSize = 0);
+
+        /// <inheritdoc />
         public abstract IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification);
 
+        /// <inheritdoc />
         public abstract IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path);
 
+        /// <inheritdoc />
         public abstract IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path);
-        public ILogger Logger { get; set; }
+
+        /// <summary>
+        /// Gets or sets the logger instance for this repository.
+        /// </summary>
+        public ILogger Logger { get; set; } = default!;
+
+        /// <summary>
+        /// Gets the entity event tracker used to track and publish domain events raised by entities.
+        /// </summary>
         public IEntityEventTracker EventTracker { get; }
+
+        /// <inheritdoc />
         public string DataStoreName
         {
             get => _dataStoreName;

@@ -25,6 +25,9 @@ namespace RCommon
             _action = action;
         }
 
+        /// <summary>
+        /// Executes the action that was provided at construction time.
+        /// </summary>
         public void Dispose()
         {
             _action();

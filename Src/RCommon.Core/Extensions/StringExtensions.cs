@@ -11,6 +11,10 @@ using System.Globalization;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Provides extension methods for <see cref="string"/> operations including validation, formatting,
+    /// encoding, hashing, case conversion, and various string manipulation utilities.
+    /// </summary>
     public static class StringExtension
     {
         private static readonly Regex WebUrlExpression = new Regex(@"(http|https)://([\w-]+\.)+[\w-]+(/[\w- ./?%&=]*)?", RegexOptions.Singleline | RegexOptions.Compiled);
@@ -19,24 +23,45 @@ namespace RCommon
 
         private static readonly char[] IllegalUrlCharacters = new[] { ';', '/', '\\', '?', ':', '@', '&', '=', '+', '$', ',', '<', '>', '#', '%', '.', '!', '*', '\'', '"', '(', ')', '[', ']', '{', '}', '|', '^', '`', '~', '–', '‘', '’', '“', '”', '»', '«' };
 
+        /// <summary>
+        /// Determines whether the string is a valid HTTP or HTTPS web URL.
+        /// </summary>
+        /// <param name="target">The string to test.</param>
+        /// <returns><c>true</c> if the string is a valid web URL; otherwise, <c>false</c>.</returns>
         [DebuggerStepThrough]
         public static bool IsWebUrl(this string target)
         {
             return !string.IsNullOrEmpty(target) && WebUrlExpression.IsMatch(target);
         }
 
+        /// <summary>
+        /// Determines whether the string is a valid email address.
+        /// </summary>
+        /// <param name="target">The string to test.</param>
+        /// <returns><c>true</c> if the string is a valid email address; otherwise, <c>false</c>.</returns>
         [DebuggerStepThrough]
         public static bool IsEmail(this string target)
         {
             return !string.IsNullOrEmpty(target) && EmailExpression.IsMatch(target);
         }
 
+        /// <summary>
+        /// Returns the string trimmed, or <see cref="string.Empty"/> if the string is null.
+        /// </summary>
+        /// <param name="target">The string to make null-safe.</param>
+        /// <returns>The trimmed string, or empty string if null.</returns>
         [DebuggerStepThrough]
-        public static string NullSafe(this string target)
+        public static string NullSafe(this string? target)
         {
             return (target ?? string.Empty).Trim();
         }
 
+        /// <summary>
+        /// Formats the string using the current culture with the specified arguments.
+        /// </summary>
+        /// <param name="target">The format string template.</param>
+        /// <param name="args">The arguments to substitute into the format string.</param>
+        /// <returns>The formatted string.</returns>
         [DebuggerStepThrough]
         public static string FormatWith(this string target, params object[] args)
         {
@@ -45,6 +70,11 @@ namespace RCommon
             return string.Format(Constants.CurrentCulture, target, args);
         }
 
+        /// <summary>
+        /// Computes an MD5 hash of the string and returns it as a Base64-encoded string.
+        /// </summary>
+        /// <param name="target">The string to hash.</param>
+        /// <returns>A Base64-encoded MD5 hash of the string.</returns>
         [DebuggerStepThrough]
         public static string Hash(this string target)
         {
@@ -59,6 +89,12 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Truncates the string at the specified index and appends an ellipsis ("...") if the string exceeds that length.
+        /// </summary>
+        /// <param name="target">The string to truncate.</param>
+        /// <param name="index">The maximum length including the ellipsis.</param>
+        /// <returns>The original string if shorter than <paramref name="index"/>, or the truncated string with ellipsis.</returns>
         [DebuggerStepThrough]
         public static string WrapAt(this string target, int index)
         {
@@ -70,12 +106,22 @@ namespace RCommon
             return (target.Length <= index) ? target : string.Concat(target.Substring(0, index - DotCount), new string('.', DotCount));
         }
 
+        /// <summary>
+        /// Removes all HTML tags from the string.
+        /// </summary>
+        /// <param name="target">The string to strip HTML from.</param>
+        /// <returns>The string with all HTML tags removed.</returns>
         [DebuggerStepThrough]
         public static string StripHtml(this string target)
         {
             return StripHTMLExpression.Replace(target, string.Empty);
         }
 
+        /// <summary>
+        /// Converts a 22-character URL-safe Base64-encoded string back to a <see cref="Guid"/>.
+        /// </summary>
+        /// <param name="target">The 22-character Base64-encoded GUID string (with <c>-</c> and <c>_</c> as safe characters).</param>
+        /// <returns>The decoded <see cref="Guid"/>, or <see cref="Guid.Empty"/> if the input is invalid.</returns>
         [DebuggerStepThrough]
         public static Guid ToGuid(this string target)
         {
@@ -99,6 +145,13 @@ namespace RCommon
             return result;
         }
 
+        /// <summary>
+        /// Converts the string to an enum value, returning a default value if conversion fails.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        /// <param name="target">The string to convert.</param>
+        /// <param name="defaultValue">The default value to return if parsing fails.</param>
+        /// <returns>The parsed enum value, or <paramref name="defaultValue"/> if parsing fails.</returns>
         [DebuggerStepThrough]
         public static T ToEnum<T>(this string target, T defaultValue) where T : IComparable, IFormattable
         {
@@ -118,6 +171,11 @@ namespace RCommon
             return convertedValue;
         }
 
+        /// <summary>
+        /// Removes illegal URL characters from the string and replaces spaces with hyphens to produce a URL-safe string.
+        /// </summary>
+        /// <param name="target">The string to convert.</param>
+        /// <returns>A URL-safe string, or the original string if it is null or empty.</returns>
         [DebuggerStepThrough]
         public static string ToLegalUrl(this string target)
         {
@@ -146,36 +204,68 @@ namespace RCommon
             return target;
         }
 
+        /// <summary>
+        /// URL-encodes the string using <see cref="HttpUtility.UrlEncode(string)"/>.
+        /// </summary>
+        /// <param name="target">The string to encode.</param>
+        /// <returns>The URL-encoded string.</returns>
         [DebuggerStepThrough]
-        public static string UrlEncode(this string target)
+        public static string? UrlEncode(this string target)
         {
             return HttpUtility.UrlEncode(target);
         }
 
+        /// <summary>
+        /// URL-decodes the string using <see cref="HttpUtility.UrlDecode(string)"/>.
+        /// </summary>
+        /// <param name="target">The string to decode.</param>
+        /// <returns>The URL-decoded string.</returns>
         [DebuggerStepThrough]
-        public static string UrlDecode(this string target)
+        public static string? UrlDecode(this string target)
         {
             return HttpUtility.UrlDecode(target);
         }
 
+        /// <summary>
+        /// HTML-attribute-encodes the string using <see cref="HttpUtility.HtmlAttributeEncode(string)"/>.
+        /// </summary>
+        /// <param name="target">The string to encode.</param>
+        /// <returns>The HTML-attribute-encoded string.</returns>
         [DebuggerStepThrough]
         public static string AttributeEncode(this string target)
         {
             return HttpUtility.HtmlAttributeEncode(target);
         }
 
+        /// <summary>
+        /// HTML-encodes the string using <see cref="HttpUtility.HtmlEncode(string)"/>.
+        /// </summary>
+        /// <param name="target">The string to encode.</param>
+        /// <returns>The HTML-encoded string.</returns>
         [DebuggerStepThrough]
         public static string HtmlEncode(this string target)
         {
             return HttpUtility.HtmlEncode(target);
         }
 
+        /// <summary>
+        /// HTML-decodes the string using <see cref="HttpUtility.HtmlDecode(string)"/>.
+        /// </summary>
+        /// <param name="target">The string to decode.</param>
+        /// <returns>The HTML-decoded string.</returns>
         [DebuggerStepThrough]
         public static string HtmlDecode(this string target)
         {
             return HttpUtility.HtmlDecode(target);
         }
 
+        /// <summary>
+        /// Replaces all occurrences of each string in <paramref name="oldValues"/> with <paramref name="newValue"/>.
+        /// </summary>
+        /// <param name="target">The string to perform replacements on.</param>
+        /// <param name="oldValues">The collection of strings to replace.</param>
+        /// <param name="newValue">The replacement string.</param>
+        /// <returns>The modified string with all replacements applied.</returns>
         public static string Replace(this string target, ICollection<string> oldValues, string newValue)
         {
             oldValues.ForEach(oldValue => target = target.Replace(oldValue, newValue));
@@ -187,7 +277,7 @@ namespace RCommon
         /// </summary>
         /// <param name="inputString">the input string to be converted</param>
         /// <returns>The converted string</returns>
-        public static string ToNullIfEmptyOrBlank(this string inputString)
+        public static string? ToNullIfEmptyOrBlank(this string? inputString)
         {
             if (inputString == null || (inputString = inputString.Trim()).Length == 0) return null;
 
@@ -199,7 +289,7 @@ namespace RCommon
         /// </summary>
         /// <param name="inputString"></param>
         /// <returns></returns>
-        public static bool IsNullOrEmptyOrBlank(this string inputString)
+        public static bool IsNullOrEmptyOrBlank(this string? inputString)
         {
             return (inputString == null || inputString.Trim().Length == 0);
         }
@@ -411,11 +501,24 @@ namespace RCommon
             else return str.Substring(0, characterCount).TrimEnd(' ');
         }
 
+        /// <summary>
+        /// Compares two strings for equality, ignoring case by default.
+        /// </summary>
+        /// <param name="target">The first string.</param>
+        /// <param name="stringToCompare">The string to compare against.</param>
+        /// <returns><c>true</c> if the strings are equal (case-insensitive); otherwise, <c>false</c>.</returns>
         public static bool IsTheSameAs(this string target, string stringToCompare)
         {
             return IsTheSameAs(target, stringToCompare, true);
         }
 
+        /// <summary>
+        /// Compares two strings for equality with optional case sensitivity.
+        /// </summary>
+        /// <param name="target">The first string.</param>
+        /// <param name="stringToCompare">The string to compare against.</param>
+        /// <param name="ignoreCase">If <c>true</c>, performs a case-insensitive comparison.</param>
+        /// <returns><c>true</c> if the strings are equal; otherwise, <c>false</c>.</returns>
         public static bool IsTheSameAs(this string target, string stringToCompare, bool ignoreCase)
         {
             return string.Compare(target, stringToCompare, ignoreCase) == 0;
@@ -441,11 +544,23 @@ namespace RCommon
             return sb.ToString().Trim('-');
         }
 
+        /// <summary>
+        /// Returns the plural form of the string using the <see cref="Inflector"/>.
+        /// </summary>
+        /// <param name="target">The word to pluralize.</param>
+        /// <returns>The pluralized form of the word.</returns>
+        /// <seealso cref="Inflector.Pluralize(string)"/>
         public static string Pluralize(this string target)
         {
             return Inflector.Pluralize(target);
         }
 
+        /// <summary>
+        /// Conditionally pluralizes the string based on the result of a boolean expression.
+        /// </summary>
+        /// <param name="target">The word to conditionally pluralize.</param>
+        /// <param name="expression">An expression that returns <c>true</c> if the word should be pluralized.</param>
+        /// <returns>The pluralized form if the expression evaluates to <c>true</c>; otherwise, the original string.</returns>
         public static string PluralizeIf(this string target, Expression<Func<bool>> expression)
         {
             if (expression.Invoke())
@@ -491,7 +606,7 @@ namespace RCommon
         /// <summary>
         /// Indicates whether this string is null or an System.String.Empty string.
         /// </summary>
-        public static bool IsNullOrEmpty(this string str)
+        public static bool IsNullOrEmpty(this string? str)
         {
             return string.IsNullOrEmpty(str);
         }
@@ -499,7 +614,7 @@ namespace RCommon
         /// <summary>
         /// indicates whether this string is null, empty, or consists only of white-space characters.
         /// </summary>
-        public static bool IsNullOrWhiteSpace(this string str)
+        public static bool IsNullOrWhiteSpace(this string? str)
         {
             return string.IsNullOrWhiteSpace(str);
         }
@@ -638,6 +753,14 @@ namespace RCommon
             return str;
         }
 
+        /// <summary>
+        /// Replaces the first occurrence of a search string with a replacement string.
+        /// </summary>
+        /// <param name="str">The source string.</param>
+        /// <param name="search">The string to find.</param>
+        /// <param name="replace">The replacement string.</param>
+        /// <param name="comparisonType">The string comparison type to use for finding the search string.</param>
+        /// <returns>The string with the first occurrence replaced, or the original string if not found.</returns>
         public static string ReplaceFirst(this string str, string search, string replace, StringComparison comparisonType = StringComparison.Ordinal)
         {
             Guard.IsNotNull(str, nameof(str));
@@ -860,6 +983,11 @@ namespace RCommon
             return (T)Enum.Parse(typeof(T), value, ignoreCase);
         }
 
+        /// <summary>
+        /// Computes the MD5 hash of the string and returns it as an uppercase hexadecimal string.
+        /// </summary>
+        /// <param name="str">The string to hash.</param>
+        /// <returns>The MD5 hash as an uppercase hexadecimal string.</returns>
         public static string ToMd5(this string str)
         {
             using (var md5 = MD5.Create())
@@ -902,7 +1030,7 @@ namespace RCommon
         /// Gets a substring of a string from beginning of the string if it exceeds maximum length.
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="str"/> is null</exception>
-        public static string Truncate(this string str, int maxLength)
+        public static string? Truncate(this string? str, int maxLength)
         {
             if (str == null)
             {
@@ -921,7 +1049,7 @@ namespace RCommon
         /// Gets a substring of a string from Ending of the string if it exceeds maximum length.
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="str"/> is null</exception>
-        public static string TruncateFromBeginning(this string str, int maxLength)
+        public static string? TruncateFromBeginning(this string? str, int maxLength)
         {
             if (str == null)
             {
@@ -942,7 +1070,7 @@ namespace RCommon
         /// Returning string can not be longer than maxLength.
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="str"/> is null</exception>
-        public static string TruncateWithPostfix(this string str, int maxLength)
+        public static string? TruncateWithPostfix(this string? str, int maxLength)
         {
             return TruncateWithPostfix(str, maxLength, "...");
         }
@@ -953,7 +1081,7 @@ namespace RCommon
         /// Returning string can not be longer than maxLength.
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="str"/> is null</exception>
-        public static string TruncateWithPostfix(this string str, int maxLength, string postfix)
+        public static string? TruncateWithPostfix(this string? str, int maxLength, string postfix)
         {
             if (str == null)
             {
@@ -997,6 +1125,12 @@ namespace RCommon
             return encoding.GetBytes(str);
         }
 
+        /// <summary>
+        /// Determines whether all letter characters in the input string are uppercase.
+        /// Non-letter characters are ignored.
+        /// </summary>
+        /// <param name="input">The string to check.</param>
+        /// <returns><c>true</c> if all letter characters are uppercase; otherwise, <c>false</c>.</returns>
         private static bool IsAllUpperCase(string input)
         {
             for (int i = 0; i < input.Length; i++)

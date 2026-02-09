@@ -9,32 +9,42 @@ using System.Threading.Tasks;
 namespace RCommon.MemoryCache
 {
     /// <summary>
-    /// Just a proxy for memory caching implemented through caching abstractions
+    /// A proxy for in-process memory caching implemented through the
+    /// <see cref="IMemoryCache"/> abstraction.
     /// </summary>
-    /// <remarks>This gives us a uniform way for getting/setting cache no matter the caching strategy</remarks>
+    /// <remarks>
+    /// This gives a uniform way for getting/setting cache no matter the caching strategy.
+    /// Delegates directly to <see cref="IMemoryCache.GetOrCreate{TItem}"/> and its async counterpart.
+    /// </remarks>
     public class InMemoryCacheService : ICacheService
     {
         private readonly IMemoryCache _memoryCache;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InMemoryCacheService"/> class.
+        /// </summary>
+        /// <param name="memoryCache">The underlying <see cref="IMemoryCache"/> implementation.</param>
         public InMemoryCacheService(IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
         }
 
+        /// <inheritdoc />
         public TData GetOrCreate<TData>(object key, Func<TData> data)
         {
             return _memoryCache.GetOrCreate<TData>(key, cacheEntry =>
             {
                 return data();
-            });
+            })!;
         }
 
+        /// <inheritdoc />
         public async Task<TData> GetOrCreateAsync<TData>(object key, Func<TData> data)
         {
-            return await _memoryCache.GetOrCreateAsync<TData>(key, async cacheEntry =>
+            return (await _memoryCache.GetOrCreateAsync<TData>(key, async cacheEntry =>
             {
                 return await Task.FromResult(data());
-            }).ConfigureAwait(false);
+            }).ConfigureAwait(false))!;
         }
     }
 }

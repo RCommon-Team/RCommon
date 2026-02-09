@@ -11,26 +11,46 @@ using RCommon.Entities;
 
 namespace RCommon.Persistence.Sql
 {
+    /// <summary>
+    /// Default implementation of <see cref="IRDbConnection"/> that creates ADO.NET <see cref="DbConnection"/>
+    /// instances using a configured <see cref="DbProviderFactory"/> and connection string.
+    /// </summary>
+    /// <remarks>
+    /// This class uses the options pattern to obtain connection configuration from <see cref="RDbConnectionOptions"/>.
+    /// Each call to <see cref="GetDbConnection"/> creates a new connection instance.
+    /// </remarks>
     public class RDbConnection : DisposableResource, IRDbConnection
     {
         private readonly IOptions<RDbConnectionOptions> _options;
-        private readonly IEntityEventTracker _entityEventTracker;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RDbConnection"/> class.
+        /// </summary>
+        /// <param name="options">The connection options containing the <see cref="DbProviderFactory"/> and connection string.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="options"/> is <c>null</c>.</exception>
         public RDbConnection(IOptions<RDbConnectionOptions> options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
+        /// <summary>
+        /// Creates and returns a new <see cref="DbConnection"/> using the configured provider factory and connection string.
+        /// </summary>
+        /// <returns>A new <see cref="DbConnection"/> with its connection string set.</returns>
+        /// <exception cref="RDbConnectionException">
+        /// Thrown when options, the provider factory, or the connection string is not properly configured.
+        /// </exception>
         public DbConnection GetDbConnection()
         {
+            // Validate all configuration requirements before creating the connection
             Guard.Against<RDbConnectionException>(this._options == null, "No options configured for this RDbConnection");
-            Guard.Against<RDbConnectionException>(this._options.Value == null, "No options configured for this RDbConnection");
-            Guard.Against<RDbConnectionException>(this._options.Value.DbFactory == null, "You must configured a DbProviderFactory for this RDbConnection");
+            Guard.Against<RDbConnectionException>(this._options!.Value == null, "No options configured for this RDbConnection");
+            Guard.Against<RDbConnectionException>(this._options.Value!.DbFactory == null, "You must configured a DbProviderFactory for this RDbConnection");
             Guard.Against<RDbConnectionException>(this._options.Value.ConnectionString.IsNullOrEmpty(), "You must configure a conneciton string for this RDbConnection");
 
-            var connection = this._options.Value.DbFactory.CreateConnection();
-            connection.ConnectionString = this._options.Value.ConnectionString;
-            
+            var connection = this._options.Value.DbFactory!.CreateConnection();
+            connection!.ConnectionString = this._options.Value.ConnectionString;
+
             return connection;
         }
 

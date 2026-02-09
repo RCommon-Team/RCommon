@@ -4,18 +4,23 @@ using System.Threading.Tasks;
 
 namespace RCommon.EventHandling.Producers
 {
+    /// <summary>
+    /// Defines a router responsible for storing transactional events and dispatching them to the appropriate
+    /// <see cref="IEventProducer"/> instances when ready.
+    /// </summary>
+    /// <seealso cref="InMemoryTransactionalEventRouter"/>
     public interface IEventRouter
     {
         /// <summary>
         /// Adds a serializable event to the transactional event store so that it can be published when the consumer is ready.
         /// </summary>
-        /// <param name="serializableEvent"></param>
+        /// <param name="serializableEvent">The event to add to the transactional store.</param>
         void AddTransactionalEvent(ISerializableEvent serializableEvent);
 
         /// <summary>
         /// Adds a collection of serializable events to the transactional event store so that it can be published when the consumer is ready.
         /// </summary>
-        /// <param name="serializableEvents"></param>
+        /// <param name="serializableEvents">The collection of events to add to the transactional store.</param>
         void AddTransactionalEvents(IEnumerable<ISerializableEvent> serializableEvents);
 
         /// <summary>

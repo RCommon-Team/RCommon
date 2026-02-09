@@ -11,6 +11,14 @@ using System.Threading.Tasks;
 
 namespace RCommon.MassTransit.Producers
 {
+    /// <summary>
+    /// An <see cref="IEventProducer"/> implementation that publishes events to all subscribed consumers
+    /// using MassTransit's <see cref="IBus.Publish{T}(T, CancellationToken)"/> method (fan-out pattern).
+    /// </summary>
+    /// <remarks>
+    /// Use this producer when you want an event to be delivered to all consumers that are subscribed
+    /// to the event type. For point-to-point delivery, use <see cref="SendWithMassTransitEventProducer"/> instead.
+    /// </remarks>
     public class PublishWithMassTransitEventProducer : IEventProducer
     {
         private readonly IBus _bus;
@@ -18,6 +26,13 @@ namespace RCommon.MassTransit.Producers
         private readonly IServiceProvider _serviceProvider;
         private readonly EventSubscriptionManager _subscriptionManager;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="PublishWithMassTransitEventProducer"/>.
+        /// </summary>
+        /// <param name="bus">The MassTransit bus used to publish events.</param>
+        /// <param name="logger">Logger for diagnostic output.</param>
+        /// <param name="serviceProvider">Service provider for creating scoped services during event production.</param>
+        /// <param name="subscriptionManager">Manages event-to-producer subscriptions for routing decisions.</param>
         public PublishWithMassTransitEventProducer(IBus bus, ILogger<PublishWithMassTransitEventProducer> logger,
             IServiceProvider serviceProvider, EventSubscriptionManager subscriptionManager)
         {
@@ -27,12 +42,14 @@ namespace RCommon.MassTransit.Producers
             _subscriptionManager = subscriptionManager ?? throw new ArgumentNullException(nameof(subscriptionManager));
         }
 
+        /// <inheritdoc />
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent
         {
             try
             {
                 Guard.IsNotNull(@event, nameof(@event));
 
+                // Check if this event type is subscribed to this producer; skip if not routed here
                 if (!_subscriptionManager.ShouldProduceEvent(this.GetType(), typeof(T)))
                 {
                     _logger.LogDebug("{0} skipping event {1} - not subscribed to this producer",
@@ -40,6 +57,7 @@ namespace RCommon.MassTransit.Producers
                     return;
                 }
 
+                // Create a scoped service context for the publish operation
                 using (IServiceScope scope = _serviceProvider.CreateScope())
                 {
                     if (_logger.IsEnabled(LogLevel.Information))

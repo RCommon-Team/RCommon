@@ -18,8 +18,8 @@ namespace RCommon.TestBase
 {
     public abstract class TestBootstrapper
     {
-        private ServiceProvider _serviceProvider;
-        private Microsoft.Extensions.Logging.ILogger _logger;
+        private ServiceProvider _serviceProvider = default!;
+        private Microsoft.Extensions.Logging.ILogger _logger = default!;
 
         public TestBootstrapper()
         {
@@ -67,7 +67,7 @@ namespace RCommon.TestBase
             return mockFactory;
         }
 
-        public IConfigurationRoot Configuration { get; private set; }
+        public IConfigurationRoot Configuration { get; private set; } = default!;
         public ServiceProvider ServiceProvider { get => _serviceProvider; set => _serviceProvider = value; }
         public Microsoft.Extensions.Logging.ILogger Logger { get => _logger; set => _logger = value; }
     }

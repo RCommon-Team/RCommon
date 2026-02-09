@@ -298,7 +298,7 @@ public class EntityNotFoundExceptionTests
         var message = _faker.Lorem.Sentence();
 
         // Act
-        var exception = new EntityNotFoundException(message, null);
+        var exception = new EntityNotFoundException(message, null!);
 
         // Assert
         exception.Message.Should().Be(message);

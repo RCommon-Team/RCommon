@@ -4,6 +4,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.Entities
 {
+    /// <summary>
+    /// Defines a mechanism for tracking entities and emitting their transactional (local) events
+    /// through the event routing infrastructure.
+    /// </summary>
+    /// <seealso cref="InMemoryEntityEventTracker"/>
     public interface IEntityEventTracker
     {
         /// <summary>
@@ -14,7 +19,7 @@ namespace RCommon.Entities
         /// <summary>
         /// Adds an entity that can be tracked for any new events associated with it.
         /// </summary>
-        /// <param name="entity"></param>
+        /// <param name="entity">The business entity to track for transactional events.</param>
         void AddEntity(IBusinessEntity entity);
 
         /// <summary>

@@ -10,8 +10,18 @@ using System.Threading.Tasks;
 
 namespace RCommon.MemoryCache
 {
+    /// <summary>
+    /// Extension methods for <see cref="IInMemoryCachingBuilder"/> that configure
+    /// in-memory cache options and expression caching.
+    /// </summary>
     public static class IInMemoryCachingBuilderExtensions
     {
+        /// <summary>
+        /// Configures the underlying <see cref="MemoryCacheOptions"/> for the in-memory cache.
+        /// </summary>
+        /// <param name="builder">The in-memory caching builder.</param>
+        /// <param name="actions">A delegate to configure <see cref="MemoryCacheOptions"/>.</param>
+        /// <returns>The same <see cref="IInMemoryCachingBuilder"/> for chaining.</returns>
         public static IInMemoryCachingBuilder Configure(this IInMemoryCachingBuilder builder, Action<MemoryCacheOptions> actions)
         {
             builder.Services.AddMemoryCache(actions);
@@ -19,7 +29,7 @@ namespace RCommon.MemoryCache
         }
 
         /// <summary>
-        /// This greatly improves performance across various areas of RCommon which use generics and reflection heavily 
+        /// This greatly improves performance across various areas of RCommon which use generics and reflection heavily
         /// to compile expressions and lambdas
         /// </summary>
         /// <param name="builder">Builder</param>
@@ -34,22 +44,28 @@ namespace RCommon.MemoryCache
             builder.Services.TryAddTransient<ICommonFactory<ExpressionCachingStrategy, ICacheService>, CommonFactory<ExpressionCachingStrategy, ICacheService>>();
             ConfigureCachingOptions(builder);
 
-            // Add Caching Factory
+            // Add Caching Factory — resolves the correct ICacheService based on the ExpressionCachingStrategy
             builder.Services.TryAddTransient<Func<ExpressionCachingStrategy, ICacheService>>(serviceProvider => strategy =>
             {
                 switch (strategy)
                 {
                     case ExpressionCachingStrategy.Default:
-                        return serviceProvider.GetService<InMemoryCacheService>();
+                        return serviceProvider.GetRequiredService<InMemoryCacheService>();
                     default:
-                        return serviceProvider.GetService<InMemoryCacheService>();
+                        return serviceProvider.GetRequiredService<InMemoryCacheService>();
                 }
             });
 
             return builder;
         }
 
-        private static void ConfigureCachingOptions(IInMemoryCachingBuilder builder, Action<CachingOptions> configure = null)
+        /// <summary>
+        /// Configures <see cref="CachingOptions"/> with default or custom settings, enabling caching
+        /// and expression caching flags.
+        /// </summary>
+        /// <param name="builder">The in-memory caching builder.</param>
+        /// <param name="configure">An optional delegate to customize <see cref="CachingOptions"/>. When <c>null</c>, defaults are applied.</param>
+        private static void ConfigureCachingOptions(IInMemoryCachingBuilder builder, Action<CachingOptions>? configure = null)
         {
 
             if (configure == null)

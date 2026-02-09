@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace RCommon.Core.Threading
 {
+    /// <summary>
+    /// Provides helper methods to run asynchronous methods synchronously using <see cref="AsyncContext"/>
+    /// from the Nito.AsyncEx library. This avoids deadlocks that can occur with <c>Task.Result</c> or <c>Task.Wait()</c>.
+    /// </summary>
     public static class AsyncHelper
     {
 

@@ -8,9 +8,18 @@ using System.Threading.Tasks;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Provides extension methods for <see cref="Stream"/> including reading all bytes and async copy operations.
+    /// </summary>
     public static class StreamExtensions
     {
 
+        /// <summary>
+        /// Reads all bytes from the stream into a byte array.
+        /// Resets the stream position to the beginning if the stream supports seeking.
+        /// </summary>
+        /// <param name="stream">The stream to read from.</param>
+        /// <returns>A byte array containing the entire contents of the stream.</returns>
         public static byte[] GetAllBytes(this Stream stream)
         {
             using (var memoryStream = new MemoryStream())
@@ -24,6 +33,13 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Asynchronously reads all bytes from the stream into a byte array.
+        /// Resets the stream position to the beginning if the stream supports seeking.
+        /// </summary>
+        /// <param name="stream">The stream to read from.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A task that resolves to a byte array containing the entire contents of the stream.</returns>
         public static async Task<byte[]> GetAllBytesAsync(this Stream stream, CancellationToken cancellationToken = default)
         {
             using (var memoryStream = new MemoryStream())
@@ -37,6 +53,14 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Asynchronously copies the stream to a destination stream with cancellation support.
+        /// Resets the stream position to the beginning if the stream supports seeking.
+        /// </summary>
+        /// <param name="stream">The source stream to copy from.</param>
+        /// <param name="destination">The destination stream to copy to.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A task representing the asynchronous copy operation.</returns>
         public static Task CopyToAsync(this Stream stream, Stream destination, CancellationToken cancellationToken)
         {
             if (stream.CanSeek)

@@ -9,6 +9,10 @@ using RCommon.Reflection;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Provides general-purpose extension methods for <see cref="object"/> including casting,
+    /// type conversion, reflection-based property access, conditional execution, and object graph traversal.
+    /// </summary>
     public static class ObjectExtensions
     {
         /// <summary>
@@ -24,8 +28,8 @@ namespace RCommon
                 return true;
             }
 
-            byte[] array1 = binaryValue1 as byte[];
-            byte[] array2 = binaryValue2 as byte[];
+            byte[]? array1 = binaryValue1 as byte[];
+            byte[]? array2 = binaryValue2 as byte[];
 
             if (array1 != null && array2 != null)
             {
@@ -55,14 +59,14 @@ namespace RCommon
         /// <param name="sourceObject">The source object from which the property is to be fetched</param>
         /// <param name="propertyName">The name of the property</param>
         /// <returns></returns>
-        public static T GetPropertyValueWithReflection<T>(this object sourceObject,
+        public static T? GetPropertyValueWithReflection<T>(this object sourceObject,
           string propertyName)
         {
             Guard.Against<ArgumentNullException>(sourceObject == null, "sourceObject cannot be null");
             Guard.Against<ArgumentException>(string.IsNullOrEmpty(propertyName), "propertyName, cannot be null or empty");
 
             BindingFlags eFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            PropertyInfo propertyInfo = sourceObject.GetType().GetProperty(propertyName, eFlags);
+            PropertyInfo? propertyInfo = sourceObject!.GetType().GetProperty(propertyName, eFlags);
 
             if (propertyInfo == null)
             {
@@ -70,7 +74,12 @@ namespace RCommon
                                                sourceObject.GetType().Name);
             }
 
-            return (T)propertyInfo.GetValue(sourceObject, null);
+            object? value = propertyInfo.GetValue(sourceObject, null);
+            if (value == null)
+            {
+                return default;
+            }
+            return (T)value;
         }
 
         /// <summary>
@@ -81,13 +90,17 @@ namespace RCommon
         /// <param name="propertyName">the name of the property</param>
         /// <param name="propertyValue">the value of the property</param>
         public static void SetPropertyValueWithReflection(this object anObject,
-          string propertyName, object propertyValue)
+          string propertyName, object? propertyValue)
         {
             Guard.Against<ArgumentNullException>(anObject == null, "anObject cannot be null");
             Guard.Against<ArgumentException>(string.IsNullOrEmpty(propertyName), "propertyName, cannot be null or empty");
 
             BindingFlags eFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            PropertyInfo propertyInfo = anObject.GetType().GetProperty(propertyName, eFlags);
+            PropertyInfo? propertyInfo = anObject!.GetType().GetProperty(propertyName, eFlags);
+
+            if (propertyInfo == null)
+                throw new ApplicationException("Cannot find property [" + propertyName + "] in object type: " +
+                                               anObject.GetType().FullName);
 
             Type dataType = propertyInfo.PropertyType;
             if (!(dataType.IsGenericType && (dataType.GetGenericTypeDefinition() == typeof(Nullable<>))))
@@ -97,9 +110,6 @@ namespace RCommon
                     throw new ArgumentNullException("propertyValue");
                 }
             }
-            if (propertyInfo == null)
-                throw new ApplicationException("Cannot find property [" + propertyName + "] in object type: " +
-                                               anObject.GetType().FullName);
 
             propertyInfo.SetValue(anObject, propertyValue, null);
         }
@@ -110,7 +120,7 @@ namespace RCommon
         ///<param name="userKey">The user supplied key, if any.</param>
         ///<typeparam name="T">The type for which the key is built.</typeparam>
         ///<returns>string.</returns>
-        public static string BuildFullKey<T>(this object userKey)
+        public static string? BuildFullKey<T>(this object userKey)
         {
             if (userKey == null)
                 return typeof(T).FullName;
@@ -140,7 +150,7 @@ namespace RCommon
         {
             if (typeof(T) == typeof(Guid))
             {
-                return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(obj.ToString());
+                return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(obj.ToString()!)!;
             }
 
             return (T)Convert.ChangeType(obj, typeof(T), CultureInfo.InvariantCulture);
@@ -213,6 +223,12 @@ namespace RCommon
             return obj;
         }
 
+        /// <summary>
+        /// Gets a human-readable generic type name for the object (e.g., "List&lt;String&gt;" instead of "List`1").
+        /// </summary>
+        /// <param name="object">The object whose type name is retrieved.</param>
+        /// <returns>A formatted generic type name string.</returns>
+        /// <seealso cref="TypeExtensions.GetGenericTypeName(Type)"/>
         public static string GetGenericTypeName(this object @object)
         {
             return @object.GetType().GetGenericTypeName();

@@ -19,10 +19,18 @@ using System.Transactions;
 namespace RCommon.Persistence.Transactions
 {
     ///<summary>
-    /// Contains settings for RCommon unit of work.
+    /// Contains default settings for <see cref="UnitOfWork"/> instances, including isolation level and auto-complete behavior.
     ///</summary>
+    /// <remarks>
+    /// These settings are applied when a <see cref="UnitOfWork"/> is created via DI with the default constructor.
+    /// Configure these settings using <see cref="IUnitOfWorkBuilder.SetOptions(Action{UnitOfWorkSettings})"/>.
+    /// </remarks>
     public class UnitOfWorkSettings
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UnitOfWorkSettings"/> class
+        /// with <see cref="IsolationLevel.ReadCommitted"/> and auto-complete disabled.
+        /// </summary>
         public UnitOfWorkSettings()
         {
             DefaultIsolation = IsolationLevel.ReadCommitted;

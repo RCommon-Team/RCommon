@@ -5,19 +5,40 @@ using System.Text;
 
 namespace RCommon.Util
 {
+    /// <summary>
+    /// Provides utility methods for working with image files, including format detection from raw byte data.
+    /// </summary>
     public class ImageHelper
     {
 
+        /// <summary>
+        /// Represents supported image file formats.
+        /// </summary>
         public enum ImageFormat
         {
+            /// <summary>Bitmap image format.</summary>
             Bmp,
+            /// <summary>JPEG image format.</summary>
             Jpeg,
+            /// <summary>GIF image format.</summary>
             Gif,
+            /// <summary>TIFF image format.</summary>
             Tiff,
+            /// <summary>PNG image format.</summary>
             Png,
+            /// <summary>Unrecognized image format.</summary>
             Unknown
         }
 
+        /// <summary>
+        /// Detects the image format by inspecting the file header (magic bytes) of the byte array.
+        /// </summary>
+        /// <param name="bytes">The raw byte data of the image file.</param>
+        /// <returns>The detected <see cref="ImageFormat"/>, or <see cref="ImageFormat.Unknown"/> if unrecognized.</returns>
+        /// <remarks>
+        /// Supports BMP, GIF, PNG, TIFF (both byte orders), and JPEG (standard and Canon variants)
+        /// by comparing the leading bytes against known file signatures.
+        /// </remarks>
         public static ImageFormat GetImageFormat(byte[] bytes)
         {
             // see http://www.mikekunz.com/image_file_header.html  

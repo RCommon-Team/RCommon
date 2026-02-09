@@ -42,8 +42,8 @@ namespace RCommon
         public Specification(Expression<Func<T, bool>> predicate)
         {
             Guard.Against<ArgumentNullException>(predicate == null, "Expected a non null expression as a predicate for the specification.");
-            _predicate = predicate;
-            _predicateCompiled = predicate.Compile();
+            _predicate = predicate!;
+            _predicateCompiled = predicate!.Compile();
         }
 
         /// <summary>

@@ -22,28 +22,34 @@ namespace RCommon.Persistence.EFCore.Crud
 {
 
     /// <summary>
-    /// A concrete implementation for Entity Framework Core.
-    /// currently exposes much of the functionality of EF with the exception of change tracking and peristance models. We expose IQueryable to layers down stream
-    /// so that complex joins can be utilized and then managed at the domain level. This implementation makes special considerations for managing the lifetime of the
-    /// <see cref="DbContext"/> specifically when it applies to the <see cref="UnitOfWorkScope"/>. 
+    /// A concrete repository implementation for Entity Framework Core that supports CRUD operations,
+    /// LINQ queries, eager loading, and graph-based entity navigation.
     /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
+    /// <typeparam name="TEntity">The entity type managed by this repository. Must implement <see cref="IBusinessEntity"/>.</typeparam>
+    /// <remarks>
+    /// Exposes much of the EF Core functionality with the exception of direct change tracking and persistence models.
+    /// Exposes <see cref="IQueryable{T}"/> to downstream layers so that complex joins can be utilized and managed at the domain level.
+    /// This implementation makes special considerations for managing the lifetime of the <see cref="DbContext"/>
+    /// specifically when it applies to the <see cref="UnitOfWorkScope"/>.
+    /// </remarks>
     public class EFCoreRepository<TEntity> : GraphRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        private IQueryable<TEntity> _repositoryQuery;
+        private IQueryable<TEntity>? _repositoryQuery;
         private bool _tracking;
-        private IIncludableQueryable<TEntity, object> _includableQueryable;
+        private IIncludableQueryable<TEntity, object>? _includableQueryable;
         private readonly IDataStoreFactory _dataStoreFactory;
 
 
 
         /// <summary>
-        /// The default constructor for the repository. 
+        /// Initializes a new instance of <see cref="EFCoreRepository{TEntity}"/>.
         /// </summary>
-        /// <param name="dbContext">The <see cref="TDataStore"/> is injected with scoped lifetime so it will always return the same instance of the <see cref="DbContext"/>
-        /// througout the HTTP request or the scope of the thread.</param>
-        /// <param name="logger">Logger used throughout the application.</param>
+        /// <param name="dataStoreFactory">Factory used to resolve the <see cref="RCommonDbContext"/> for the configured data store.</param>
+        /// <param name="logger">Factory for creating loggers scoped to this repository type.</param>
+        /// <param name="eventTracker">Tracker used to register entities for domain event dispatching.</param>
+        /// <param name="defaultDataStoreOptions">Options specifying which data store to use when none is explicitly set.</param>
+        /// <exception cref="ArgumentNullException">Thrown when any parameter is <c>null</c>.</exception>
         public EFCoreRepository(IDataStoreFactory dataStoreFactory,
             ILoggerFactory logger, IEntityEventTracker eventTracker,
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
@@ -69,6 +75,9 @@ namespace RCommon.Persistence.EFCore.Crud
             _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
         }
 
+        /// <summary>
+        /// Gets the <see cref="DbSet{TEntity}"/> from the current <see cref="ObjectContext"/> for direct entity set operations.
+        /// </summary>
         protected DbSet<TEntity> ObjectSet
         {
             get
@@ -77,6 +86,9 @@ namespace RCommon.Persistence.EFCore.Crud
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether EF Core change tracking is enabled for queries executed through this repository.
+        /// </summary>
         public override bool Tracking
         {
             get => _tracking;
@@ -87,8 +99,14 @@ namespace RCommon.Persistence.EFCore.Crud
 
         }
 
+        /// <summary>
+        /// Adds an eager-loading include path for the specified navigation property.
+        /// </summary>
+        /// <param name="path">An expression selecting the navigation property to include.</param>
+        /// <returns>This repository instance for fluent chaining of additional includes.</returns>
         public override IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
+            // On first call, start from the DbSet; on subsequent calls, chain from the existing includable query
             if (_includableQueryable == null)
             {
                 _includableQueryable = ObjectContext.Set<TEntity>().Include(path);
@@ -97,17 +115,28 @@ namespace RCommon.Persistence.EFCore.Crud
             {
                 _includableQueryable = _includableQueryable.Include(path);
             }
-            
+
             return this;
         }
 
+        /// <summary>
+        /// Adds a subsequent eager-loading path for a nested navigation property after a prior <see cref="Include"/> call.
+        /// </summary>
+        /// <typeparam name="TPreviousProperty">The type of the previously included navigation property.</typeparam>
+        /// <typeparam name="TProperty">The type of the nested navigation property to include.</typeparam>
+        /// <param name="path">An expression selecting the nested navigation property to include.</param>
+        /// <returns>This repository instance for fluent chaining.</returns>
         public override IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
         {
-            // TODO: This is likely a bug. The receiver is incorrect. 
-            _repositoryQuery = _includableQueryable.ThenInclude(path);
+            // TODO: This is likely a bug. The receiver is incorrect.
+            _repositoryQuery = _includableQueryable!.ThenInclude(path);
             return this;
         }
 
+        /// <summary>
+        /// Gets the base <see cref="IQueryable{TEntity}"/> used for all query operations.
+        /// Applies eager-loading expressions if any have been configured via <see cref="Include"/>.
+        /// </summary>
         protected override IQueryable<TEntity> RepositoryQuery
         {
             get
@@ -117,7 +146,7 @@ namespace RCommon.Persistence.EFCore.Crud
                     _repositoryQuery = ObjectSet.AsQueryable<TEntity>();
                 }
 
-                // Start Eagerloading
+                // Override the base query with the eager-loaded queryable if includes have been configured
                 if (_includableQueryable != null)
                 {
                     _repositoryQuery = _includableQueryable;
@@ -126,6 +155,7 @@ namespace RCommon.Persistence.EFCore.Crud
             }
         }
 
+        /// <inheritdoc />
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
@@ -134,6 +164,7 @@ namespace RCommon.Persistence.EFCore.Crud
         }
 
 
+        /// <inheritdoc />
         public async override Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
@@ -141,16 +172,19 @@ namespace RCommon.Persistence.EFCore.Crud
             await SaveAsync();
         }
 
+        /// <inheritdoc />
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await this.DeleteManyAsync(specification.Predicate, token);
         }
 
+        /// <inheritdoc />
         public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await this.FindQuery(expression).ExecuteDeleteAsync(token);
         }
 
+        /// <inheritdoc />
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
@@ -158,13 +192,20 @@ namespace RCommon.Persistence.EFCore.Crud
             await SaveAsync(token);
         }
 
+        /// <summary>
+        /// Core query method that applies the given filter expression to the <see cref="RepositoryQuery"/>.
+        /// All find operations delegate to this method to build the filtered queryable.
+        /// </summary>
+        /// <param name="expression">A predicate expression to filter entities.</param>
+        /// <returns>An <see cref="IQueryable{TEntity}"/> representing the filtered query.</returns>
+        /// <exception cref="NullReferenceException">Thrown when <see cref="RepositoryQuery"/> is null.</exception>
         private IQueryable<TEntity> FindCore(Expression<Func<TEntity, bool>> expression)
         {
             IQueryable<TEntity> queryable;
             try
             {
                 Guard.Against<NullReferenceException>(RepositoryQuery == null, "RepositoryQuery is null");
-                queryable = RepositoryQuery.Where(expression);
+                queryable = RepositoryQuery!.Where(expression);
             }
             catch (ApplicationException exception)
             {
@@ -174,41 +215,49 @@ namespace RCommon.Persistence.EFCore.Crud
             return queryable;
         }
 
+        /// <inheritdoc />
         public async override Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
             return await FindCore(selectSpec.Predicate).CountAsync(token);
         }
 
+        /// <inheritdoc />
         public async override Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await FindCore(expression).CountAsync(token);
         }
 
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
             return FindCore(specification.Predicate);
         }
 
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression)
         {
             return FindCore(expression);
         }
 
+        /// <inheritdoc />
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            return await ObjectSet.FindAsync(new object[] { primaryKey }, token);
+            return (await ObjectSet.FindAsync(new object[] { primaryKey }, token))!;
         }
 
+        /// <inheritdoc />
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindCore(specification.Predicate).ToListAsync(token);
         }
 
+        /// <inheritdoc />
         public async override Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await FindCore(expression).ToListAsync(token);
         }
 
+        /// <inheritdoc />
         public async override Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
         {
             IQueryable<TEntity> query;
@@ -223,6 +272,7 @@ namespace RCommon.Persistence.EFCore.Crud
             return await Task.FromResult(query.ToPaginatedList(specification.PageNumber, specification.PageSize));
         }
 
+        /// <inheritdoc />
         public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int pageNumber = 1, int pageSize = 1,
             CancellationToken token = default)
@@ -238,6 +288,8 @@ namespace RCommon.Persistence.EFCore.Crud
             }
             return await Task.FromResult(query.ToPaginatedList(pageNumber, pageSize));
         }
+
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int pageNumber = 1, int pageSize = 0)
         {
@@ -253,6 +305,7 @@ namespace RCommon.Persistence.EFCore.Crud
             return query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
         }
 
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending)
         {
@@ -268,32 +321,40 @@ namespace RCommon.Persistence.EFCore.Crud
             return query;
         }
 
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification)
         {
-            return this.FindQuery(specification.Predicate, specification.OrderByExpression, 
+            return this.FindQuery(specification.Predicate, specification.OrderByExpression,
                 specification.OrderByAscending, specification.PageNumber, specification.PageSize);
         }
 
+        /// <inheritdoc />
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await FindCore(expression).SingleOrDefaultAsync(token);
+            return (await FindCore(expression).SingleOrDefaultAsync(token))!;
         }
 
+        /// <inheritdoc />
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await FindCore(specification.Predicate).SingleOrDefaultAsync(token);
+            return (await FindCore(specification.Predicate).SingleOrDefaultAsync(token))!;
         }
 
+        /// <inheritdoc />
         public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await FindCore(expression).AnyAsync(token);
         }
 
+        /// <inheritdoc />
         public async override Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindCore(specification.Predicate).AnyAsync(token);
         }
 
+        /// <summary>
+        /// Gets the <see cref="RCommonDbContext"/> for the configured data store, resolved through the <see cref="IDataStoreFactory"/>.
+        /// </summary>
         protected internal RCommonDbContext ObjectContext
         {
             get
@@ -302,11 +363,18 @@ namespace RCommon.Persistence.EFCore.Crud
             }
         }
 
+        /// <summary>
+        /// Persists all pending changes in the <see cref="ObjectContext"/> to the database.
+        /// </summary>
+        /// <param name="token">A cancellation token to observe.</param>
+        /// <returns>The number of rows affected by the save operation.</returns>
+        /// <exception cref="PersistenceException">Thrown when the underlying save operation fails.</exception>
         private async Task<int> SaveAsync(CancellationToken token = default)
         {
             int affected = 0;
             try
             {
+                // acceptAllChangesOnSuccess is set to true so EF resets tracking after a successful save
                 affected = await ObjectContext.SaveChangesAsync(true, token);
             }
             catch (ApplicationException ex)

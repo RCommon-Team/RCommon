@@ -57,7 +57,7 @@ public class DefaultDataStoreOptionsTests
         options.DefaultDataStoreName = "SomeName";
 
         // Act
-        options.DefaultDataStoreName = null;
+        options.DefaultDataStoreName = null!;
 
         // Assert
         options.DefaultDataStoreName.Should().BeNull();

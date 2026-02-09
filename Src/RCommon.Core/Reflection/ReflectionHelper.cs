@@ -6,7 +6,10 @@ using System.Reflection;
 
 namespace RCommon.Reflection
 {
-    //TODO: Consider to make internal
+    /// <summary>
+    /// Provides utility methods for reflection-based operations including generic type inspection,
+    /// attribute retrieval, property path navigation, constant discovery, and compiled method invocation.
+    /// </summary>
     public static class ReflectionHelper
     {
         //TODO: Ehhance summary
@@ -40,7 +43,13 @@ namespace RCommon.Reflection
             return IsAssignableToGenericType(givenTypeInfo.BaseType, genericType);
         }
 
-        //TODO: Summary
+        /// <summary>
+        /// Gets all closed generic types that <paramref name="givenType"/> implements or inherits
+        /// matching the open generic type definition specified by <paramref name="genericType"/>.
+        /// </summary>
+        /// <param name="givenType">The type to inspect.</param>
+        /// <param name="genericType">The open generic type definition to match against (e.g., <c>typeof(IRepository&lt;&gt;)</c>).</param>
+        /// <returns>A list of closed generic types matching the specified definition.</returns>
         public static List<Type> GetImplementedGenericTypes(Type givenType, Type genericType)
         {
             var result = new List<Type>();
@@ -48,6 +57,14 @@ namespace RCommon.Reflection
             return result;
         }
 
+        /// <summary>
+        /// Recursively searches through a type's hierarchy (interfaces and base types)
+        /// to find all closed generic types matching the given open generic type definition,
+        /// adding each unique match to the result list.
+        /// </summary>
+        /// <param name="result">The accumulator list for matching types.</param>
+        /// <param name="givenType">The current type being inspected.</param>
+        /// <param name="genericType">The open generic type definition to match against.</param>
         private static void AddImplementedGenericTypes(List<Type> result, Type givenType, Type genericType)
         {
             var givenTypeInfo = givenType.GetTypeInfo();
@@ -81,7 +98,7 @@ namespace RCommon.Reflection
         /// <param name="memberInfo">MemberInfo</param>
         /// <param name="defaultValue">Default value (null as default)</param>
         /// <param name="inherit">Inherit attribute from base classes</param>
-        public static TAttribute GetSingleAttributeOrDefault<TAttribute>(MemberInfo memberInfo, TAttribute defaultValue = default, bool inherit = true)
+        public static TAttribute? GetSingleAttributeOrDefault<TAttribute>(MemberInfo memberInfo, TAttribute? defaultValue = default, bool inherit = true)
             where TAttribute : Attribute
         {
             //Get attribute on the member
@@ -101,7 +118,7 @@ namespace RCommon.Reflection
         /// <param name="memberInfo">MemberInfo</param>
         /// <param name="defaultValue">Default value (null as default)</param>
         /// <param name="inherit">Inherit attribute from base classes</param>
-        public static TAttribute GetSingleAttributeOfMemberOrDeclaringTypeOrDefault<TAttribute>(MemberInfo memberInfo, TAttribute defaultValue = default, bool inherit = true)
+        public static TAttribute? GetSingleAttributeOfMemberOrDeclaringTypeOrDefault<TAttribute>(MemberInfo memberInfo, TAttribute? defaultValue = default, bool inherit = true)
             where TAttribute : class
         {
             return memberInfo.GetCustomAttributes(true).OfType<TAttribute>().FirstOrDefault()
@@ -129,9 +146,9 @@ namespace RCommon.Reflection
         /// <summary>
         /// Gets value of a property by it's full path from given object
         /// </summary>
-        public static object GetValueByPath(object obj, Type objectType, string propertyPath)
+        public static object? GetValueByPath(object obj, Type objectType, string propertyPath)
         {
-            var value = obj;
+            object? value = obj;
             var currentType = objectType;
             var objectPath = currentType.FullName;
             var absolutePropertyPath = propertyPath;
@@ -167,10 +184,10 @@ namespace RCommon.Reflection
         internal static void SetValueByPath(object obj, Type objectType, string propertyPath, object value)
         {
             var currentType = objectType;
-            PropertyInfo property;
+            PropertyInfo? property;
             var objectPath = currentType.FullName;
             var absolutePropertyPath = propertyPath;
-            if (absolutePropertyPath.StartsWith(objectPath))
+            if (objectPath != null && absolutePropertyPath.StartsWith(objectPath))
             {
                 absolutePropertyPath = absolutePropertyPath.Replace(objectPath + ".", "");
             }
@@ -180,19 +197,20 @@ namespace RCommon.Reflection
             if (properties.Length == 1)
             {
                 property = objectType.GetProperty(properties.First());
-                property.SetValue(obj, value);
+                property?.SetValue(obj, value);
                 return;
             }
 
             for (int i = 0; i < properties.Length - 1; i++)
             {
                 property = currentType.GetProperty(properties[i]);
-                obj = property.GetValue(obj, null);
+                if (property == null) return;
+                obj = property.GetValue(obj, null)!;
                 currentType = property.PropertyType;
             }
 
             property = currentType.GetProperty(properties.Last());
-            property.SetValue(obj, value);
+            property?.SetValue(obj, value);
         }
 
 
@@ -216,7 +234,7 @@ namespace RCommon.Reflection
 
                 constants.AddRange(targetType.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
                     .Where(x => x.IsLiteral && !x.IsInitOnly)
-                    .Select(x => x.GetValue(null).ToString()));
+                    .Select(x => x.GetValue(null)?.ToString() ?? string.Empty));
 
                 var nestedTypes = targetType.GetNestedTypes(BindingFlags.Public);
 
@@ -285,7 +303,7 @@ namespace RCommon.Reflection
                     instanceArgument,
                 };
 
-            var type = methodInfo.DeclaringType;
+            var type = methodInfo.DeclaringType!;
             var instanceVariable = Expression.Variable(type);
             var blockVariables = new List<ParameterExpression>
                 {

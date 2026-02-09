@@ -22,11 +22,28 @@ using static Dapper.SqlMapper;
 
 namespace RCommon.Persistence.Dapper.Crud
 {
+    /// <summary>
+    /// A concrete repository implementation using Dapper and the Dommel extension library for CRUD operations.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type managed by this repository. Must implement <see cref="IBusinessEntity"/>.</typeparam>
+    /// <remarks>
+    /// Each operation acquires a <see cref="DbConnection"/> from the configured <see cref="IDataStore"/>,
+    /// ensures it is open before executing, and closes it in a <c>finally</c> block. This repository
+    /// uses Dommel's extension methods (e.g., <c>InsertAsync</c>, <c>DeleteAsync</c>, <c>SelectAsync</c>)
+    /// for SQL generation from entity mappings.
+    /// </remarks>
     public class DapperRepository<TEntity> : SqlRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
 
-        public DapperRepository(IDataStoreFactory dataStoreFactory, 
+        /// <summary>
+        /// Initializes a new instance of <see cref="DapperRepository{TEntity}"/>.
+        /// </summary>
+        /// <param name="dataStoreFactory">Factory used to resolve the <see cref="RDbConnection"/> for the configured data store.</param>
+        /// <param name="logger">Factory for creating loggers scoped to this repository type.</param>
+        /// <param name="eventTracker">Tracker used to register entities for domain event dispatching.</param>
+        /// <param name="defaultDataStoreOptions">Options specifying which data store to use when none is explicitly set.</param>
+        public DapperRepository(IDataStoreFactory dataStoreFactory,
             ILoggerFactory logger, IEntityEventTracker eventTracker,
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
             : base(dataStoreFactory, logger, eventTracker, defaultDataStoreOptions)
@@ -34,6 +51,7 @@ namespace RCommon.Persistence.Dapper.Crud
             Logger = logger.CreateLogger(GetType().Name);
         }
 
+        /// <inheritdoc />
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
 
@@ -66,6 +84,7 @@ namespace RCommon.Persistence.Dapper.Crud
         }
 
 
+        /// <inheritdoc />
         public override async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
             await using (var db = DataStore.GetDbConnection())
@@ -96,6 +115,7 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
+        /// <inheritdoc />
         public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             await using (var db = DataStore.GetDbConnection())
@@ -107,7 +127,7 @@ namespace RCommon.Persistence.Dapper.Crud
                         await db.OpenAsync();
                     }
 
-                    return await db.DeleteMultipleAsync(expression, cancellationToken: token); 
+                    return await db.DeleteMultipleAsync(expression, cancellationToken: token);
                 }
                 catch (ApplicationException exception)
                 {
@@ -125,6 +145,7 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
+        /// <inheritdoc />
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await DeleteManyAsync(specification.Predicate, token);
@@ -132,6 +153,7 @@ namespace RCommon.Persistence.Dapper.Crud
 
 
 
+        /// <inheritdoc />
         public override async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
 
@@ -162,11 +184,13 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
+        /// <inheritdoc />
         public override async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindAsync(specification.Predicate, token);
         }
 
+        /// <inheritdoc />
         public override async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             await using (var db = DataStore.GetDbConnection())
@@ -196,6 +220,7 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
+        /// <inheritdoc />
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
             await using (var db = DataStore.GetDbConnection())
@@ -208,7 +233,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     }
 
                     var result = await db.GetAsync<TEntity>(primaryKey, cancellationToken: token);
-                    return result;
+                    return result!;
                 }
                 catch (ApplicationException exception)
                 {
@@ -225,6 +250,7 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
+        /// <inheritdoc />
         public override async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
             await using (var db = DataStore.GetDbConnection())
@@ -254,6 +280,7 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
+        /// <inheritdoc />
         public override async Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             await using (var db = DataStore.GetDbConnection())
@@ -284,32 +311,34 @@ namespace RCommon.Persistence.Dapper.Crud
         }
 
         /// <summary>
-        /// Gets the single returned value based on the expression passed in. 
+        /// Gets the single returned value based on the expression passed in.
         /// </summary>
         /// <param name="expression">Custom Expression</param>
         /// <param name="token">Cancellation Token</param>
         /// <returns>Value matching expression criteria.</returns>
-        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead 
+        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)"/> instead
         /// due to issues related to https://github.com/henkmollema/Dommel/issues/282</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
+            // Dommel lacks a native SingleOrDefault, so we retrieve all matches and apply SingleOrDefault in-memory
             var result = await FindAsync(expression, token);
-            return result.SingleOrDefault();
+            return result.SingleOrDefault()!;
         }
 
         /// <summary>
-        /// Gets the single returned value based on the expression passed in. 
+        /// Gets the single returned value based on the expression passed in.
         /// </summary>
         /// <param name="specification">Custom Specification</param>
         /// <param name="token">Cancellation Token</param>
         /// <returns>Value matching specification expression criteria.</returns>
-        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)" instead
+        /// <remarks>Do not use this if querying using primary key. Use <see cref="FindAsync(object, CancellationToken)"/> instead
         /// due to issues related to https://github.com/henkmollema/Dommel/issues/282</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindSingleOrDefaultAsync(specification, token);
         }
 
+        /// <inheritdoc />
         public override async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             await using (var db = DataStore.GetDbConnection())
@@ -339,6 +368,7 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
+        /// <inheritdoc />
         public override async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await AnyAsync(specification.Predicate, token);

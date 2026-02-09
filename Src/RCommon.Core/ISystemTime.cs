@@ -4,6 +4,11 @@ using System;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Abstracts the system clock to enable testable time-dependent code and consistent time zone handling.
+    /// </summary>
+    /// <seealso cref="SystemTime"/>
+    /// <seealso cref="ISystemTimeOptions"/>
     public interface ISystemTime
     {
         /// <summary>

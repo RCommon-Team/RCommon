@@ -31,6 +31,22 @@ namespace RCommon.Persistence.Transactions
     public static class TransactionScopeHelper
     {
 
+        /// <summary>
+        /// Creates a <see cref="TransactionScope"/> based on the <see cref="IUnitOfWork.TransactionMode"/>
+        /// of the specified unit of work.
+        /// </summary>
+        /// <param name="logger">The logger for diagnostic output about the created scope type.</param>
+        /// <param name="unitOfWork">The unit of work whose <see cref="IUnitOfWork.TransactionMode"/> and
+        /// <see cref="IUnitOfWork.IsolationLevel"/> determine the scope configuration.</param>
+        /// <returns>
+        /// A <see cref="TransactionScope"/> configured as follows:
+        /// <list type="bullet">
+        /// <item><description><see cref="TransactionMode.New"/>: <see cref="TransactionScopeOption.RequiresNew"/> with the specified isolation level.</description></item>
+        /// <item><description><see cref="TransactionMode.Supress"/>: <see cref="TransactionScopeOption.Suppress"/> (no transaction).</description></item>
+        /// <item><description><see cref="TransactionMode.Default"/>: <see cref="TransactionScopeOption.Required"/> (joins existing or creates new).</description></item>
+        /// </list>
+        /// All scopes are created with <see cref="TransactionScopeAsyncFlowOption.Enabled"/> for async support.
+        /// </returns>
         public static TransactionScope CreateScope(ILogger<UnitOfWork> logger, IUnitOfWork unitOfWork)
         {
             if (unitOfWork.TransactionMode == TransactionMode.New)
@@ -43,6 +59,7 @@ namespace RCommon.Persistence.Transactions
                 logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Supress");
                 return new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
             }
+            // Default mode: join existing ambient transaction or create a new one
             logger.LogDebug("Creating a new TransactionScope with TransactionScopeOption.Required");
             return new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
         }

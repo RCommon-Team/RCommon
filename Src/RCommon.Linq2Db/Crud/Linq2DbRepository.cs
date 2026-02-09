@@ -20,13 +20,30 @@ using LinqToDB.Async;
 
 namespace RCommon.Persistence.Linq2Db.Crud
 {
+    /// <summary>
+    /// A concrete repository implementation using Linq2Db for CRUD operations and LINQ-based querying.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type managed by this repository. Must implement <see cref="IBusinessEntity"/>.</typeparam>
+    /// <remarks>
+    /// Queries are built against <see cref="ITable{TEntity}"/> from the underlying <see cref="RCommonDataConnection"/>.
+    /// Supports eager loading via <see cref="Include"/> and <see cref="ThenInclude{TPreviousProperty, TProperty}"/>
+    /// using Linq2Db's <c>LoadWith</c>/<c>ThenLoad</c> API.
+    /// </remarks>
     public class Linq2DbRepository<TEntity> : LinqRepositoryBase<TEntity>
         where TEntity : class, IBusinessEntity
     {
-        private IQueryable<TEntity> _repositoryQuery;
-        private ILoadWithQueryable<TEntity, object> _includableQueryable;
+        private IQueryable<TEntity>? _repositoryQuery;
+        private ILoadWithQueryable<TEntity, object>? _includableQueryable;
         private readonly IDataStoreFactory _dataStoreFactory;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Linq2DbRepository{TEntity}"/>.
+        /// </summary>
+        /// <param name="dataStoreFactory">Factory used to resolve the <see cref="RCommonDataConnection"/> for the configured data store.</param>
+        /// <param name="logger">Factory for creating loggers scoped to this repository type.</param>
+        /// <param name="eventTracker">Tracker used to register entities for domain event dispatching.</param>
+        /// <param name="defaultDataStoreOptions">Options specifying which data store to use when none is explicitly set.</param>
+        /// <exception cref="ArgumentNullException">Thrown when any parameter is <c>null</c>.</exception>
         public Linq2DbRepository(IDataStoreFactory dataStoreFactory,
             ILoggerFactory logger, IEntityEventTracker eventTracker,
             IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
@@ -54,6 +71,9 @@ namespace RCommon.Persistence.Linq2Db.Crud
         }
 
 
+        /// <summary>
+        /// Gets the <see cref="RCommonDataConnection"/> for the configured data store, resolved through the <see cref="IDataStoreFactory"/>.
+        /// </summary>
         protected internal RCommonDataConnection DataConnection
         {
             get
@@ -62,6 +82,9 @@ namespace RCommon.Persistence.Linq2Db.Crud
             }
         }
 
+        /// <summary>
+        /// Gets the Linq2Db <see cref="ITable{TEntity}"/> from the current <see cref="DataConnection"/> for direct table operations.
+        /// </summary>
         protected ITable<TEntity> ObjectSet
         {
             get
@@ -70,19 +93,36 @@ namespace RCommon.Persistence.Linq2Db.Crud
             }
         }
 
+        /// <summary>
+        /// Adds an eager-loading path for the specified navigation property using Linq2Db's <c>LoadWith</c> API.
+        /// </summary>
+        /// <param name="path">An expression selecting the navigation property to include.</param>
+        /// <returns>This repository instance for fluent chaining of additional includes.</returns>
         public override IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
-            _includableQueryable = RepositoryQuery.LoadWith(path);
+            _includableQueryable = RepositoryQuery.LoadWith(path!);
             return this;
         }
 
+        /// <summary>
+        /// Adds a subsequent eager-loading path for a nested navigation property after a prior <see cref="Include"/> call,
+        /// using Linq2Db's <c>ThenLoad</c> API.
+        /// </summary>
+        /// <typeparam name="TPreviousProperty">The type of the previously included navigation property.</typeparam>
+        /// <typeparam name="TProperty">The type of the nested navigation property to include.</typeparam>
+        /// <param name="path">An expression selecting the nested navigation property to include.</param>
+        /// <returns>This repository instance for fluent chaining.</returns>
         public override IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
         {
-            _repositoryQuery = _includableQueryable.ThenLoad(path);
+            _repositoryQuery = _includableQueryable!.ThenLoad(path!);
             return this;
         }
 
 
+        /// <summary>
+        /// Gets the base <see cref="IQueryable{TEntity}"/> used for all query operations.
+        /// Applies eager-loading expressions if any have been configured via <see cref="Include"/>.
+        /// </summary>
         protected override IQueryable<TEntity> RepositoryQuery
         {
             get
@@ -92,7 +132,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
                     _repositoryQuery = ObjectSet.AsQueryable();
                 }
 
-                // Start Eagerloading
+                // Override the base query with the eager-loaded queryable if includes have been configured
                 if (_includableQueryable != null)
                 {
                     _repositoryQuery = _includableQueryable;
@@ -101,13 +141,20 @@ namespace RCommon.Persistence.Linq2Db.Crud
             }
         }
 
+        /// <summary>
+        /// Core query method that applies the given filter expression to the <see cref="RepositoryQuery"/>.
+        /// All find operations delegate to this method to build the filtered queryable.
+        /// </summary>
+        /// <param name="expression">A predicate expression to filter entities.</param>
+        /// <returns>An <see cref="IQueryable{TEntity}"/> representing the filtered query.</returns>
+        /// <exception cref="NullReferenceException">Thrown when <see cref="RepositoryQuery"/> is null.</exception>
         private IQueryable<TEntity> FindCore(Expression<Func<TEntity, bool>> expression)
         {
             IQueryable<TEntity> queryable;
             try
             {
                 Guard.Against<NullReferenceException>(RepositoryQuery == null, "RepositoryQuery is null");
-                queryable = RepositoryQuery.Where(expression);
+                queryable = RepositoryQuery!.Where(expression);
             }
             catch (ApplicationException exception)
             {
@@ -118,50 +165,58 @@ namespace RCommon.Persistence.Linq2Db.Crud
         }
 
 
+        /// <inheritdoc />
         public async override Task AddAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
             await DataConnection.InsertAsync(entity, token: token);
         }
 
+        /// <inheritdoc />
         public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await RepositoryQuery.AnyAsync(expression, token: token);
         }
 
+        /// <inheritdoc />
         public async override Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await AnyAsync(specification.Predicate, token: token);
         }
 
+        /// <inheritdoc />
         public async override Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
             await DataConnection.DeleteAsync(entity);
         }
 
+        /// <inheritdoc />
         public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await FindQuery(expression).DeleteAsync(token);
         }
 
+        /// <inheritdoc />
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await DeleteManyAsync(specification.Predicate, token);
         }
 
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(ISpecification<TEntity> specification)
         {
             return FindCore(specification.Predicate);
         }
 
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression)
         {
             return FindCore(expression);
         }
 
         /// <summary>
-        /// This is not yet implemented due to Linq2Db's inability to find primary key or array of primary key. 
+        /// This is not yet implemented due to Linq2Db's inability to find primary key or array of primary key.
         /// </summary>
         /// <param name="primaryKey">Value of Primary Key</param>
         /// <param name="token">Cancellation Token</param>
@@ -174,16 +229,19 @@ namespace RCommon.Persistence.Linq2Db.Crud
             //DataExtensions.RetrieveIdentity<TEntity>(IEnumerable<TEntity>
         }
 
+        /// <inheritdoc />
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindCore(specification.Predicate).ToListAsync(token);
         }
 
+        /// <inheritdoc />
         public async override Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await FindCore(expression).ToListAsync(token);
         }
 
+        /// <inheritdoc />
         public async override Task<IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default)
         {
             IQueryable<TEntity> query;
@@ -198,6 +256,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
             return await Task.FromResult(query.ToPaginatedList(specification.PageNumber, specification.PageSize));
         }
 
+        /// <inheritdoc />
         public async override Task<IPaginatedList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int pageNumber = 1, int pageSize = 1,
             CancellationToken token = default)
@@ -214,7 +273,8 @@ namespace RCommon.Persistence.Linq2Db.Crud
             return await Task.FromResult(query.ToPaginatedList(pageNumber, pageSize));
         }
 
-        public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression, 
+        /// <inheritdoc />
+        public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending, int pageNumber = 1, int pageSize = 0)
         {
             IQueryable<TEntity> query;
@@ -229,12 +289,14 @@ namespace RCommon.Persistence.Linq2Db.Crud
             return query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
         }
 
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(IPagedSpecification<TEntity> specification)
         {
             return this.FindQuery(specification.Predicate, specification.OrderByExpression,
                  specification.OrderByAscending, specification.PageNumber, specification.PageSize);
         }
 
+        /// <inheritdoc />
         public override IQueryable<TEntity> FindQuery(Expression<Func<TEntity, bool>> expression, Expression<Func<TEntity, object>> orderByExpression,
             bool orderByAscending)
         {
@@ -250,26 +312,31 @@ namespace RCommon.Persistence.Linq2Db.Crud
             return query;
         }
 
+        /// <inheritdoc />
         public async override Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await RepositoryQuery.SingleOrDefaultAsync(expression, token);
+            return (await RepositoryQuery.SingleOrDefaultAsync(expression, token))!;
         }
 
+        /// <inheritdoc />
         public async override Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await FindSingleOrDefaultAsync(specification.Predicate, token);
         }
 
+        /// <inheritdoc />
         public async override Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
             return await GetCountAsync(selectSpec.Predicate, token);
         }
 
+        /// <inheritdoc />
         public async override Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await RepositoryQuery.CountAsync(expression, token);
         }
 
+        /// <inheritdoc />
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);

@@ -14,20 +14,42 @@ namespace RCommon
     /// </summary>
     public class SequentialGuidGenerator : IGuidGenerator
     {
+        /// <summary>
+        /// Gets the options that configure the default <see cref="SequentialGuidType"/> for GUID generation.
+        /// </summary>
         public SequentialGuidGeneratorOptions Options { get; }
 
         private static readonly RandomNumberGenerator RandomNumberGenerator = RandomNumberGenerator.Create();
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="SequentialGuidGenerator"/> with the specified options.
+        /// </summary>
+        /// <param name="options">The options controlling the default sequential GUID type.</param>
         public SequentialGuidGenerator(IOptions<SequentialGuidGeneratorOptions> options)
         {
             Options = options.Value;
         }
 
+        /// <summary>
+        /// Creates a new sequential <see cref="Guid"/> using the default <see cref="SequentialGuidType"/>
+        /// from <see cref="Options"/>.
+        /// </summary>
+        /// <returns>A new sequential <see cref="Guid"/>.</returns>
         public Guid Create()
         {
             return Create(Options.GetDefaultSequentialGuidType());
         }
 
+        /// <summary>
+        /// Creates a new sequential <see cref="Guid"/> of the specified type.
+        /// </summary>
+        /// <param name="guidType">The <see cref="SequentialGuidType"/> controlling byte layout for database compatibility.</param>
+        /// <returns>A new sequential <see cref="Guid"/> with a timestamp-based sequential portion.</returns>
+        /// <remarks>
+        /// The GUID is composed of 10 bytes of cryptographically random data and a 6-byte timestamp
+        /// derived from <see cref="DateTime.UtcNow"/> in millisecond resolution. The byte ordering
+        /// varies by <paramref name="guidType"/> to optimize for different database platforms.
+        /// </remarks>
         public Guid Create(SequentialGuidType guidType)
         {
             // We start with 16 bytes of cryptographically strong random data.

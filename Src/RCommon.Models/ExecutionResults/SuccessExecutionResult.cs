@@ -25,12 +25,26 @@ using System.Runtime.Serialization;
 
 namespace RCommon.Models.ExecutionResults
 {
+    /// <summary>
+    /// Represents a successful execution result with <see cref="ExecutionResult.IsSuccess"/> set to <c>true</c>.
+    /// </summary>
+    /// <remarks>
+    /// Typically obtained via <see cref="ExecutionResult.Success"/> rather than instantiated directly,
+    /// which returns a cached singleton to reduce allocations.
+    /// </remarks>
+    /// <seealso cref="ExecutionResult"/>
+    /// <seealso cref="FailedExecutionResult"/>
     [DataContract]
     public record SuccessExecutionResult : ExecutionResult
     {
+        /// <inheritdoc />
         [DataMember]
         public override bool IsSuccess { get; } = true;
 
+        /// <summary>
+        /// Returns a human-readable string indicating successful execution.
+        /// </summary>
+        /// <returns>The string "Successful execution".</returns>
         public override string ToString()
         {
             return "Successful execution";

@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace RCommon.SystemTextJson
 {
+    /// <summary>
+    /// Builder interface for configuring JSON serialization using the System.Text.Json library.
+    /// </summary>
+    /// <seealso cref="IJsonBuilder"/>
+    /// <seealso cref="TextJsonBuilder"/>
     public interface ITextJsonBuilder : IJsonBuilder
     {
     }

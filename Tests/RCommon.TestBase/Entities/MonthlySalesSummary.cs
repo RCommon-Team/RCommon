@@ -15,9 +15,9 @@ namespace RCommon.TestBase.Entities
         public int Month { get; set; } // Month (Primary key)
         public int SalesPersonId { get; set; } // SalesPersonId (Primary key)
         public decimal? Amount { get; set; } // Amount
-        public string Currency { get; set; } // Currency (length: 255)
-        public string SalesPersonFirstName { get; set; } // SalesPersonFirstName (length: 255)
-        public string SalesPersonLastName { get; set; } // SalesPersonLastName (length: 255)
+        public string Currency { get; set; } = string.Empty; // Currency (length: 255)
+        public string SalesPersonFirstName { get; set; } = string.Empty; // SalesPersonFirstName (length: 255)
+        public string SalesPersonLastName { get; set; } = string.Empty; // SalesPersonLastName (length: 255)
 
         public MonthlySalesSummary()
         {

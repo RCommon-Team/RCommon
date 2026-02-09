@@ -27,20 +27,41 @@ using System.Runtime.Serialization;
 
 namespace RCommon.Models.ExecutionResults
 {
+    /// <summary>
+    /// Represents a failed execution result, optionally containing one or more error messages
+    /// that describe the reason(s) for failure.
+    /// </summary>
+    /// <seealso cref="ExecutionResult"/>
+    /// <seealso cref="SuccessExecutionResult"/>
     [DataContract]
     public record FailedExecutionResult : ExecutionResult
     {
+        /// <summary>
+        /// Gets the collection of error messages associated with the failure.
+        /// </summary>
         public IReadOnlyCollection<string> Errors { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FailedExecutionResult"/> record.
+        /// </summary>
+        /// <param name="errors">
+        /// A collection of error messages describing the failure. If <c>null</c>, an empty collection is used.
+        /// </param>
         public FailedExecutionResult(
             IEnumerable<string> errors)
         {
+            // Materialize to a list and guard against null to ensure Errors is never null.
             Errors = (errors ?? Enumerable.Empty<string>()).ToList();
         }
 
+        /// <inheritdoc />
         [DataMember]
         public override bool IsSuccess { get; } = false;
 
+        /// <summary>
+        /// Returns a string describing the failure, including error messages if any are present.
+        /// </summary>
+        /// <returns>A human-readable description of the failure and its associated errors.</returns>
         public override string ToString()
         {
             return Errors.Any()

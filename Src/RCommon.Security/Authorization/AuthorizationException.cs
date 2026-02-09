@@ -23,7 +23,7 @@ namespace RCommon.Security.Authorization
         /// <summary>
         /// Error code.
         /// </summary>
-        public string Code { get; }
+        public string? Code { get; }
 
         /// <summary>
         /// Creates a new <see cref="AuthorizationException"/> object.
@@ -60,13 +60,19 @@ namespace RCommon.Security.Authorization
         /// <param name="message">Exception message</param>
         /// <param name="code">Exception code</param>
         /// <param name="innerException">Inner exception</param>
-        public AuthorizationException(string message = null, string code = null, Exception innerException = null)
+        public AuthorizationException(string? message = null, string? code = null, Exception? innerException = null)
             : base(message, innerException)
         {
             Code = code;
             LogLevel = LogLevel.Warning;
         }
 
+        /// <summary>
+        /// Adds a key/value pair to the exception's <see cref="Exception.Data"/> dictionary and returns the current instance for fluent chaining.
+        /// </summary>
+        /// <param name="name">The key to store in the data dictionary.</param>
+        /// <param name="value">The value associated with the key.</param>
+        /// <returns>The current <see cref="AuthorizationException"/> instance.</returns>
         public AuthorizationException WithData(string name, object value)
         {
             Data[name] = value;

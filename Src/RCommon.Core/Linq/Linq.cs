@@ -12,13 +12,27 @@ namespace RCommon.Linq
 	/// </summary>
 	public static class Linq
 	{
-		// Returns the given anonymous method as a lambda expression
+		/// <summary>
+		/// Returns the given anonymous method as a strongly-typed lambda expression.
+		/// Useful for building dynamic LINQ queries where the compiler cannot infer the expression type.
+		/// </summary>
+		/// <typeparam name="T">The input type of the expression.</typeparam>
+		/// <typeparam name="TResult">The return type of the expression.</typeparam>
+		/// <param name="expr">The lambda expression to return.</param>
+		/// <returns>The same expression, strongly typed.</returns>
 		public static Expression<Func<T, TResult>> Expr<T, TResult> (Expression<Func<T, TResult>> expr)
 		{
 			return expr;
 		}
 
-		// Returns the given anonymous function as a Func delegate
+		/// <summary>
+		/// Returns the given anonymous function as a strongly-typed <see cref="Func{T, TResult}"/> delegate.
+		/// Useful when the compiler cannot infer the delegate type from context.
+		/// </summary>
+		/// <typeparam name="T">The input type of the function.</typeparam>
+		/// <typeparam name="TResult">The return type of the function.</typeparam>
+		/// <param name="expr">The function delegate to return.</param>
+		/// <returns>The same function, strongly typed.</returns>
 		public static Func<T, TResult> Func<T, TResult> (Func<T, TResult> expr)
 		{
 			return expr;

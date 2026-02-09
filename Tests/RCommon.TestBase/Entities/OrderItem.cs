@@ -14,7 +14,7 @@ namespace RCommon.TestBase.Entities
         public int OrderItemId { get; set; } // OrderItemID (Primary key)
         public decimal? Price { get; set; } // Price
         public int? Quantity { get; set; } // Quantity
-        public string Store { get; set; } // Store (length: 255)
+        public string Store { get; set; } = string.Empty; // Store (length: 255)
         public int? ProductId { get; set; } // ProductId
         public int? OrderId { get; set; } // OrderId
 
@@ -23,12 +23,12 @@ namespace RCommon.TestBase.Entities
         /// <summary>
         /// Parent Order pointed by [OrderItems].([OrderId]) (FK_Orders_OrderItems)
         /// </summary>
-        public virtual Order Order { get; set; } // FK_Orders_OrderItems
+        public virtual Order? Order { get; set; } // FK_Orders_OrderItems
 
         /// <summary>
         /// Parent Product pointed by [OrderItems].([ProductId]) (FK_OrderItems_Product)
         /// </summary>
-        public virtual Product Product { get; set; } // FK_OrderItems_Product
+        public virtual Product? Product { get; set; } // FK_OrderItems_Product
 
         public OrderItem()
         {

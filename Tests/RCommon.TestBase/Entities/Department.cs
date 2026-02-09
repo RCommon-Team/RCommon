@@ -11,7 +11,7 @@ namespace RCommon.TestBase.Entities
     // Departments
     public partial class Department : BusinessEntity<int>
     {
-        public string Name { get; set; } // Name (length: 255)
+        public string Name { get; set; } = string.Empty; // Name (length: 255)
 
         // Reverse navigation
 

@@ -23,8 +23,18 @@
 
 namespace RCommon.Models.ExecutionResults
 {
+    /// <summary>
+    /// Represents the outcome of an operation, indicating success or failure.
+    /// This is the base contract for all execution results used by commands and handlers.
+    /// </summary>
+    /// <seealso cref="ExecutionResult"/>
+    /// <seealso cref="SuccessExecutionResult"/>
+    /// <seealso cref="FailedExecutionResult"/>
     public interface IExecutionResult : IModel
     {
+        /// <summary>
+        /// Gets a value indicating whether the operation completed successfully.
+        /// </summary>
         bool IsSuccess { get; }
     }
 }
