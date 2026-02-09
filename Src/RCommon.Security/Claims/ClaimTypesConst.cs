@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace RCommon.Security.Claims
 {
+    /// <summary>
+    /// Provides configurable constants for standard claim type URIs used throughout the security subsystem.
+    /// Each property defaults to the corresponding <see cref="ClaimTypes"/> value and can be overridden at startup.
+    /// </summary>
     public static class ClaimTypesConst
     {
         /// <summary>

@@ -27,12 +27,18 @@ using Microsoft.Extensions.DependencyInjection;
 namespace RCommon.Persistence.Transactions
 {
     ///<summary>
-    /// Implementation of <see cref="IUnitOfWorkBuilder"/>.
+    /// Default implementation of <see cref="IUnitOfWorkBuilder"/> that registers <see cref="UnitOfWork"/>
+    /// and <see cref="UnitOfWorkFactory"/> into the DI container.
     ///</summary>
     public class DefaultUnitOfWorkBuilder : IUnitOfWorkBuilder
     {
         private readonly IServiceCollection _services;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultUnitOfWorkBuilder"/> class and registers
+        /// unit of work services as transient in the DI container.
+        /// </summary>
+        /// <param name="services">The service collection to register services into.</param>
         public DefaultUnitOfWorkBuilder(IServiceCollection services)
         {
 
@@ -42,6 +48,7 @@ namespace RCommon.Persistence.Transactions
             _services = services;
         }
 
+        /// <inheritdoc />
         public IUnitOfWorkBuilder SetOptions(Action<UnitOfWorkSettings> unitOfWorkOptions)
         {
             _services.Configure(unitOfWorkOptions);

@@ -13,15 +13,24 @@ using System.Reflection;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Serves as the base class for application-specific exceptions, automatically capturing
+    /// environment information such as machine name, thread identity, and AppDomain name.
+    /// </summary>
+    /// <remarks>
+    /// All constructors invoke <see cref="InitializeEnvironmentInformation"/> to populate
+    /// diagnostic properties. Security exceptions during environment probing are silently
+    /// caught and the corresponding property is set to "Permission Denied".
+    /// </remarks>
     [Serializable]
     public class BaseApplicationException : ApplicationException
     {
         #region Fields
 
-        private string machineName;
-        private string appDomainName;
-        private string threadIdentity;
-        private string windowsIdentity;
+        private string machineName = string.Empty;
+        private string appDomainName = string.Empty;
+        private string threadIdentity = string.Empty;
+        private string windowsIdentity = string.Empty;
         private DateTime createdDateTime = DateTime.Now;
 
         // Collection provided to store any extra information associated with the exception.
@@ -140,7 +149,7 @@ namespace RCommon
             {
                 if (Thread.CurrentPrincipal != null)
                 {
-                    threadIdentity = Thread.CurrentPrincipal.Identity.Name;
+                    threadIdentity = Thread.CurrentPrincipal.Identity?.Name ?? string.Empty;
                 }
             }
             catch (SecurityException)
@@ -156,7 +165,7 @@ namespace RCommon
             {
                 if (Thread.CurrentPrincipal != null)
                 {
-                    windowsIdentity = Thread.CurrentPrincipal.Identity.Name;
+                    windowsIdentity = Thread.CurrentPrincipal.Identity?.Name ?? string.Empty;
                 }
                 
             }

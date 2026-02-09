@@ -62,7 +62,7 @@ public class RDbConnectionTests
     public void GetDbConnection_WhenDbFactoryNotConfigured_ThrowsRDbConnectionException()
     {
         // Arrange
-        _options.DbFactory = null;
+        _options.DbFactory = null!;
         _options.ConnectionString = "Server=localhost;Database=Test;";
 
         var connection = new RDbConnection(_mockOptions.Object);
@@ -80,7 +80,7 @@ public class RDbConnectionTests
     {
         // Arrange
         _options.DbFactory = SqlClientFactory.Instance;
-        _options.ConnectionString = null;
+        _options.ConnectionString = null!;
 
         var connection = new RDbConnection(_mockOptions.Object);
 

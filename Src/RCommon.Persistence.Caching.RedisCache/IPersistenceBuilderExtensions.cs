@@ -11,31 +11,46 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.RedisCache
 {
+    /// <summary>
+    /// Extension methods on <see cref="IPersistenceBuilder"/> for registering Redis-backed
+    /// persistence caching.
+    /// </summary>
     public static class IPersistenceBuilderExtensions
     {
 
+        /// <summary>
+        /// Registers persistence caching backed by the <see cref="RedisCacheService"/>,
+        /// including all caching repository decorators and the strategy-based cache factory.
+        /// </summary>
+        /// <param name="builder">The persistence builder.</param>
         public static void AddRedisPersistenceCaching(this IPersistenceBuilder builder)
         {
-            // Add Caching repositories
+            // Add Caching services
             builder.Services.TryAddTransient<ICacheService, RedisCacheService>();
             builder.Services.TryAddTransient<RedisCacheService>();
             builder.Services.TryAddTransient<ICommonFactory<PersistenceCachingStrategy, ICacheService>, CommonFactory<PersistenceCachingStrategy, ICacheService>>();
             ConfigureCachingOptions(builder);
 
-            // Add Caching services
+            // Add Caching Factory — resolves the correct ICacheService based on the PersistenceCachingStrategy
             builder.Services.TryAddTransient<Func<PersistenceCachingStrategy, ICacheService>>(serviceProvider => strategy =>
             {
                 switch (strategy)
                 {
                     case PersistenceCachingStrategy.Default:
-                        return serviceProvider.GetService<RedisCacheService>();
+                        return serviceProvider.GetRequiredService<RedisCacheService>();
                     default:
-                        return serviceProvider.GetService<RedisCacheService>();
+                        return serviceProvider.GetRequiredService<RedisCacheService>();
                 }
             });
         }
 
-        private static void ConfigureCachingOptions(IPersistenceBuilder builder, Action<CachingOptions> configure = null)
+        /// <summary>
+        /// Registers the open-generic caching repository decorators and configures <see cref="CachingOptions"/>
+        /// with default or custom settings.
+        /// </summary>
+        /// <param name="builder">The persistence builder.</param>
+        /// <param name="configure">An optional delegate to customize <see cref="CachingOptions"/>. When <c>null</c>, defaults are applied.</param>
+        private static void ConfigureCachingOptions(IPersistenceBuilder builder, Action<CachingOptions>? configure = null)
         {
             // Add Caching repositories
             builder.Services.TryAddTransient(typeof(ICachingGraphRepository<>), typeof(CachingGraphRepository<>));

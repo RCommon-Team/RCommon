@@ -17,6 +17,9 @@ namespace RCommon
     /// </summary>
     public static class CollectionExtensions
     {
+        /// <summary>
+        /// The default comma delimiter character used by delimited string methods.
+        /// </summary>
         public static readonly char CommaDelimiter = ',';
 
         /// <summary>
@@ -25,7 +28,7 @@ namespace RCommon
         /// <param name="source">The list of elements to create delimited string from</param>
         /// <returns>The string consisting of comma-separated elements (using the ToString() method) from the input list</returns>
         /// <exception cref="ArgumentNullException">if <paramref name="source"/> is null</exception>
-        public static string GetCommaDelimitedString<T>(this IEnumerable<T> source)
+        public static string? GetCommaDelimitedString<T>(this IEnumerable<T> source)
         {
             return source.GetDelimitedString(CommaDelimiter);
         }
@@ -38,7 +41,7 @@ namespace RCommon
         /// <param name="funcToGetString">The delegate to return data to be extracted from each element</param>
         /// <returns>comma-delimited string</returns>
         /// <exception cref="ArgumentNullException">if <paramref name="source"/> is null</exception>
-        public static string GetCommaDelimitedString<T>(this IEnumerable<T> source,
+        public static string? GetCommaDelimitedString<T>(this IEnumerable<T> source,
                                                         Func<T, string> funcToGetString)
         {
             return source.GetDelimitedString(funcToGetString, CommaDelimiter, false, true);
@@ -52,9 +55,9 @@ namespace RCommon
         /// <param name="source">The list of elements to create delimited string from</param>
         /// <returns>The string consisting of delimiter-separated elements (using the ToString() method) from the input list</returns>
         /// <exception cref="ArgumentNullException">if <paramref name="source"/> is null</exception>
-        public static string GetDelimitedString<T>(this IEnumerable<T> source, char delimiter)
+        public static string? GetDelimitedString<T>(this IEnumerable<T> source, char delimiter)
         {
-            return source.GetDelimitedString(t => t.ToString(), delimiter, false, true);
+            return source.GetDelimitedString(t => t?.ToString() ?? string.Empty, delimiter, false, true);
         }
 
         /// <summary>
@@ -68,7 +71,7 @@ namespace RCommon
         /// <returns>The string consisting of delimiter-separated elements (using the ToString() method) from the input list</returns>
         /// <exception cref="ArgumentNullException">if <paramref name="source"/> is null</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="funcToGetString"/> is null</exception>
-        public static string GetDelimitedString<T>(this IEnumerable<T> source,
+        public static string? GetDelimitedString<T>(this IEnumerable<T> source,
           Func<T, string> funcToGetString, char delimiter,
           bool addLeadingDelimiter, bool removeTrailingDelimiter)
         {
@@ -109,7 +112,7 @@ namespace RCommon
         /// <param name="collectionWithPossibleDuplicates"></param>
         /// <param name="retainOriginalOrder">A boolean indicating if the original order in the collectionWithPossibleDuplicates should be retained</param>
         /// <returns></returns>
-        public static IList<T> ConvertToListWithNoDuplicates<T>(
+        public static IList<T>? ConvertToListWithNoDuplicates<T>(
           this IEnumerable<T> collectionWithPossibleDuplicates, bool retainOriginalOrder)
         {
             if (collectionWithPossibleDuplicates == null) return null;
@@ -164,7 +167,7 @@ namespace RCommon
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
         /// <returns></returns>
-        public static T[] ConvertToArray<T>(this IEnumerable<T> source)
+        public static T[]? ConvertToArray<T>(this IEnumerable<T> source)
         {
             if (source == null) return null;
 
@@ -256,6 +259,10 @@ namespace RCommon
 
         
 
+        /// <summary>
+        /// Helper method placeholder that always returns true. Used internally as a default predicate.
+        /// </summary>
+        /// <returns>Always returns <c>true</c>.</returns>
         private static bool ForEachHelper()
         {
             return true;
@@ -279,6 +286,12 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Determines whether the collection is null or contains no elements.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements in the collection.</typeparam>
+        /// <param name="collection">The collection to check.</param>
+        /// <returns><c>true</c> if the collection is null or empty; otherwise, <c>false</c>.</returns>
         [DebuggerStepThrough]
         public static bool IsNullOrEmpty<T>(this ICollection<T> collection)
         {
@@ -286,6 +299,12 @@ namespace RCommon
         }
 
 
+        /// <summary>
+        /// Delegate used to decide whether an item should be removed from a collection.
+        /// </summary>
+        /// <typeparam name="T">The type of item to evaluate.</typeparam>
+        /// <param name="item">The item to evaluate.</param>
+        /// <returns><c>true</c> if the item should be removed; otherwise, <c>false</c>.</returns>
         public delegate bool Decide<T>(T item);
 
         /// <summary>
@@ -353,6 +372,12 @@ namespace RCommon
 
         }
 
+        /// <summary>
+        /// Converts an <see cref="IList"/> to a <see cref="DataTable"/> by reflecting over the properties of the first element.
+        /// </summary>
+        /// <param name="alist">The list of objects to convert. Must contain at least one element.</param>
+        /// <returns>A <see cref="DataTable"/> populated with data from the list.</returns>
+        /// <exception cref="FormatException">Thrown when <paramref name="alist"/> is null.</exception>
         public static DataTable ToDataTable(this IList alist)
         {
             DataTable dt = new DataTable();
@@ -361,9 +386,9 @@ namespace RCommon
             {
                 throw new FormatException("Parameter ArrayList empty");
             }
-            dt.TableName = alist[0].GetType().Name;
+            dt.TableName = alist[0]!.GetType().Name;
             DataRow dr;
-            System.Reflection.PropertyInfo[] propInfo = alist[0].GetType().GetProperties();
+            System.Reflection.PropertyInfo[] propInfo = alist[0]!.GetType().GetProperties();
             for (int i = 0; i < propInfo.Length; i++)
             {
                 dt.Columns.Add(propInfo[i].Name, propInfo[i].PropertyType);
@@ -374,9 +399,9 @@ namespace RCommon
                 dr = dt.NewRow();
                 for (int i = 0; i < propInfo.Length; i++)
                 {
-                    object tempObject = alist[row];
+                    object? tempObject = alist[row];
 
-                    object t = propInfo[i].GetValue(tempObject, null);
+                    object? t = propInfo[i].GetValue(tempObject, null);
                     /*object t =tempObject.GetType().InvokeMember(propInfo[i].Name,
                              R.BindingFlags.GetProperty , null,tempObject , new object [] {});*/
                     if (t != null)
@@ -387,6 +412,13 @@ namespace RCommon
             return dt;
         }
 
+        /// <summary>
+        /// Converts an <see cref="IList"/> to a <see cref="DataTable"/>, filtering columns to only those whose names appear in <paramref name="alColNames"/>.
+        /// </summary>
+        /// <param name="alist">The list of objects to convert. Must contain at least one element.</param>
+        /// <param name="alColNames">An <see cref="ArrayList"/> of column names to include in the resulting <see cref="DataTable"/>.</param>
+        /// <returns>A <see cref="DataTable"/> populated with the filtered column data from the list.</returns>
+        /// <exception cref="FormatException">Thrown when <paramref name="alist"/> is null.</exception>
         public static DataTable ToDataTable(this IList alist, ArrayList alColNames)
         {
             DataTable dt = new DataTable();
@@ -395,14 +427,14 @@ namespace RCommon
             {
                 throw new FormatException("Parameter ArrayList empty");
             }
-            dt.TableName = alist[0].GetType().Name;
+            dt.TableName = alist[0]!.GetType().Name;
             DataRow dr;
-            System.Reflection.PropertyInfo[] propInfo = alist[0].GetType().GetProperties();
+            System.Reflection.PropertyInfo[] propInfo = alist[0]!.GetType().GetProperties();
             for (int i = 0; i < propInfo.Length; i++)
             {
                 for (int j = 0; j < alColNames.Count; j++)
                 {
-                    if (alColNames[j].ToString() == propInfo[i].Name)
+                    if (alColNames[j]?.ToString() == propInfo[i].Name)
                     {
                         dt.Columns.Add(propInfo[i].Name, propInfo[i].PropertyType);
                         break;
@@ -415,9 +447,9 @@ namespace RCommon
                 dr = dt.NewRow();
                 for (int i = 0; i < dt.Columns.Count; i++)
                 {
-                    object tempObject = alist[row];
+                    object? tempObject = alist[row];
 
-                    object t = propInfo[i].GetValue(tempObject, null);
+                    object? t = propInfo[i].GetValue(tempObject, null);
                     /*object t =tempObject.GetType().InvokeMember(propInfo[i].Name,
                              R.BindingFlags.GetProperty , null,tempObject , new object [] {});*/
                     if (t != null)
@@ -428,6 +460,15 @@ namespace RCommon
             return dt;
         }
 
+        /// <summary>
+        /// Conditionally filters an <see cref="IEnumerable{TSource}"/> based on a boolean condition.
+        /// If the condition is false, the source is returned unfiltered.
+        /// </summary>
+        /// <typeparam name="TSource">The type of elements in the source.</typeparam>
+        /// <param name="source">The source enumerable to filter.</param>
+        /// <param name="condition">If <c>true</c>, the predicate is applied; otherwise, the source is returned as-is.</param>
+        /// <param name="predicate">The filter predicate to apply when <paramref name="condition"/> is <c>true</c>.</param>
+        /// <returns>A filtered or unfiltered enumerable depending on the condition.</returns>
         public static IEnumerable<TSource> WhereIf<TSource>(this IEnumerable<TSource> source, bool condition, Func<TSource, bool> predicate)
         {
             if (condition)
@@ -436,6 +477,15 @@ namespace RCommon
                 return source;
         }
 
+        /// <summary>
+        /// Conditionally filters an <see cref="IEnumerable{TSource}"/> based on a boolean condition, using an index-aware predicate.
+        /// If the condition is false, the source is returned unfiltered.
+        /// </summary>
+        /// <typeparam name="TSource">The type of elements in the source.</typeparam>
+        /// <param name="source">The source enumerable to filter.</param>
+        /// <param name="condition">If <c>true</c>, the predicate is applied; otherwise, the source is returned as-is.</param>
+        /// <param name="predicate">The index-aware filter predicate to apply when <paramref name="condition"/> is <c>true</c>.</param>
+        /// <returns>A filtered or unfiltered enumerable depending on the condition.</returns>
         public static IEnumerable<TSource> WhereIf<TSource>(this IEnumerable<TSource> source, bool condition, Func<TSource, int, bool> predicate)
         {
             if (condition)
@@ -444,6 +494,15 @@ namespace RCommon
                 return source;
         }
 
+        /// <summary>
+        /// Converts an <see cref="ICollection{T}"/> to an <see cref="IPaginatedList{T}"/> with the specified page index and size.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the collection.</typeparam>
+        /// <param name="query">The source collection to paginate.</param>
+        /// <param name="pageIndex">The 1-based page index, or null to default to the first page.</param>
+        /// <param name="pageSize">The number of items per page. Must be greater than zero.</param>
+        /// <returns>A paginated list containing the items for the requested page.</returns>
+        /// <seealso cref="PaginatedList{T}"/>
         public static IPaginatedList<T> ToPaginatedList<T>(this ICollection<T> query, int? pageIndex, int pageSize)
         {
             Guard.IsNotNegativeOrZero(pageSize, "pageSize");
@@ -451,6 +510,15 @@ namespace RCommon
             return new PaginatedList<T>(query, pageIndex, pageSize);
         }
 
+        /// <summary>
+        /// Converts an <see cref="IList{T}"/> to an <see cref="IPaginatedList{T}"/> with the specified page index and size.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the list.</typeparam>
+        /// <param name="query">The source list to paginate.</param>
+        /// <param name="pageIndex">The 1-based page index, or null to default to the first page.</param>
+        /// <param name="pageSize">The number of items per page. Must be greater than zero.</param>
+        /// <returns>A paginated list containing the items for the requested page.</returns>
+        /// <seealso cref="PaginatedList{T}"/>
         public static IPaginatedList<T> ToPaginatedList<T>(this IList<T> query, int? pageIndex, int pageSize)
         {
             Guard.IsNotNegativeOrZero(pageSize, "pageSize");

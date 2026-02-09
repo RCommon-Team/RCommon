@@ -86,7 +86,7 @@ public class RDbConnectionOptionsTests
         options.DbFactory = SqlClientFactory.Instance;
 
         // Act
-        options.DbFactory = null;
+        options.DbFactory = null!;
 
         // Assert
         options.DbFactory.Should().BeNull();
@@ -100,7 +100,7 @@ public class RDbConnectionOptionsTests
         options.ConnectionString = "Server=localhost;";
 
         // Act
-        options.ConnectionString = null;
+        options.ConnectionString = null!;
 
         // Assert
         options.ConnectionString.Should().BeNull();

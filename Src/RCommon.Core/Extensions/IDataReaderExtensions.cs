@@ -6,6 +6,10 @@ using System.Data;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Provides extension methods for <see cref="IDataReader"/> including safe value retrieval
+    /// and conversion to <see cref="DataTable"/>.
+    /// </summary>
     public static class IDataReaderExtensions
     {
 
@@ -38,6 +42,13 @@ namespace RCommon
 			return rv;
 		}
 
+		/// <summary>
+		/// Acquires the value from a row of an <see cref="IDataReader"/> based on the column name.
+		/// </summary>
+		/// <param name="dr">A populated <see cref="IDataReader"/>.</param>
+		/// <param name="columnName">The name of the column to retrieve the value from.</param>
+		/// <param name="defaultValue">The default value to return if the column is not found or is <see cref="DBNull"/>.</param>
+		/// <returns>The value of the column, or <paramref name="defaultValue"/> if not found or null.</returns>
 		public static object GetValue(this IDataReader dr, string columnName, object defaultValue)
 		{
 			object rv = defaultValue;
@@ -68,24 +79,27 @@ namespace RCommon
 		/// <remarks>This method does not close the IDataReader.  You will have to.</remarks>
 		public static DataTable ToDataTable(this IDataReader dr)
 		{
-			DataTable dtSchema = dr.GetSchemaTable();
+			DataTable? dtSchema = dr.GetSchemaTable();
 			DataTable dtData = new DataTable();
 			DataColumn dc;
 			DataRow row;
 			System.Collections.ArrayList al = new System.Collections.ArrayList();
+
+			if (dtSchema == null) return dtData;
 
 			// Populate the Column Information
 			for (int i = 0; i < dtSchema.Rows.Count; i++)
 			{
 				dc = new DataColumn();
 
-				if (!dtData.Columns.Contains(dtSchema.Rows[i]["ColumnName"].ToString()))
+				var columnName = dtSchema.Rows[i]["ColumnName"]?.ToString();
+				if (columnName != null && !dtData.Columns.Contains(columnName))
 				{
-					dc.ColumnName = dtSchema.Rows[i]["ColumnName"].ToString();
+					dc.ColumnName = columnName;
 					dc.Unique = Convert.ToBoolean(dtSchema.Rows[i]["IsUnique"]);
 					dc.AllowDBNull = Convert.ToBoolean(dtSchema.Rows[i]["AllowDBNull"]);
 					dc.ReadOnly = Convert.ToBoolean(dtSchema.Rows[i]["IsReadOnly"]);
-					dc.DataType = (Type)dtSchema.Rows[i]["DataType"];
+					dc.DataType = (Type?)dtSchema.Rows[i]["DataType"] ?? typeof(object);
 					al.Add(dc.ColumnName);
 
 					dtData.Columns.Add(dc);
@@ -99,7 +113,7 @@ namespace RCommon
 
 				for (int i = 0; i < al.Count; i++)
 				{
-					row[((System.String)al[i])] = dr[(System.String)al[i]];
+					row[((string)al[i]!)] = dr[(string)al[i]!];
 				}
 
 				dtData.Rows.Add(row);
@@ -119,20 +133,23 @@ namespace RCommon
 		{
 			try
 			{
-				DataTable dtSchema = dr.GetSchemaTable();
+				DataTable? dtSchema = dr.GetSchemaTable();
 				DataTable dtData = new DataTable();
 				DataColumn dc;
 				DataRow row;
 				System.Collections.ArrayList al = new System.Collections.ArrayList();
+
+				if (dtSchema == null) return dtData;
 
 				// Populate the Column Information
 				for (int i = 0; i < dtSchema.Rows.Count; i++)
 				{
 					dc = new DataColumn();
 
-					if (!dtData.Columns.Contains(dtSchema.Rows[i]["ColumnName"].ToString()))
+					var columnName2 = dtSchema.Rows[i]["ColumnName"]?.ToString();
+					if (columnName2 != null && !dtData.Columns.Contains(columnName2))
 					{
-						dc.ColumnName = dtSchema.Rows[i]["ColumnName"].ToString();
+						dc.ColumnName = columnName2;
 						dc.Unique = Convert.ToBoolean(dtSchema.Rows[i]["IsUnique"]);
 						dc.AllowDBNull = Convert.ToBoolean(dtSchema.Rows[i]["AllowDBNull"]);
 						dc.ReadOnly = Convert.ToBoolean(dtSchema.Rows[i]["IsReadOnly"]);
@@ -148,7 +165,7 @@ namespace RCommon
 
 					for (int i = 0; i < al.Count; i++)
 					{
-						row[((System.String)al[i])] = dr[(System.String)al[i]];
+						row[((string)al[i]!)] = dr[(string)al[i]!];
 					}
 
 					dtData.Rows.Add(row);

@@ -13,27 +13,51 @@ using System.Threading.Tasks;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Extension methods for <see cref="IRCommonBuilder"/> that register persistence providers and unit of work services.
+    /// </summary>
     public static class PersistenceBuilderExtensions
     {
+        /// <summary>
+        /// Adds a persistence provider with default configuration.
+        /// </summary>
+        /// <typeparam name="TObjectAccess">The <see cref="IPersistenceBuilder"/> implementation to configure (e.g., EF Core, Dapper).</typeparam>
+        /// <param name="builder">The RCommon builder instance.</param>
+        /// <returns>The <see cref="IRCommonBuilder"/> for fluent chaining.</returns>
         public static IRCommonBuilder WithPersistence<TObjectAccess>(this IRCommonBuilder builder)
             where TObjectAccess : IPersistenceBuilder
         {
             return WithPersistence<TObjectAccess>(builder, x => { });
         }
 
+        /// <summary>
+        /// Adds a persistence provider and applies the specified configuration actions.
+        /// </summary>
+        /// <typeparam name="TObjectAccess">The <see cref="IPersistenceBuilder"/> implementation to configure.</typeparam>
+        /// <param name="builder">The RCommon builder instance.</param>
+        /// <param name="objectAccessActions">An action to configure the persistence provider (e.g., register data stores).</param>
+        /// <returns>The <see cref="IRCommonBuilder"/> for fluent chaining.</returns>
         public static IRCommonBuilder WithPersistence<TObjectAccess>(this IRCommonBuilder builder, Action<TObjectAccess> objectAccessActions)
             where TObjectAccess : IPersistenceBuilder
         {
-            var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services });
+            // Create the persistence builder via Activator since the concrete type is not known at compile time
+            var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services })!;
             objectAccessActions(dataConfiguration);
             builder = WithEventTracking(builder);
             return builder;
         }
 
+        /// <summary>
+        /// Adds a unit of work implementation and applies the specified configuration actions.
+        /// </summary>
+        /// <typeparam name="TUnitOfWork">The <see cref="IUnitOfWorkBuilder"/> implementation to configure.</typeparam>
+        /// <param name="builder">The RCommon builder instance.</param>
+        /// <param name="unitOfWorkActions">An action to configure the unit of work (e.g., set isolation level, auto-complete).</param>
+        /// <returns>The <see cref="IRCommonBuilder"/> for fluent chaining.</returns>
         public static IRCommonBuilder WithUnitOfWork<TUnitOfWork>(this IRCommonBuilder builder, Action<TUnitOfWork> unitOfWorkActions)
             where TUnitOfWork : IUnitOfWorkBuilder
         {
-            var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services });
+            var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services })!;
             unitOfWorkActions(unitOfWorkConfiguration);
             return builder;
         }
@@ -120,9 +144,9 @@ namespace RCommon
             where TObjectAccess : IPersistenceBuilder
             where TUnitOfWork : IUnitOfWorkBuilder
         {
-            var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services });
+            var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services })!;
             objectAccessActions(dataConfiguration);
-            var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services });
+            var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services })!;
             unitOfWorkActions(unitOfWorkConfiguration);
             builder = WithEventTracking(builder);
             return builder;

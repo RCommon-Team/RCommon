@@ -22,6 +22,12 @@ namespace RCommon.EventHandling.Producers
         private readonly EventSubscriptionManager _subscriptionManager;
         private ConcurrentQueue<ISerializableEvent> _storedTransactionalEvents;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="InMemoryTransactionalEventRouter"/>.
+        /// </summary>
+        /// <param name="serviceProvider">The service provider used to resolve <see cref="IEventProducer"/> instances.</param>
+        /// <param name="logger">The logger for diagnostic output.</param>
+        /// <param name="subscriptionManager">The manager that tracks event-to-producer subscriptions for filtering.</param>
         public InMemoryTransactionalEventRouter(IServiceProvider serviceProvider, ILogger<InMemoryTransactionalEventRouter> logger,
             EventSubscriptionManager subscriptionManager)
         {
@@ -31,6 +37,7 @@ namespace RCommon.EventHandling.Producers
             _storedTransactionalEvents = new ConcurrentQueue<ISerializableEvent>();
         }
 
+        /// <inheritdoc />
         public async Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents)
         {
             try
@@ -85,6 +92,11 @@ namespace RCommon.EventHandling.Producers
             }
         }
 
+        /// <summary>
+        /// Dispatches async events to their filtered producers concurrently using <see cref="Task.WhenAll"/>.
+        /// </summary>
+        /// <param name="asyncEvents">The async events to produce.</param>
+        /// <param name="eventProducers">All registered event producers (will be filtered per event).</param>
         private async Task ProduceAsyncEvents(IEnumerable<ISerializableEvent> asyncEvents, IEnumerable<IEventProducer> eventProducers)
         {
             var eventTaskList = new List<Task>();
@@ -99,6 +111,11 @@ namespace RCommon.EventHandling.Producers
             await Task.WhenAll(eventTaskList);
         }
 
+        /// <summary>
+        /// Dispatches sync events to their filtered producers sequentially, awaiting each before proceeding.
+        /// </summary>
+        /// <param name="syncEvents">The synchronous events to produce.</param>
+        /// <param name="eventProducers">All registered event producers (will be filtered per event).</param>
         private async Task ProduceSyncEvents(IEnumerable<ISerializableEvent> syncEvents, IEnumerable<IEventProducer> eventProducers)
         {
             foreach (var @event in syncEvents)
@@ -129,12 +146,19 @@ namespace RCommon.EventHandling.Producers
             }
         }
 
+        /// <summary>
+        /// Removes a batch of events from the concurrent queue with retry logic.
+        /// Each event is attempted up to 4 times before throwing an <see cref="EventProductionException"/>.
+        /// </summary>
+        /// <param name="events">The events to remove from the queue.</param>
+        /// <exception cref="EventProductionException">Thrown if an event cannot be dequeued after 4 attempts.</exception>
         private void RemoveEvents(IEnumerable<ISerializableEvent> events)
         {
             foreach (var @event in events)
             {
                 var item = @event;
 
+                // Retry dequeue up to 4 times to handle ConcurrentQueue contention
                 for (int i = 1; i <= 4; i++) // Try 4 times
                 {
                     if (!RemoveEvent(item))
@@ -151,22 +175,29 @@ namespace RCommon.EventHandling.Producers
                         throw new EventProductionException($"Could not Dequeue event {item}");
                     }
                 }
-                
+
             }
         }
 
+        /// <summary>
+        /// Attempts to dequeue a single event from the concurrent queue.
+        /// </summary>
+        /// <param name="event">The event to dequeue (used as output parameter for the dequeued item).</param>
+        /// <returns><c>true</c> if the dequeue was successful; otherwise <c>false</c>.</returns>
         private bool RemoveEvent(ISerializableEvent @event)
         {
-            bool success = _storedTransactionalEvents.TryDequeue(out @event);
+            bool success = _storedTransactionalEvents.TryDequeue(out ISerializableEvent? _);
             return success;
         }
 
+        /// <inheritdoc />
         public void AddTransactionalEvent(ISerializableEvent serializableEvent)
         {
             Guard.IsNotNull(serializableEvent, nameof(serializableEvent));
             _storedTransactionalEvents.Enqueue(serializableEvent);
         }
 
+        /// <inheritdoc />
         public void AddTransactionalEvents(IEnumerable<ISerializableEvent> serializableEvents)
         {
             Guard.IsNotNull(serializableEvents, nameof(serializableEvents));

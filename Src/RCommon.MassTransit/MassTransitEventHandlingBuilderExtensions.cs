@@ -21,14 +21,19 @@ using System.Threading.Tasks;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Extension methods for configuring MassTransit event handling within the RCommon builder pipeline.
+    /// </summary>
     public static class MassTransitEventHandlingBuilderExtensions
     {
         /// <summary>
-        /// Adds MassTransit and its dependencies to the <paramref name="builder" />, and allows consumers, sagas, and activities to be configured
+        /// Adds MassTransit and its dependencies to the <paramref name="builder"/>, and allows consumers, sagas, and activities to be configured.
         /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="configure"></param>
-        private static IServiceCollection AddMassTransit(this IRCommonBuilder builder, Action<IMassTransitEventHandlingBuilder> configure = null)
+        /// <param name="builder">The RCommon builder to register MassTransit services against.</param>
+        /// <param name="configure">Optional configuration action for <see cref="IMassTransitEventHandlingBuilder"/>.</param>
+        /// <returns>The <see cref="IServiceCollection"/> for further chaining.</returns>
+        /// <exception cref="ConfigurationException">Thrown if MassTransit has already been registered in this container.</exception>
+        private static IServiceCollection AddMassTransit(this IRCommonBuilder builder, Action<IMassTransitEventHandlingBuilder>? configure = null)
         {
             if (builder.Services.Any(d => d.ServiceType == typeof(IBus)))
             {
@@ -46,6 +51,10 @@ namespace RCommon
             return builder.Services;
         }
 
+        /// <summary>
+        /// Registers the MassTransit hosted service, health checks, and host options required for bus lifetime management.
+        /// </summary>
+        /// <param name="collection">The service collection to register services into.</param>
         private static void AddHostedService(IServiceCollection collection)
         {
             collection.AddOptions();
@@ -57,6 +66,10 @@ namespace RCommon
             collection.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MassTransitHostedService>());
         }
 
+        /// <summary>
+        /// Registers MassTransit instrumentation and monitoring options into the service collection.
+        /// </summary>
+        /// <param name="collection">The service collection to register instrumentation services into.</param>
         private static void AddInstrumentation(IServiceCollection collection)
         {
             collection.AddOptions<InstrumentationOptions>();
@@ -64,12 +77,27 @@ namespace RCommon
         }
 
 
+        /// <summary>
+        /// Configures MassTransit event handling with default settings.
+        /// </summary>
+        /// <typeparam name="T">The <see cref="IMassTransitEventHandlingBuilder"/> implementation type.</typeparam>
+        /// <param name="builder">The RCommon builder.</param>
+        /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder)
             where T : IMassTransitEventHandlingBuilder
         {
             return WithEventHandling<T>(builder, x => { });
         }
 
+        /// <summary>
+        /// Configures MassTransit event handling with custom builder actions.
+        /// Registers the generic <see cref="MassTransitEventHandler{TEvent}"/> as a scoped service
+        /// and wires up MassTransit via <see cref="AddMassTransit"/>.
+        /// </summary>
+        /// <typeparam name="T">The <see cref="IMassTransitEventHandlingBuilder"/> implementation type.</typeparam>
+        /// <param name="builder">The RCommon builder.</param>
+        /// <param name="actions">Configuration delegate for MassTransit event handling.</param>
+        /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<IMassTransitEventHandlingBuilder> actions)
             where T : IMassTransitEventHandlingBuilder
         {
@@ -82,6 +110,13 @@ namespace RCommon
             return builder;
         }
 
+        /// <summary>
+        /// Registers a subscriber for a specific event type and adds the corresponding MassTransit consumer.
+        /// Also registers the event-to-producer subscription for correct event routing.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type to subscribe to. Must implement <see cref="ISerializableEvent"/>.</typeparam>
+        /// <typeparam name="TEventHandler">The subscriber implementation that handles the event.</typeparam>
+        /// <param name="builder">The MassTransit event handling builder.</param>
         public static void AddSubscriber<TEvent, TEventHandler>(this IMassTransitEventHandlingBuilder builder)
             where TEvent : class, ISerializableEvent
             where TEventHandler : class, ISubscriber<TEvent>

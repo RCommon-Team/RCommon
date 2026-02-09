@@ -28,9 +28,23 @@ using System.Threading.Tasks;
 
 namespace RCommon.ApplicationServices.Commands
 {
+    /// <summary>
+    /// Defines the contract for a command bus that dispatches commands to their corresponding handlers.
+    /// </summary>
+    /// <remarks>
+    /// Commands represent intent to change state. The bus resolves the appropriate
+    /// <see cref="ICommandHandler{TResult, TCommand}"/> and returns an <see cref="IExecutionResult"/>.
+    /// </remarks>
     public interface ICommandBus
     {
-        Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default) 
+        /// <summary>
+        /// Dispatches a command to its registered handler and returns the execution result.
+        /// </summary>
+        /// <typeparam name="TResult">The type of execution result returned by the handler.</typeparam>
+        /// <param name="command">The command to dispatch.</param>
+        /// <param name="cancellationToken">Optional token to cancel the operation.</param>
+        /// <returns>The execution result produced by the command handler.</returns>
+        Task<TResult> DispatchCommandAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
             where TResult : IExecutionResult;
     }
 }

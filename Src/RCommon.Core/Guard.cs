@@ -10,6 +10,9 @@ namespace RCommon
     public class Guard
     {
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Guard"/> class.
+        /// </summary>
         public Guard()
         {
 
@@ -26,21 +29,21 @@ namespace RCommon
         public static void Against<TException>(bool assertion, string message) where TException : Exception
         {
             if (assertion)
-                throw (TException)Activator.CreateInstance(typeof(TException), message);
+                throw (TException)Activator.CreateInstance(typeof(TException), message)!;
         }
 
         /// <summary>
         /// Throws an exception of type <typeparamref name="TException"/> with the specified message
-        /// when the assertion
+        /// when the assertion function evaluates to true.
         /// </summary>
-        /// <typeparam name="TException"></typeparam>
-        /// <param name="assertion"></param>
-        /// <param name="message"></param>
+        /// <typeparam name="TException">The type of exception to throw.</typeparam>
+        /// <param name="assertion">A function that returns the assertion to evaluate. If true then the <typeparamref name="TException"/> exception is thrown.</param>
+        /// <param name="message">string. The exception message to throw.</param>
         public static void Against<TException>(Func<bool> assertion, string message) where TException : Exception
         {
             //Execute the lambda and if it evaluates to true then throw the exception.
             if (assertion())
-                throw (TException)Activator.CreateInstance(typeof(TException), message);
+                throw (TException)Activator.CreateInstance(typeof(TException), message)!;
         }
 
         /// <summary>
@@ -116,15 +119,27 @@ namespace RCommon
         public static void IsEqual<TException>(object compare, object instance, string message) where TException : Exception
         {
             if (compare != instance)
-                throw (TException)Activator.CreateInstance(typeof(TException), message);
+                throw (TException)Activator.CreateInstance(typeof(TException), message)!;
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentException"/> when the specified <see cref="Guid"/> argument is <see cref="Guid.Empty"/>.
+        /// </summary>
+        /// <param name="argument">The <see cref="Guid"/> value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotEmpty(Guid argument, string argumentName)
         {
             IsNotEmpty(argument, argumentName, true);
         }
 
+        /// <summary>
+        /// Checks whether the specified <see cref="Guid"/> argument is not <see cref="Guid.Empty"/>.
+        /// </summary>
+        /// <param name="argument">The <see cref="Guid"/> value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
+        /// <param name="throwException">If <c>true</c>, throws an <see cref="ArgumentException"/>; otherwise returns <c>false</c>.</param>
+        /// <returns><c>true</c> if the argument is not empty; <c>false</c> if empty and <paramref name="throwException"/> is <c>false</c>.</returns>
         [DebuggerStepThrough]
         public static bool IsNotEmpty(Guid argument, string argumentName, bool throwException)
         {
@@ -142,12 +157,24 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentException"/> when the specified string argument is null, empty, or whitespace.
+        /// </summary>
+        /// <param name="argument">The string value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotEmpty(string argument, string argumentName)
         {
             IsNotEmpty(argument, argumentName, true);
         }
 
+        /// <summary>
+        /// Checks whether the specified string argument is not null, empty, or whitespace.
+        /// </summary>
+        /// <param name="argument">The string value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
+        /// <param name="throwException">If <c>true</c>, throws an <see cref="ArgumentException"/>; otherwise returns <c>false</c>.</param>
+        /// <returns><c>true</c> if the argument is not blank; <c>false</c> if blank and <paramref name="throwException"/> is <c>false</c>.</returns>
         [DebuggerStepThrough]
         public static bool IsNotEmpty(string argument, string argumentName, bool throwException)
         {
@@ -165,6 +192,12 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentException"/> when the trimmed string exceeds the specified maximum length.
+        /// </summary>
+        /// <param name="argument">The string value to check.</param>
+        /// <param name="length">The maximum allowed length.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotOutOfLength(string argument, int length, string argumentName)
         {
@@ -174,6 +207,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentNullException"/> when the specified argument is <c>null</c>.
+        /// </summary>
+        /// <param name="argument">The object to check for null.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNull(object argument, string argumentName)
         {
@@ -183,6 +221,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="int"/> argument is negative.
+        /// </summary>
+        /// <param name="argument">The integer value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegative(int argument, string argumentName)
         {
@@ -192,12 +235,24 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="int"/> argument is negative or zero.
+        /// </summary>
+        /// <param name="argument">The integer value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegativeOrZero(int argument, string argumentName)
         {
             IsNotNegativeOrZero(argument, argumentName, true);
         }
 
+        /// <summary>
+        /// Checks whether the specified <see cref="int"/> argument is not negative or zero.
+        /// </summary>
+        /// <param name="argument">The integer value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
+        /// <param name="throwException">If <c>true</c>, throws an <see cref="ArgumentOutOfRangeException"/>; otherwise returns <c>false</c>.</param>
+        /// <returns><c>true</c> if the argument is positive; <c>false</c> if non-positive and <paramref name="throwException"/> is <c>false</c>.</returns>
         public static bool IsNotNegativeOrZero(int argument, string argumentName, bool throwException)
         {
             if (argument <= 0)
@@ -214,6 +269,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="long"/> argument is negative.
+        /// </summary>
+        /// <param name="argument">The long value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegative(long argument, string argumentName)
         {
@@ -223,6 +283,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="long"/> argument is negative or zero.
+        /// </summary>
+        /// <param name="argument">The long value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegativeOrZero(long argument, string argumentName)
         {
@@ -232,6 +297,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="float"/> argument is negative.
+        /// </summary>
+        /// <param name="argument">The float value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegative(float argument, string argumentName)
         {
@@ -241,6 +311,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="float"/> argument is negative or zero.
+        /// </summary>
+        /// <param name="argument">The float value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegativeOrZero(float argument, string argumentName)
         {
@@ -250,6 +325,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="decimal"/> argument is negative.
+        /// </summary>
+        /// <param name="argument">The decimal value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegative(decimal argument, string argumentName)
         {
@@ -259,6 +339,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="decimal"/> argument is negative or zero.
+        /// </summary>
+        /// <param name="argument">The decimal value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegativeOrZero(decimal argument, string argumentName)
         {
@@ -268,6 +353,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="DateTime"/> argument is not a valid date.
+        /// </summary>
+        /// <param name="argument">The <see cref="DateTime"/> value to validate.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotInvalidDate(DateTime argument, string argumentName)
         {
@@ -277,6 +367,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="TimeSpan"/> argument is negative.
+        /// </summary>
+        /// <param name="argument">The <see cref="TimeSpan"/> value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegative(TimeSpan argument, string argumentName)
         {
@@ -286,6 +381,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="TimeSpan"/> argument is negative or zero.
+        /// </summary>
+        /// <param name="argument">The <see cref="TimeSpan"/> value to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotNegativeOrZero(TimeSpan argument, string argumentName)
         {
@@ -295,6 +395,12 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentException"/> when the specified collection is null or contains no elements.
+        /// </summary>
+        /// <typeparam name="T">The element type of the collection.</typeparam>
+        /// <param name="argument">The collection to check.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotEmpty<T>(ICollection<T> argument, string argumentName)
         {
@@ -306,6 +412,14 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentOutOfRangeException"/> when the specified <see cref="int"/> argument
+        /// falls outside the inclusive range of <paramref name="min"/> to <paramref name="max"/>.
+        /// </summary>
+        /// <param name="argument">The integer value to check.</param>
+        /// <param name="min">The minimum allowed value (inclusive).</param>
+        /// <param name="max">The maximum allowed value (inclusive).</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotOutOfRange(int argument, int min, int max, string argumentName)
         {
@@ -315,6 +429,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentException"/> when the specified string is not a valid email address.
+        /// </summary>
+        /// <param name="argument">The string to validate as an email address.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotInvalidEmail(string argument, string argumentName)
         {
@@ -326,6 +445,11 @@ namespace RCommon
             }
         }
 
+        /// <summary>
+        /// Throws an <see cref="ArgumentException"/> when the specified string is not a valid web URL.
+        /// </summary>
+        /// <param name="argument">The string to validate as a web URL.</param>
+        /// <param name="argumentName">The name of the argument for the exception message.</param>
         [DebuggerStepThrough]
         public static void IsNotInvalidWebUrl(string argument, string argumentName)
         {

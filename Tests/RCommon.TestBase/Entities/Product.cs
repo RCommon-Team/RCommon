@@ -12,8 +12,8 @@ namespace RCommon.TestBase.Entities
     public partial class Product : BusinessEntity
     {
         public int ProductId { get; set; } // ProductID (Primary key)
-        public string Name { get; set; } // Name (length: 255)
-        public string Description { get; set; } // Description (length: 255)
+        public string Name { get; set; } = string.Empty; // Name (length: 255)
+        public string Description { get; set; } = string.Empty; // Description (length: 255)
 
         // Reverse navigation
 

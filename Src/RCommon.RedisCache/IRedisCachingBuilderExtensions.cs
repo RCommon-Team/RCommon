@@ -10,8 +10,18 @@ using System.Threading.Tasks;
 
 namespace RCommon.RedisCache
 {
+    /// <summary>
+    /// Extension methods for <see cref="IRedisCachingBuilder"/> that configure
+    /// Redis cache options and expression caching.
+    /// </summary>
     public static class IRedisCachingBuilderExtensions
     {
+        /// <summary>
+        /// Configures the underlying <see cref="RedisCacheOptions"/> for the StackExchange Redis cache.
+        /// </summary>
+        /// <param name="builder">The Redis caching builder.</param>
+        /// <param name="actions">A delegate to configure <see cref="RedisCacheOptions"/>.</param>
+        /// <returns>The same <see cref="IRedisCachingBuilder"/> for chaining.</returns>
         public static IRedisCachingBuilder Configure(this IRedisCachingBuilder builder, Action<RedisCacheOptions> actions)
         {
             builder.Services.AddStackExchangeRedisCache(actions);
@@ -19,7 +29,7 @@ namespace RCommon.RedisCache
         }
 
         /// <summary>
-        /// This greatly improves performance across various areas of RCommon which use generics and reflection heavily 
+        /// This greatly improves performance across various areas of RCommon which use generics and reflection heavily
         /// to compile expressions and lambdas
         /// </summary>
         /// <param name="builder">Builder</param>
@@ -35,17 +45,19 @@ namespace RCommon.RedisCache
                 x.CachingEnabled = true;
                 x.CacheDynamicallyCompiledExpressions = true;
             });
+
+            // Register factory that resolves the correct ICacheService based on the ExpressionCachingStrategy
             builder.Services.TryAddTransient<Func<ExpressionCachingStrategy, ICacheService>>(serviceProvider => strategy =>
             {
                 switch (strategy)
                 {
                     case ExpressionCachingStrategy.Default:
-                        return serviceProvider.GetService<RedisCacheService>();
+                        return serviceProvider.GetRequiredService<RedisCacheService>();
                     default:
-                        return serviceProvider.GetService<RedisCacheService>();
+                        return serviceProvider.GetRequiredService<RedisCacheService>();
                 }
             });
-            
+
             return builder;
         }
     }

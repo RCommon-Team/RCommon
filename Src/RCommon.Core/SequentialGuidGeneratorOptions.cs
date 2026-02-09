@@ -2,6 +2,10 @@
 
 namespace RCommon
 {
+    /// <summary>
+    /// Configuration options for the <see cref="SequentialGuidGenerator"/>, controlling the default
+    /// <see cref="SequentialGuidType"/> used when generating sequential GUIDs.
+    /// </summary>
     public class SequentialGuidGeneratorOptions
     {
         /// <summary>

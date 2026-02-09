@@ -342,3 +342,6 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /Src/RCommon.Persistence.EfCore/IEFCoreConfiguration.cs
+/.claude
+.claude/settings.local.json
+.claude/settings.local.json

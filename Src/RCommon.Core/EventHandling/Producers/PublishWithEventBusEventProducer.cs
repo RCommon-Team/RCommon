@@ -9,12 +9,23 @@ using System.Threading.Tasks;
 
 namespace RCommon.EventHandling.Producers
 {
+    /// <summary>
+    /// An <see cref="IEventProducer"/> implementation that produces events by publishing them
+    /// through the <see cref="IEventBus"/>. Consults the <see cref="EventSubscriptionManager"/>
+    /// to determine whether this producer should handle a given event type.
+    /// </summary>
     public class PublishWithEventBusEventProducer : IEventProducer
     {
         private readonly IEventBus _eventBus;
         private readonly ILogger<PublishWithEventBusEventProducer> _logger;
         private readonly EventSubscriptionManager _subscriptionManager;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="PublishWithEventBusEventProducer"/>.
+        /// </summary>
+        /// <param name="eventBus">The event bus used to publish events to subscribers.</param>
+        /// <param name="logger">The logger for diagnostic output.</param>
+        /// <param name="subscriptionManager">The subscription manager that determines which events this producer handles.</param>
         public PublishWithEventBusEventProducer(IEventBus eventBus, ILogger<PublishWithEventBusEventProducer> logger,
             EventSubscriptionManager subscriptionManager)
         {
@@ -23,6 +34,11 @@ namespace RCommon.EventHandling.Producers
             _subscriptionManager = subscriptionManager ?? throw new ArgumentNullException(nameof(subscriptionManager));
         }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// Before publishing, this producer checks the <see cref="EventSubscriptionManager"/> to determine
+        /// if it should handle the event. If not subscribed, the event is silently skipped.
+        /// </remarks>
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default)
             where T : ISerializableEvent
         {

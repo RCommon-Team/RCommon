@@ -9,6 +9,13 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Crud
 {
+    /// <summary>
+    /// Defines write-only repository operations for persisting entities of type <typeparamref name="TEntity"/>.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type to persist.</typeparam>
+    /// <remarks>
+    /// This interface provides async CRUD write methods. See <see cref="IReadOnlyRepository{TEntity}"/> for read operations.
+    /// </remarks>
     public interface IWriteOnlyRepository<TEntity> : INamedDataSource
     {
 

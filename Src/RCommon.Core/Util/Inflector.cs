@@ -15,8 +15,11 @@ namespace RCommon.Util
     ///</summary>
     public static class Inflector
     {
+        /// <summary>Collection of pluralization rules applied in reverse order.</summary>
         private static readonly List<Rule> Plurals = new List<Rule>();
+        /// <summary>Collection of singularization rules applied in reverse order.</summary>
         private static readonly List<Rule> Singulars = new List<Rule>();
+        /// <summary>Collection of words that are the same in both singular and plural forms.</summary>
         private static readonly List<string> Uncountables = new List<string>();
 
         /// <summary>
@@ -83,18 +86,31 @@ namespace RCommon.Util
             AddUncountable("sheep");
         }
 
+        /// <summary>
+        /// Represents a regex-based inflection rule that transforms words via pattern matching and replacement.
+        /// </summary>
         private class Rule
         {
             private readonly Regex _regex;
             private readonly string _replacement;
 
+            /// <summary>
+            /// Initializes a new inflection rule with the specified regex pattern and replacement string.
+            /// </summary>
+            /// <param name="pattern">The regex pattern to match against words.</param>
+            /// <param name="replacement">The replacement string (may include regex group references like $1).</param>
             public Rule(string pattern, string replacement)
             {
                 _regex = new Regex(pattern, RegexOptions.IgnoreCase);
                 _replacement = replacement;
             }
 
-            public string Apply(string word)
+            /// <summary>
+            /// Applies this rule to a word. Returns the transformed word if the pattern matches, or null otherwise.
+            /// </summary>
+            /// <param name="word">The word to transform.</param>
+            /// <returns>The transformed word, or null if the pattern does not match.</returns>
+            public string? Apply(string word)
             {
                 if (!_regex.IsMatch(word))
                 {
@@ -105,27 +121,54 @@ namespace RCommon.Util
             }
         }
 
+        /// <summary>
+        /// Adds bidirectional rules for an irregular word (e.g., "person" / "people"),
+        /// preserving the first letter's case.
+        /// </summary>
+        /// <param name="singular">The singular form of the irregular word.</param>
+        /// <param name="plural">The plural form of the irregular word.</param>
         private static void AddIrregular(string singular, string plural)
         {
             AddPlural("(" + singular[0] + ")" + singular.Substring(1) + "$", "$1" + plural.Substring(1));
             AddSingular("(" + plural[0] + ")" + plural.Substring(1) + "$", "$1" + singular.Substring(1));
         }
 
+        /// <summary>
+        /// Registers a word as uncountable (same in singular and plural forms, e.g., "sheep").
+        /// </summary>
+        /// <param name="word">The uncountable word to register.</param>
         private static void AddUncountable(string word)
         {
             Uncountables.Add(word.ToLower());
         }
 
+        /// <summary>
+        /// Adds a pluralization regex rule.
+        /// </summary>
+        /// <param name="rule">The regex pattern for matching singular words.</param>
+        /// <param name="replacement">The replacement pattern for creating the plural form.</param>
         private static void AddPlural(string rule, string replacement)
         {
             Plurals.Add(new Rule(rule, replacement));
         }
 
+        /// <summary>
+        /// Adds a singularization regex rule.
+        /// </summary>
+        /// <param name="rule">The regex pattern for matching plural words.</param>
+        /// <param name="replacement">The replacement pattern for creating the singular form.</param>
         private static void AddSingular(string rule, string replacement)
         {
             Singulars.Add(new Rule(rule, replacement));
         }
 
+        /// <summary>
+        /// Applies the given list of rules to a word in reverse order (last rule wins).
+        /// Words in the <see cref="Uncountables"/> list are returned unchanged.
+        /// </summary>
+        /// <param name="rules">The list of rules to apply.</param>
+        /// <param name="word">The word to transform.</param>
+        /// <returns>The transformed word, or the original word if no rule matches or the word is uncountable.</returns>
         private static string ApplyRules(List<Rule> rules, string word)
         {
             string result = word;
@@ -134,8 +177,10 @@ namespace RCommon.Util
             {
                 for (int i = rules.Count - 1; i >= 0; i--)
                 {
-                    if ((result = rules[i].Apply(word)) != null)
+                    string? applied = rules[i].Apply(word);
+                    if (applied != null)
                     {
+                        result = applied;
                         break;
                     }
                 }

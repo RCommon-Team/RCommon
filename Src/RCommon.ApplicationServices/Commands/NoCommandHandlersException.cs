@@ -25,8 +25,19 @@ using System;
 
 namespace RCommon.ApplicationServices.Commands
 {
+    /// <summary>
+    /// Exception thrown when no command handlers are registered for a given command type.
+    /// </summary>
+    /// <remarks>
+    /// This exception is raised by <see cref="CommandBus"/> when it cannot resolve any
+    /// <see cref="ICommandHandler"/> implementation for the dispatched command.
+    /// </remarks>
     public class NoCommandHandlersException : Exception
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="NoCommandHandlersException"/> with the specified error message.
+        /// </summary>
+        /// <param name="message">A message describing which command type has no registered handlers.</param>
         public NoCommandHandlersException(string message) : base(message)
         {
         }

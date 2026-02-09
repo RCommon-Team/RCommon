@@ -11,6 +11,14 @@ using Wolverine;
 
 namespace RCommon.Wolverine.Producers
 {
+    /// <summary>
+    /// An <see cref="IEventProducer"/> implementation that sends events to a single handler endpoint
+    /// using Wolverine's <see cref="IMessageBus.SendAsync{T}(T)"/> method (point-to-point pattern).
+    /// </summary>
+    /// <remarks>
+    /// Use this producer for command-style messaging where only one handler should process the event.
+    /// For fan-out delivery to all handlers, use <see cref="PublishWithWolverineEventProducer"/> instead.
+    /// </remarks>
     public class SendWithWolverineEventProducer : IEventProducer
     {
         private readonly IMessageBus _messageBus;
@@ -18,6 +26,13 @@ namespace RCommon.Wolverine.Producers
         private readonly IServiceProvider _serviceProvider;
         private readonly EventSubscriptionManager _subscriptionManager;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="SendWithWolverineEventProducer"/>.
+        /// </summary>
+        /// <param name="messageBus">The Wolverine message bus used to send events.</param>
+        /// <param name="logger">Logger for diagnostic output.</param>
+        /// <param name="serviceProvider">Service provider for creating scoped services during event production.</param>
+        /// <param name="subscriptionManager">Manages event-to-producer subscriptions for routing decisions.</param>
         public SendWithWolverineEventProducer(IMessageBus messageBus, ILogger<SendWithWolverineEventProducer> logger,
             IServiceProvider serviceProvider, EventSubscriptionManager subscriptionManager)
         {
@@ -27,18 +42,22 @@ namespace RCommon.Wolverine.Producers
             _subscriptionManager = subscriptionManager ?? throw new ArgumentNullException(nameof(subscriptionManager));
         }
 
+        /// <inheritdoc />
         public async Task ProduceEventAsync<T>(T @event, CancellationToken cancellationToken = default) where T : ISerializableEvent
         {
             try
             {
                 Guard.IsNotNull(@event, nameof(@event));
 
+                // Check if this event type is subscribed to this producer; skip if not routed here
                 if (!_subscriptionManager.ShouldProduceEvent(this.GetType(), typeof(T)))
                 {
                     _logger.LogDebug("{0} skipping event {1} - not subscribed to this producer",
                         new object[] { this.GetGenericTypeName(), typeof(T).Name });
                     return;
                 }
+
+                // Create a scoped service context for the send operation
                 using (IServiceScope scope = _serviceProvider.CreateScope())
                 {
                     if (_logger.IsEnabled(LogLevel.Information))

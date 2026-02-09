@@ -8,9 +8,18 @@ using System.Threading.Tasks;
 
 namespace RCommon.Security.Claims
 {
+    /// <summary>
+    /// An <see cref="ICurrentPrincipalAccessor"/> implementation that retrieves the default principal
+    /// from <see cref="Thread.CurrentPrincipal"/>.
+    /// </summary>
+    /// <remarks>
+    /// This is the default accessor registered by <see cref="RCommon.SecurityConfigurationExtensions.WithClaimsAndPrincipalAccessor"/>.
+    /// In ASP.NET Core scenarios, consider using an HTTP-context-based accessor instead.
+    /// </remarks>
     public class ThreadCurrentPrincipalAccessor : CurrentPrincipalAccessorBase
     {
-        protected override ClaimsPrincipal GetClaimsPrincipal()
+        /// <inheritdoc />
+        protected override ClaimsPrincipal? GetClaimsPrincipal()
         {
             return Thread.CurrentPrincipal as ClaimsPrincipal;
         }

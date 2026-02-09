@@ -10,8 +10,25 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching
 {
+    /// <summary>
+    /// Extension methods on <see cref="IPersistenceBuilder"/> for registering persistence-level caching
+    /// with a custom <see cref="ICacheService"/> factory.
+    /// </summary>
     public static class IPersistenceBuilderExtensions
     {
+        /// <summary>
+        /// Registers persistence caching infrastructure including the cache service factory,
+        /// all caching repository decorators, and default <see cref="CachingOptions"/>.
+        /// </summary>
+        /// <param name="builder">The persistence builder.</param>
+        /// <param name="cacheFactory">
+        /// A factory that, given an <see cref="IServiceProvider"/>, returns a delegate resolving
+        /// <see cref="ICacheService"/> from a <see cref="PersistenceCachingStrategy"/>.
+        /// </param>
+        /// <remarks>
+        /// This overload lets callers supply their own cache factory delegate, which is useful when
+        /// the caching provider is not one of the built-in memory or Redis implementations.
+        /// </remarks>
         public static void AddPersistenceCaching(this IPersistenceBuilder builder, Func<IServiceProvider, Func<PersistenceCachingStrategy, ICacheService>> cacheFactory)
         {
             // Add caching services

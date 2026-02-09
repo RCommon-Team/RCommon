@@ -11,10 +11,21 @@ using Microsoft.Extensions.Options;
 
 namespace RCommon.Emailing.Smtp
 {
+    /// <summary>
+    /// Implementation of <see cref="IEmailService"/> that sends email using the built-in <see cref="SmtpClient"/>.
+    /// </summary>
+    /// <remarks>
+    /// SMTP connection settings are provided via <see cref="IOptions{SmtpEmailSettings}"/>.
+    /// The <see cref="MailMessage"/> is disposed after each send to release resources.
+    /// </remarks>
     public class SmtpEmailService : IEmailService
     {
         private readonly SmtpEmailSettings _settings;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SmtpEmailService"/> class.
+        /// </summary>
+        /// <param name="settings">The SMTP configuration options.</param>
         public SmtpEmailService(IOptions<SmtpEmailSettings> settings)
         {
             _settings=settings.Value;
@@ -35,7 +46,7 @@ namespace RCommon.Emailing.Smtp
                 using (var smtp = new SmtpClient())
                 {
                     smtp.Credentials = new NetworkCredential(this._settings.UserName, this._settings.Password);
-                    smtp.Host = this._settings.Host;
+                    smtp.Host = this._settings.Host!;
                     smtp.Port = this._settings.Port;
                     smtp.EnableSsl = this._settings.EnableSsl;
                     smtp.Send(message);
@@ -62,7 +73,13 @@ namespace RCommon.Emailing.Smtp
         /// <summary>
         /// Occurs after an e-mail has been sent. The sender is the MailMessage object.
         /// </summary>
-        public event EventHandler<EmailEventArgs> EmailSent;
+        /// <inheritdoc />
+        public event EventHandler<EmailEventArgs>? EmailSent;
+
+        /// <summary>
+        /// Raises the <see cref="EmailSent"/> event if any subscribers are attached.
+        /// </summary>
+        /// <param name="message">The mail message that was sent.</param>
         private void OnEmailSent(MailMessage message)
         {
             if (EmailSent != null)

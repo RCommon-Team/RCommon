@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Provides extension methods for dictionary types including safe value retrieval and get-or-add semantics.
+    /// </summary>
     public static class DictionaryExtensions
     {
 
@@ -18,12 +21,11 @@ namespace RCommon
         /// <param name="key">Key</param>
         /// <param name="value">Value of the key (or default value if key not exists)</param>
         /// <returns>True if key does exists in the dictionary</returns>
-        internal static bool TryGetValue<T>(this IDictionary<string, object> dictionary, string key, out T value)
+        internal static bool TryGetValue<T>(this IDictionary<string, object> dictionary, string key, out T? value)
         {
-            object valueObj;
-            if (dictionary.TryGetValue(key, out valueObj) && valueObj is T)
+            if (dictionary.TryGetValue(key, out object? valueObj) && valueObj is T typedValue)
             {
-                value = (T)valueObj;
+                value = typedValue;
                 return true;
             }
 
@@ -39,10 +41,10 @@ namespace RCommon
         /// <typeparam name="TKey">Type of the key</typeparam>
         /// <typeparam name="TValue">Type of the value</typeparam>
         /// <returns>Value if found, default if can not found.</returns>
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key)
+        public static TValue? GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key)
+            where TKey : notnull
         {
-            TValue obj;
-            return dictionary.TryGetValue(key, out obj) ? obj : default;
+            return dictionary.TryGetValue(key, out TValue? obj) ? obj : default;
         }
 
         /// <summary>
@@ -53,9 +55,9 @@ namespace RCommon
         /// <typeparam name="TKey">Type of the key</typeparam>
         /// <typeparam name="TValue">Type of the value</typeparam>
         /// <returns>Value if found, default if can not found.</returns>
-        public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public static TValue? GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         {
-            return dictionary.TryGetValue(key, out var obj) ? obj : default;
+            return dictionary.TryGetValue(key, out TValue? obj) ? obj : default;
         }
 
         /// <summary>
@@ -66,9 +68,9 @@ namespace RCommon
         /// <typeparam name="TKey">Type of the key</typeparam>
         /// <typeparam name="TValue">Type of the value</typeparam>
         /// <returns>Value if found, default if can not found.</returns>
-        public static TValue GetOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
+        public static TValue? GetOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
         {
-            return dictionary.TryGetValue(key, out var obj) ? obj : default;
+            return dictionary.TryGetValue(key, out TValue? obj) ? obj : default;
         }
 
         /// <summary>
@@ -79,9 +81,10 @@ namespace RCommon
         /// <typeparam name="TKey">Type of the key</typeparam>
         /// <typeparam name="TValue">Type of the value</typeparam>
         /// <returns>Value if found, default if can not found.</returns>
-        public static TValue GetOrDefault<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key)
+        public static TValue? GetOrDefault<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key)
+            where TKey : notnull
         {
-            return dictionary.TryGetValue(key, out var obj) ? obj : default;
+            return dictionary.TryGetValue(key, out TValue? obj) ? obj : default;
         }
 
         /// <summary>
@@ -95,10 +98,9 @@ namespace RCommon
         /// <returns>Value if found, default if can not found.</returns>
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> factory)
         {
-            TValue obj;
-            if (dictionary.TryGetValue(key, out obj))
+            if (dictionary.TryGetValue(key, out TValue? obj))
             {
-                return obj;
+                return obj!;
             }
 
             return dictionary[key] = factory(key);
@@ -128,6 +130,7 @@ namespace RCommon
         /// <typeparam name="TValue">Type of the value</typeparam>
         /// <returns>Value if found, default if can not found.</returns>
         public static TValue GetOrAdd<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> factory)
+            where TKey : notnull
         {
             return dictionary.GetOrAdd(key, k => factory());
         }

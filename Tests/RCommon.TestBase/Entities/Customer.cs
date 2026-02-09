@@ -13,13 +13,13 @@ namespace RCommon.TestBase.Entities
     // Customers
     public partial class Customer : BusinessEntity<int>
     {
-        public string StreetAddress1 { get; set; } // StreetAddress1 (length: 255)
-        public string StreetAddress2 { get; set; } // StreetAddress2 (length: 255)
-        public string City { get; set; } // City (length: 255)
-        public string State { get; set; } // State (length: 255)
-        public string ZipCode { get; set; } // ZipCode (length: 255)
-        public string FirstName { get; set; } // FirstName (length: 255)
-        public string LastName { get; set; } // LastName (length: 255)
+        public string StreetAddress1 { get; set; } = string.Empty; // StreetAddress1 (length: 255)
+        public string StreetAddress2 { get; set; } = string.Empty; // StreetAddress2 (length: 255)
+        public string City { get; set; } = string.Empty; // City (length: 255)
+        public string State { get; set; } = string.Empty; // State (length: 255)
+        public string ZipCode { get; set; } = string.Empty; // ZipCode (length: 255)
+        public string FirstName { get; set; } = string.Empty; // FirstName (length: 255)
+        public string LastName { get; set; } = string.Empty; // LastName (length: 255)
 
         // Reverse navigation
 

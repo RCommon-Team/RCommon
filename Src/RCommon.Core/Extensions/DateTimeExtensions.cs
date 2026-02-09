@@ -6,28 +6,60 @@ using System.Diagnostics;
 
 namespace RCommon
 {
+    /// <summary>
+    /// Provides extension methods for <see cref="DateTime"/> operations including validation,
+    /// date range helpers, and human-readable formatting.
+    /// </summary>
     public static class DateTimeExtension
     {
+        /// <summary>
+        /// The minimum valid date (January 1, 1900) used by <see cref="IsValid"/>.
+        /// </summary>
         private static readonly DateTime MinDate = new DateTime(1900, 1, 1);
+
+        /// <summary>
+        /// The maximum valid date (December 31, 9999 23:59:59.999) used by <see cref="IsValid"/>.
+        /// </summary>
         private static readonly DateTime MaxDate = new DateTime(9999, 12, 31, 23, 59, 59, 999);
 
+        /// <summary>
+        /// Determines whether the <see cref="DateTime"/> falls within the valid range (1900-01-01 to 9999-12-31).
+        /// </summary>
+        /// <param name="target">The <see cref="DateTime"/> to validate.</param>
+        /// <returns><c>true</c> if the date is within the valid range; otherwise, <c>false</c>.</returns>
         [DebuggerStepThrough]
         public static bool IsValid(this DateTime target)
         {
             return (target >= MinDate) && (target <= MaxDate);
         }
 
+        /// <summary>
+        /// Returns a <see cref="DateTime"/> representing the first day of the month for the given date.
+        /// </summary>
+        /// <param name="dt">The source date.</param>
+        /// <returns>A <see cref="DateTime"/> set to the first day of the month.</returns>
         public static DateTime FirstDayOfMonth(this DateTime dt)
         {
             return new DateTime(dt.Year, dt.Month, 1);
         }
 
+        /// <summary>
+        /// Returns a <see cref="DateTime"/> representing the last day of the month for the given date.
+        /// </summary>
+        /// <param name="dt">The source date.</param>
+        /// <returns>A <see cref="DateTime"/> set to the last day of the month.</returns>
         public static DateTime LastDayOfMonth(this DateTime dt)
         {
 
             return new DateTime(dt.Year, dt.Month, DateTime.DaysInMonth(dt.Year, dt.Month));
         }
 
+        /// <summary>
+        /// Converts a <see cref="DateTime"/> to a human-readable relative time string (e.g., "5 minutes ago").
+        /// For future dates, delegates to <see cref="HumanizeDate"/>.
+        /// </summary>
+        /// <param name="target">The <see cref="DateTime"/> to humanize.</param>
+        /// <returns>A human-readable string representing the relative time from now.</returns>
         public static string Humanize(this DateTime target)
         {
 
@@ -55,6 +87,12 @@ namespace RCommon
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Converts a <see cref="DateTime"/> to a human-readable relative date group string
+        /// (e.g., "Today", "Yesterday", "Next week", "Last month").
+        /// </summary>
+        /// <param name="date">The <see cref="DateTime"/> to humanize.</param>
+        /// <returns>A descriptive string indicating the relative date grouping.</returns>
         public static string HumanizeDate(this DateTime date)
         {
             DateTime dateNow = DateTime.Now;

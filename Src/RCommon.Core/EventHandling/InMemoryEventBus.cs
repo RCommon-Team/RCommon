@@ -34,17 +34,31 @@ using System.Threading.Tasks;
 
 namespace RCommon.EventHandling
 {
+    /// <summary>
+    /// In-memory implementation of <see cref="IEventBus"/> that resolves and invokes
+    /// <see cref="ISubscriber{TEvent}"/> handlers from the dependency injection container.
+    /// </summary>
+    /// <remarks>
+    /// Subscriptions are registered directly into the <see cref="IServiceCollection"/> at configuration time.
+    /// Publishing creates a new scope and resolves all handlers via reflection to support polymorphic event dispatch.
+    /// </remarks>
     public class InMemoryEventBus : IEventBus
     {
         private readonly IServiceCollection _services;
         private readonly IServiceProvider _serviceProvider;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="InMemoryEventBus"/>.
+        /// </summary>
+        /// <param name="serviceProvider">The root service provider used to create scopes for event publishing.</param>
+        /// <param name="services">The service collection for registering subscriber services at configuration time.</param>
         public InMemoryEventBus(IServiceProvider serviceProvider, IServiceCollection services)
         {
             _serviceProvider = serviceProvider;
             _services = services;
         }
 
+        /// <inheritdoc />
         public IEventBus Subscribe<TEvent, TEventHandler>()
             where TEvent : class
             where TEventHandler : class, ISubscriber<TEvent>
@@ -53,10 +67,16 @@ namespace RCommon.EventHandling
             return this;
         }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// Uses reflection to discover all <see cref="ISubscriber{TEvent}"/> interfaces on
+        /// <typeparamref name="TEventHandler"/> and registers each as a scoped service.
+        /// </remarks>
         public IEventBus SubscribeAllHandledEvents<TEventHandler>()
             where TEventHandler : class
         {
             Type implementationType = typeof(TEventHandler);
+            // Discover all ISubscriber<> interfaces implemented by the handler type
             IEnumerable<Type> serviceTypes = implementationType
                 .GetInterfaces()
                 .Where(i => i.IsGenericType)
@@ -70,21 +90,33 @@ namespace RCommon.EventHandling
             return this;
         }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// Creates a new DI scope and uses reflection to resolve handlers for the runtime event type,
+        /// invoking <see cref="ISubscriber{TEvent}.HandleAsync"/> on each handler sequentially.
+        /// </remarks>
         public async Task PublishAsync<TEvent>(TEvent @event)
         {
             using (IServiceScope scope = _serviceProvider.CreateScope())
             {
-                Type eventType = @event.GetType();
+                // Resolve handlers based on the runtime event type (not the compile-time generic parameter)
+                Type eventType = @event!.GetType();
                 Type openHandlerType = typeof(ISubscriber<>);
                 Type handlerType = openHandlerType.MakeGenericType(eventType);
-                IEnumerable<object> handlers = scope.ServiceProvider.GetServices(handlerType);
-                foreach (object handler in handlers)
+                IEnumerable<object?> handlers = scope.ServiceProvider.GetServices(handlerType);
+                foreach (object? handler in handlers)
                 {
-                    object result = handlerType
+                    if (handler == null) continue;
+
+                    // Invoke HandleAsync via reflection to support polymorphic dispatch
+                    object? result = handlerType
                         .GetTypeInfo()
                         .GetDeclaredMethod(nameof(ISubscriber<TEvent>.HandleAsync))
-                        .Invoke(handler, new object[] { @event, CancellationToken.None});
-                    await (Task)result;
+                        ?.Invoke(handler, new object[] { @event, CancellationToken.None});
+                    if (result is Task task)
+                    {
+                        await task;
+                    }
                 }
             }
         }

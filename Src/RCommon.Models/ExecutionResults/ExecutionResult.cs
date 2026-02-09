@@ -27,20 +27,58 @@ using System.Runtime.Serialization;
 
 namespace RCommon.Models.ExecutionResults
 {
+    /// <summary>
+    /// Abstract base record for execution results, providing factory methods
+    /// to create <see cref="SuccessExecutionResult"/> and <see cref="FailedExecutionResult"/> instances.
+    /// </summary>
+    /// <remarks>
+    /// Cached singleton instances are used for <see cref="Success"/> and the parameterless <see cref="Failed()"/>
+    /// to avoid unnecessary allocations for common result types.
+    /// </remarks>
+    /// <seealso cref="IExecutionResult"/>
     [DataContract]
     public abstract record ExecutionResult : IExecutionResult
     {
+        // Cached singleton for the common success case to avoid repeated allocations.
         private static readonly IExecutionResult SuccessResult = new SuccessExecutionResult();
+
+        // Cached singleton for a generic failure with no error messages.
         private static readonly IExecutionResult FailedResult = new FailedExecutionResult(Enumerable.Empty<string>());
 
+        /// <summary>
+        /// Returns a cached <see cref="SuccessExecutionResult"/> instance.
+        /// </summary>
+        /// <returns>An <see cref="IExecutionResult"/> representing a successful operation.</returns>
         public static IExecutionResult Success() => SuccessResult;
+
+        /// <summary>
+        /// Returns a cached <see cref="FailedExecutionResult"/> instance with no error messages.
+        /// </summary>
+        /// <returns>An <see cref="IExecutionResult"/> representing a failed operation.</returns>
         public static IExecutionResult Failed() => FailedResult;
+
+        /// <summary>
+        /// Creates a new <see cref="FailedExecutionResult"/> with the specified error messages.
+        /// </summary>
+        /// <param name="errors">A collection of error messages describing the failure.</param>
+        /// <returns>An <see cref="IExecutionResult"/> representing a failed operation with error details.</returns>
         public static IExecutionResult Failed(IEnumerable<string> errors) => new FailedExecutionResult(errors);
+
+        /// <summary>
+        /// Creates a new <see cref="FailedExecutionResult"/> with the specified error messages.
+        /// </summary>
+        /// <param name="errors">One or more error messages describing the failure.</param>
+        /// <returns>An <see cref="IExecutionResult"/> representing a failed operation with error details.</returns>
         public static IExecutionResult Failed(params string[] errors) => new FailedExecutionResult(errors);
 
+        /// <inheritdoc />
         [DataMember]
         public abstract bool IsSuccess { get; }
 
+        /// <summary>
+        /// Returns a string representation of the execution result, including the success status.
+        /// </summary>
+        /// <returns>A string in the format "ExecutionResult - IsSuccess:{value}".</returns>
         public override string ToString()
         {
             return $"ExecutionResult - IsSuccess:{IsSuccess}";

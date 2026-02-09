@@ -57,7 +57,7 @@ public class ValidationOutcome
     /// <summary>
     /// The RuleSets that were executed during the validation run.
     /// </summary>
-    public string[] RuleSetsExecuted { get; set; }
+    public string[]? RuleSetsExecuted { get; set; }
 
     /// <summary>
     /// Creates a new ValidationResult
@@ -81,13 +81,13 @@ public class ValidationOutcome
     }
 
     /// <summary>
-    /// Creates a new ValidationResult by combining several other ValidationResults.
+    /// Creates a new <see cref="ValidationOutcome"/> by combining the errors and rule sets from several other validation results.
     /// </summary>
-    /// <param name="otherResults"></param>
+    /// <param name="otherResults">The validation outcomes to merge into a single result.</param>
     public ValidationOutcome(IEnumerable<ValidationOutcome> otherResults)
     {
         _errors = otherResults.SelectMany(x => x.Errors).ToList();
-        RuleSetsExecuted = otherResults.Where(x => x.RuleSetsExecuted != null).SelectMany(x => x.RuleSetsExecuted).Distinct().ToArray();
+        RuleSetsExecuted = otherResults.Where(x => x.RuleSetsExecuted != null).SelectMany(x => x.RuleSetsExecuted!).Distinct().ToArray();
     }
 
     internal ValidationOutcome(List<ValidationFault> errors)
@@ -123,10 +123,10 @@ public class ValidationOutcome
     public IDictionary<string, string[]> ToDictionary()
     {
         return Errors
-            .GroupBy(x => x.PropertyName)
+            .GroupBy(x => x.PropertyName ?? string.Empty)
             .ToDictionary(
                 g => g.Key,
-                g => g.Select(x => x.ErrorMessage).ToArray()
+                g => g.Select(x => x.ErrorMessage ?? string.Empty).ToArray()
             );
     }
 }

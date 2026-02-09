@@ -11,93 +11,127 @@ using System.Threading.Tasks;
 
 namespace RCommon.Persistence.Caching.Crud
 {
+    /// <summary>
+    /// Decorator around <see cref="ISqlMapperRepository{TEntity}"/> that adds cache-aware query overloads.
+    /// Non-cached operations are delegated directly to the underlying repository.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type managed by this repository.</typeparam>
+    /// <remarks>
+    /// Cached overloads use <see cref="ICacheService.GetOrCreateAsync{TData}"/> to retrieve results
+    /// from cache or fall through to the inner repository and store the result.
+    /// The <see cref="ICacheService"/> is resolved via <see cref="ICommonFactory{TEnum, TService}"/>
+    /// using <see cref="PersistenceCachingStrategy.Default"/>.
+    /// </remarks>
     public class CachingSqlMapperRepository<TEntity> : ICachingSqlMapperRepository<TEntity>
         where TEntity : class, IBusinessEntity
     {
         private readonly ISqlMapperRepository<TEntity> _repository;
         private readonly ICacheService _cacheService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CachingSqlMapperRepository{TEntity}"/> class.
+        /// </summary>
+        /// <param name="repository">The inner SQL mapper repository to delegate operations to.</param>
+        /// <param name="cacheFactory">Factory used to resolve the <see cref="ICacheService"/> for the default persistence caching strategy.</param>
         public CachingSqlMapperRepository(ISqlMapperRepository<TEntity> repository, ICommonFactory<PersistenceCachingStrategy, ICacheService> cacheFactory)
         {
             _repository = repository;
             _cacheService = cacheFactory.Create(PersistenceCachingStrategy.Default);
         }
 
+        /// <inheritdoc />
         public string TableName { get => _repository.TableName; set => _repository.TableName = value; }
+
+        /// <inheritdoc />
         public string DataStoreName { get => _repository.DataStoreName; set => _repository.DataStoreName = value; }
 
+        /// <inheritdoc />
         public async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
             await _repository.AddAsync(entity, token);
         }
 
+        /// <inheritdoc />
         public async Task<bool> AnyAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await _repository.AnyAsync(expression, token);
         }
 
+        /// <inheritdoc />
         public async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await _repository.AnyAsync(specification, token);
         }
 
+        /// <inheritdoc />
         public async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
             await _repository.DeleteAsync(entity, token);
         }
 
+        /// <inheritdoc />
         public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await _repository.FindAsync(specification, token);
         }
 
+        /// <inheritdoc />
         public async Task<ICollection<TEntity>> FindAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await _repository.FindAsync(expression, token);
         }
 
+        /// <inheritdoc />
         public async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
             return await _repository.FindAsync(primaryKey, token);
         }
 
+        /// <inheritdoc />
         public async Task<TEntity> FindSingleOrDefaultAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await _repository.FindSingleOrDefaultAsync(expression, token);
         }
 
+        /// <inheritdoc />
         public async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await _repository.FindSingleOrDefaultAsync(specification, token);
         }
 
+        /// <inheritdoc />
         public async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
             return await _repository.GetCountAsync(selectSpec, token);
         }
 
+        /// <inheritdoc />
         public async Task<long> GetCountAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await _repository.GetCountAsync(expression, token);
         }
 
+        /// <inheritdoc />
         public async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             await _repository.UpdateAsync(entity, token);
         }
 
+        /// <inheritdoc />
         public async Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await _repository.DeleteManyAsync(specification, token);
         }
 
+        /// <inheritdoc />
         public async Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await _repository.DeleteManyAsync(expression, token);
         }
 
-        // Cached Items
+        // Cached Items — these overloads check the cache first and fall through to the inner repository on a miss.
 
+        /// <inheritdoc />
         public async Task<ICollection<TEntity>> FindAsync(object cacheKey, ISpecification<TEntity> specification, CancellationToken token = default)
         {
             var data = await _cacheService.GetOrCreateAsync(cacheKey,
@@ -105,12 +139,14 @@ namespace RCommon.Persistence.Caching.Crud
             return await data;
         }
 
+        /// <inheritdoc />
         public async Task<ICollection<TEntity>> FindAsync(object cacheKey, System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             var data = await _cacheService.GetOrCreateAsync(cacheKey,
                 async () => await _repository.FindAsync(expression, token));
             return await data;
         }
+
         /// <summary>
         /// Adds a range of entities by delegating to the underlying repository.
         /// </summary>

@@ -27,7 +27,7 @@ namespace RCommon.TestBase.Entities
         /// <summary>
         /// Parent Customer pointed by [Orders].([CustomerId]) (FK_Customer_Orders)
         /// </summary>
-        public virtual Customer Customer { get; set; } // FK_Customer_Orders
+        public virtual Customer? Customer { get; set; } // FK_Customer_Orders
 
         public Order()
         {
