@@ -448,11 +448,11 @@ public class DapperRepositoryTests
         var repositoryType = typeof(DapperRepository<TestDapperEntity>);
 
         // Act
-        var method = repositoryType.GetMethod("DeleteAsync");
+        var methods = repositoryType.GetMethods().Where(m => m.Name == "DeleteAsync").ToArray();
 
         // Assert
-        method.Should().NotBeNull();
-        method!.IsPublic.Should().BeTrue();
+        methods.Should().NotBeEmpty();
+        methods.Should().OnlyContain(m => m.IsPublic);
     }
 
     [Fact]

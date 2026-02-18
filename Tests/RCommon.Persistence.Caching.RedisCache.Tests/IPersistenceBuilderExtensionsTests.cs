@@ -357,8 +357,11 @@ public class IPersistenceBuilderExtensionsTests
         public Task<bool> AnyAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default) => throw new NotImplementedException();
         public Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default) => throw new NotImplementedException();
         public Task DeleteAsync(TEntity entity, CancellationToken token = default) => throw new NotImplementedException();
+        public Task DeleteAsync(TEntity entity, bool isSoftDelete, CancellationToken token = default) => throw new NotImplementedException();
         public Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default) => throw new NotImplementedException();
+        public Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default) => throw new NotImplementedException();
         public Task<int> DeleteManyAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default) => throw new NotImplementedException();
+        public Task<int> DeleteManyAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default) => throw new NotImplementedException();
         public Task<Collections.IPaginatedList<TEntity>> FindAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, System.Linq.Expressions.Expression<Func<TEntity, object>> orderByExpression, bool orderByAscending, int pageNumber = 1, int pageSize = 0, CancellationToken token = default) => throw new NotImplementedException();
         public Task<Collections.IPaginatedList<TEntity>> FindAsync(IPagedSpecification<TEntity> specification, CancellationToken token = default) => throw new NotImplementedException();
         public Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default) => throw new NotImplementedException();

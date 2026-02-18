@@ -1,4 +1,5 @@
-﻿using RCommon.Persistence;
+﻿using RCommon.Entities;
+using RCommon.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,17 +39,21 @@ namespace RCommon.Persistence.Crud
         Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default);
 
         /// <summary>
-        /// Marks the changes of an existing entity to be deleted from the store.
+        /// Deletes the specified entity. If <typeparamref name="TEntity"/> implements <see cref="ISoftDelete"/>,
+        /// a soft delete is performed automatically (sets <c>IsDeleted = true</c> and issues an UPDATE).
+        /// Otherwise a physical DELETE is executed. Use <see cref="DeleteAsync(TEntity, bool, CancellationToken)"/>
+        /// to explicitly control the delete mode.
         /// </summary>
-        /// <param name="entity">An instance of <typeparamref name="TEntity"/> that should be
-        /// updated in the database.</param>
-        /// /// <param name="token">Cancellation Token</param>
-        /// <remarks>Implementors of this method must handle the Delete scenario. </remarks>
+        /// <param name="entity">An instance of <typeparamref name="TEntity"/> to delete.</param>
+        /// <param name="token">Cancellation Token</param>
         /// <returns>Task</returns>
         Task DeleteAsync(TEntity entity, CancellationToken token = default);
 
         /// <summary>
-        /// Deletes entities matching the criteria of the specification
+        /// Deletes entities matching the specification. If <typeparamref name="TEntity"/> implements
+        /// <see cref="ISoftDelete"/>, a soft delete is performed automatically.
+        /// Use <see cref="DeleteManyAsync(ISpecification{TEntity}, bool, CancellationToken)"/>
+        /// to explicitly control the delete mode.
         /// </summary>
         /// <param name="specification">Query specification</param>
         /// <param name="token">Cancellation Token</param>
@@ -56,7 +61,10 @@ namespace RCommon.Persistence.Crud
         Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
 
         /// <summary>
-        /// Deletes entities matching the criteria of the expression
+        /// Deletes entities matching the expression. If <typeparamref name="TEntity"/> implements
+        /// <see cref="ISoftDelete"/>, a soft delete is performed automatically.
+        /// Use <see cref="DeleteManyAsync(Expression{Func{TEntity, bool}}, bool, CancellationToken)"/>
+        /// to explicitly control the delete mode.
         /// </summary>
         /// <param name="expression">Query expression</param>
         /// <param name="token">Cancellation Token</param>
@@ -70,6 +78,49 @@ namespace RCommon.Persistence.Crud
         /// <param name="token">Cancellation Token</param>
         /// <returns>Task</returns>
         Task UpdateAsync(TEntity entity, CancellationToken token = default);
+
+        /// <summary>
+        /// Deletes the entity using the explicitly specified delete mode, bypassing auto-detection.
+        /// When <paramref name="isSoftDelete"/> is <c>true</c>, the entity's <see cref="ISoftDelete.IsDeleted"/>
+        /// property is set to <c>true</c> and an UPDATE is issued. When <c>false</c>, a physical DELETE is
+        /// always performed — even if the entity implements <see cref="ISoftDelete"/>.
+        /// </summary>
+        /// <param name="entity">The entity to delete.</param>
+        /// <param name="isSoftDelete">If <c>true</c>, performs a soft delete; if <c>false</c>, forces a physical delete.</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Task</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but the entity does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        Task DeleteAsync(TEntity entity, bool isSoftDelete, CancellationToken token = default);
+
+        /// <summary>
+        /// Deletes entities matching the specification using the explicitly specified delete mode,
+        /// bypassing auto-detection. When <paramref name="isSoftDelete"/> is <c>false</c>, a physical
+        /// DELETE is always performed — even if the entity implements <see cref="ISoftDelete"/>.
+        /// </summary>
+        /// <param name="specification">Query specification</param>
+        /// <param name="isSoftDelete">If <c>true</c>, performs a soft delete; if <c>false</c>, forces a physical delete.</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Count of entities affected</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but <typeparamref name="TEntity"/> does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default);
+
+        /// <summary>
+        /// Deletes entities matching the expression using the explicitly specified delete mode,
+        /// bypassing auto-detection. When <paramref name="isSoftDelete"/> is <c>false</c>, a physical
+        /// DELETE is always performed — even if the entity implements <see cref="ISoftDelete"/>.
+        /// </summary>
+        /// <param name="expression">Query expression</param>
+        /// <param name="isSoftDelete">If <c>true</c>, performs a soft delete; if <c>false</c>, forces a physical delete.</param>
+        /// <param name="token">Cancellation Token</param>
+        /// <returns>Count of entities affected</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but <typeparamref name="TEntity"/> does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default);
 
     }
 }

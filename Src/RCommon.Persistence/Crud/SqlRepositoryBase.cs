@@ -80,10 +80,19 @@ namespace RCommon.Persistence.Crud
         public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
 
         /// <inheritdoc />
+        public abstract Task DeleteAsync(TEntity entity, bool isSoftDelete, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
 
         /// <inheritdoc />
+        public abstract Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
+        /// <inheritdoc />
+        public abstract Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default);
 
         /// <inheritdoc />
         public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);

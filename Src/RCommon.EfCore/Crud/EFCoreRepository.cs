@@ -164,24 +164,120 @@ namespace RCommon.Persistence.EFCore.Crud
         }
 
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Deletes the entity. If <typeparamref name="TEntity"/> implements <see cref="ISoftDelete"/>,
+        /// a soft delete is performed automatically (sets <c>IsDeleted = true</c> and issues an UPDATE).
+        /// Otherwise a physical DELETE is executed.
+        /// </summary>
         public async override Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
+            if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
+            {
+                SoftDeleteHelper.MarkAsDeleted(entity);
+                await UpdateAsync(entity, token);
+                return;
+            }
+
             EventTracker.AddEntity(entity);
             ObjectSet.Remove(entity);
             await SaveAsync();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Deletes the entity using the explicitly specified delete mode. When <paramref name="isSoftDelete"/>
+        /// is <c>true</c>, the entity must implement <see cref="ISoftDelete"/>; its <c>IsDeleted</c> property
+        /// is set to <c>true</c> and an UPDATE is issued. When <c>false</c>, a physical DELETE is always
+        /// performed — even if the entity implements <see cref="ISoftDelete"/>.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but <typeparamref name="TEntity"/>
+        /// does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        public async override Task DeleteAsync(TEntity entity, bool isSoftDelete, CancellationToken token = default)
+        {
+            if (!isSoftDelete)
+            {
+                // Bypass auto-detection — force a physical delete
+                EventTracker.AddEntity(entity);
+                ObjectSet.Remove(entity);
+                await SaveAsync();
+                return;
+            }
+
+            SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
+            SoftDeleteHelper.MarkAsDeleted(entity);
+            await UpdateAsync(entity, token);
+        }
+
+        /// <summary>
+        /// Deletes entities matching the specification. If <typeparamref name="TEntity"/> implements
+        /// <see cref="ISoftDelete"/>, a soft delete is performed automatically.
+        /// </summary>
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await this.DeleteManyAsync(specification.Predicate, token);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Deletes entities matching the specification. When <paramref name="isSoftDelete"/> is <c>true</c>,
+        /// each matching entity must implement <see cref="ISoftDelete"/> — its <c>IsDeleted</c> property is
+        /// set to <c>true</c> and an UPDATE is issued instead of a DELETE.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but <typeparamref name="TEntity"/>
+        /// does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default)
+        {
+            return await this.DeleteManyAsync(specification.Predicate, isSoftDelete, token);
+        }
+
+        /// <summary>
+        /// Deletes entities matching the expression. If <typeparamref name="TEntity"/> implements
+        /// <see cref="ISoftDelete"/>, a soft delete is performed automatically (marks each matching
+        /// entity as deleted and issues UPDATEs). Otherwise a physical DELETE is executed.
+        /// </summary>
         public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await this.FindQuery(expression).ExecuteDeleteAsync(token);
+            if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
+            {
+                return await DeleteManyAsync(expression, isSoftDelete: true, token);
+            }
+
+            return await RepositoryQuery.Where(expression).ExecuteDeleteAsync(token);
+        }
+
+        /// <summary>
+        /// Deletes entities matching the expression. When <paramref name="isSoftDelete"/> is <c>true</c>,
+        /// each matching entity must implement <see cref="ISoftDelete"/> — its <c>IsDeleted</c> property is
+        /// set to <c>true</c> and an UPDATE is issued instead of a DELETE.
+        /// </summary>
+        /// <remarks>
+        /// The soft-delete path fetches matching entities into memory, marks each as deleted, then saves
+        /// in a single round-trip. This approach is used instead of <c>ExecuteUpdateAsync</c> with a cast
+        /// expression to ensure compatibility across all EF Core database providers.
+        /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but <typeparamref name="TEntity"/>
+        /// does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default)
+        {
+            if (!isSoftDelete)
+            {
+                // Bypass auto-detection and soft-delete filter — force a physical delete
+                return await RepositoryQuery.Where(expression).ExecuteDeleteAsync(token);
+            }
+
+            SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
+
+            var entities = await this.FindQuery(expression).ToListAsync(token);
+            foreach (var entity in entities)
+            {
+                SoftDeleteHelper.MarkAsDeleted(entity);
+                ObjectSet.Update(entity);
+            }
+            return await SaveAsync(token);
         }
 
         /// <inheritdoc />
@@ -204,8 +300,8 @@ namespace RCommon.Persistence.EFCore.Crud
             IQueryable<TEntity> queryable;
             try
             {
-                Guard.Against<NullReferenceException>(RepositoryQuery == null, "RepositoryQuery is null");
-                queryable = RepositoryQuery!.Where(expression);
+                Guard.Against<NullReferenceException>(FilteredRepositoryQuery == null, "RepositoryQuery is null");
+                queryable = FilteredRepositoryQuery.Where(expression);
             }
             catch (ApplicationException exception)
             {
@@ -242,7 +338,15 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            return (await ObjectSet.FindAsync(new object[] { primaryKey }, token))!;
+            var entity = await ObjectSet.FindAsync(new object[] { primaryKey }, token);
+
+            // Post-fetch soft-delete check: if the entity was soft-deleted, treat it as not found
+            if (entity != null && SoftDeleteHelper.IsSoftDeletable<TEntity>() && ((ISoftDelete)entity).IsDeleted)
+            {
+                return default!;
+            }
+
+            return entity!;
         }
 
         /// <inheritdoc />

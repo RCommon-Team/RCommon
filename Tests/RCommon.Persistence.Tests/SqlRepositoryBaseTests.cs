@@ -298,11 +298,20 @@ public class TestSqlRepository : SqlRepositoryBase<TestSqlEntity>
         return Task.CompletedTask;
     }
 
+    public override Task DeleteAsync(TestSqlEntity entity, bool isSoftDelete, CancellationToken token = default)
+        => throw new NotImplementedException();
+
     public override Task<int> DeleteManyAsync(Expression<Func<TestSqlEntity, bool>> expression, CancellationToken token = default)
         => Task.FromResult(0);
 
+    public override Task<int> DeleteManyAsync(Expression<Func<TestSqlEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default)
+        => throw new NotImplementedException();
+
     public override Task<int> DeleteManyAsync(ISpecification<TestSqlEntity> specification, CancellationToken token = default)
         => Task.FromResult(0);
+
+    public override Task<int> DeleteManyAsync(ISpecification<TestSqlEntity> specification, bool isSoftDelete, CancellationToken token = default)
+        => throw new NotImplementedException();
 
     public override Task UpdateAsync(TestSqlEntity entity, CancellationToken token = default)
         => Task.CompletedTask;

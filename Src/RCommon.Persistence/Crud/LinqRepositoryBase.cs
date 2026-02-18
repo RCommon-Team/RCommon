@@ -72,6 +72,26 @@ namespace RCommon.Persistence.Crud
         protected abstract IQueryable<TEntity> RepositoryQuery { get; }
 
         /// <summary>
+        /// Gets the <see cref="RepositoryQuery"/> with an automatic soft-delete filter applied
+        /// when <typeparamref name="TEntity"/> implements <see cref="ISoftDelete"/>.
+        /// For non-soft-deletable entities, returns the raw <see cref="RepositoryQuery"/> unchanged.
+        /// </summary>
+        /// <remarks>
+        /// All read operations should use this property instead of <see cref="RepositoryQuery"/> directly
+        /// to ensure soft-deleted entities are excluded. Write/delete operations that need unfiltered
+        /// access should continue to use <see cref="RepositoryQuery"/>.
+        /// </remarks>
+        protected IQueryable<TEntity> FilteredRepositoryQuery
+        {
+            get
+            {
+                if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
+                    return RepositoryQuery.Where(SoftDeleteHelper.GetNotDeletedFilter<TEntity>());
+                return RepositoryQuery;
+            }
+        }
+
+        /// <summary>
         /// Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>
@@ -80,7 +100,7 @@ namespace RCommon.Persistence.Crud
         /// <filterpriority>1</filterpriority>
         public IEnumerator<TEntity> GetEnumerator()
         {
-            return RepositoryQuery.GetEnumerator();
+            return FilteredRepositoryQuery.GetEnumerator();
         }
 
         /// <summary>
@@ -92,7 +112,7 @@ namespace RCommon.Persistence.Crud
         /// <filterpriority>2</filterpriority>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return RepositoryQuery.GetEnumerator();
+            return FilteredRepositoryQuery.GetEnumerator();
         }
 
         /// <summary>
@@ -103,7 +123,7 @@ namespace RCommon.Persistence.Crud
         /// </returns>
         public Expression Expression
         {
-            get { return RepositoryQuery.Expression; }
+            get { return FilteredRepositoryQuery.Expression; }
         }
 
         /// <summary>
@@ -114,7 +134,7 @@ namespace RCommon.Persistence.Crud
         /// </returns>
         public Type ElementType
         {
-            get { return RepositoryQuery.ElementType; }
+            get { return FilteredRepositoryQuery.ElementType; }
         }
 
         /// <summary>
@@ -125,7 +145,7 @@ namespace RCommon.Persistence.Crud
         /// </returns>
         public IQueryProvider Provider
         {
-            get { return RepositoryQuery.Provider; }
+            get { return FilteredRepositoryQuery.Provider; }
         }
 
 
@@ -139,7 +159,7 @@ namespace RCommon.Persistence.Crud
         /// of the query.</returns>
         public IEnumerable<TEntity> Query(ISpecification<TEntity> specification)
         {
-            return RepositoryQuery.Where(specification.Predicate).AsQueryable();
+            return FilteredRepositoryQuery.Where(specification.Predicate).AsQueryable();
         }
 
         /// <inheritdoc />
@@ -162,10 +182,19 @@ namespace RCommon.Persistence.Crud
         public abstract Task DeleteAsync(TEntity entity, CancellationToken token = default);
 
         /// <inheritdoc />
+        public abstract Task DeleteAsync(TEntity entity, bool isSoftDelete, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default);
 
         /// <inheritdoc />
+        public abstract Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default);
+
+        /// <inheritdoc />
         public abstract Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default);
+
+        /// <inheritdoc />
+        public abstract Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default);
 
         /// <inheritdoc />
         public abstract Task UpdateAsync(TEntity entity, CancellationToken token = default);

@@ -336,15 +336,60 @@ public class TestLinqRepository : LinqRepositoryBase<TestEntity>
 
     public override Task DeleteAsync(TestEntity entity, CancellationToken token = default)
     {
+        // Auto-detect: TestEntity does not implement ISoftDelete, so physical delete
+        if (SoftDeleteHelper.IsSoftDeletable<TestEntity>())
+        {
+            SoftDeleteHelper.MarkAsDeleted(entity);
+            return UpdateAsync(entity, token);
+        }
+
         _entities.Remove(entity);
         return Task.CompletedTask;
     }
 
+    public override Task DeleteAsync(TestEntity entity, bool isSoftDelete, CancellationToken token = default)
+    {
+        if (!isSoftDelete)
+        {
+            _entities.Remove(entity);
+            return Task.CompletedTask;
+        }
+
+        SoftDeleteHelper.EnsureSoftDeletable<TestEntity>();
+        SoftDeleteHelper.MarkAsDeleted(entity);
+        return UpdateAsync(entity, token);
+    }
+
     public override Task<int> DeleteManyAsync(Expression<Func<TestEntity, bool>> expression, CancellationToken token = default)
-        => Task.FromResult(0);
+    {
+        if (SoftDeleteHelper.IsSoftDeletable<TestEntity>())
+        {
+            return DeleteManyAsync(expression, isSoftDelete: true, token);
+        }
+
+        var matches = _entities.Where(expression.Compile()).ToList();
+        foreach (var e in matches) _entities.Remove(e);
+        return Task.FromResult(matches.Count);
+    }
+
+    public override Task<int> DeleteManyAsync(Expression<Func<TestEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default)
+    {
+        if (!isSoftDelete)
+        {
+            var hardMatches = _entities.Where(expression.Compile()).ToList();
+            foreach (var e in hardMatches) _entities.Remove(e);
+            return Task.FromResult(hardMatches.Count);
+        }
+
+        SoftDeleteHelper.EnsureSoftDeletable<TestEntity>();
+        return Task.FromResult(0);
+    }
 
     public override Task<int> DeleteManyAsync(ISpecification<TestEntity> specification, CancellationToken token = default)
-        => Task.FromResult(0);
+        => DeleteManyAsync(specification.Predicate, token);
+
+    public override Task<int> DeleteManyAsync(ISpecification<TestEntity> specification, bool isSoftDelete, CancellationToken token = default)
+        => DeleteManyAsync(specification.Predicate, isSoftDelete, token);
 
     public override Task UpdateAsync(TestEntity entity, CancellationToken token = default)
         => Task.CompletedTask;

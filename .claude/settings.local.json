@@ -31,7 +31,10 @@
       "Bash(git add:*)",
       "Bash(findstr:*)",
       "Bash(Select-String -Pattern \"warning CS8\")",
-      "Bash(Select-String -Pattern \"Build succeeded|Error\\\\\\(s\\\\\\)|Warning\\\\\\(s\\\\\\)|error CS\")"
+      "Bash(Select-String -Pattern \"Build succeeded|Error\\\\\\(s\\\\\\)|Warning\\\\\\(s\\\\\\)|error CS\")",
+      "Bash(tee:*)",
+      "Bash(awk:*)",
+      "Bash(EXIT_CODE=$?)"
     ]
   }
 }
