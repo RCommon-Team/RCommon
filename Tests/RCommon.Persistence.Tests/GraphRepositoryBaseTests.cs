@@ -6,6 +6,7 @@ using RCommon.Collections;
 using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using System.Data.Common;
 using System.Linq.Expressions;
 using Xunit;
@@ -17,6 +18,7 @@ public class GraphRepositoryBaseTests
     private readonly Mock<IDataStoreFactory> _mockDataStoreFactory;
     private readonly Mock<IEntityEventTracker> _mockEventTracker;
     private readonly Mock<IOptions<DefaultDataStoreOptions>> _mockDefaultDataStoreOptions;
+    private readonly Mock<ITenantIdAccessor> _mockTenantIdAccessor;
     private readonly DefaultDataStoreOptions _defaultOptions;
 
     public GraphRepositoryBaseTests()
@@ -24,6 +26,7 @@ public class GraphRepositoryBaseTests
         _mockDataStoreFactory = new Mock<IDataStoreFactory>();
         _mockEventTracker = new Mock<IEntityEventTracker>();
         _mockDefaultDataStoreOptions = new Mock<IOptions<DefaultDataStoreOptions>>();
+        _mockTenantIdAccessor = new Mock<ITenantIdAccessor>();
         _defaultOptions = new DefaultDataStoreOptions();
 
         _mockDefaultDataStoreOptions.Setup(x => x.Value).Returns(_defaultOptions);
@@ -36,7 +39,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().NotBeNull();
@@ -49,7 +53,8 @@ public class GraphRepositoryBaseTests
         var action = () => new TestGraphRepository(
             null!,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -63,7 +68,8 @@ public class GraphRepositoryBaseTests
         var action = () => new TestGraphRepository(
             _mockDataStoreFactory.Object,
             null!,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -81,7 +87,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.DataStoreName.Should().Be(expectedName);
@@ -94,7 +101,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         repository.Tracking = true;
@@ -110,7 +118,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Tracking.Should().BeFalse();
@@ -123,7 +132,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<LinqRepositoryBase<TestGraphEntity>>();
@@ -136,7 +146,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<IGraphRepository<TestGraphEntity>>();
@@ -149,7 +160,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var eventTracker = repository.EventTracker;
@@ -165,7 +177,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         var expectedName = "CustomGraphDataStore";
 
@@ -183,7 +196,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         var mockLogger = new Mock<ILogger>();
 
@@ -203,7 +217,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         repository.Tracking = trackingValue;
@@ -219,7 +234,8 @@ public class GraphRepositoryBaseTests
         var repository = new TestGraphRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var action = () => repository.Dispose();
@@ -254,8 +270,9 @@ public class TestGraphRepository : GraphRepositoryBase<TestGraphEntity>
     public TestGraphRepository(
         IDataStoreFactory dataStoreFactory,
         IEntityEventTracker eventTracker,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-        : base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+        ITenantIdAccessor tenantIdAccessor)
+        : base(dataStoreFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
     {
     }
 

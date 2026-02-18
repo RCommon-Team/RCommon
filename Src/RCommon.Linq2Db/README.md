@@ -14,6 +14,8 @@ Linq2Db implementation of the RCommon persistence abstractions. Provides a LINQ-
 - `RCommonDataConnection` base class implementing `IDataStore` for seamless factory resolution
 - Fluent DI configuration using `AddLinqToDBContext` under the hood
 - Domain event tracking integrated into add, update, and delete operations
+- **Soft delete** -- entities implementing `ISoftDelete` are automatically filtered on reads and logically deleted on writes
+- **Multitenancy** -- entities implementing `IMultiTenant` are automatically filtered by tenant on reads and stamped with `TenantId` on writes
 - Targets .NET 8, .NET 9, and .NET 10
 
 ## Installation
@@ -75,6 +77,38 @@ public class CustomerService
             pageSize: pageSize);
     }
 }
+```
+
+### Soft Delete and Multitenancy
+
+`Linq2DbRepository<TEntity>` automatically supports soft delete and multitenancy when your entities implement the opt-in interfaces:
+
+```csharp
+using RCommon.Entities;
+
+public class Customer : BusinessEntity<int>, ISoftDelete, IMultiTenant
+{
+    public string Name { get; set; }
+    public bool IsDeleted { get; set; }
+    public string? TenantId { get; set; }
+}
+```
+
+Reads automatically exclude soft-deleted records and scope to the current tenant:
+
+```csharp
+// Both filters applied transparently
+var customers = await _customerRepo.FindAsync(c => c.IsActive);
+```
+
+Writes automatically stamp the tenant and support logical deletion:
+
+```csharp
+// TenantId stamped automatically from ITenantIdAccessor
+await _customerRepo.AddAsync(new Customer { Name = "Acme" });
+
+// Soft delete — sets IsDeleted = true, performs UPDATE via Linq2Db
+await _customerRepo.DeleteAsync(customer, isSoftDelete: true);
 ```
 
 ## Key Types

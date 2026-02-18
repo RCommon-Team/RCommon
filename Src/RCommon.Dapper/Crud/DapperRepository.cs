@@ -12,6 +12,7 @@ using System.Reflection;
 using System.ComponentModel;
 using System.Data.Common;
 using RCommon.Entities;
+using RCommon.Security.Claims;
 using System.Threading;
 using Microsoft.Extensions.Options;
 using Dommel;
@@ -45,8 +46,9 @@ namespace RCommon.Persistence.Dapper.Crud
         /// <param name="defaultDataStoreOptions">Options specifying which data store to use when none is explicitly set.</param>
         public DapperRepository(IDataStoreFactory dataStoreFactory,
             ILoggerFactory logger, IEntityEventTracker eventTracker,
-            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreFactory, logger, eventTracker, defaultDataStoreOptions)
+            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+            ITenantIdAccessor tenantIdAccessor)
+            : base(dataStoreFactory, logger, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
         {
             Logger = logger.CreateLogger(GetType().Name);
         }
@@ -64,6 +66,7 @@ namespace RCommon.Persistence.Dapper.Crud
                         await db.OpenAsync();
                     }
                     EventTracker.AddEntity(entity);
+                    MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
                     await db.InsertAsync(entity, cancellationToken: token);
 
                 }
@@ -368,6 +371,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     }
 
                     var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
+                    filteredExpression = MultiTenantHelper.CombineWithTenantFilter(filteredExpression, _tenantIdAccessor.GetTenantId());
                     var results = await db.SelectAsync(filteredExpression, cancellationToken: token);
                     return results.ToList();
                 }
@@ -406,6 +410,15 @@ namespace RCommon.Persistence.Dapper.Crud
                         return default!;
                     }
 
+                    // Post-fetch tenant check: if the entity belongs to a different tenant, treat it as not found
+                    var currentTenantId = _tenantIdAccessor.GetTenantId();
+                    if (result != null && MultiTenantHelper.IsMultiTenant<TEntity>()
+                        && !string.IsNullOrEmpty(currentTenantId)
+                        && ((IMultiTenant)result).TenantId != currentTenantId)
+                    {
+                        return default!;
+                    }
+
                     return result!;
                 }
                 catch (ApplicationException exception)
@@ -436,6 +449,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     }
 
                     var filteredPredicate = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(selectSpec.Predicate);
+                    filteredPredicate = MultiTenantHelper.CombineWithTenantFilter(filteredPredicate, _tenantIdAccessor.GetTenantId());
                     var results = await db.CountAsync(filteredPredicate);
                     return results;
                 }
@@ -467,6 +481,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     }
 
                     var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
+                    filteredExpression = MultiTenantHelper.CombineWithTenantFilter(filteredExpression, _tenantIdAccessor.GetTenantId());
                     var results = await db.CountAsync(filteredExpression);
                     return results;
                 }
@@ -526,6 +541,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     }
 
                     var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
+                    filteredExpression = MultiTenantHelper.CombineWithTenantFilter(filteredExpression, _tenantIdAccessor.GetTenantId());
                     var results = await db.AnyAsync(filteredExpression);
                     return results;
                 }
@@ -571,6 +587,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     foreach (var entity in entities)
                     {
                         EventTracker.AddEntity(entity);
+                        MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
                         await db.InsertAsync(entity, cancellationToken: token);
                     }
                 }

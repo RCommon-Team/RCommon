@@ -9,6 +9,7 @@ using RCommon.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Persistence.Dapper.Crud;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace RCommon
@@ -37,6 +38,9 @@ namespace RCommon
         public DapperPersistenceBuilder(IServiceCollection services)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
+
+            // Default tenant accessor (no-op); overridden when multitenancy is configured
+            services.TryAddTransient<ITenantIdAccessor, NullTenantIdAccessor>();
 
             // Dapper Repository
             services.AddTransient(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));

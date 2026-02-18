@@ -6,6 +6,7 @@ using RCommon.Collections;
 using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using System.Data.Common;
 using System.Linq.Expressions;
 using Xunit;
@@ -17,6 +18,7 @@ public class LinqRepositoryBaseTests
     private readonly Mock<IDataStoreFactory> _mockDataStoreFactory;
     private readonly Mock<IEntityEventTracker> _mockEventTracker;
     private readonly Mock<IOptions<DefaultDataStoreOptions>> _mockDefaultDataStoreOptions;
+    private readonly Mock<ITenantIdAccessor> _mockTenantIdAccessor;
     private readonly DefaultDataStoreOptions _defaultOptions;
 
     public LinqRepositoryBaseTests()
@@ -24,6 +26,7 @@ public class LinqRepositoryBaseTests
         _mockDataStoreFactory = new Mock<IDataStoreFactory>();
         _mockEventTracker = new Mock<IEntityEventTracker>();
         _mockDefaultDataStoreOptions = new Mock<IOptions<DefaultDataStoreOptions>>();
+        _mockTenantIdAccessor = new Mock<ITenantIdAccessor>();
         _defaultOptions = new DefaultDataStoreOptions();
 
         _mockDefaultDataStoreOptions.Setup(x => x.Value).Returns(_defaultOptions);
@@ -36,7 +39,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().NotBeNull();
@@ -49,7 +53,8 @@ public class LinqRepositoryBaseTests
         var action = () => new TestLinqRepository(
             null!,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -63,7 +68,8 @@ public class LinqRepositoryBaseTests
         var action = () => new TestLinqRepository(
             _mockDataStoreFactory.Object,
             null!,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -77,7 +83,8 @@ public class LinqRepositoryBaseTests
         var action = () => new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            null!);
+            null!,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -95,7 +102,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.DataStoreName.Should().Be(expectedName);
@@ -108,7 +116,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         var expectedName = "CustomDataStore";
 
@@ -126,7 +135,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var eventTracker = repository.EventTracker;
@@ -142,7 +152,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         var mockLogger = new Mock<ILogger>();
 
@@ -160,7 +171,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var enumerator = repository.GetEnumerator();
@@ -176,7 +188,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var expression = repository.Expression;
@@ -192,7 +205,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var elementType = repository.ElementType;
@@ -208,7 +222,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var provider = repository.Provider;
@@ -224,7 +239,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         var mockSpecification = new Mock<ISpecification<TestEntity>>();
         mockSpecification.Setup(x => x.Predicate).Returns(e => e.Id == Guid.Empty);
@@ -243,7 +259,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<ILinqRepository<TestEntity>>();
@@ -256,7 +273,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<IEnumerable<TestEntity>>();
@@ -269,7 +287,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<IQueryable<TestEntity>>();
@@ -282,7 +301,8 @@ public class LinqRepositoryBaseTests
         var repository = new TestLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var action = () => repository.Dispose();
@@ -315,8 +335,9 @@ public class TestLinqRepository : LinqRepositoryBase<TestEntity>
     public TestLinqRepository(
         IDataStoreFactory dataStoreFactory,
         IEntityEventTracker eventTracker,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-        : base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+        ITenantIdAccessor tenantIdAccessor)
+        : base(dataStoreFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
     {
     }
 

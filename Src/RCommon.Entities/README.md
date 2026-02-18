@@ -10,6 +10,8 @@ Domain entity base classes for the RCommon framework, providing a strongly-typed
 - `AuditedEntity` base classes that track `CreatedBy`, `DateCreated`, `LastModifiedBy`, and `DateLastModified` with flexible user types
 - `ITrackedEntity` interface for opting entities into event tracking
 - `IEntityEventTracker` and `InMemoryEntityEventTracker` for collecting entity events across object graphs and routing them through `IEventRouter`
+- **Soft delete** -- `ISoftDelete` opt-in interface for logical deletion (`IsDeleted` flag) instead of physical removal
+- **Multitenancy** -- `IMultiTenant` opt-in interface for tenant-scoped entities (`TenantId` property)
 - `EntityNotFoundException` for consistent "entity not found" error handling with type and ID context
 
 ## Installation
@@ -63,6 +65,53 @@ public class OrderService
 }
 ```
 
+### Soft Delete
+
+Implement `ISoftDelete` to opt an entity into logical deletion. Repositories will set `IsDeleted = true` and perform an UPDATE instead of a physical DELETE:
+
+```csharp
+using RCommon.Entities;
+
+public class Customer : BusinessEntity<int>, ISoftDelete
+{
+    public string Name { get; set; }
+    public bool IsDeleted { get; set; }
+}
+
+// Soft delete — sets IsDeleted = true, performs UPDATE
+await repository.DeleteAsync(customer, isSoftDelete: true);
+
+// Physical delete — removes the record entirely
+await repository.DeleteAsync(customer, isSoftDelete: false);
+```
+
+Entities implementing `ISoftDelete` are automatically filtered on read operations -- soft-deleted records are excluded from query results by default.
+
+### Multitenancy
+
+Implement `IMultiTenant` to scope an entity to a specific tenant. Repositories will automatically stamp the `TenantId` on add operations and filter reads to only return records for the current tenant:
+
+```csharp
+using RCommon.Entities;
+
+public class Product : BusinessEntity<int>, IMultiTenant
+{
+    public string Name { get; set; }
+    public string? TenantId { get; set; }
+}
+```
+
+When both interfaces are combined, the entity supports soft delete and tenant isolation:
+
+```csharp
+public class Invoice : BusinessEntity<Guid>, ISoftDelete, IMultiTenant
+{
+    public decimal Amount { get; set; }
+    public bool IsDeleted { get; set; }
+    public string? TenantId { get; set; }
+}
+```
+
 ## Key Types
 
 | Type | Description |
@@ -76,6 +125,8 @@ public class OrderService
 | `ITrackedEntity` | Marks an entity as eligible for event tracking via `AllowEventTracking` |
 | `IEntityEventTracker` | Collects tracked entities and emits their transactional events |
 | `InMemoryEntityEventTracker` | In-memory implementation that traverses entity object graphs and routes events |
+| `ISoftDelete` | Opt-in interface for soft delete; adds `IsDeleted` property for logical deletion |
+| `IMultiTenant` | Opt-in interface for multitenancy; adds `TenantId` property for tenant scoping |
 | `EntityNotFoundException` | Exception for when an expected entity does not exist, with type and ID context |
 
 ## Documentation

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RCommon.Entities;
+using RCommon.Security.Claims;
 using RCommon.Collections;
 using System;
 using System.Collections.Generic;
@@ -46,8 +47,9 @@ namespace RCommon.Persistence.Linq2Db.Crud
         /// <exception cref="ArgumentNullException">Thrown when any parameter is <c>null</c>.</exception>
         public Linq2DbRepository(IDataStoreFactory dataStoreFactory,
             ILoggerFactory logger, IEntityEventTracker eventTracker,
-            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
+            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+            ITenantIdAccessor tenantIdAccessor)
+            : base(dataStoreFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
         {
             if (logger is null)
             {
@@ -169,6 +171,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
         public async override Task AddAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
+            MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
             await DataConnection.InsertAsync(entity, token: token);
         }
 
@@ -446,10 +449,11 @@ namespace RCommon.Persistence.Linq2Db.Crud
         {
             if (entities == null) throw new ArgumentNullException(nameof(entities));
 
-            // Iterate through each entity, track it and insert asynchronously.
+            // Iterate through each entity, track it, stamp tenant, and insert asynchronously.
             foreach (var entity in entities)
             {
                 EventTracker.AddEntity(entity);
+                MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
                 await DataConnection.InsertAsync(entity, token: token);
             }
         }

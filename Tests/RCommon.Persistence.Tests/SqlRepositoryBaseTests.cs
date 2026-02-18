@@ -6,6 +6,7 @@ using RCommon.Collections;
 using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using RCommon.Persistence.Sql;
 using System.Data.Common;
 using System.Linq.Expressions;
@@ -19,6 +20,7 @@ public class SqlRepositoryBaseTests
     private readonly Mock<ILoggerFactory> _mockLoggerFactory;
     private readonly Mock<IEntityEventTracker> _mockEventTracker;
     private readonly Mock<IOptions<DefaultDataStoreOptions>> _mockDefaultDataStoreOptions;
+    private readonly Mock<ITenantIdAccessor> _mockTenantIdAccessor;
     private readonly DefaultDataStoreOptions _defaultOptions;
 
     public SqlRepositoryBaseTests()
@@ -27,6 +29,7 @@ public class SqlRepositoryBaseTests
         _mockLoggerFactory = new Mock<ILoggerFactory>();
         _mockEventTracker = new Mock<IEntityEventTracker>();
         _mockDefaultDataStoreOptions = new Mock<IOptions<DefaultDataStoreOptions>>();
+        _mockTenantIdAccessor = new Mock<ITenantIdAccessor>();
         _defaultOptions = new DefaultDataStoreOptions();
 
         _mockDefaultDataStoreOptions.Setup(x => x.Value).Returns(_defaultOptions);
@@ -40,7 +43,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().NotBeNull();
@@ -54,7 +58,8 @@ public class SqlRepositoryBaseTests
             null!,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -69,7 +74,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             null!,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -84,7 +90,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             null!,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -99,7 +106,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            null!);
+            null!,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -118,7 +126,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.DataStoreName.Should().Be(expectedName);
@@ -132,7 +141,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         var expectedName = "CustomSqlDataStore";
 
@@ -151,7 +161,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         var expectedTableName = "TestEntities";
 
@@ -170,7 +181,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var eventTracker = repository.EventTracker;
@@ -187,7 +199,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         var mockLogger = new Mock<ILogger>();
 
@@ -206,7 +219,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<ISqlMapperRepository<TestSqlEntity>>();
@@ -220,7 +234,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var action = () => repository.Dispose();
@@ -241,7 +256,8 @@ public class SqlRepositoryBaseTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Act
         repository.TableName = tableName;
@@ -275,8 +291,9 @@ public class TestSqlRepository : SqlRepositoryBase<TestSqlEntity>
         IDataStoreFactory dataStoreFactory,
         ILoggerFactory logger,
         IEntityEventTracker eventTracker,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-        : base(dataStoreFactory, logger, eventTracker, defaultDataStoreOptions)
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+        ITenantIdAccessor tenantIdAccessor)
+        : base(dataStoreFactory, logger, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
     {
     }
 

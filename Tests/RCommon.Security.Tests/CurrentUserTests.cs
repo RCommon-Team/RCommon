@@ -92,6 +92,41 @@ public class CurrentUserTests
     }
 
     [Fact]
+    public void TenantId_WhenTenantClaimExists_ReturnsRawStringValue()
+    {
+        // Arrange
+        var claims = new[] { new Claim(ClaimTypesConst.TenantId, "my-tenant") };
+        var identity = new ClaimsIdentity(claims, "test");
+        var principal = new ClaimsPrincipal(identity);
+        _mockPrincipalAccessor.Setup(x => x.Principal).Returns(principal);
+        var currentUser = CreateCurrentUser();
+
+        // Act
+        var result = currentUser.TenantId;
+
+        // Assert
+        result.Should().Be("my-tenant");
+    }
+
+    [Fact]
+    public void TenantId_WithGuidValue_ReturnsGuidAsString()
+    {
+        // Arrange
+        var tenantGuid = Guid.NewGuid();
+        var claims = new[] { new Claim(ClaimTypesConst.TenantId, tenantGuid.ToString()) };
+        var identity = new ClaimsIdentity(claims, "test");
+        var principal = new ClaimsPrincipal(identity);
+        _mockPrincipalAccessor.Setup(x => x.Principal).Returns(principal);
+        var currentUser = CreateCurrentUser();
+
+        // Act
+        var result = currentUser.TenantId;
+
+        // Assert
+        result.Should().Be(tenantGuid.ToString());
+    }
+
+    [Fact]
     public void Roles_WhenPrincipalIsNull_ReturnsEmptyArray()
     {
         // Arrange

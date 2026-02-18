@@ -12,6 +12,7 @@ using RCommon.Collections;
 using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using RCommon.Persistence.Linq2Db;
 using RCommon.Persistence.Linq2Db.Crud;
 using System.Linq.Expressions;
@@ -26,6 +27,7 @@ public class Linq2DbRepositoryTests
     private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IEntityEventTracker> _mockEventTracker;
     private readonly IOptions<DefaultDataStoreOptions> _defaultDataStoreOptions;
+    private readonly Mock<ITenantIdAccessor> _mockTenantIdAccessor;
 
     public Linq2DbRepositoryTests()
     {
@@ -33,6 +35,7 @@ public class Linq2DbRepositoryTests
         _mockLoggerFactory = new Mock<ILoggerFactory>();
         _mockLogger = new Mock<ILogger>();
         _mockEventTracker = new Mock<IEntityEventTracker>();
+        _mockTenantIdAccessor = new Mock<ITenantIdAccessor>();
         _defaultDataStoreOptions = Options.Create(new DefaultDataStoreOptions
         {
             DefaultDataStoreName = "TestStore"
@@ -59,7 +62,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().NotBeNull();
@@ -73,7 +77,8 @@ public class Linq2DbRepositoryTests
             null!,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -88,7 +93,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             null!,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -103,7 +109,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             null!,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -118,7 +125,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            null!);
+            null!,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -133,7 +141,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<ILinqRepository<TestEntity>>();
@@ -147,7 +156,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<IReadOnlyRepository<TestEntity>>();
@@ -161,7 +171,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         repository.Should().BeAssignableTo<IWriteOnlyRepository<TestEntity>>();
@@ -179,7 +190,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var dataStoreName = repository.DataStoreName;
@@ -196,7 +208,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         repository.DataStoreName = "CustomStore";
@@ -217,7 +230,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var eventTracker = repository.EventTracker;
@@ -238,7 +252,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var act = async () => await repository.FindAsync(1);
@@ -266,7 +281,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var act = async () => await repository.AddRangeAsync(null!);
@@ -295,7 +311,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var result = repository.Include(x => x.Name);
@@ -317,7 +334,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         _mockLoggerFactory.Verify(x => x.CreateLogger(It.IsAny<string>()), Times.Once);
@@ -331,7 +349,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var logger = repository.Logger;
@@ -359,7 +378,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var result = repository.FindQuery(x => x.Id == 1);
@@ -384,7 +404,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         var mockSpecification = new Mock<ISpecification<TestEntity>>();
         mockSpecification.Setup(x => x.Predicate).Returns(x => x.Id == 1);
@@ -412,7 +433,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var result = repository.FindQuery(
@@ -440,7 +462,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var result = repository.FindQuery(
@@ -470,7 +493,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         var mockSpecification = new Mock<IPagedSpecification<TestEntity>>();
         mockSpecification.Setup(x => x.Predicate).Returns(x => x.Id > 0);
@@ -502,7 +526,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var result = repository.FindQuery(
@@ -534,7 +559,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var expression = repository.Expression;
@@ -558,7 +584,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var elementType = repository.ElementType;
@@ -582,7 +609,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var provider = repository.Provider;
@@ -606,7 +634,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         // Act
         var enumerator = repository.GetEnumerator();
@@ -634,7 +663,8 @@ public class Linq2DbRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _defaultDataStoreOptions);
+            _defaultDataStoreOptions,
+            _mockTenantIdAccessor.Object);
 
         var mockSpecification = new Mock<ISpecification<TestEntity>>();
         mockSpecification.Setup(x => x.Predicate).Returns(x => x.Id > 0);

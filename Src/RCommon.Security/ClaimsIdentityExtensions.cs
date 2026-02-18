@@ -64,11 +64,11 @@ namespace RCommon.Security
         }
 
         /// <summary>
-        /// Extracts the tenant identifier from the principal's claims as a <see cref="Guid"/>.
+        /// Extracts the tenant identifier from the principal's claims as a raw string value.
         /// </summary>
         /// <param name="principal">The claims principal to search.</param>
-        /// <returns>The parsed tenant ID, or <c>null</c> if the claim is missing or not a valid GUID.</returns>
-        public static Guid? FindTenantId(this ClaimsPrincipal principal)
+        /// <returns>The tenant ID string, or <c>null</c> if the claim is missing or empty.</returns>
+        public static string? FindTenantId(this ClaimsPrincipal principal)
         {
             Guard.IsNotNull(principal, nameof(principal));
 
@@ -78,20 +78,15 @@ namespace RCommon.Security
                 return null;
             }
 
-            if (Guid.TryParse(tenantIdOrNull.Value, out var guid))
-            {
-                return guid;
-            }
-
-            return null;
+            return tenantIdOrNull.Value;
         }
 
         /// <summary>
-        /// Extracts the tenant identifier from the identity's claims as a <see cref="Guid"/>.
+        /// Extracts the tenant identifier from the identity's claims as a raw string value.
         /// </summary>
         /// <param name="identity">The identity to search. Must be castable to <see cref="ClaimsIdentity"/>.</param>
-        /// <returns>The parsed tenant ID, or <c>null</c> if the claim is missing or not a valid GUID.</returns>
-        public static Guid? FindTenantId(this IIdentity identity)
+        /// <returns>The tenant ID string, or <c>null</c> if the claim is missing or empty.</returns>
+        public static string? FindTenantId(this IIdentity identity)
         {
             Guard.IsNotNull(identity, nameof(identity));
 
@@ -103,12 +98,7 @@ namespace RCommon.Security
                 return null;
             }
 
-            if (Guid.TryParse(tenantIdOrNull.Value, out var guid))
-            {
-                return guid;
-            }
-
-            return null;
+            return tenantIdOrNull.Value;
         }
 
         /// <summary>

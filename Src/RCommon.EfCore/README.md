@@ -14,6 +14,8 @@ Entity Framework Core implementation of the RCommon persistence abstractions. Pr
 - `RCommonDbContext` base class implementing `IDataStore` for seamless factory resolution
 - Fluent DI configuration to register DbContexts as named data stores
 - Automatic entity event tracking for domain event dispatching on add, update, and delete
+- **Soft delete** -- entities implementing `ISoftDelete` are automatically filtered on reads and logically deleted on writes
+- **Multitenancy** -- entities implementing `IMultiTenant` are automatically filtered by tenant on reads and stamped with `TenantId` on writes
 - Targets .NET 8, .NET 9, and .NET 10
 
 ## Installation
@@ -68,6 +70,38 @@ public class OrderService
         return await _orderRepo.FindAsync(o => o.CustomerId == customerId);
     }
 }
+```
+
+### Soft Delete and Multitenancy
+
+`EFCoreRepository<TEntity>` automatically supports soft delete and multitenancy when your entities implement the opt-in interfaces:
+
+```csharp
+using RCommon.Entities;
+
+public class Customer : BusinessEntity<int>, ISoftDelete, IMultiTenant
+{
+    public string Name { get; set; }
+    public bool IsDeleted { get; set; }
+    public string? TenantId { get; set; }
+}
+```
+
+Reads automatically exclude soft-deleted records and scope to the current tenant:
+
+```csharp
+// Both filters applied transparently — only active customers for the current tenant
+var customers = await _customerRepo.FindAsync(c => c.Name.StartsWith("A"));
+```
+
+Writes automatically stamp the tenant and support logical deletion:
+
+```csharp
+// TenantId stamped automatically from ITenantIdAccessor
+await _customerRepo.AddAsync(new Customer { Name = "Acme" });
+
+// Soft delete — sets IsDeleted = true, performs UPDATE via EF Core
+await _customerRepo.DeleteAsync(customer, isSoftDelete: true);
 ```
 
 ## Key Types

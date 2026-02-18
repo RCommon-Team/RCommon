@@ -7,6 +7,7 @@ using Moq;
 using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.EFCore.Crud;
 using Xunit;
@@ -20,6 +21,7 @@ public class EFCoreRepositoryTests : IDisposable
     private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IEntityEventTracker> _mockEventTracker;
     private readonly Mock<IOptions<DefaultDataStoreOptions>> _mockDefaultDataStoreOptions;
+    private readonly Mock<ITenantIdAccessor> _mockTenantIdAccessor;
     private readonly DefaultDataStoreOptions _defaultOptions;
     private readonly TestDbContext _dbContext;
     private readonly string _dataStoreName = "TestDataStore";
@@ -31,6 +33,7 @@ public class EFCoreRepositoryTests : IDisposable
         _mockLogger = new Mock<ILogger>();
         _mockEventTracker = new Mock<IEntityEventTracker>();
         _mockDefaultDataStoreOptions = new Mock<IOptions<DefaultDataStoreOptions>>();
+        _mockTenantIdAccessor = new Mock<ITenantIdAccessor>();
         _defaultOptions = new DefaultDataStoreOptions { DefaultDataStoreName = _dataStoreName };
 
         _mockDefaultDataStoreOptions.Setup(x => x.Value).Returns(_defaultOptions);
@@ -57,7 +60,8 @@ public class EFCoreRepositoryTests : IDisposable
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
     }
 
     [Fact]
@@ -78,7 +82,8 @@ public class EFCoreRepositoryTests : IDisposable
             null!,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         action.Should().Throw<ArgumentNullException>()
             .WithParameterName("dataStoreFactory");
@@ -92,7 +97,8 @@ public class EFCoreRepositoryTests : IDisposable
             _mockDataStoreFactory.Object,
             null!,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         action.Should().Throw<ArgumentNullException>()
             .WithParameterName("logger");
@@ -106,7 +112,8 @@ public class EFCoreRepositoryTests : IDisposable
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             null!,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         action.Should().Throw<ArgumentNullException>()
             .WithParameterName("eventTracker");
@@ -120,7 +127,8 @@ public class EFCoreRepositoryTests : IDisposable
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            null!);
+            null!,
+            _mockTenantIdAccessor.Object);
 
         action.Should().Throw<ArgumentNullException>()
             .WithParameterName("defaultDataStoreOptions");

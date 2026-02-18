@@ -37,7 +37,7 @@ namespace RCommon.Security.Users
         public virtual Guid? Id => _principalAccessor.Principal?.FindUserId();
 
         /// <inheritdoc />
-        public virtual Guid? TenantId => _principalAccessor.Principal?.FindTenantId();
+        public virtual string? TenantId => _principalAccessor.Principal?.FindTenantId();
 
         /// <inheritdoc />
         public virtual string[] Roles => FindClaims(ClaimTypesConst.Role).Select(c => c.Value).Distinct().ToArray();

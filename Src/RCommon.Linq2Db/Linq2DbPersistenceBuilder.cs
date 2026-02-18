@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RCommon.Persistence.Linq2Db.Crud;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using LinqToDB.Extensions.DependencyInjection;
 
@@ -39,6 +40,9 @@ namespace RCommon.Persistence.Linq2Db
         public Linq2DbPersistenceBuilder(IServiceCollection services)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
+
+            // Default tenant accessor (no-op); overridden when multitenancy is configured
+            services.TryAddTransient<ITenantIdAccessor, NullTenantIdAccessor>();
 
             // Linq2Db Repository
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(Linq2DbRepository<>));
