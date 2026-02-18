@@ -70,6 +70,12 @@ namespace RCommon.Persistence.Caching.Crud
         }
 
         /// <inheritdoc />
+        public async Task DeleteAsync(TEntity entity, bool isSoftDelete, CancellationToken token = default)
+        {
+            await _repository.DeleteAsync(entity, isSoftDelete, token);
+        }
+
+        /// <inheritdoc />
         public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await _repository.FindAsync(specification, token);
@@ -124,9 +130,21 @@ namespace RCommon.Persistence.Caching.Crud
         }
 
         /// <inheritdoc />
+        public async Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default)
+        {
+            return await _repository.DeleteManyAsync(specification, isSoftDelete, token);
+        }
+
+        /// <inheritdoc />
         public async Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             return await _repository.DeleteManyAsync(expression, token);
+        }
+
+        /// <inheritdoc />
+        public async Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default)
+        {
+            return await _repository.DeleteManyAsync(expression, isSoftDelete, token);
         }
 
         // Cached Items — these overloads check the cache first and fall through to the inner repository on a miss.

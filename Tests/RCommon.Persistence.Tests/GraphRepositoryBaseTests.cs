@@ -285,11 +285,20 @@ public class TestGraphRepository : GraphRepositoryBase<TestGraphEntity>
         return Task.CompletedTask;
     }
 
+    public override Task DeleteAsync(TestGraphEntity entity, bool isSoftDelete, CancellationToken token = default)
+        => throw new NotImplementedException();
+
     public override Task<int> DeleteManyAsync(Expression<Func<TestGraphEntity, bool>> expression, CancellationToken token = default)
         => Task.FromResult(0);
 
+    public override Task<int> DeleteManyAsync(Expression<Func<TestGraphEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default)
+        => throw new NotImplementedException();
+
     public override Task<int> DeleteManyAsync(ISpecification<TestGraphEntity> specification, CancellationToken token = default)
         => Task.FromResult(0);
+
+    public override Task<int> DeleteManyAsync(ISpecification<TestGraphEntity> specification, bool isSoftDelete, CancellationToken token = default)
+        => throw new NotImplementedException();
 
     public override Task UpdateAsync(TestGraphEntity entity, CancellationToken token = default)
         => Task.CompletedTask;

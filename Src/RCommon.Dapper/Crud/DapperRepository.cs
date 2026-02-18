@@ -84,9 +84,20 @@ namespace RCommon.Persistence.Dapper.Crud
         }
 
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Deletes the entity. If <typeparamref name="TEntity"/> implements <see cref="ISoftDelete"/>,
+        /// a soft delete is performed automatically (sets <c>IsDeleted = true</c> and issues an UPDATE).
+        /// Otherwise a physical DELETE is executed.
+        /// </summary>
         public override async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
+            if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
+            {
+                SoftDeleteHelper.MarkAsDeleted(entity);
+                await UpdateAsync(entity, token);
+                return;
+            }
+
             await using (var db = DataStore.GetDbConnection())
             {
                 try
@@ -115,9 +126,18 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Deletes entities matching the expression. If <typeparamref name="TEntity"/> implements
+        /// <see cref="ISoftDelete"/>, a soft delete is performed automatically (marks each matching
+        /// entity as deleted and issues UPDATEs). Otherwise a physical DELETE is executed.
+        /// </summary>
         public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
+            if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
+            {
+                return await DeleteManyAsync(expression, isSoftDelete: true, token);
+            }
+
             await using (var db = DataStore.GetDbConnection())
             {
                 try
@@ -145,12 +165,157 @@ namespace RCommon.Persistence.Dapper.Crud
             }
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Deletes entities matching the specification. If <typeparamref name="TEntity"/> implements
+        /// <see cref="ISoftDelete"/>, a soft delete is performed automatically.
+        /// </summary>
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
             return await DeleteManyAsync(specification.Predicate, token);
         }
 
+        /// <summary>
+        /// Deletes the entity using the explicitly specified delete mode. When <paramref name="isSoftDelete"/>
+        /// is <c>true</c>, the entity must implement <see cref="ISoftDelete"/>; its <c>IsDeleted</c> property
+        /// is set to <c>true</c> and an UPDATE is issued. When <c>false</c>, a physical DELETE is always
+        /// performed — even if the entity implements <see cref="ISoftDelete"/>.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but <typeparamref name="TEntity"/>
+        /// does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        public override async Task DeleteAsync(TEntity entity, bool isSoftDelete, CancellationToken token = default)
+        {
+            if (!isSoftDelete)
+            {
+                // Bypass auto-detection — force a physical delete
+                await using (var db = DataStore.GetDbConnection())
+                {
+                    try
+                    {
+                        if (db.State == ConnectionState.Closed)
+                        {
+                            await db.OpenAsync();
+                        }
+
+                        EventTracker.AddEntity(entity);
+                        await db.DeleteAsync(entity, cancellationToken: token);
+                    }
+                    catch (ApplicationException exception)
+                    {
+                        Logger.LogError(exception, "Error in {0}.DeleteAsync while executing on the DbConnection.", GetType().FullName);
+                        throw;
+                    }
+                    finally
+                    {
+                        if (db.State == ConnectionState.Open)
+                        {
+                            await db.CloseAsync();
+                        }
+                    }
+                }
+                return;
+            }
+
+            SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
+            SoftDeleteHelper.MarkAsDeleted(entity);
+            await UpdateAsync(entity, token);
+        }
+
+        /// <summary>
+        /// Deletes entities matching the expression. When <paramref name="isSoftDelete"/> is <c>true</c>,
+        /// each matching entity must implement <see cref="ISoftDelete"/> — its <c>IsDeleted</c> property is
+        /// set to <c>true</c> and an UPDATE is issued instead of a DELETE.
+        /// </summary>
+        /// <remarks>
+        /// The soft-delete path selects matching entities, marks each as deleted, then updates them
+        /// one by one via Dommel's <c>UpdateAsync</c>. This is consistent with Dapper/Dommel's
+        /// per-entity operation model (there is no bulk update-by-expression in Dommel).
+        /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but <typeparamref name="TEntity"/>
+        /// does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        public async override Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default)
+        {
+            if (!isSoftDelete)
+            {
+                // Bypass auto-detection — force a physical delete
+                await using (var db = DataStore.GetDbConnection())
+                {
+                    try
+                    {
+                        if (db.State == ConnectionState.Closed)
+                        {
+                            await db.OpenAsync();
+                        }
+
+                        return await db.DeleteMultipleAsync(expression, cancellationToken: token);
+                    }
+                    catch (ApplicationException exception)
+                    {
+                        Logger.LogError(exception, "Error in {0}.DeleteManyAsync while executing on the DbConnection.", GetType().FullName);
+                        throw;
+                    }
+                    finally
+                    {
+                        if (db.State == ConnectionState.Open)
+                        {
+                            await db.CloseAsync();
+                        }
+                    }
+                }
+            }
+
+            SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
+
+            await using (var db = DataStore.GetDbConnection())
+            {
+                try
+                {
+                    if (db.State == ConnectionState.Closed)
+                    {
+                        await db.OpenAsync();
+                    }
+
+                    var entities = (await db.SelectAsync(expression, cancellationToken: token)).ToList();
+                    int count = 0;
+                    foreach (var entity in entities)
+                    {
+                        SoftDeleteHelper.MarkAsDeleted(entity);
+                        await db.UpdateAsync(entity, cancellationToken: token);
+                        count++;
+                    }
+                    return count;
+                }
+                catch (ApplicationException exception)
+                {
+                    Logger.LogError(exception, "Error in {0}.DeleteManyAsync (soft delete) while executing on the DbConnection.", GetType().FullName);
+                    throw;
+                }
+                finally
+                {
+                    if (db.State == ConnectionState.Open)
+                    {
+                        await db.CloseAsync();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deletes entities matching the specification. When <paramref name="isSoftDelete"/> is <c>true</c>,
+        /// each matching entity must implement <see cref="ISoftDelete"/> — its <c>IsDeleted</c> property is
+        /// set to <c>true</c> and an UPDATE is issued instead of a DELETE.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="isSoftDelete"/> is <c>true</c> but <typeparamref name="TEntity"/>
+        /// does not implement <see cref="ISoftDelete"/>.
+        /// </exception>
+        public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default)
+        {
+            return await DeleteManyAsync(specification.Predicate, isSoftDelete, token);
+        }
 
 
         /// <inheritdoc />
@@ -202,7 +367,8 @@ namespace RCommon.Persistence.Dapper.Crud
                         await db.OpenAsync();
                     }
 
-                    var results = await db.SelectAsync(expression, cancellationToken: token);
+                    var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
+                    var results = await db.SelectAsync(filteredExpression, cancellationToken: token);
                     return results.ToList();
                 }
                 catch (ApplicationException exception)
@@ -233,6 +399,13 @@ namespace RCommon.Persistence.Dapper.Crud
                     }
 
                     var result = await db.GetAsync<TEntity>(primaryKey, cancellationToken: token);
+
+                    // Post-fetch soft-delete check: if the entity was soft-deleted, treat it as not found
+                    if (result != null && SoftDeleteHelper.IsSoftDeletable<TEntity>() && ((ISoftDelete)result).IsDeleted)
+                    {
+                        return default!;
+                    }
+
                     return result!;
                 }
                 catch (ApplicationException exception)
@@ -262,7 +435,8 @@ namespace RCommon.Persistence.Dapper.Crud
                         await db.OpenAsync();
                     }
 
-                    var results = await db.CountAsync(selectSpec.Predicate);
+                    var filteredPredicate = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(selectSpec.Predicate);
+                    var results = await db.CountAsync(filteredPredicate);
                     return results;
                 }
                 catch (ApplicationException exception)
@@ -292,7 +466,8 @@ namespace RCommon.Persistence.Dapper.Crud
                         await db.OpenAsync();
                     }
 
-                    var results = await db.CountAsync(expression);
+                    var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
+                    var results = await db.CountAsync(filteredExpression);
                     return results;
                 }
                 catch (ApplicationException exception)
@@ -350,7 +525,8 @@ namespace RCommon.Persistence.Dapper.Crud
                         await db.OpenAsync();
                     }
 
-                    var results = await db.AnyAsync(expression);
+                    var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
+                    var results = await db.AnyAsync(filteredExpression);
                     return results;
                 }
                 catch (ApplicationException exception)
