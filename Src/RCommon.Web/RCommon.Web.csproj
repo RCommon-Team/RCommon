@@ -18,6 +18,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RCommon.Security\RCommon.Security.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Attributes\" />
   </ItemGroup>
 

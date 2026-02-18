@@ -14,6 +14,8 @@ Persistence abstraction layer for RCommon providing the repository pattern, unit
 - Unit of work pattern with configurable transaction modes and isolation levels
 - Named data store factory for managing multiple database connections
 - Domain event tracking integrated into repository operations
+- **Soft delete** -- automatic `!IsDeleted` filtering on reads and logical deletion on writes for entities implementing `ISoftDelete`
+- **Multitenancy** -- automatic tenant filtering on reads and `TenantId` stamping on writes for entities implementing `IMultiTenant`
 - Fluent builder API for DI registration via `AddRCommon()`
 
 ## Installation
@@ -68,6 +70,55 @@ public class OrderService
 }
 ```
 
+### Soft Delete
+
+Entities implementing `ISoftDelete` get automatic repository behavior:
+- **Reads**: A `!IsDeleted` filter is combined with your query expression automatically
+- **Writes**: `DeleteAsync(entity, isSoftDelete: true)` sets `IsDeleted = true` and performs an UPDATE instead of a DELETE
+
+```csharp
+using RCommon.Entities;
+
+public class Customer : BusinessEntity<int>, ISoftDelete
+{
+    public string Name { get; set; }
+    public bool IsDeleted { get; set; }
+}
+
+// Queries automatically exclude soft-deleted records
+var activeCustomers = await repo.FindAsync(c => c.Name.StartsWith("A"));
+
+// Soft delete
+await repo.DeleteAsync(customer, isSoftDelete: true);
+
+// Physical delete
+await repo.DeleteAsync(customer);
+```
+
+### Multitenancy
+
+Entities implementing `IMultiTenant` get automatic repository behavior:
+- **Reads**: A `TenantId == currentTenantId` filter is combined with your query expression automatically
+- **Writes**: `TenantId` is stamped on the entity during `AddAsync` using the current `ITenantIdAccessor`
+
+```csharp
+using RCommon.Entities;
+
+public class Product : BusinessEntity<int>, IMultiTenant
+{
+    public string Name { get; set; }
+    public string? TenantId { get; set; }
+}
+
+// Queries automatically scoped to the current tenant
+var products = await repo.FindAsync(p => p.Name.Contains("Widget"));
+
+// TenantId is stamped automatically on add
+await repo.AddAsync(new Product { Name = "Widget" });
+```
+
+When no `ITenantIdAccessor` is configured (or it returns `null`), tenant filtering is bypassed entirely.
+
 ## Key Types
 
 | Type | Description |
@@ -83,6 +134,8 @@ public class OrderService
 | `IPersistenceBuilder` | Fluent builder interface for registering persistence providers in DI |
 | `LinqRepositoryBase<TEntity>` | Abstract base class for LINQ-enabled repository implementations |
 | `SqlRepositoryBase<TEntity>` | Abstract base class for SQL mapper repository implementations |
+| `SoftDeleteHelper` | Utility for validating `ISoftDelete` support, marking entities deleted, and building `!IsDeleted` filter expressions |
+| `MultiTenantHelper` | Utility for validating `IMultiTenant` support, stamping `TenantId`, and building tenant filter expressions |
 
 ## Documentation
 

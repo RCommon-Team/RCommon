@@ -11,6 +11,7 @@ using RCommon.Persistence;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.EFCore.Crud;
+using RCommon.Security.Claims;
 
 namespace RCommon
 {
@@ -36,6 +37,9 @@ namespace RCommon
         public EFCorePerisistenceBuilder(IServiceCollection services)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
+
+            // Default tenant accessor (no-op); overridden when multitenancy is configured
+            services.TryAddTransient<ITenantIdAccessor, NullTenantIdAccessor>();
 
             // EF Core Repository
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));

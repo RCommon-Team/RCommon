@@ -10,6 +10,7 @@ Provides claims-based security abstractions for RCommon, including current user 
 - **AsyncLocal principal override** -- `CurrentPrincipalAccessorBase` uses `AsyncLocal<T>` so overridden principals flow across async contexts
 - **Configurable claim types** -- `ClaimTypesConst` allows customizing which claim URIs map to user ID, tenant ID, client ID, roles, etc.
 - **ClaimsIdentity extensions** -- helper methods for finding user/tenant/client IDs and for safely adding or replacing claims
+- **Tenant ID accessor** -- `ITenantIdAccessor` provides runtime access to the current tenant ID for repository filtering; `ClaimsTenantIdAccessor` resolves it from claims, `NullTenantIdAccessor` is the default no-op
 - **Authorization exception** -- `AuthorizationException` with configurable severity, error codes, and fluent data attachment
 - **Fluent builder API** -- integrates with the `AddRCommon()` builder pattern for one-line DI registration
 
@@ -44,7 +45,7 @@ public class TenantService
         _currentClient = currentClient;
     }
 
-    public Guid GetTenantId()
+    public string GetTenantId()
     {
         if (!_currentUser.IsAuthenticated)
             throw new UnauthorizedAccessException("User is not authenticated.");
@@ -65,6 +66,32 @@ public class TenantService
     }
 }
 ```
+
+### Tenant ID Accessor
+
+`ITenantIdAccessor` provides runtime access to the current tenant ID. When `WithClaimsAndPrincipalAccessor()` is called, the `ClaimsTenantIdAccessor` is registered, which resolves the tenant ID from the authenticated user's claims:
+
+```csharp
+using RCommon.Security.Claims;
+
+// ITenantIdAccessor is used by repositories to automatically filter and stamp entities
+public class TenantAwareService
+{
+    private readonly ITenantIdAccessor _tenantIdAccessor;
+
+    public TenantAwareService(ITenantIdAccessor tenantIdAccessor)
+    {
+        _tenantIdAccessor = tenantIdAccessor;
+    }
+
+    public string? GetCurrentTenant()
+    {
+        return _tenantIdAccessor.GetTenantId();
+    }
+}
+```
+
+The default `NullTenantIdAccessor` returns `null`, which causes all tenant filtering to be bypassed. This allows the application to operate without multitenancy configured.
 
 ### Customizing Claim Types
 
@@ -89,6 +116,9 @@ ClaimTypesConst.ClientId = "azp";
 | `ClaimTypesConst` | Configurable constants for standard claim type URIs (user ID, role, tenant, etc.) |
 | `AuthorizationException` | Exception for unauthorized requests with log level, error code, and fluent data API |
 | `ClaimsIdentityExtensions` | Extension methods for extracting user/tenant/client IDs and managing claims |
+| `ITenantIdAccessor` | Runtime accessor returning the current tenant ID (`string?`) for repository filtering |
+| `ClaimsTenantIdAccessor` | Claims-based implementation resolving tenant ID from `ICurrentPrincipalAccessor` |
+| `NullTenantIdAccessor` | Default no-op implementation returning `null` (tenant filtering bypassed) |
 
 ## Documentation
 
@@ -97,6 +127,7 @@ For full documentation, visit [rcommon.com](https://rcommon.com).
 ## Related Packages
 
 - [RCommon.Core](https://www.nuget.org/packages/RCommon.Core) - Core abstractions and builder infrastructure
+- [RCommon.Web](https://www.nuget.org/packages/RCommon.Web) - ASP.NET Core integration with `HttpContextCurrentPrincipalAccessor`
 
 ## License
 

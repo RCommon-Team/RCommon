@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RCommon.Entities;
+using RCommon.Security.Claims;
 using RCommon.Collections;
 using System;
 using System.Collections;
@@ -34,8 +35,9 @@ namespace RCommon.Persistence.Crud
         /// <param name="eventTracker">The entity event tracker for publishing domain events.</param>
         /// <param name="defaultDataStoreOptions">Options specifying the default data store name.</param>
         public GraphRepositoryBase(IDataStoreFactory dataStoreFactory,
-            IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            :base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
+            IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+            ITenantIdAccessor tenantIdAccessor)
+            :base(dataStoreFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
         {
 
         }

@@ -13,6 +13,8 @@ Dapper implementation of the RCommon persistence abstractions. Provides a lightw
 - Named data store support for multi-database scenarios through `IDataStoreFactory` and `RDbConnection`
 - Fluent DI configuration to register database connections as named data stores
 - Domain event tracking integrated into add, update, and delete operations
+- **Soft delete** -- entities implementing `ISoftDelete` are automatically filtered on reads and logically deleted on writes
+- **Multitenancy** -- entities implementing `IMultiTenant` are automatically filtered by tenant on reads and stamped with `TenantId` on writes
 - Targets .NET 8, .NET 9, and .NET 10
 
 ## Installation
@@ -71,6 +73,38 @@ public class ProductService
         return await _productRepo.FindAsync(id);
     }
 }
+```
+
+### Soft Delete and Multitenancy
+
+`DapperRepository<TEntity>` automatically supports soft delete and multitenancy when your entities implement the opt-in interfaces:
+
+```csharp
+using RCommon.Entities;
+
+public class Product : BusinessEntity<int>, ISoftDelete, IMultiTenant
+{
+    public string Name { get; set; }
+    public bool IsDeleted { get; set; }
+    public string? TenantId { get; set; }
+}
+```
+
+Reads automatically exclude soft-deleted records and scope to the current tenant:
+
+```csharp
+// Both filters applied transparently
+var products = await _productRepo.FindAsync(p => p.IsActive);
+```
+
+Writes automatically stamp the tenant and support logical deletion:
+
+```csharp
+// TenantId stamped automatically from ITenantIdAccessor
+await _productRepo.AddAsync(new Product { Name = "Widget" });
+
+// Soft delete — sets IsDeleted = true, performs UPDATE via Dapper
+await _productRepo.DeleteAsync(product, isSoftDelete: true);
 ```
 
 ## Key Types

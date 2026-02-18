@@ -5,6 +5,7 @@ using Moq;
 using RCommon.Collections;
 using RCommon.Entities;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using System.Linq.Expressions;
 using Xunit;
 
@@ -19,6 +20,7 @@ public class SoftDeleteLinqRepositoryTests
     private readonly Mock<IDataStoreFactory> _mockDataStoreFactory;
     private readonly Mock<IEntityEventTracker> _mockEventTracker;
     private readonly Mock<IOptions<DefaultDataStoreOptions>> _mockDefaultDataStoreOptions;
+    private readonly Mock<ITenantIdAccessor> _mockTenantIdAccessor;
     private readonly DefaultDataStoreOptions _defaultOptions;
 
     public SoftDeleteLinqRepositoryTests()
@@ -26,6 +28,7 @@ public class SoftDeleteLinqRepositoryTests
         _mockDataStoreFactory = new Mock<IDataStoreFactory>();
         _mockEventTracker = new Mock<IEntityEventTracker>();
         _mockDefaultDataStoreOptions = new Mock<IOptions<DefaultDataStoreOptions>>();
+        _mockTenantIdAccessor = new Mock<ITenantIdAccessor>();
         _defaultOptions = new DefaultDataStoreOptions();
 
         _mockDefaultDataStoreOptions.Setup(x => x.Value).Returns(_defaultOptions);
@@ -434,7 +437,8 @@ public class SoftDeleteLinqRepositoryTests
         return new TestSoftDeletableLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
     }
 
     private TestNonSoftDeletableLinqRepository CreateNonSoftDeletableRepository()
@@ -442,7 +446,8 @@ public class SoftDeleteLinqRepositoryTests
         return new TestNonSoftDeletableLinqRepository(
             _mockDataStoreFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
     }
 }
 
@@ -455,6 +460,7 @@ public class SoftDeleteSqlRepositoryTests
     private readonly Mock<ILoggerFactory> _mockLoggerFactory;
     private readonly Mock<IEntityEventTracker> _mockEventTracker;
     private readonly Mock<IOptions<DefaultDataStoreOptions>> _mockDefaultDataStoreOptions;
+    private readonly Mock<ITenantIdAccessor> _mockTenantIdAccessor;
     private readonly DefaultDataStoreOptions _defaultOptions;
 
     public SoftDeleteSqlRepositoryTests()
@@ -463,6 +469,7 @@ public class SoftDeleteSqlRepositoryTests
         _mockLoggerFactory = new Mock<ILoggerFactory>();
         _mockEventTracker = new Mock<IEntityEventTracker>();
         _mockDefaultDataStoreOptions = new Mock<IOptions<DefaultDataStoreOptions>>();
+        _mockTenantIdAccessor = new Mock<ITenantIdAccessor>();
         _defaultOptions = new DefaultDataStoreOptions();
 
         _mockDefaultDataStoreOptions.Setup(x => x.Value).Returns(_defaultOptions);
@@ -754,7 +761,8 @@ public class SoftDeleteSqlRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
     }
 
     private TestNonSoftDeletableSqlRepository CreateNonSoftDeletableRepository()
@@ -763,7 +771,8 @@ public class SoftDeleteSqlRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
     }
 }
 
@@ -782,8 +791,9 @@ public class TestSoftDeletableLinqRepository : LinqRepositoryBase<SoftDeletableT
     public TestSoftDeletableLinqRepository(
         IDataStoreFactory dataStoreFactory,
         IEntityEventTracker eventTracker,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-        : base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+        ITenantIdAccessor tenantIdAccessor)
+        : base(dataStoreFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
     {
     }
 
@@ -954,8 +964,9 @@ public class TestNonSoftDeletableLinqRepository : LinqRepositoryBase<NonSoftDele
     public TestNonSoftDeletableLinqRepository(
         IDataStoreFactory dataStoreFactory,
         IEntityEventTracker eventTracker,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-        : base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+        ITenantIdAccessor tenantIdAccessor)
+        : base(dataStoreFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
     {
     }
 
@@ -1111,8 +1122,9 @@ public class TestSoftDeletableSqlRepository : SqlRepositoryBase<SoftDeletableTes
         IDataStoreFactory dataStoreFactory,
         ILoggerFactory loggerFactory,
         IEntityEventTracker eventTracker,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-        : base(dataStoreFactory, loggerFactory, eventTracker, defaultDataStoreOptions)
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+        ITenantIdAccessor tenantIdAccessor)
+        : base(dataStoreFactory, loggerFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
     {
     }
 
@@ -1275,8 +1287,9 @@ public class TestNonSoftDeletableSqlRepository : SqlRepositoryBase<NonSoftDeleta
         IDataStoreFactory dataStoreFactory,
         ILoggerFactory loggerFactory,
         IEntityEventTracker eventTracker,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-        : base(dataStoreFactory, loggerFactory, eventTracker, defaultDataStoreOptions)
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+        ITenantIdAccessor tenantIdAccessor)
+        : base(dataStoreFactory, loggerFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
     {
     }
 

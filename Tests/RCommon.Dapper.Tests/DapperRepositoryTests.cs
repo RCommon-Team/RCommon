@@ -5,6 +5,7 @@ using Moq;
 using RCommon.Entities;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using RCommon.Persistence.Dapper.Crud;
 using RCommon.Persistence.Sql;
 using System.Data;
@@ -21,6 +22,7 @@ public class DapperRepositoryTests
     private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IEntityEventTracker> _mockEventTracker;
     private readonly Mock<IOptions<DefaultDataStoreOptions>> _mockDefaultDataStoreOptions;
+    private readonly Mock<ITenantIdAccessor> _mockTenantIdAccessor;
     private readonly DefaultDataStoreOptions _defaultOptions;
 
     public DapperRepositoryTests()
@@ -30,6 +32,7 @@ public class DapperRepositoryTests
         _mockLogger = new Mock<ILogger>();
         _mockEventTracker = new Mock<IEntityEventTracker>();
         _mockDefaultDataStoreOptions = new Mock<IOptions<DefaultDataStoreOptions>>();
+        _mockTenantIdAccessor = new Mock<ITenantIdAccessor>();
         _defaultOptions = new DefaultDataStoreOptions();
 
         _mockDefaultDataStoreOptions.Setup(x => x.Value).Returns(_defaultOptions);
@@ -54,7 +57,8 @@ public class DapperRepositoryTests
             null!,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -69,7 +73,8 @@ public class DapperRepositoryTests
             _mockDataStoreFactory.Object,
             null!,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -84,7 +89,8 @@ public class DapperRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             null!,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -99,7 +105,8 @@ public class DapperRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            null!);
+            null!,
+            _mockTenantIdAccessor.Object);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -406,11 +413,12 @@ public class DapperRepositoryTests
         var parameters = constructor.GetParameters();
 
         // Assert
-        parameters.Should().HaveCount(4);
+        parameters.Should().HaveCount(5);
         parameters[0].ParameterType.Should().Be(typeof(IDataStoreFactory));
         parameters[1].ParameterType.Should().Be(typeof(ILoggerFactory));
         parameters[2].ParameterType.Should().Be(typeof(IEntityEventTracker));
         parameters[3].ParameterType.Should().Be(typeof(IOptions<DefaultDataStoreOptions>));
+        parameters[4].ParameterType.Should().Be(typeof(ITenantIdAccessor));
     }
 
     [Fact]
@@ -554,7 +562,8 @@ public class DapperRepositoryTests
             _mockDataStoreFactory.Object,
             _mockLoggerFactory.Object,
             _mockEventTracker.Object,
-            _mockDefaultDataStoreOptions.Object);
+            _mockDefaultDataStoreOptions.Object,
+            _mockTenantIdAccessor.Object);
     }
 }
 

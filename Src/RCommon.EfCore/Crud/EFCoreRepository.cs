@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RCommon;
 using RCommon.Entities;
+using RCommon.Security.Claims;
 using RCommon.Collections;
 using RCommon.Linq;
 using System;
@@ -52,8 +53,9 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <exception cref="ArgumentNullException">Thrown when any parameter is <c>null</c>.</exception>
         public EFCoreRepository(IDataStoreFactory dataStoreFactory,
             ILoggerFactory logger, IEntityEventTracker eventTracker,
-            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
-            : base(dataStoreFactory, eventTracker, defaultDataStoreOptions)
+            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+            ITenantIdAccessor tenantIdAccessor)
+            : base(dataStoreFactory, eventTracker, defaultDataStoreOptions, tenantIdAccessor)
         {
             if (logger is null)
             {
@@ -159,6 +161,7 @@ namespace RCommon.Persistence.EFCore.Crud
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
+            MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
             await ObjectSet.AddAsync(entity, token);
             await SaveAsync(token);
         }
@@ -346,6 +349,15 @@ namespace RCommon.Persistence.EFCore.Crud
                 return default!;
             }
 
+            // Post-fetch tenant check: if the entity belongs to a different tenant, treat it as not found
+            var currentTenantId = _tenantIdAccessor.GetTenantId();
+            if (entity != null && MultiTenantHelper.IsMultiTenant<TEntity>()
+                && !string.IsNullOrEmpty(currentTenantId)
+                && ((IMultiTenant)entity).TenantId != currentTenantId)
+            {
+                return default!;
+            }
+
             return entity!;
         }
 
@@ -498,10 +510,11 @@ namespace RCommon.Persistence.EFCore.Crud
         {
             if (entities == null) throw new ArgumentNullException(nameof(entities));
 
-            // track each entity prior to adding
+            // track each entity and stamp tenant prior to adding
             foreach (var entity in entities)
             {
                 EventTracker.AddEntity(entity);
+                MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
             }
 
             await ObjectSet.AddRangeAsync(entities, token);

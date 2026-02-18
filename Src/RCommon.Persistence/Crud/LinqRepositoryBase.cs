@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using RCommon.Entities;
+using RCommon.Security.Claims;
 using System.Data;
 using Microsoft.Extensions.Logging;
 using RCommon.Persistence.Sql;
@@ -31,6 +32,7 @@ namespace RCommon.Persistence.Crud
     {
         private string _dataStoreName = default!;
         private readonly IDataStoreFactory _dataStoreFactory;
+        protected readonly ITenantIdAccessor _tenantIdAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LinqRepositoryBase{TEntity}"/> class.
@@ -43,7 +45,8 @@ namespace RCommon.Persistence.Crud
         /// <paramref name="defaultDataStoreOptions"/> is <c>null</c>.
         /// </exception>
         public LinqRepositoryBase(IDataStoreFactory dataStoreFactory,
-            IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            IEntityEventTracker eventTracker, IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+            ITenantIdAccessor tenantIdAccessor)
         {
             if (defaultDataStoreOptions is null)
             {
@@ -51,6 +54,7 @@ namespace RCommon.Persistence.Crud
             }
             _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
             EventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
+            _tenantIdAccessor = tenantIdAccessor ?? throw new ArgumentNullException(nameof(tenantIdAccessor));
 
             // Apply default data store name if configured, so repositories work without explicit name assignment
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null
@@ -72,22 +76,27 @@ namespace RCommon.Persistence.Crud
         protected abstract IQueryable<TEntity> RepositoryQuery { get; }
 
         /// <summary>
-        /// Gets the <see cref="RepositoryQuery"/> with an automatic soft-delete filter applied
-        /// when <typeparamref name="TEntity"/> implements <see cref="ISoftDelete"/>.
-        /// For non-soft-deletable entities, returns the raw <see cref="RepositoryQuery"/> unchanged.
+        /// Gets the <see cref="RepositoryQuery"/> with automatic soft-delete and tenant filters applied.
+        /// When <typeparamref name="TEntity"/> implements <see cref="ISoftDelete"/>, soft-deleted entities are excluded.
+        /// When <typeparamref name="TEntity"/> implements <see cref="IMultiTenant"/> and a tenant ID is available,
+        /// only entities belonging to the current tenant are returned.
         /// </summary>
         /// <remarks>
         /// All read operations should use this property instead of <see cref="RepositoryQuery"/> directly
-        /// to ensure soft-deleted entities are excluded. Write/delete operations that need unfiltered
+        /// to ensure proper filtering. Write/delete operations that need unfiltered
         /// access should continue to use <see cref="RepositoryQuery"/>.
         /// </remarks>
         protected IQueryable<TEntity> FilteredRepositoryQuery
         {
             get
             {
+                var query = RepositoryQuery;
                 if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
-                    return RepositoryQuery.Where(SoftDeleteHelper.GetNotDeletedFilter<TEntity>());
-                return RepositoryQuery;
+                    query = query.Where(SoftDeleteHelper.GetNotDeletedFilter<TEntity>());
+                var tenantId = _tenantIdAccessor.GetTenantId();
+                if (MultiTenantHelper.IsMultiTenant<TEntity>() && !string.IsNullOrEmpty(tenantId))
+                    query = query.Where(MultiTenantHelper.GetTenantFilter<TEntity>(tenantId));
+                return query;
             }
         }
 

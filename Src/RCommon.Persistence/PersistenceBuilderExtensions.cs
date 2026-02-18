@@ -1,8 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.Entities;
 using RCommon.EventHandling.Producers;
 using RCommon.EventHandling.Subscribers;
 using RCommon.Persistence;
+using RCommon.Persistence.Crud;
+using RCommon.Security.Claims;
 using RCommon.Persistence.Transactions;
 using System;
 using System.Collections.Generic;
@@ -40,6 +43,9 @@ namespace RCommon
         public static IRCommonBuilder WithPersistence<TObjectAccess>(this IRCommonBuilder builder, Action<TObjectAccess> objectAccessActions)
             where TObjectAccess : IPersistenceBuilder
         {
+            // Register NullTenantIdAccessor as default; concrete multitenancy packages override this
+            builder.Services.TryAddTransient<ITenantIdAccessor, NullTenantIdAccessor>();
+
             // Create the persistence builder via Activator since the concrete type is not known at compile time
             var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services })!;
             objectAccessActions(dataConfiguration);

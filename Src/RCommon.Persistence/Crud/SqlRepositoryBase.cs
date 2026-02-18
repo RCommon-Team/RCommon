@@ -10,6 +10,7 @@ using System.Data;
 using Microsoft.Extensions.Logging;
 using RCommon.Persistence.Sql;
 using RCommon.Entities;
+using RCommon.Security.Claims;
 using System.Threading;
 using RCommon.Collections;
 using Microsoft.Extensions.Options;
@@ -31,6 +32,7 @@ namespace RCommon.Persistence.Crud
     {
         private string _dataStoreName = default!;
         private readonly IDataStoreFactory _dataStoreFactory;
+        protected readonly ITenantIdAccessor _tenantIdAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlRepositoryBase{TEntity}"/> class.
@@ -44,7 +46,8 @@ namespace RCommon.Persistence.Crud
         /// </exception>
         public SqlRepositoryBase(IDataStoreFactory dataStoreFactory,
             ILoggerFactory logger, IEntityEventTracker eventTracker,
-            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
+            IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
+            ITenantIdAccessor tenantIdAccessor)
         {
             if (logger is null)
             {
@@ -58,6 +61,7 @@ namespace RCommon.Persistence.Crud
 
             _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
             EventTracker = eventTracker ?? throw new ArgumentNullException(nameof(eventTracker));
+            _tenantIdAccessor = tenantIdAccessor ?? throw new ArgumentNullException(nameof(tenantIdAccessor));
 
             // Apply default data store name if configured, so repositories work without explicit name assignment
             if (defaultDataStoreOptions != null && defaultDataStoreOptions.Value != null

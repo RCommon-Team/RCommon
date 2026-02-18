@@ -26,7 +26,7 @@ namespace RCommon.Security.Users
         /// <summary>
         /// Gets the tenant identifier of the current user, or <c>null</c> if no tenant claim is present.
         /// </summary>
-        Guid? TenantId { get; }
+        string? TenantId { get; }
 
         /// <summary>
         /// Finds the first claim matching the specified <paramref name="claimType"/>.
