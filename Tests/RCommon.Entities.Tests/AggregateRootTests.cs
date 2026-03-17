@@ -287,11 +287,10 @@ public class AggregateRootTests
     }
 
     [Fact]
-    public void AggregateRoot_EntityEquals_SameId_ReturnsTrue()
+    public void AggregateRoot_EntityEquals_SameReference_ReturnsTrue()
     {
-        var aggregate1 = new TestAggregateInt(42);
-        var aggregate2 = new TestAggregateInt(42);
-        aggregate1.EntityEquals(aggregate2).Should().BeTrue();
+        var aggregate = new TestAggregateInt(42);
+        aggregate.EntityEquals(aggregate).Should().BeTrue();
     }
 
     #endregion

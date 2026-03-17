@@ -77,27 +77,5 @@ namespace RCommon.Entities
         /// </summary>
         protected void IncrementVersion()
             => Version++;
-
-        /// <summary>
-        /// Determines whether this aggregate root is equal to another entity based on identity (Id).
-        /// Two aggregate roots of the same type with the same Id are considered equal.
-        /// This overrides the default <see cref="BusinessEntity.EntityEquals"/> binary comparison
-        /// to support value-based identity equality consistent with DDD principles.
-        /// </summary>
-        /// <param name="other">The other entity to compare against.</param>
-        /// <returns><c>true</c> if the entities have the same type and Id; otherwise, <c>false</c>.</returns>
-        public new bool EntityEquals(IBusinessEntity other)
-        {
-            if (other is null)
-                return false;
-
-            if (ReferenceEquals(this, other))
-                return true;
-
-            if (other is IBusinessEntity<TKey> typedOther)
-                return Id.Equals(typedOther.Id);
-
-            return false;
-        }
     }
 }
