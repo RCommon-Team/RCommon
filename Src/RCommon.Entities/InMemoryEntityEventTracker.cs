@@ -67,8 +67,8 @@ namespace RCommon.Entities
                     _eventRouter.AddTransactionalEvents(graphEntity.LocalEvents);
                 }
             }
-            await _eventRouter.RouteEventsAsync();
-            return await Task.FromResult(true);
+            await _eventRouter.RouteEventsAsync().ConfigureAwait(false);
+            return true;
         }
     }
 }

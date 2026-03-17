@@ -63,11 +63,11 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
                     EventTracker.AddEntity(entity);
                     MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-                    await db.InsertAsync(entity, cancellationToken: token);
+                    await db.InsertAsync(entity, cancellationToken: token).ConfigureAwait(false);
 
                 }
                 catch (ApplicationException exception)
@@ -79,7 +79,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
 
@@ -97,7 +97,7 @@ namespace RCommon.Persistence.Dapper.Crud
             if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
             {
                 SoftDeleteHelper.MarkAsDeleted(entity);
-                await UpdateAsync(entity, token);
+                await UpdateAsync(entity, token).ConfigureAwait(false);
                 return;
             }
 
@@ -107,11 +107,11 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
                     EventTracker.AddEntity(entity);
-                    await db.DeleteAsync(entity, cancellationToken: token);
+                    await db.DeleteAsync(entity, cancellationToken: token).ConfigureAwait(false);
                 }
                 catch (ApplicationException exception)
                 {
@@ -122,7 +122,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
 
@@ -138,7 +138,7 @@ namespace RCommon.Persistence.Dapper.Crud
         {
             if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
             {
-                return await DeleteManyAsync(expression, isSoftDelete: true, token);
+                return await DeleteManyAsync(expression, isSoftDelete: true, token).ConfigureAwait(false);
             }
 
             await using (var db = DataStore.GetDbConnection())
@@ -147,10 +147,10 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
-                    return await db.DeleteMultipleAsync(expression, cancellationToken: token);
+                    return await db.DeleteMultipleAsync(expression, cancellationToken: token).ConfigureAwait(false);
                 }
                 catch (ApplicationException exception)
                 {
@@ -161,7 +161,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
 
@@ -174,7 +174,7 @@ namespace RCommon.Persistence.Dapper.Crud
         /// </summary>
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await DeleteManyAsync(specification.Predicate, token);
+            return await DeleteManyAsync(specification.Predicate, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -198,11 +198,11 @@ namespace RCommon.Persistence.Dapper.Crud
                     {
                         if (db.State == ConnectionState.Closed)
                         {
-                            await db.OpenAsync();
+                            await db.OpenAsync(token).ConfigureAwait(false);
                         }
 
                         EventTracker.AddEntity(entity);
-                        await db.DeleteAsync(entity, cancellationToken: token);
+                        await db.DeleteAsync(entity, cancellationToken: token).ConfigureAwait(false);
                     }
                     catch (ApplicationException exception)
                     {
@@ -213,7 +213,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     {
                         if (db.State == ConnectionState.Open)
                         {
-                            await db.CloseAsync();
+                            await db.CloseAsync().ConfigureAwait(false);
                         }
                     }
                 }
@@ -222,7 +222,7 @@ namespace RCommon.Persistence.Dapper.Crud
 
             SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
             SoftDeleteHelper.MarkAsDeleted(entity);
-            await UpdateAsync(entity, token);
+            await UpdateAsync(entity, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -250,10 +250,10 @@ namespace RCommon.Persistence.Dapper.Crud
                     {
                         if (db.State == ConnectionState.Closed)
                         {
-                            await db.OpenAsync();
+                            await db.OpenAsync(token).ConfigureAwait(false);
                         }
 
-                        return await db.DeleteMultipleAsync(expression, cancellationToken: token);
+                        return await db.DeleteMultipleAsync(expression, cancellationToken: token).ConfigureAwait(false);
                     }
                     catch (ApplicationException exception)
                     {
@@ -264,7 +264,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     {
                         if (db.State == ConnectionState.Open)
                         {
-                            await db.CloseAsync();
+                            await db.CloseAsync().ConfigureAwait(false);
                         }
                     }
                 }
@@ -278,15 +278,15 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
-                    var entities = (await db.SelectAsync(expression, cancellationToken: token)).ToList();
+                    var entities = (await db.SelectAsync(expression, cancellationToken: token).ConfigureAwait(false)).ToList();
                     int count = 0;
                     foreach (var entity in entities)
                     {
                         SoftDeleteHelper.MarkAsDeleted(entity);
-                        await db.UpdateAsync(entity, cancellationToken: token);
+                        await db.UpdateAsync(entity, cancellationToken: token).ConfigureAwait(false);
                         count++;
                     }
                     return count;
@@ -300,7 +300,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -317,7 +317,7 @@ namespace RCommon.Persistence.Dapper.Crud
         /// </exception>
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default)
         {
-            return await DeleteManyAsync(specification.Predicate, isSoftDelete, token);
+            return await DeleteManyAsync(specification.Predicate, isSoftDelete, token).ConfigureAwait(false);
         }
 
 
@@ -331,11 +331,11 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
                     EventTracker.AddEntity(entity);
-                    await db.UpdateAsync(entity, cancellationToken: token);
+                    await db.UpdateAsync(entity, cancellationToken: token).ConfigureAwait(false);
                 }
                 catch (ApplicationException exception)
                 {
@@ -346,7 +346,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -355,7 +355,7 @@ namespace RCommon.Persistence.Dapper.Crud
         /// <inheritdoc />
         public override async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await FindAsync(specification.Predicate, token);
+            return await FindAsync(specification.Predicate, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -367,12 +367,12 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
                     var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
                     filteredExpression = MultiTenantHelper.CombineWithTenantFilter(filteredExpression, _tenantIdAccessor.GetTenantId());
-                    var results = await db.SelectAsync(filteredExpression, cancellationToken: token);
+                    var results = await db.SelectAsync(filteredExpression, cancellationToken: token).ConfigureAwait(false);
                     return results.ToList();
                 }
                 catch (ApplicationException exception)
@@ -384,7 +384,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -399,10 +399,10 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
-                    var result = await db.GetAsync<TEntity>(primaryKey, cancellationToken: token);
+                    var result = await db.GetAsync<TEntity>(primaryKey, cancellationToken: token).ConfigureAwait(false);
 
                     // Post-fetch soft-delete check: if the entity was soft-deleted, treat it as not found
                     if (result != null && SoftDeleteHelper.IsSoftDeletable<TEntity>() && ((ISoftDelete)result).IsDeleted)
@@ -430,7 +430,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -445,12 +445,12 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
                     var filteredPredicate = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(selectSpec.Predicate);
                     filteredPredicate = MultiTenantHelper.CombineWithTenantFilter(filteredPredicate, _tenantIdAccessor.GetTenantId());
-                    var results = await db.CountAsync(filteredPredicate);
+                    var results = await db.CountAsync(filteredPredicate).ConfigureAwait(false);
                     return results;
                 }
                 catch (ApplicationException exception)
@@ -462,7 +462,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -477,12 +477,12 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
                     var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
                     filteredExpression = MultiTenantHelper.CombineWithTenantFilter(filteredExpression, _tenantIdAccessor.GetTenantId());
-                    var results = await db.CountAsync(filteredExpression);
+                    var results = await db.CountAsync(filteredExpression).ConfigureAwait(false);
                     return results;
                 }
                 catch (ApplicationException exception)
@@ -494,7 +494,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -511,7 +511,7 @@ namespace RCommon.Persistence.Dapper.Crud
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             // Dommel lacks a native SingleOrDefault, so we retrieve all matches and apply SingleOrDefault in-memory
-            var result = await FindAsync(expression, token);
+            var result = await FindAsync(expression, token).ConfigureAwait(false);
             return result.SingleOrDefault()!;
         }
 
@@ -525,7 +525,7 @@ namespace RCommon.Persistence.Dapper.Crud
         /// due to issues related to https://github.com/henkmollema/Dommel/issues/282</remarks>
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await FindSingleOrDefaultAsync(specification, token);
+            return await FindSingleOrDefaultAsync(specification.Predicate, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -537,12 +537,12 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
                     var filteredExpression = SoftDeleteHelper.CombineWithNotDeletedFilter<TEntity>(expression);
                     filteredExpression = MultiTenantHelper.CombineWithTenantFilter(filteredExpression, _tenantIdAccessor.GetTenantId());
-                    var results = await db.AnyAsync(filteredExpression);
+                    var results = await db.AnyAsync(filteredExpression).ConfigureAwait(false);
                     return results;
                 }
                 catch (ApplicationException exception)
@@ -554,7 +554,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -563,7 +563,7 @@ namespace RCommon.Persistence.Dapper.Crud
         /// <inheritdoc />
         public override async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await AnyAsync(specification.Predicate, token);
+            return await AnyAsync(specification.Predicate, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -581,14 +581,14 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Closed)
                     {
-                        await db.OpenAsync();
+                        await db.OpenAsync(token).ConfigureAwait(false);
                     }
 
                     foreach (var entity in entities)
                     {
                         EventTracker.AddEntity(entity);
                         MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-                        await db.InsertAsync(entity, cancellationToken: token);
+                        await db.InsertAsync(entity, cancellationToken: token).ConfigureAwait(false);
                     }
                 }
                 catch (ApplicationException exception)
@@ -600,7 +600,7 @@ namespace RCommon.Persistence.Dapper.Crud
                 {
                     if (db.State == ConnectionState.Open)
                     {
-                        await db.CloseAsync();
+                        await db.CloseAsync().ConfigureAwait(false);
                     }
                 }
             }

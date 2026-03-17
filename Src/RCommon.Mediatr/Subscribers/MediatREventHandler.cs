@@ -54,7 +54,7 @@ namespace RCommon.MediatR.Subscribers
                 "ISubscriber<TEvent> of type: " + typeof(TEvent).GetGenericTypeName() + " could not be resolved by IServiceProvider");
 
             // Handle the event using the event handler we resolved
-            await subscriber!.HandleAsync(notification.Notification);
+            await subscriber!.HandleAsync(notification.Notification, cancellationToken).ConfigureAwait(false);
         }
     }
 }

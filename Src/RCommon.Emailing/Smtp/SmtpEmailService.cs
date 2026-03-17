@@ -64,10 +64,10 @@ namespace RCommon.Emailing.Smtp
         /// Sends the mail message asynchronously in another thread.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        public async Task SendEmailAsync(MailMessage message)
+        public async Task SendEmailAsync(MailMessage message, CancellationToken cancellationToken = default)
         {
-            
-            await Task.Run(() => SendEmail(message));
+
+            await Task.Run(() => SendEmail(message)).ConfigureAwait(false);
         }
 
         /// <summary>

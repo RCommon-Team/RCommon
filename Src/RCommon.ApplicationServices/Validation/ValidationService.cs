@@ -38,7 +38,7 @@ namespace RCommon.ApplicationServices.Validation
             {
                 var provider = scope.ServiceProvider.GetService<IValidationProvider>();
                 Guard.IsNotNull(provider!, nameof(provider));
-                var outcome = await provider!.ValidateAsync<T>(target, throwOnFaults, cancellationToken);
+                var outcome = await provider!.ValidateAsync<T>(target, throwOnFaults, cancellationToken).ConfigureAwait(false);
                 return outcome;
             }
         }

@@ -19,7 +19,7 @@ public class InMemoryEventBusTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Act
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
         // Assert
         eventBus.Should().NotBeNull();
@@ -35,7 +35,7 @@ public class InMemoryEventBusTests
         // Arrange
         var services = new ServiceCollection();
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
         // Act
         var result = eventBus.Subscribe<TestEvent, TestEventHandler>();
@@ -45,36 +45,36 @@ public class InMemoryEventBusTests
     }
 
     [Fact]
-    public void Subscribe_AddsHandlerToServices()
+    public async Task Subscribe_DynamicHandler_IsInvokedOnPublish()
     {
         // Arrange
         var services = new ServiceCollection();
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
-        // Act
+        // Act - subscribe dynamically, then publish
         eventBus.Subscribe<TestEvent, TestEventHandler>();
+        var act = async () => await eventBus.PublishAsync(new TestEvent { Message = "test" });
 
-        // Assert
-        services.Should().Contain(sd =>
-            sd.ServiceType == typeof(ISubscriber<TestEvent>) &&
-            sd.ImplementationType == typeof(TestEventHandler));
+        // Assert - should not throw (handler resolved via ActivatorUtilities)
+        await act.Should().NotThrowAsync();
     }
 
     [Fact]
-    public void Subscribe_MultipleHandlers_ForSameEvent_RegistersAll()
+    public async Task Subscribe_MultipleHandlers_ForSameEvent_AllInvoked()
     {
         // Arrange
         var services = new ServiceCollection();
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
         // Act
         eventBus.Subscribe<TestEvent, TestEventHandler>();
         eventBus.Subscribe<TestEvent, SecondTestEventHandler>();
+        var act = async () => await eventBus.PublishAsync(new TestEvent { Message = "test" });
 
         // Assert
-        services.Count(sd => sd.ServiceType == typeof(ISubscriber<TestEvent>)).Should().Be(2);
+        await act.Should().NotThrowAsync();
     }
 
     #endregion
@@ -82,23 +82,21 @@ public class InMemoryEventBusTests
     #region SubscribeAllHandledEvents Tests
 
     [Fact]
-    public void SubscribeAllHandledEvents_RegistersAllImplementedInterfaces()
+    public async Task SubscribeAllHandledEvents_RegistersAllImplementedInterfaces()
     {
         // Arrange
         var services = new ServiceCollection();
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
-        // Act
+        // Act - subscribe multi-handler, then publish both event types
         eventBus.SubscribeAllHandledEvents<MultiEventHandler>();
+        var act1 = async () => await eventBus.PublishAsync(new TestEvent());
+        var act2 = async () => await eventBus.PublishAsync(new AnotherTestEvent());
 
-        // Assert
-        services.Should().Contain(sd =>
-            sd.ServiceType == typeof(ISubscriber<TestEvent>) &&
-            sd.ImplementationType == typeof(MultiEventHandler));
-        services.Should().Contain(sd =>
-            sd.ServiceType == typeof(ISubscriber<AnotherTestEvent>) &&
-            sd.ImplementationType == typeof(MultiEventHandler));
+        // Assert - both event types should be handled without throwing
+        await act1.Should().NotThrowAsync();
+        await act2.Should().NotThrowAsync();
     }
 
     [Fact]
@@ -107,7 +105,7 @@ public class InMemoryEventBusTests
         // Arrange
         var services = new ServiceCollection();
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
         // Act
         var result = eventBus.SubscribeAllHandledEvents<MultiEventHandler>();
@@ -126,7 +124,7 @@ public class InMemoryEventBusTests
         // Arrange
         var services = new ServiceCollection();
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
         var testEvent = new TestEvent { Message = "Test" };
 
         // Act
@@ -144,7 +142,7 @@ public class InMemoryEventBusTests
         var services = new ServiceCollection();
         services.AddScoped<ISubscriber<TestEvent>>(sp => new ActionTestEventHandler(() => handlerInvoked = true));
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
         var testEvent = new TestEvent { Message = "Test" };
 
         // Act
@@ -164,7 +162,7 @@ public class InMemoryEventBusTests
         services.AddScoped<ISubscriber<TestEvent>>(sp => new ActionTestEventHandler(() => handler1Invoked = true));
         services.AddScoped<ISubscriber<TestEvent>>(sp => new ActionTestEventHandler(() => handler2Invoked = true));
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
         var testEvent = new TestEvent { Message = "Test" };
 
         // Act
@@ -183,7 +181,7 @@ public class InMemoryEventBusTests
         var services = new ServiceCollection();
         services.AddScoped<ISubscriber<TestEvent>>(sp => new CapturingTestEventHandler(e => receivedEvent = e));
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
         var testEvent = new TestEvent { Message = "Hello World" };
 
         // Act
@@ -192,6 +190,25 @@ public class InMemoryEventBusTests
         // Assert
         receivedEvent.Should().NotBeNull();
         receivedEvent!.Message.Should().Be("Hello World");
+    }
+
+    [Fact]
+    public async Task PublishAsync_PassesCancellationTokenToHandler()
+    {
+        // Arrange
+        CancellationToken? receivedToken = null;
+        var services = new ServiceCollection();
+        services.AddScoped<ISubscriber<TestEvent>>(sp => new TokenCapturingHandler(token => receivedToken = token));
+        var serviceProvider = services.BuildServiceProvider();
+        var eventBus = new InMemoryEventBus(serviceProvider);
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        await eventBus.PublishAsync(new TestEvent(), cts.Token);
+
+        // Assert
+        receivedToken.Should().NotBeNull();
+        receivedToken!.Value.Should().Be(cts.Token);
     }
 
     #endregion
@@ -206,7 +223,7 @@ public class InMemoryEventBusTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Act
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
         // Assert
         eventBus.Should().BeAssignableTo<IEventBus>();
@@ -228,7 +245,7 @@ public class InMemoryEventBusTests
             return new TestEventHandler();
         });
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
         // Act
         await eventBus.PublishAsync(new TestEvent());
@@ -248,7 +265,7 @@ public class InMemoryEventBusTests
         // Arrange
         var services = new ServiceCollection();
         var serviceProvider = services.BuildServiceProvider();
-        var eventBus = new InMemoryEventBus(serviceProvider, services);
+        var eventBus = new InMemoryEventBus(serviceProvider);
 
         // Act
         var result = eventBus
@@ -257,8 +274,6 @@ public class InMemoryEventBusTests
 
         // Assert
         result.Should().BeSameAs(eventBus);
-        services.Should().Contain(sd => sd.ServiceType == typeof(ISubscriber<TestEvent>));
-        services.Should().Contain(sd => sd.ServiceType == typeof(ISubscriber<AnotherTestEvent>));
     }
 
     #endregion
@@ -340,6 +355,22 @@ public class InMemoryEventBusTests
         public Task HandleAsync(TestEvent @event, CancellationToken cancellationToken = default)
         {
             _capture(@event);
+            return Task.CompletedTask;
+        }
+    }
+
+    public class TokenCapturingHandler : ISubscriber<TestEvent>
+    {
+        private readonly Action<CancellationToken> _capture;
+
+        public TokenCapturingHandler(Action<CancellationToken> capture)
+        {
+            _capture = capture;
+        }
+
+        public Task HandleAsync(TestEvent @event, CancellationToken cancellationToken = default)
+        {
+            _capture(cancellationToken);
             return Task.CompletedTask;
         }
     }

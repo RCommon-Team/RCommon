@@ -172,19 +172,19 @@ namespace RCommon.Persistence.Linq2Db.Crud
         {
             EventTracker.AddEntity(entity);
             MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-            await DataConnection.InsertAsync(entity, token: token);
+            await DataConnection.InsertAsync(entity, token: token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await FilteredRepositoryQuery.AnyAsync(expression, token: token);
+            return await FilteredRepositoryQuery.AnyAsync(expression, token: token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await AnyAsync(specification.Predicate, token: token);
+            return await AnyAsync(specification.Predicate, token: token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -197,12 +197,12 @@ namespace RCommon.Persistence.Linq2Db.Crud
             if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
             {
                 SoftDeleteHelper.MarkAsDeleted(entity);
-                await UpdateAsync(entity, token);
+                await UpdateAsync(entity, token).ConfigureAwait(false);
                 return;
             }
 
             EventTracker.AddEntity(entity);
-            await DataConnection.DeleteAsync(entity);
+            await DataConnection.DeleteAsync(entity, token: token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -221,13 +221,13 @@ namespace RCommon.Persistence.Linq2Db.Crud
             {
                 // Bypass auto-detection — force a physical delete
                 EventTracker.AddEntity(entity);
-                await DataConnection.DeleteAsync(entity);
+                await DataConnection.DeleteAsync(entity, token: token).ConfigureAwait(false);
                 return;
             }
 
             SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
             SoftDeleteHelper.MarkAsDeleted(entity);
-            await UpdateAsync(entity, token);
+            await UpdateAsync(entity, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -239,10 +239,10 @@ namespace RCommon.Persistence.Linq2Db.Crud
         {
             if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
             {
-                return await DeleteManyAsync(expression, isSoftDelete: true, token);
+                return await DeleteManyAsync(expression, isSoftDelete: true, token).ConfigureAwait(false);
             }
 
-            return await RepositoryQuery.Where(expression).DeleteAsync(token);
+            return await RepositoryQuery.Where(expression).DeleteAsync(token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -263,17 +263,17 @@ namespace RCommon.Persistence.Linq2Db.Crud
             if (!isSoftDelete)
             {
                 // Bypass auto-detection and soft-delete filter — force a physical delete
-                return await RepositoryQuery.Where(expression).DeleteAsync(token);
+                return await RepositoryQuery.Where(expression).DeleteAsync(token).ConfigureAwait(false);
             }
 
             SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
 
-            var entities = await FindQuery(expression).ToListAsync(token);
+            var entities = await FindQuery(expression).ToListAsync(token).ConfigureAwait(false);
             int count = 0;
             foreach (var entity in entities)
             {
                 SoftDeleteHelper.MarkAsDeleted(entity);
-                await DataConnection.UpdateAsync(entity, token: token);
+                await DataConnection.UpdateAsync(entity, token: token).ConfigureAwait(false);
                 count++;
             }
             return count;
@@ -282,7 +282,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
         /// <inheritdoc />
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await DeleteManyAsync(specification.Predicate, token);
+            return await DeleteManyAsync(specification.Predicate, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
         /// </exception>
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default)
         {
-            return await DeleteManyAsync(specification.Predicate, isSoftDelete, token);
+            return await DeleteManyAsync(specification.Predicate, isSoftDelete, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -328,13 +328,13 @@ namespace RCommon.Persistence.Linq2Db.Crud
         /// <inheritdoc />
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await FindCore(specification.Predicate).ToListAsync(token);
+            return await FindCore(specification.Predicate).ToListAsync(token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await FindCore(expression).ToListAsync(token);
+            return await FindCore(expression).ToListAsync(token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -349,7 +349,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
             {
                 query = FindCore(specification.Predicate).OrderByDescending(specification.OrderByExpression);
             }
-            return await Task.FromResult(query.ToPaginatedList(specification.PageNumber, specification.PageSize));
+            return await Task.FromResult(query.ToPaginatedList(specification.PageNumber, specification.PageSize)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -366,7 +366,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
             {
                 query = FindCore(expression).OrderByDescending(orderByExpression);
             }
-            return await Task.FromResult(query.ToPaginatedList(pageNumber, pageSize));
+            return await Task.FromResult(query.ToPaginatedList(pageNumber, pageSize)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -411,32 +411,32 @@ namespace RCommon.Persistence.Linq2Db.Crud
         /// <inheritdoc />
         public async override Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return (await FilteredRepositoryQuery.SingleOrDefaultAsync(expression, token))!;
+            return (await FilteredRepositoryQuery.SingleOrDefaultAsync(expression, token).ConfigureAwait(false))!;
         }
 
         /// <inheritdoc />
         public async override Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await FindSingleOrDefaultAsync(specification.Predicate, token);
+            return await FindSingleOrDefaultAsync(specification.Predicate, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            return await GetCountAsync(selectSpec.Predicate, token);
+            return await GetCountAsync(selectSpec.Predicate, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await FilteredRepositoryQuery.CountAsync(expression, token);
+            return await FilteredRepositoryQuery.CountAsync(expression, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
-            await DataConnection.UpdateAsync(entity, token: token);
+            await DataConnection.UpdateAsync(entity, token: token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -454,7 +454,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
             {
                 EventTracker.AddEntity(entity);
                 MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-                await DataConnection.InsertAsync(entity, token: token);
+                await DataConnection.InsertAsync(entity, token: token).ConfigureAwait(false);
             }
         }
 

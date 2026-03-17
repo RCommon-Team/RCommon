@@ -73,7 +73,7 @@ namespace RCommon.MediatR.Producers
                     }
                     
                     
-                    await _mediatorService.Publish(@event, cancellationToken);
+                    await _mediatorService.Publish(@event, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

@@ -162,8 +162,8 @@ namespace RCommon.Persistence.EFCore.Crud
         {
             EventTracker.AddEntity(entity);
             MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-            await ObjectSet.AddAsync(entity, token);
-            await SaveAsync(token);
+            await ObjectSet.AddAsync(entity, token).ConfigureAwait(false);
+            await SaveAsync(token).ConfigureAwait(false);
         }
 
 
@@ -177,13 +177,13 @@ namespace RCommon.Persistence.EFCore.Crud
             if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
             {
                 SoftDeleteHelper.MarkAsDeleted(entity);
-                await UpdateAsync(entity, token);
+                await UpdateAsync(entity, token).ConfigureAwait(false);
                 return;
             }
 
             EventTracker.AddEntity(entity);
             ObjectSet.Remove(entity);
-            await SaveAsync();
+            await SaveAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -203,13 +203,13 @@ namespace RCommon.Persistence.EFCore.Crud
                 // Bypass auto-detection — force a physical delete
                 EventTracker.AddEntity(entity);
                 ObjectSet.Remove(entity);
-                await SaveAsync();
+                await SaveAsync().ConfigureAwait(false);
                 return;
             }
 
             SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
             SoftDeleteHelper.MarkAsDeleted(entity);
-            await UpdateAsync(entity, token);
+            await UpdateAsync(entity, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -218,7 +218,7 @@ namespace RCommon.Persistence.EFCore.Crud
         /// </summary>
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await this.DeleteManyAsync(specification.Predicate, token);
+            return await this.DeleteManyAsync(specification.Predicate, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -232,7 +232,7 @@ namespace RCommon.Persistence.EFCore.Crud
         /// </exception>
         public async override Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default)
         {
-            return await this.DeleteManyAsync(specification.Predicate, isSoftDelete, token);
+            return await this.DeleteManyAsync(specification.Predicate, isSoftDelete, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -244,10 +244,10 @@ namespace RCommon.Persistence.EFCore.Crud
         {
             if (SoftDeleteHelper.IsSoftDeletable<TEntity>())
             {
-                return await DeleteManyAsync(expression, isSoftDelete: true, token);
+                return await DeleteManyAsync(expression, isSoftDelete: true, token).ConfigureAwait(false);
             }
 
-            return await RepositoryQuery.Where(expression).ExecuteDeleteAsync(token);
+            return await RepositoryQuery.Where(expression).ExecuteDeleteAsync(token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -269,18 +269,18 @@ namespace RCommon.Persistence.EFCore.Crud
             if (!isSoftDelete)
             {
                 // Bypass auto-detection and soft-delete filter — force a physical delete
-                return await RepositoryQuery.Where(expression).ExecuteDeleteAsync(token);
+                return await RepositoryQuery.Where(expression).ExecuteDeleteAsync(token).ConfigureAwait(false);
             }
 
             SoftDeleteHelper.EnsureSoftDeletable<TEntity>();
 
-            var entities = await this.FindQuery(expression).ToListAsync(token);
+            var entities = await this.FindQuery(expression).ToListAsync(token).ConfigureAwait(false);
             foreach (var entity in entities)
             {
                 SoftDeleteHelper.MarkAsDeleted(entity);
                 ObjectSet.Update(entity);
             }
-            return await SaveAsync(token);
+            return await SaveAsync(token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -288,7 +288,7 @@ namespace RCommon.Persistence.EFCore.Crud
         {
             EventTracker.AddEntity(entity);
             ObjectSet.Update(entity);
-            await SaveAsync(token);
+            await SaveAsync(token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -317,13 +317,13 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public async override Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            return await FindCore(selectSpec.Predicate).CountAsync(token);
+            return await FindCore(selectSpec.Predicate).CountAsync(token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task<long> GetCountAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await FindCore(expression).CountAsync(token);
+            return await FindCore(expression).CountAsync(token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -341,7 +341,7 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public override async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            var entity = await ObjectSet.FindAsync(new object[] { primaryKey }, token);
+            var entity = await ObjectSet.FindAsync(new object[] { primaryKey }, token).ConfigureAwait(false);
 
             // Post-fetch soft-delete check: if the entity was soft-deleted, treat it as not found
             if (entity != null && SoftDeleteHelper.IsSoftDeletable<TEntity>() && ((ISoftDelete)entity).IsDeleted)
@@ -364,13 +364,13 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public async override Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await FindCore(specification.Predicate).ToListAsync(token);
+            return await FindCore(specification.Predicate).ToListAsync(token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await FindCore(expression).ToListAsync(token);
+            return await FindCore(expression).ToListAsync(token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -385,7 +385,7 @@ namespace RCommon.Persistence.EFCore.Crud
             {
                 query = FindCore(specification.Predicate).OrderByDescending(specification.OrderByExpression);
             }
-            return await Task.FromResult(query.ToPaginatedList(specification.PageNumber, specification.PageSize));
+            return await Task.FromResult(query.ToPaginatedList(specification.PageNumber, specification.PageSize)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -402,7 +402,7 @@ namespace RCommon.Persistence.EFCore.Crud
             {
                 query = FindCore(expression).OrderByDescending(orderByExpression);
             }
-            return await Task.FromResult(query.ToPaginatedList(pageNumber, pageSize));
+            return await Task.FromResult(query.ToPaginatedList(pageNumber, pageSize)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -447,25 +447,25 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public override async Task<TEntity> FindSingleOrDefaultAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return (await FindCore(expression).SingleOrDefaultAsync(token))!;
+            return (await FindCore(expression).SingleOrDefaultAsync(token).ConfigureAwait(false))!;
         }
 
         /// <inheritdoc />
         public override async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return (await FindCore(specification.Predicate).SingleOrDefaultAsync(token))!;
+            return (await FindCore(specification.Predicate).SingleOrDefaultAsync(token).ConfigureAwait(false))!;
         }
 
         /// <inheritdoc />
         public async override Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await FindCore(expression).AnyAsync(token);
+            return await FindCore(expression).AnyAsync(token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async override Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await FindCore(specification.Predicate).AnyAsync(token);
+            return await FindCore(specification.Predicate).AnyAsync(token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -491,7 +491,7 @@ namespace RCommon.Persistence.EFCore.Crud
             try
             {
                 // acceptAllChangesOnSuccess is set to true so EF resets tracking after a successful save
-                affected = await ObjectContext.SaveChangesAsync(true, token);
+                affected = await ObjectContext.SaveChangesAsync(true, token).ConfigureAwait(false);
             }
             catch (ApplicationException ex)
             {
@@ -517,8 +517,8 @@ namespace RCommon.Persistence.EFCore.Crud
                 MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
             }
 
-            await ObjectSet.AddRangeAsync(entities, token);
-            await SaveAsync(token);
+            await ObjectSet.AddRangeAsync(entities, token).ConfigureAwait(false);
+            await SaveAsync(token).ConfigureAwait(false);
         }
     }
 }

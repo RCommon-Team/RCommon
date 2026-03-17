@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace RCommon.EventHandling
 {
@@ -13,8 +14,9 @@ namespace RCommon.EventHandling
         /// </summary>
         /// <typeparam name="TEvent">The type of event to publish.</typeparam>
         /// <param name="event">The event instance to publish.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        Task PublishAsync<TEvent>(TEvent @event);
+        Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Subscribes a specific event handler to a specific event type.

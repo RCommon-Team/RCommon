@@ -48,7 +48,7 @@ namespace RCommon.MediatR
         /// <param name="cancellationToken">Optional cancellation token.</param>
         public async Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
         {
-            await _mediator.Send(new MediatRRequest<TRequest>(request), cancellationToken);
+            await _mediator.Send(new MediatRRequest<TRequest>(request), cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace RCommon.MediatR
         /// <returns>The response produced by the request handler.</returns>
         public async Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
         {
-            return await _mediator.Send<TResponse>(new MediatRRequest<TRequest, TResponse>(request), cancellationToken);
+            return await _mediator.Send<TResponse>(new MediatRRequest<TRequest, TResponse>(request), cancellationToken).ConfigureAwait(false);
         }
     }
 }

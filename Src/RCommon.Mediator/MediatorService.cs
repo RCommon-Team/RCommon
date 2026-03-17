@@ -37,13 +37,13 @@ namespace RCommon.Mediator
         /// <inheritdoc />
         public async Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
         {
-            await _mediatorAdapter.Send(request, cancellationToken);
+            await _mediatorAdapter.Send(request, cancellationToken).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<TResponse> Send<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
         {
-            return await _mediatorAdapter.Send<TRequest, TResponse>(request, cancellationToken);
+            return await _mediatorAdapter.Send<TRequest, TResponse>(request, cancellationToken).ConfigureAwait(false);
         }
 
     }

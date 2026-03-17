@@ -39,7 +39,7 @@ namespace RCommon.MassTransit.Subscribers
         public async Task Consume(ConsumeContext<TEvent> context)
         {
             _logger.LogDebug("{0} handling event {1}", new object[] { this.GetGenericTypeName(), context.Message });
-            await _subscriber.HandleAsync(context.Message);
+            await _subscriber.HandleAsync(context.Message, context.CancellationToken).ConfigureAwait(false);
         }
     }
 }

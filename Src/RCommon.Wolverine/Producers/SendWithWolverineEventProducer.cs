@@ -68,7 +68,7 @@ namespace RCommon.Wolverine.Producers
                     {
                         _logger.LogDebug("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event });
                     }
-                    await _messageBus.SendAsync(@event);
+                    await _messageBus.SendAsync(@event).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

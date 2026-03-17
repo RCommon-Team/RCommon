@@ -46,7 +46,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})",
                         unitOfWork.TransactionId, typeName, request);
 
-                    response = await next();
+                    response = await next().ConfigureAwait(false);
 
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
                         unitOfWork.TransactionId, typeName);
@@ -103,7 +103,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
                     _logger.LogInformation("----- Begin transaction {UnitOfWorkTransactionId} for {CommandName} ({@Command})",
                         unitOfWork.TransactionId, typeName, request);
 
-                    response = await next();
+                    response = await next().ConfigureAwait(false);
 
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
                         unitOfWork.TransactionId, typeName);
