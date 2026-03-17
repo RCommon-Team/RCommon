@@ -248,17 +248,17 @@ namespace RCommon.Entities
     /// </summary>
     /// <typeparam name="TKey">The type of the entity's identity.</typeparam>
     [Serializable]
-    public abstract class DomainEntity<TKey>
+    public abstract class DomainEntity<TKey> : IEquatable<DomainEntity<TKey>>
         where TKey : IEquatable<TKey>
     {
         /// <summary>
         /// The unique identity of this entity.
         /// </summary>
-        public virtual TKey Id { get; protected set; }
+        public virtual TKey Id { get; protected set; } = default!;
 
-        public override bool Equals(object obj)
+        public bool Equals(DomainEntity<TKey>? other)
         {
-            if (obj is not DomainEntity<TKey> other)
+            if (other is null)
                 return false;
 
             if (ReferenceEquals(this, other))
@@ -272,6 +272,9 @@ namespace RCommon.Entities
 
             return Id.Equals(other.Id);
         }
+
+        public override bool Equals(object? obj)
+            => Equals(obj as DomainEntity<TKey>);
 
         public override int GetHashCode()
         {
@@ -287,7 +290,7 @@ namespace RCommon.Entities
         public bool IsTransient()
             => Id is null || Id.Equals(default);
 
-        public static bool operator ==(DomainEntity<TKey> left, DomainEntity<TKey> right)
+        public static bool operator ==(DomainEntity<TKey>? left, DomainEntity<TKey>? right)
         {
             if (left is null && right is null)
                 return true;
@@ -296,7 +299,7 @@ namespace RCommon.Entities
             return left.Equals(right);
         }
 
-        public static bool operator !=(DomainEntity<TKey> left, DomainEntity<TKey> right)
+        public static bool operator !=(DomainEntity<TKey>? left, DomainEntity<TKey>? right)
             => !(left == right);
     }
 }
@@ -346,7 +349,7 @@ The domain event dispatch flow reuses the existing infrastructure with zero modi
 
 **Important:** The `ObjectGraphWalker` in `InMemoryEntityEventTracker` traverses for `IBusinessEntity`. Since `DomainEntity<TKey>` does not implement `IBusinessEntity`, child entities using `DomainEntity` will not be traversed. All domain events must be raised on the `AggregateRoot`, not on child `DomainEntity` instances.
 
-**Known limitation:** `BusinessEntity.AddLocalEvent` is inherited as a public method on `AggregateRoot`. External callers could bypass `AddDomainEvent` (which is protected) and add raw `ISerializableEvent` objects directly. Consumers should always use `AddDomainEvent` on aggregate roots.
+**Known limitation:** `BusinessEntity` exposes `AddLocalEvent`, `RemoveLocalEvent`, and `ClearLocalEvents` as public methods inherited by `AggregateRoot`. External callers could bypass `AddDomainEvent`/`RemoveDomainEvent`/`ClearDomainEvents` (which maintain the dual-list sync between `_domainEvents` and `_localEvents`). Using the inherited methods directly would break the dual-list invariant. Consumers should always use the `DomainEvent`-prefixed methods on aggregate roots. A future iteration could use `new` keyword hiding to intercept these calls.
 
 **No changes required to:**
 - `IEntityEventTracker` interface
