@@ -43,11 +43,19 @@ DDD types are added directly to `RCommon.Entities` in the `RCommon.Entities` nam
 
 ### 5. Versioning on AggregateRoot
 
-`AggregateRoot` includes a `Version` (int) property for optimistic concurrency control. This is essential for eventual event sourcing support and is standard DDD practice for aggregate consistency.
+`AggregateRoot` includes a `Version` (int) property for optimistic concurrency control, decorated with `[ConcurrencyCheck]` to signal ORM-level concurrency checking. This is essential for eventual event sourcing support and is standard DDD practice for aggregate consistency.
 
 ### 6. DomainEntity is lightweight
 
-`DomainEntity<TKey>` is a standalone class (does not extend `BusinessEntity`) with identity-based equality but no event tracking. Entities within an aggregate raise events through their aggregate root, not directly.
+`DomainEntity<TKey>` is a standalone class (does not extend `BusinessEntity`) with identity-based equality but no event tracking. Entities within an aggregate raise events through their aggregate root, not directly. Because `DomainEntity` does not implement `IBusinessEntity`, the `ObjectGraphWalker` in `InMemoryEntityEventTracker` will not traverse it — this is intentional. All domain events must be raised on the aggregate root.
+
+### 7. Namespace style: block-scoped
+
+All new files use block-scoped namespace declarations (`namespace RCommon.Entities { ... }`) to match the existing convention in the project.
+
+### 8. IAggregateRoot constraint asymmetry
+
+`IAggregateRoot<TKey>` adds `where TKey : IEquatable<TKey>` while its parent `IBusinessEntity<TKey>` has no such constraint. This is intentional — aggregate roots require identity equality for consistency guarantees. The concrete class `BusinessEntity<TKey>` already has this constraint, so the class hierarchy compiles correctly. A non-generic `IAggregateRoot` marker interface is also provided for infrastructure scenarios (repository filtering, middleware, generic constraints).
 
 ## Type Hierarchy
 
@@ -59,8 +67,9 @@ Existing (unchanged):
         BusinessEntity<TKey>      (abstract, single key, event tracking)
 
 New DDD types:
-  IAggregateRoot<TKey> : IBusinessEntity<TKey>
-    AggregateRoot<TKey> : BusinessEntity<TKey>, IAggregateRoot<TKey>
+  IAggregateRoot : IBusinessEntity                   (non-generic marker)
+    IAggregateRoot<TKey> : IAggregateRoot, IBusinessEntity<TKey>
+      AggregateRoot<TKey> : BusinessEntity<TKey>, IAggregateRoot<TKey>
 
   DomainEntity<TKey>              (standalone, identity only, no event tracking)
 
@@ -72,210 +81,244 @@ New DDD types:
 
 ## New Files
 
-All files are added to `Src/RCommon.Entities/` in the `RCommon.Entities` namespace.
+All files are added to `Src/RCommon.Entities/` in the `RCommon.Entities` namespace. Total: 6 new files.
 
 ### IDomainEvent.cs
 
 ```csharp
 using RCommon.Models.Events;
 
-namespace RCommon.Entities;
-
-/// <summary>
-/// Represents a domain event raised by an aggregate root.
-/// Extends ISerializableEvent for compatibility with the existing event routing pipeline.
-/// </summary>
-public interface IDomainEvent : ISerializableEvent
+namespace RCommon.Entities
 {
     /// <summary>
-    /// Unique identifier for this event instance.
+    /// Represents a domain event raised by an aggregate root.
+    /// Extends ISerializableEvent for compatibility with the existing event routing pipeline.
     /// </summary>
-    Guid EventId { get; }
+    public interface IDomainEvent : ISerializableEvent
+    {
+        /// <summary>
+        /// Unique identifier for this event instance.
+        /// </summary>
+        Guid EventId { get; }
 
-    /// <summary>
-    /// The date and time when this event occurred.
-    /// </summary>
-    DateTimeOffset OccurredOn { get; }
+        /// <summary>
+        /// The date and time when this event occurred.
+        /// </summary>
+        DateTimeOffset OccurredOn { get; }
+    }
 }
 ```
 
 ### DomainEvent.cs
 
 ```csharp
-namespace RCommon.Entities;
-
-/// <summary>
-/// Abstract base record for domain events. Provides default values for EventId and OccurredOn.
-/// Use as a base for all concrete domain events.
-/// </summary>
-public abstract record DomainEvent : IDomainEvent
+namespace RCommon.Entities
 {
-    public Guid EventId { get; init; } = Guid.NewGuid();
-    public DateTimeOffset OccurredOn { get; init; } = DateTimeOffset.UtcNow;
+    /// <summary>
+    /// Abstract base record for domain events. Provides default values for EventId and OccurredOn.
+    /// Use as a base for all concrete domain events.
+    /// </summary>
+    public abstract record DomainEvent : IDomainEvent
+    {
+        public Guid EventId { get; init; } = Guid.NewGuid();
+        public DateTimeOffset OccurredOn { get; init; } = DateTimeOffset.UtcNow;
+    }
 }
 ```
 
 ### IAggregateRoot.cs
 
 ```csharp
-namespace RCommon.Entities;
-
-/// <summary>
-/// Interface for aggregate roots in the domain model.
-/// Extends IBusinessEntity to maintain compatibility with existing repository and event tracking infrastructure.
-/// </summary>
-public interface IAggregateRoot<TKey> : IBusinessEntity<TKey>
-    where TKey : IEquatable<TKey>
+namespace RCommon.Entities
 {
     /// <summary>
-    /// The version number used for optimistic concurrency control.
-    /// Incremented on each state change to the aggregate.
+    /// Non-generic marker interface for aggregate roots.
+    /// Useful for infrastructure scenarios such as repository filtering, middleware, and generic constraints.
     /// </summary>
-    int Version { get; }
+    public interface IAggregateRoot : IBusinessEntity
+    {
+        /// <summary>
+        /// The version number used for optimistic concurrency control.
+        /// </summary>
+        int Version { get; }
+
+        /// <summary>
+        /// The collection of domain events raised by this aggregate that have not yet been dispatched.
+        /// </summary>
+        IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
+    }
 
     /// <summary>
-    /// The collection of domain events raised by this aggregate that have not yet been dispatched.
+    /// Generic interface for aggregate roots in the domain model.
+    /// Extends IBusinessEntity to maintain compatibility with existing repository and event tracking infrastructure.
+    /// Note: The IEquatable constraint is stricter than IBusinessEntity&lt;TKey&gt; — this is intentional
+    /// because aggregate roots require identity equality for consistency guarantees.
     /// </summary>
-    IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
+    public interface IAggregateRoot<TKey> : IAggregateRoot, IBusinessEntity<TKey>
+        where TKey : IEquatable<TKey>
+    {
+    }
 }
 ```
 
 ### AggregateRoot.cs
 
 ```csharp
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RCommon.Entities;
-
-/// <summary>
-/// Abstract base class for aggregate roots. Extends BusinessEntity to reuse event tracking,
-/// key support, and entity equality. Adds versioning for optimistic concurrency and typed
-/// domain event methods.
-/// </summary>
-/// <typeparam name="TKey">The type of the aggregate's identity.</typeparam>
-public abstract class AggregateRoot<TKey> : BusinessEntity<TKey>, IAggregateRoot<TKey>
-    where TKey : IEquatable<TKey>
+namespace RCommon.Entities
 {
     /// <summary>
-    /// Version number for optimistic concurrency control. Incremented via <see cref="IncrementVersion"/>.
+    /// Abstract base class for aggregate roots. Extends BusinessEntity to reuse event tracking,
+    /// key support, and entity equality. Adds versioning for optimistic concurrency and typed
+    /// domain event methods.
     /// </summary>
-    public virtual int Version { get; protected set; }
+    /// <typeparam name="TKey">The type of the aggregate's identity.</typeparam>
+    [Serializable]
+    public abstract class AggregateRoot<TKey> : BusinessEntity<TKey>, IAggregateRoot<TKey>
+        where TKey : IEquatable<TKey>
+    {
+        private readonly List<IDomainEvent> _domainEvents = new();
 
-    /// <summary>
-    /// Returns the domain events that have been raised by this aggregate but not yet dispatched.
-    /// This is a typed view over the underlying LocalEvents collection.
-    /// </summary>
-    [NotMapped]
-    public IReadOnlyCollection<IDomainEvent> DomainEvents
-        => LocalEvents.OfType<IDomainEvent>().ToList().AsReadOnly();
+        /// <summary>
+        /// Version number for optimistic concurrency control. Incremented via <see cref="IncrementVersion"/>.
+        /// Decorated with [ConcurrencyCheck] to signal ORM-level concurrency checking.
+        /// </summary>
+        [ConcurrencyCheck]
+        public virtual int Version { get; protected set; }
 
-    /// <summary>
-    /// Raises a domain event on this aggregate. The event will be dispatched when
-    /// the entity event tracker emits transactional events.
-    /// </summary>
-    protected void AddDomainEvent(IDomainEvent domainEvent)
-        => AddLocalEvent(domainEvent);
+        /// <summary>
+        /// Returns the domain events that have been raised by this aggregate but not yet dispatched.
+        /// </summary>
+        [NotMapped]
+        public IReadOnlyCollection<IDomainEvent> DomainEvents
+            => _domainEvents.AsReadOnly();
 
-    /// <summary>
-    /// Removes a previously raised domain event before it has been dispatched.
-    /// </summary>
-    protected void RemoveDomainEvent(IDomainEvent domainEvent)
-        => RemoveLocalEvent(domainEvent);
+        /// <summary>
+        /// Raises a domain event on this aggregate. The event is added to both the DomainEvents
+        /// collection and the base LocalEvents collection for dispatch via the event tracking pipeline.
+        /// </summary>
+        protected void AddDomainEvent(IDomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
+            AddLocalEvent(domainEvent);
+        }
 
-    /// <summary>
-    /// Clears all pending domain events from this aggregate.
-    /// </summary>
-    public void ClearDomainEvents()
-        => ClearLocalEvents();
+        /// <summary>
+        /// Removes a previously raised domain event before it has been dispatched.
+        /// </summary>
+        protected void RemoveDomainEvent(IDomainEvent domainEvent)
+        {
+            _domainEvents.Remove(domainEvent);
+            RemoveLocalEvent(domainEvent);
+        }
 
-    /// <summary>
-    /// Increments the version number for optimistic concurrency control.
-    /// Call this when the aggregate's state changes.
-    /// </summary>
-    protected void IncrementVersion()
-        => Version++;
+        /// <summary>
+        /// Clears all pending domain events from this aggregate.
+        /// </summary>
+        public void ClearDomainEvents()
+        {
+            _domainEvents.Clear();
+            ClearLocalEvents();
+        }
+
+        /// <summary>
+        /// Increments the version number for optimistic concurrency control.
+        /// Call this when the aggregate's state changes.
+        /// Note: This is not thread-safe. Aggregates are designed for single-threaded access.
+        /// </summary>
+        protected void IncrementVersion()
+            => Version++;
+    }
 }
 ```
 
 ### DomainEntity.cs
 
 ```csharp
-namespace RCommon.Entities;
-
-/// <summary>
-/// Abstract base class for domain entities within an aggregate. Provides identity-based equality
-/// but no event tracking — entities within an aggregate raise events through their aggregate root.
-/// </summary>
-/// <typeparam name="TKey">The type of the entity's identity.</typeparam>
-public abstract class DomainEntity<TKey>
-    where TKey : IEquatable<TKey>
+namespace RCommon.Entities
 {
     /// <summary>
-    /// The unique identity of this entity.
+    /// Abstract base class for domain entities within an aggregate. Provides identity-based equality
+    /// but no event tracking — entities within an aggregate raise events through their aggregate root.
+    /// Because DomainEntity does not implement IBusinessEntity, the ObjectGraphWalker in
+    /// InMemoryEntityEventTracker will not traverse it. All domain events must be raised on the
+    /// aggregate root.
     /// </summary>
-    public virtual TKey Id { get; protected set; }
-
-    public override bool Equals(object obj)
+    /// <typeparam name="TKey">The type of the entity's identity.</typeparam>
+    [Serializable]
+    public abstract class DomainEntity<TKey>
+        where TKey : IEquatable<TKey>
     {
-        if (obj is not DomainEntity<TKey> other)
-            return false;
+        /// <summary>
+        /// The unique identity of this entity.
+        /// </summary>
+        public virtual TKey Id { get; protected set; }
 
-        if (ReferenceEquals(this, other))
-            return true;
+        public override bool Equals(object obj)
+        {
+            if (obj is not DomainEntity<TKey> other)
+                return false;
 
-        if (GetType() != other.GetType())
-            return false;
+            if (ReferenceEquals(this, other))
+                return true;
 
-        if (IsTransient() || other.IsTransient())
-            return false;
+            if (GetType() != other.GetType())
+                return false;
 
-        return Id.Equals(other.Id);
+            if (IsTransient() || other.IsTransient())
+                return false;
+
+            return Id.Equals(other.Id);
+        }
+
+        public override int GetHashCode()
+        {
+            var id = Id;
+            if (id is null || id.Equals(default(TKey)))
+                return base.GetHashCode();
+            return id.GetHashCode();
+        }
+
+        /// <summary>
+        /// Returns true if this entity has not yet been assigned a persistent identity.
+        /// </summary>
+        public bool IsTransient()
+            => Id is null || Id.Equals(default);
+
+        public static bool operator ==(DomainEntity<TKey> left, DomainEntity<TKey> right)
+        {
+            if (left is null && right is null)
+                return true;
+            if (left is null || right is null)
+                return false;
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(DomainEntity<TKey> left, DomainEntity<TKey> right)
+            => !(left == right);
     }
-
-    public override int GetHashCode()
-    {
-        if (IsTransient())
-            return base.GetHashCode();
-
-        return Id.GetHashCode();
-    }
-
-    /// <summary>
-    /// Returns true if this entity has not yet been assigned a persistent identity.
-    /// </summary>
-    public bool IsTransient()
-        => Id is null || Id.Equals(default);
-
-    public static bool operator ==(DomainEntity<TKey> left, DomainEntity<TKey> right)
-    {
-        if (left is null && right is null)
-            return true;
-        if (left is null || right is null)
-            return false;
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(DomainEntity<TKey> left, DomainEntity<TKey> right)
-        => !(left == right);
 }
 ```
 
 ### ValueObject.cs
 
 ```csharp
-namespace RCommon.Entities;
-
-/// <summary>
-/// Abstract base record for value objects. Leverages C# record semantics for automatic
-/// structural equality, immutability, and with-expression support.
-///
-/// Derive concrete value objects from this type:
-/// <code>
-/// public record Money(decimal Amount, string Currency) : ValueObject;
-/// public record Address(string Street, string City, string ZipCode) : ValueObject;
-/// </code>
-/// </summary>
-public abstract record ValueObject;
+namespace RCommon.Entities
+{
+    /// <summary>
+    /// Abstract base record for value objects. Leverages C# record semantics for automatic
+    /// structural equality, immutability, and with-expression support.
+    ///
+    /// Derive concrete value objects from this type:
+    /// <code>
+    /// public record Money(decimal Amount, string Currency) : ValueObject;
+    /// public record Address(string Street, string City, string ZipCode) : ValueObject;
+    /// </code>
+    /// </summary>
+    public abstract record ValueObject;
+}
 ```
 
 ## Domain Event Flow
@@ -284,9 +327,9 @@ The domain event dispatch flow reuses the existing infrastructure with zero modi
 
 ```
 1. AggregateRoot.AddDomainEvent(IDomainEvent)
-   → calls BusinessEntity.AddLocalEvent(ISerializableEvent)
-   → IDomainEvent IS-A ISerializableEvent, so this just works
-   → event stored in BusinessEntity._localEvents
+   → adds to _domainEvents (typed collection) AND calls BusinessEntity.AddLocalEvent()
+   → IDomainEvent IS-A ISerializableEvent, so AddLocalEvent just works
+   → event stored in both AggregateRoot._domainEvents and BusinessEntity._localEvents
    → C# event TransactionalEventAdded fires
 
 2. Repository.AddAsync/UpdateAsync/DeleteAsync(aggregate)
@@ -294,11 +337,16 @@ The domain event dispatch flow reuses the existing infrastructure with zero modi
    → (existing behavior, unchanged)
 
 3. EmitTransactionalEventsAsync()
-   → InMemoryEntityEventTracker traverses object graph
-   → Collects LocalEvents from aggregate root and nested entities
+   → InMemoryEntityEventTracker traverses object graph via ObjectGraphWalker
+   → Only discovers IBusinessEntity instances (DomainEntity is NOT traversed — intentional)
+   → Collects LocalEvents from aggregate root (and any nested IBusinessEntity children)
    → IEventRouter.AddTransactionalEvents() + RouteEventsAsync()
    → IEventProducer dispatches via MediatR, EventBus, MassTransit, etc.
 ```
+
+**Important:** The `ObjectGraphWalker` in `InMemoryEntityEventTracker` traverses for `IBusinessEntity`. Since `DomainEntity<TKey>` does not implement `IBusinessEntity`, child entities using `DomainEntity` will not be traversed. All domain events must be raised on the `AggregateRoot`, not on child `DomainEntity` instances.
+
+**Known limitation:** `BusinessEntity.AddLocalEvent` is inherited as a public method on `AggregateRoot`. External callers could bypass `AddDomainEvent` (which is protected) and add raw `ISerializableEvent` objects directly. Consumers should always use `AddDomainEvent` on aggregate roots.
 
 **No changes required to:**
 - `IEntityEventTracker` interface
@@ -314,11 +362,13 @@ This design requires zero changes to existing files. All new types are additive.
 ## Testing Strategy
 
 Unit tests should cover:
-- `AggregateRoot`: domain event add/remove/clear, version increment, DomainEvents projection
-- `DomainEntity`: identity-based equality, transient detection, type-mismatch inequality
+- `AggregateRoot`: domain event add/remove/clear, version increment, DomainEvents projection, dual-list sync (events appear in both DomainEvents and LocalEvents)
+- `DomainEntity`: identity-based equality, transient detection, type-mismatch inequality, null Id handling in GetHashCode
 - `ValueObject`: structural equality via record semantics, inequality for different values
 - `DomainEvent`: default `EventId` and `OccurredOn` generation, `init` property overrides
 - Integration: verify domain events raised on `AggregateRoot` flow through `InMemoryEntityEventTracker` and `IEventRouter` correctly
+
+Note: `AggregateRoot` is designed for single-threaded access per DDD convention (one aggregate per transaction). Thread-safety testing is not required.
 
 ## Future Considerations
 
