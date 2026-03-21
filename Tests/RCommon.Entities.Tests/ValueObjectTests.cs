@@ -15,6 +15,16 @@ public class ValueObjectTests
 
     private record Address(string Street, string City, string ZipCode) : ValueObject;
 
+    private record EmailAddress(string Value) : ValueObject<string>(Value)
+    {
+        public static implicit operator EmailAddress(string value) => new(value);
+    }
+
+    private record CustomerId(Guid Value) : ValueObject<Guid>(Value)
+    {
+        public static implicit operator CustomerId(Guid value) => new(value);
+    }
+
     #endregion
 
     #region Structural Equality Tests
@@ -102,6 +112,73 @@ public class ValueObjectTests
     {
         var money = new Money(100.00m, "USD");
         money.Should().BeAssignableTo<ValueObject>();
+    }
+
+    #endregion
+
+    #region Generic ValueObject<T> Tests
+
+    [Fact]
+    public void GenericValueObject_SameValues_AreEqual()
+    {
+        var email1 = new EmailAddress("user@example.com");
+        var email2 = new EmailAddress("user@example.com");
+        email1.Should().Be(email2);
+    }
+
+    [Fact]
+    public void GenericValueObject_DifferentValues_AreNotEqual()
+    {
+        var email1 = new EmailAddress("user@example.com");
+        var email2 = new EmailAddress("other@example.com");
+        email1.Should().NotBe(email2);
+    }
+
+    [Fact]
+    public void GenericValueObject_ImplicitConversionToUnderlyingType()
+    {
+        var email = new EmailAddress("user@example.com");
+        string raw = email;
+        raw.Should().Be("user@example.com");
+    }
+
+    [Fact]
+    public void GenericValueObject_ImplicitConversionFromUnderlyingType()
+    {
+        EmailAddress email = "user@example.com";
+        email.Value.Should().Be("user@example.com");
+    }
+
+    [Fact]
+    public void GenericValueObject_ToString_ReturnsUnderlyingValue()
+    {
+        var email = new EmailAddress("user@example.com");
+        email.ToString().Should().Be("user@example.com");
+    }
+
+    [Fact]
+    public void GenericValueObject_IsAssignableToValueObject()
+    {
+        var email = new EmailAddress("user@example.com");
+        email.Should().BeAssignableTo<ValueObject<string>>();
+        email.Should().BeAssignableTo<ValueObject>();
+    }
+
+    [Fact]
+    public void GenericValueObject_WithGuidValue_WorksCorrectly()
+    {
+        var id = Guid.NewGuid();
+        CustomerId customerId = id;
+        Guid raw = customerId;
+        raw.Should().Be(id);
+    }
+
+    [Fact]
+    public void GenericValueObject_SameValues_HaveSameHashCode()
+    {
+        var email1 = new EmailAddress("user@example.com");
+        var email2 = new EmailAddress("user@example.com");
+        email1.GetHashCode().Should().Be(email2.GetHashCode());
     }
 
     #endregion
