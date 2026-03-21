@@ -257,7 +257,7 @@ public class InMemoryEntityEventTrackerTests
         await tracker.EmitTransactionalEventsAsync();
 
         // Assert
-        _mockEventRouter.Verify(x => x.RouteEventsAsync(), Times.Once);
+        _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -320,7 +320,7 @@ public class InMemoryEntityEventTrackerTests
 
         // Assert
         result.Should().BeTrue();
-        _mockEventRouter.Verify(x => x.RouteEventsAsync(), Times.Once);
+        _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public class InMemoryEntityEventTrackerTests
         await tracker.EmitTransactionalEventsAsync();
 
         // Assert
-        _mockEventRouter.Verify(x => x.RouteEventsAsync(), Times.Once);
+        _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -416,7 +416,7 @@ public class InMemoryEntityEventTrackerTests
         // Assert
         result.Should().BeTrue();
         tracker.TrackedEntities.Should().HaveCount(2);
-        _mockEventRouter.Verify(x => x.RouteEventsAsync(), Times.Once);
+        _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -433,7 +433,7 @@ public class InMemoryEntityEventTrackerTests
         await tracker.EmitTransactionalEventsAsync();
 
         // Assert
-        _mockEventRouter.Verify(x => x.RouteEventsAsync(), Times.Exactly(3));
+        _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Exactly(3));
     }
 
     #endregion

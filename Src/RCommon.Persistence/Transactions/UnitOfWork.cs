@@ -96,19 +96,23 @@ namespace RCommon.Persistence.Transactions
 
             _state = UnitOfWorkState.CommitAttempted;
 
-            // 1. Mark scope for commit
-            _transactionScope.Complete();
+            // Phase 1: persist events to outbox (within active transaction)
+            if (_eventTracker != null)
+            {
+                await _eventTracker.PersistEventsAsync(cancellationToken).ConfigureAwait(false);
+            }
 
-            // 2. Dispose scope — this is where the actual DB commit occurs
+            // Phase 2: commit transaction (domain writes + outbox writes atomically)
+            _transactionScope.Complete();
             _transactionScope.Dispose();
             _transactionScopeDisposed = true;
             _state = UnitOfWorkState.Completed;
 
-            // 3. Post-commit: dispatch domain events (transaction is fully committed)
+            // Phase 3: immediate dispatch attempt (best-effort, failures handled by poller)
             if (_eventTracker != null)
             {
                 var dispatched = await _eventTracker
-                    .EmitTransactionalEventsAsync()
+                    .EmitTransactionalEventsAsync(cancellationToken)
                     .ConfigureAwait(false);
 
                 if (!dispatched)

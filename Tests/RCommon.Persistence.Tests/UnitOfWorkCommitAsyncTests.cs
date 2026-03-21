@@ -45,18 +45,20 @@ public class UnitOfWorkCommitAsyncTests
     public async Task CommitAsync_With_Tracker_Dispatches_Events()
     {
         var mockTracker = new Mock<IEntityEventTracker>();
-        mockTracker.Setup(t => t.EmitTransactionalEventsAsync()).ReturnsAsync(true);
+        mockTracker.Setup(t => t.PersistEventsAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        mockTracker.Setup(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
         using var uow = new UnitOfWork(
             _mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object, mockTracker.Object);
         await uow.CommitAsync();
-        mockTracker.Verify(t => t.EmitTransactionalEventsAsync(), Times.Once);
+        mockTracker.Verify(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task CommitAsync_Logs_Warning_When_Dispatch_Returns_False()
     {
         var mockTracker = new Mock<IEntityEventTracker>();
-        mockTracker.Setup(t => t.EmitTransactionalEventsAsync()).ReturnsAsync(false);
+        mockTracker.Setup(t => t.PersistEventsAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        mockTracker.Setup(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
         using var uow = new UnitOfWork(
             _mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object, mockTracker.Object);
         await uow.CommitAsync();
@@ -80,7 +82,7 @@ public class UnitOfWorkCommitAsyncTests
         uow.Commit();
         #pragma warning restore CS0618
         uow.State.Should().Be(UnitOfWorkState.Completed);
-        mockTracker.Verify(t => t.EmitTransactionalEventsAsync(), Times.Never);
+        mockTracker.Verify(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -108,5 +110,28 @@ public class UnitOfWorkCommitAsyncTests
         await uow.CommitAsync();
         var act = () => { uow.Dispose(); };
         act.Should().NotThrow("Dispose after CommitAsync must be safe (no double-dispose)");
+    }
+
+    [Fact]
+    public async Task CommitAsync_With_Tracker_Calls_PersistEventsAsync_Before_Commit()
+    {
+        var callOrder = new System.Collections.Generic.List<string>();
+        var mockTracker = new Mock<IEntityEventTracker>();
+        mockTracker
+            .Setup(t => t.PersistEventsAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => callOrder.Add("PersistEventsAsync"))
+            .Returns(Task.CompletedTask);
+        mockTracker
+            .Setup(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => callOrder.Add("EmitTransactionalEventsAsync"))
+            .ReturnsAsync(true);
+
+        using var uow = new UnitOfWork(
+            _mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object, mockTracker.Object);
+        await uow.CommitAsync();
+
+        callOrder.Should().ContainInOrder("PersistEventsAsync", "EmitTransactionalEventsAsync");
+        mockTracker.Verify(t => t.PersistEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
+        mockTracker.Verify(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
