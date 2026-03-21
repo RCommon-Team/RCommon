@@ -1,4 +1,3 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
 using HR.LeaveManagement.Domain;
@@ -15,12 +14,10 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
 {
     public class DeleteLeaveTypeCommandHandler : IAppRequestHandler<DeleteLeaveTypeCommand>
     {
-        private readonly IMapper _mapper;
         private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
 
-        public DeleteLeaveTypeCommandHandler(IMapper mapper, IGraphRepository<LeaveType> leaveTypeRepository)
+        public DeleteLeaveTypeCommandHandler(IGraphRepository<LeaveType> leaveTypeRepository)
         {
-            _mapper = mapper;
             _leaveTypeRepository = leaveTypeRepository;
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
         }

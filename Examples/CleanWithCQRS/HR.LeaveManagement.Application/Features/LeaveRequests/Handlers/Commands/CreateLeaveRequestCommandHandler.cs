@@ -1,8 +1,8 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.DTOs.LeaveRequest.Validators;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
+using HR.LeaveManagement.Application.Mappings;
 using HR.LeaveManagement.Application.Responses;
 using HR.LeaveManagement.Domain;
 using RCommon.Mediator.Subscribers;
@@ -32,7 +32,6 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
         private readonly IEmailService _emailSender;
         private readonly ICurrentUser _currentUser;
         private readonly IOptions<SendGridEmailSettings> _emailSettings;
-        private readonly IMapper _mapper;
         private readonly IValidationService _validationService;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
@@ -45,7 +44,6 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             IEmailService emailSender,
             ICurrentUser currentUser,
             IOptions<SendGridEmailSettings> emailSettings,
-            IMapper mapper,
             IValidationService validationService)
         {
             _leaveTypeRepository = leaveTypeRepository;
@@ -56,8 +54,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             this._leaveRequestRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             _emailSender = emailSender;
             this._currentUser = currentUser;
-            _emailSettings=emailSettings;
-            _mapper = mapper;
+            _emailSettings = emailSettings;
             _validationService = validationService;
         }
 
@@ -67,8 +64,8 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             var validationResult = await _validationService.ValidateAsync(request.LeaveRequestDto);
             var userId = _currentUser.FindClaimValue(CustomClaimTypes.Uid);
 
-            var allocation = _leaveAllocationRepository.FirstOrDefault(x=>x.EmployeeId == userId && x.LeaveTypeId == request.LeaveRequestDto.LeaveTypeId);
-            if(allocation is null)
+            var allocation = _leaveAllocationRepository.FirstOrDefault(x => x.EmployeeId == userId && x.LeaveTypeId == request.LeaveRequestDto.LeaveTypeId);
+            if (allocation is null)
             {
                 validationResult.Errors.Add(new ValidationFault(nameof(request.LeaveRequestDto.LeaveTypeId),
                     "You do not have any allocations for this leave type."));
@@ -82,7 +79,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                         nameof(request.LeaveRequestDto.EndDate), "You do not have enough days for this request"));
                 }
             }
-            
+
             if (validationResult.IsValid == false)
             {
                 response.Success = false;
@@ -91,7 +88,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             }
             else
             {
-                var leaveRequest = _mapper.Map<LeaveRequest>(request.LeaveRequestDto);
+                var leaveRequest = request.LeaveRequestDto.ToLeaveRequest();
                 leaveRequest.RequestingEmployeeId = userId;
                 await _leaveRequestRepository.AddAsync(leaveRequest);
                 //TODO: May need to get Id out
@@ -104,7 +101,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                 {
                     var emailAddress = _currentUser.FindClaimValue(ClaimTypes.Email);
 
-                    var email = new MailMessage(new MailAddress(this._emailSettings.Value.FromEmailDefault, this._emailSettings.Value.FromNameDefault), 
+                    var email = new MailMessage(new MailAddress(this._emailSettings.Value.FromEmailDefault, this._emailSettings.Value.FromNameDefault),
                         new MailAddress(emailAddress))
                     {
                         Body = $"Your leave request for {request.LeaveRequestDto.StartDate:D} to {request.LeaveRequestDto.EndDate:D} " +
@@ -119,7 +116,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                     //// Log or handle error, but don't throw...
                 }
             }
-            
+
             return response;
         }
     }

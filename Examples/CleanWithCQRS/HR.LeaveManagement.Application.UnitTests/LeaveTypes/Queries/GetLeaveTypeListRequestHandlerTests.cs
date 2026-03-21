@@ -1,8 +1,6 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.DTOs.LeaveType;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
-using HR.LeaveManagement.Application.Profiles;
 using HR.LeaveManagement.Domain;
 using Moq;
 using NUnit.Framework;
@@ -22,19 +20,6 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Queries
     [TestFixture()]
     public class GetLeaveTypeListRequestHandlerTests
     {
-        private readonly IMapper _mapper;
-        public GetLeaveTypeListRequestHandlerTests()
-        {
-            //_mockRepo = MockLeaveTypeRepository.GetLeaveTypeRepository();
-
-            var mapperConfig = new MapperConfiguration(c => 
-            {
-                c.AddProfile<MappingProfile>();
-            }, null);
-
-            _mapper = mapperConfig.CreateMapper();
-        }
-
         [Test]
         public async Task GetLeaveTypeListTest()
         {
@@ -46,8 +31,8 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Queries
             var mock = new Mock<IGraphRepository<LeaveType>>();
             mock.Setup(x => x.FindAsync(x=>true, CancellationToken.None))
                 .Returns(() => Task.FromResult(testData as ICollection<LeaveType>));
-            
-            var handler = new GetLeaveTypeListRequestHandler(mock.Object, _mapper);
+
+            var handler = new GetLeaveTypeListRequestHandler(mock.Object);
             var result = await handler.HandleAsync(new GetLeaveTypeListRequest(), CancellationToken.None);
 
             result.ShouldBeOfType<List<LeaveTypeDto>>();

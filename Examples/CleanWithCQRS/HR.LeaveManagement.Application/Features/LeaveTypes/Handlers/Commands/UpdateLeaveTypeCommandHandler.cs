@@ -1,7 +1,7 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.DTOs.LeaveType.Validators;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
+using HR.LeaveManagement.Application.Mappings;
 using HR.LeaveManagement.Domain;
 using RCommon.Mediator.Subscribers;
 using System;
@@ -17,13 +17,11 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
 {
     public class UpdateLeaveTypeCommandHandler : IAppRequestHandler<UpdateLeaveTypeCommand>
     {
-        private readonly IMapper _mapper;
         private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
         private readonly IValidationService _validationService;
 
-        public UpdateLeaveTypeCommandHandler(IMapper mapper, IGraphRepository<LeaveType> leaveTypeRepository, IValidationService validationService)
+        public UpdateLeaveTypeCommandHandler(IGraphRepository<LeaveType> leaveTypeRepository, IValidationService validationService)
         {
-            _mapper = mapper;
             _leaveTypeRepository = leaveTypeRepository;
             _validationService = validationService;
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
@@ -41,11 +39,9 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands
             if (leaveType is null)
                 throw new NotFoundException(nameof(leaveType), request.LeaveTypeDto.Id);
 
-            _mapper.Map(request.LeaveTypeDto, leaveType);
+            request.LeaveTypeDto.ApplyTo(leaveType);
 
             await _leaveTypeRepository.UpdateAsync(leaveType);
-
-            
         }
     }
 }

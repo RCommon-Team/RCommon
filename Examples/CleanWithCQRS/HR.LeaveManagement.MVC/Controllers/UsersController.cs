@@ -1,4 +1,3 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.MVC.Contracts;
 using HR.LeaveManagement.MVC.Models;
 using HR.LeaveManagement.MVC.Services.Base;
@@ -53,7 +52,7 @@ namespace HR.LeaveManagement.MVC.Controllers
                 if (isCreated)
                     return LocalRedirect(returnUrl);
             }
-            
+
             ModelState.AddModelError("", "Registration Attempt Failed. Please try again.");
             return View(registration);
         }

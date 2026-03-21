@@ -1,7 +1,7 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.DTOs;
 using HR.LeaveManagement.Application.DTOs.LeaveAllocation;
 using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Queries;
+using HR.LeaveManagement.Application.Mappings;
 using HR.LeaveManagement.Domain;
 using RCommon.Mediator.Subscribers;
 using RCommon.Persistence;
@@ -14,19 +14,18 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Quer
     public class GetLeaveAllocationDetailRequestHandler : IAppRequestHandler<GetLeaveAllocationDetailRequest, LeaveAllocationDto>
     {
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
-        private readonly IMapper _mapper;
 
-        public GetLeaveAllocationDetailRequestHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
+        public GetLeaveAllocationDetailRequestHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository)
         {
             _leaveAllocationRepository = leaveAllocationRepository;
             this._leaveAllocationRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
-            _mapper = mapper;
         }
+
         public async Task<LeaveAllocationDto> HandleAsync(GetLeaveAllocationDetailRequest request, CancellationToken cancellationToken)
         {
             _leaveAllocationRepository.Include(x => x.LeaveType);
             var leaveAllocation = await _leaveAllocationRepository.FindAsync(request.Id);
-            return _mapper.Map<LeaveAllocationDto>(leaveAllocation);
+            return leaveAllocation.ToLeaveAllocationDto();
         }
     }
 }

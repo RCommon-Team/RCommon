@@ -1,11 +1,9 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.DTOs.LeaveType;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
-using HR.LeaveManagement.Application.Profiles;
 using HR.LeaveManagement.Application.Responses;
 using HR.LeaveManagement.Domain;
 using Moq;
@@ -26,21 +24,11 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
     [TestFixture()]
     public class CreateLeaveTypeCommandHandlerTests
     {
-        private readonly IMapper _mapper;
-
         private readonly CreateLeaveTypeDto _leaveTypeDto;
         private readonly CreateLeaveTypeCommandHandler _handler;
 
         public CreateLeaveTypeCommandHandlerTests()
         {
-
-            var mapperConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<MappingProfile>();
-            }, null);
-
-            _mapper = mapperConfig.CreateMapper();
-
             var testData = new List<LeaveType>();
             var mock = new Mock<IGraphRepository<LeaveType>>();
             var validationMock = new Mock<IValidationService>();
@@ -56,7 +44,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
 
             validationMock.Setup(x => x.ValidateAsync(_leaveTypeDto, false, CancellationToken.None))
                 .Returns(() => Task.FromResult(new ValidationOutcome()));
-            _handler = new CreateLeaveTypeCommandHandler(_mapper, mock.Object, validationMock.Object);
+            _handler = new CreateLeaveTypeCommandHandler(mock.Object, validationMock.Object);
         }
 
         [Test]
@@ -77,7 +65,7 @@ namespace HR.LeaveManagement.Application.UnitTests.LeaveTypes.Commands
             //leaveTypes.Count.ShouldBe(3);
 
             result.ShouldBeOfType<BaseCommandResponse>();
-            
+
         }
     }
 }

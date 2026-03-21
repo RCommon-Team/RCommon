@@ -1,9 +1,9 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.DTOs.LeaveRequest.Validators;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
+using HR.LeaveManagement.Application.Mappings;
 using HR.LeaveManagement.Domain;
 using RCommon.Mediator.Subscribers;
 using System;
@@ -22,15 +22,13 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
         private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
         private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
-        private readonly IMapper _mapper;
         private readonly IValidationService _validationService;
 
         public UpdateLeaveRequestCommandHandler(
             IGraphRepository<LeaveRequest> leaveRequestRepository,
             IReadOnlyRepository<LeaveType> leaveTypeRepository,
             IGraphRepository<LeaveAllocation> leaveAllocationRepository,
-             IMapper mapper,
-             IValidationService validationService)
+            IValidationService validationService)
         {
             this._leaveRequestRepository = leaveRequestRepository;
             _leaveTypeRepository = leaveTypeRepository;
@@ -38,7 +36,6 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
             this._leaveAllocationRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
             this._leaveRequestRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
-            _mapper = mapper;
             _validationService = validationService;
         }
 
@@ -46,7 +43,7 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
         {
             var leaveRequest = await _leaveRequestRepository.FindAsync(request.Id);
 
-            if(leaveRequest is null)
+            if (leaveRequest is null)
                 throw new NotFoundException(nameof(leaveRequest), request.Id);
 
             if (request.LeaveRequestDto != null)
@@ -55,11 +52,11 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                 if (validationResult.IsValid == false)
                     throw new ValidationException(validationResult.Errors);
 
-                _mapper.Map(request.LeaveRequestDto, leaveRequest);
+                request.LeaveRequestDto.ApplyTo(leaveRequest);
 
                 await _leaveRequestRepository.UpdateAsync(leaveRequest);
             }
-            else if(request.ChangeLeaveRequestApprovalDto != null)
+            else if (request.ChangeLeaveRequestApprovalDto != null)
             {
                 leaveRequest.Approved = request.ChangeLeaveRequestApprovalDto.Approved;
                 await _leaveRequestRepository.UpdateAsync(leaveRequest);
@@ -75,8 +72,6 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Command
                     await _leaveAllocationRepository.UpdateAsync(allocation);
                 }
             }
-
-            
         }
     }
 }
