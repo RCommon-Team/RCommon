@@ -250,6 +250,87 @@ public class SpecificationTests
 
     #endregion
 
+    #region Not Extension Tests
+
+    [Fact]
+    public void Not_NegatesSpecification_SatisfiedBecomesFalse()
+    {
+        // Arrange
+        var activeSpec = new Specification<TestEntity>(x => x.IsActive);
+        ISpecification<TestEntity> notActiveSpec = activeSpec.Not();
+
+        var activeEntity = new TestEntity { Id = 1, IsActive = true };
+        var inactiveEntity = new TestEntity { Id = 2, IsActive = false };
+
+        // Act & Assert
+        notActiveSpec.IsSatisfiedBy(activeEntity).Should().BeFalse();
+        notActiveSpec.IsSatisfiedBy(inactiveEntity).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Not_ReturnsNewSpecification()
+    {
+        // Arrange
+        var spec = new Specification<TestEntity>(x => x.Id > 0);
+
+        // Act
+        var negated = spec.Not();
+
+        // Assert
+        negated.Should().NotBeNull();
+        negated.Should().NotBeSameAs(spec);
+    }
+
+    [Fact]
+    public void Not_DoubleNegation_RestoresOriginalBehavior()
+    {
+        // Arrange
+        var spec = new Specification<TestEntity>(x => x.Id > 10);
+        var doubleNegated = spec.Not().Not();
+
+        var matching = new TestEntity { Id = 15 };
+        var nonMatching = new TestEntity { Id = 5 };
+
+        // Act & Assert
+        doubleNegated.IsSatisfiedBy(matching).Should().BeTrue();
+        doubleNegated.IsSatisfiedBy(nonMatching).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Not_CombinedWithAnd_WorksCorrectly()
+    {
+        // Arrange — Active AND NOT HighId
+        var activeSpec = new Specification<TestEntity>(x => x.IsActive);
+        var highIdSpec = new Specification<TestEntity>(x => x.Id > 100);
+        var combinedSpec = activeSpec.And(highIdSpec.Not());
+
+        var activeHighId = new TestEntity { Id = 150, IsActive = true };
+        var activeLowId = new TestEntity { Id = 50, IsActive = true };
+        var inactiveLowId = new TestEntity { Id = 50, IsActive = false };
+
+        // Act & Assert
+        combinedSpec.IsSatisfiedBy(activeHighId).Should().BeFalse();
+        combinedSpec.IsSatisfiedBy(activeLowId).Should().BeTrue();
+        combinedSpec.IsSatisfiedBy(inactiveLowId).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Not_PredicateIsUsableAsExpression()
+    {
+        // Arrange
+        var spec = new Specification<TestEntity>(x => x.Name == "Test");
+        var negated = spec.Not();
+
+        // Act — compile and invoke the predicate expression
+        var compiled = negated.Predicate.Compile();
+
+        // Assert
+        compiled(new TestEntity { Name = "Test" }).Should().BeFalse();
+        compiled(new TestEntity { Name = "Other" }).Should().BeTrue();
+    }
+
+    #endregion
+
     #region Test Helper Classes
 
     public class TestEntity

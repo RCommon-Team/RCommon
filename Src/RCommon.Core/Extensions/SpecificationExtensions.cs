@@ -45,5 +45,19 @@ namespace RCommon
                 Expression.Lambda<Func<T, bool>>(newExpression, leftHand.Predicate.Parameters)
                 );
         }
+
+        /// <summary>
+        /// Returns a new specification that negates the given specification.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="specification">The specification to negate.</param>
+        /// <returns>A new specification whose predicate is the logical negation of the input.</returns>
+        public static ISpecification<T> Not<T>(this ISpecification<T> specification)
+        {
+            var negated = Expression.Not(specification.Predicate.Body);
+            return new Specification<T>(
+                Expression.Lambda<Func<T, bool>>(negated, specification.Predicate.Parameters)
+                );
+        }
     }
 }
