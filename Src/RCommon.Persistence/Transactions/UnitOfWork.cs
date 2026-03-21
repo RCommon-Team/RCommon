@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RCommon.Entities;
 using RCommon.EventHandling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -23,8 +25,10 @@ namespace RCommon.Persistence.Transactions
     {
         private readonly ILogger<UnitOfWork> _logger;
         private readonly IGuidGenerator _guidGenerator;
+        private readonly IEntityEventTracker? _eventTracker;
         private UnitOfWorkState _state;
         private TransactionScope _transactionScope;
+        private bool _transactionScopeDisposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UnitOfWork"/> class using configured settings.
@@ -32,10 +36,12 @@ namespace RCommon.Persistence.Transactions
         /// <param name="logger">The logger for diagnostic output.</param>
         /// <param name="guidGenerator">The GUID generator for creating the transaction identifier.</param>
         /// <param name="unitOfWorkSettings">The configured settings for isolation level and auto-complete behavior.</param>
-        public UnitOfWork(ILogger<UnitOfWork> logger, IGuidGenerator guidGenerator, IOptions<UnitOfWorkSettings> unitOfWorkSettings)
+        /// <param name="eventTracker">Optional entity event tracker for dispatching domain events after commit.</param>
+        public UnitOfWork(ILogger<UnitOfWork> logger, IGuidGenerator guidGenerator, IOptions<UnitOfWorkSettings> unitOfWorkSettings, IEntityEventTracker? eventTracker = null)
         {
             _logger = logger;
             _guidGenerator = guidGenerator;
+            _eventTracker = eventTracker;
             TransactionId = _guidGenerator.Create();
 
             TransactionMode = TransactionMode.Default;
@@ -52,10 +58,12 @@ namespace RCommon.Persistence.Transactions
         /// <param name="guidGenerator">The GUID generator for creating the transaction identifier.</param>
         /// <param name="transactionMode">The transaction mode for this unit of work.</param>
         /// <param name="isolationLevel">The isolation level for the underlying transaction.</param>
-        public UnitOfWork(ILogger<UnitOfWork> logger, IGuidGenerator guidGenerator, TransactionMode transactionMode, IsolationLevel isolationLevel)
+        /// <param name="eventTracker">Optional entity event tracker for dispatching domain events after commit.</param>
+        public UnitOfWork(ILogger<UnitOfWork> logger, IGuidGenerator guidGenerator, TransactionMode transactionMode, IsolationLevel isolationLevel, IEntityEventTracker? eventTracker = null)
         {
             _logger = logger;
             _guidGenerator = guidGenerator;
+            _eventTracker = eventTracker;
             TransactionId = _guidGenerator.Create();
 
             TransactionMode = transactionMode;
@@ -66,6 +74,7 @@ namespace RCommon.Persistence.Transactions
         }
 
         /// <inheritdoc />
+        [Obsolete("Use CommitAsync instead for automatic domain event dispatch.")]
         public void Commit()
         {
             Guard.Against<ObjectDisposedException>(_state == UnitOfWorkState.Disposed,
@@ -75,6 +84,40 @@ namespace RCommon.Persistence.Transactions
                 "transaction has rolledback and the transaction aborted. The parent scope cannot be commited.");
             _state = UnitOfWorkState.CommitAttempted;
             this.Complete();
+        }
+
+        /// <inheritdoc />
+        public async Task CommitAsync(CancellationToken cancellationToken = default)
+        {
+            Guard.Against<ObjectDisposedException>(_state == UnitOfWorkState.Disposed,
+                "Cannot commit a disposed UnitOfWorkScope instance.");
+            Guard.Against<UnitOfWorkException>(_state == UnitOfWorkState.Completed,
+                "This unit of work scope has been marked completed.");
+
+            _state = UnitOfWorkState.CommitAttempted;
+
+            // 1. Mark scope for commit
+            _transactionScope.Complete();
+
+            // 2. Dispose scope — this is where the actual DB commit occurs
+            _transactionScope.Dispose();
+            _transactionScopeDisposed = true;
+            _state = UnitOfWorkState.Completed;
+
+            // 3. Post-commit: dispatch domain events (transaction is fully committed)
+            if (_eventTracker != null)
+            {
+                var dispatched = await _eventTracker
+                    .EmitTransactionalEventsAsync()
+                    .ConfigureAwait(false);
+
+                if (!dispatched)
+                {
+                    _logger.LogWarning(
+                        "UnitOfWork {TransactionId}: domain event dispatch returned false.",
+                        TransactionId);
+                }
+            }
         }
 
         /// <summary>
@@ -130,10 +173,13 @@ namespace RCommon.Persistence.Transactions
                 }
                 finally
                 {
-                    _transactionScope.Dispose();
+                    if (!_transactionScopeDisposed)
+                    {
+                        _transactionScope.Dispose();
+                    }
                     _state = UnitOfWorkState.Disposed;
                     _logger.LogDebug("UnitOfWork {0} Disposed.", TransactionId);
-                    this.Dispose();
+                    base.Dispose(disposing);
                 }
             }
         }

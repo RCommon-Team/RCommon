@@ -1,19 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace RCommon.Persistence;
 
-namespace RCommon.Persistence
-{
-    /// <summary>
-    /// Marker interface for read model entities used in CQRS-style query projections.
-    /// </summary>
-    /// <remarks>
-    /// Implementing this interface signals that the entity is intended for read-only query scenarios
-    /// and should not be used for write (command) operations.
-    /// </remarks>
-    public interface IReadModel
-    {
-    }
-}
+/// <summary>
+/// Marker interface for read-model/projection types used in CQRS query-side repositories.
+/// Read models are optimized for querying and do not participate in domain event tracking.
+/// </summary>
+public interface IReadModel { }

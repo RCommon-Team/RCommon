@@ -51,7 +51,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
                         unitOfWork.TransactionId, typeName);
 
-                    unitOfWork.Commit();
+                    await unitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return response;
@@ -108,7 +108,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
                     _logger.LogInformation("----- Commit transaction {UnitOfWorkTransactionId} for {CommandName}",
                         unitOfWork.TransactionId, typeName);
 
-                    unitOfWork.Commit();
+                    await unitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return response;

@@ -27,7 +27,7 @@ namespace RCommon.Reflection
         public static IEnumerable<T> TraverseGraphFor<T>(object root) where T : class
         {
             var results = new List<T>();
-            var visited = new ArrayList();
+            var visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
             Walk(root, results, visited);
             return results.ToArray();
         }
@@ -40,13 +40,18 @@ namespace RCommon.Reflection
         /// <typeparam name="T">The type to search for.</typeparam>
         /// <param name="source">The current object being inspected.</param>
         /// <param name="results">The accumulator list for matching instances.</param>
-        /// <param name="visited">The list of already-visited objects to prevent cycles.</param>
-        private static void Walk<T>(object? source, IList<T> results, IList visited)
+        /// <param name="visited">The set of already-visited objects to prevent cycles.</param>
+        private static void Walk<T>(object? source, IList<T> results, HashSet<object> visited)
             where T : class
         {
             if (source == null) return;
-            if (visited.Contains(source)) return;
-            visited.Add(source);
+
+            // Value types cannot match T (which is constrained to class) and cannot form
+            // circular references, so skip them to avoid infinite recursion on self-referential
+            // value type properties (e.g., DateTime.Date -> DateTime).
+            if (source.GetType().IsValueType) return;
+
+            if (!visited.Add(source)) return;
 
             // source is instance of T or any derived class
             if (typeof(T).IsInstanceOfType(source))
@@ -70,9 +75,9 @@ namespace RCommon.Reflection
         /// <typeparam name="T">The type to search for.</typeparam>
         /// <param name="source">The enumerable sequence to iterate.</param>
         /// <param name="results">The accumulator list for matching instances.</param>
-        /// <param name="visited">The list of already-visited objects to prevent cycles.</param>
+        /// <param name="visited">The set of already-visited objects to prevent cycles.</param>
         private static void WalkSequence<T>(IEnumerable? source,
-            IList<T> results, IList visited)
+            IList<T> results, HashSet<object> visited)
             where T : class
         {
             if (source == null) return;
@@ -89,9 +94,9 @@ namespace RCommon.Reflection
         /// <typeparam name="T">The type to search for.</typeparam>
         /// <param name="source">The complex object whose members are inspected.</param>
         /// <param name="results">The accumulator list for matching instances.</param>
-        /// <param name="visited">The list of already-visited objects to prevent cycles.</param>
+        /// <param name="visited">The set of already-visited objects to prevent cycles.</param>
         private static void WalkComplexObject<T>(object? source,
-            IList<T> results, IList visited)
+            IList<T> results, HashSet<object> visited)
             where T : class
         {
             if (source == null) return;

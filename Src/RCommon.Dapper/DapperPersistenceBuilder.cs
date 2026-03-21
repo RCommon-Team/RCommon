@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using RCommon.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Persistence.Dapper.Crud;
+using RCommon.Persistence.Dapper.Sagas;
 using RCommon.Persistence.Crud;
+using RCommon.Persistence.Sagas;
 using RCommon.Security.Claims;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -46,6 +48,9 @@ namespace RCommon
             services.AddTransient(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
             services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(DapperRepository<>));
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(DapperRepository<>));
+            services.AddTransient(typeof(IAggregateRepository<,>), typeof(DapperAggregateRepository<,>));
+            services.AddTransient(typeof(IReadModelRepository<>), typeof(DapperReadModelRepository<>));
+            services.AddScoped(typeof(ISagaStore<,>), typeof(DapperSagaStore<,>));
 
         }
 

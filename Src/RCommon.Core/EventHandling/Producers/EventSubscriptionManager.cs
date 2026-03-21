@@ -66,7 +66,11 @@ namespace RCommon.EventHandling.Producers
         {
             if (_eventProducerMap.TryGetValue(eventType, out var allowedProducerTypes))
             {
-                return allProducers.Where(p => allowedProducerTypes.Contains(p.GetType()));
+                lock (allowedProducerTypes)
+                {
+                    var snapshot = allowedProducerTypes.ToHashSet();
+                    return allProducers.Where(p => snapshot.Contains(p.GetType()));
+                }
             }
 
             // No subscriptions registered for this event type - fall back to all producers
@@ -82,7 +86,10 @@ namespace RCommon.EventHandling.Producers
         {
             if (_eventProducerMap.TryGetValue(eventType, out var allowedProducerTypes))
             {
-                return allowedProducerTypes.Contains(producerType);
+                lock (allowedProducerTypes)
+                {
+                    return allowedProducerTypes.Contains(producerType);
+                }
             }
 
             // No subscriptions registered for this event type - allow all producers
@@ -93,5 +100,14 @@ namespace RCommon.EventHandling.Producers
         /// Returns true if any subscriptions have been configured at all.
         /// </summary>
         public bool HasSubscriptions => !_eventProducerMap.IsEmpty;
+
+        /// <summary>
+        /// Clears all subscriptions. Primarily intended for testing scenarios.
+        /// </summary>
+        public void ClearSubscriptions()
+        {
+            _builderProducerMap.Clear();
+            _eventProducerMap.Clear();
+        }
     }
 }

@@ -10,7 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RCommon.Persistence.Linq2Db.Crud;
+using RCommon.Persistence.Linq2Db.Sagas;
 using RCommon.Persistence.Crud;
+using RCommon.Persistence.Sagas;
 using RCommon.Security.Claims;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using LinqToDB.Extensions.DependencyInjection;
@@ -48,6 +50,9 @@ namespace RCommon.Persistence.Linq2Db
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(Linq2DbRepository<>));
             services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(Linq2DbRepository<>));
             services.AddTransient(typeof(ILinqRepository<>), typeof(Linq2DbRepository<>));
+            services.AddTransient(typeof(IAggregateRepository<,>), typeof(Linq2DbAggregateRepository<,>));
+            services.AddTransient(typeof(IReadModelRepository<>), typeof(Linq2DbReadModelRepository<>));
+            services.AddScoped(typeof(ISagaStore<,>), typeof(Linq2DbSagaStore<,>));
         }
 
         /// <inheritdoc />

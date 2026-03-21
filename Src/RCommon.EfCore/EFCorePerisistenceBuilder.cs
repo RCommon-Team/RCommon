@@ -11,6 +11,8 @@ using RCommon.Persistence;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.EFCore.Crud;
+using RCommon.Persistence.EFCore.Sagas;
+using RCommon.Persistence.Sagas;
 using RCommon.Security.Claims;
 
 namespace RCommon
@@ -46,6 +48,9 @@ namespace RCommon
             services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(ILinqRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(IGraphRepository<>), typeof(EFCoreRepository<>));
+            services.AddTransient(typeof(IAggregateRepository<,>), typeof(EFCoreAggregateRepository<,>));
+            services.AddTransient(typeof(IReadModelRepository<>), typeof(EFCoreReadModelRepository<>));
+            services.AddScoped(typeof(ISagaStore<,>), typeof(EFCoreSagaStore<,>));
         }
 
         /// <inheritdoc />

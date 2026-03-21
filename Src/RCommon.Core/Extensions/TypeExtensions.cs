@@ -38,6 +38,7 @@ namespace RCommon
     /// </summary>
     public static class TypeExtensions
     {
+        private const int MaxCacheSize = 1024;
         /// <summary>
         /// Gets a human-readable generic type name (e.g., "List&lt;String&gt;" instead of "List`1").
         /// For non-generic types, returns <see cref="Type.Name"/>.
@@ -74,19 +75,27 @@ namespace RCommon
         /// <returns>A pretty-printed type name string.</returns>
         public static string PrettyPrint(this Type type)
         {
-            return PrettyPrintCache.GetOrAdd(
-                type,
-                t =>
-                {
-                    try
-                    {
-                        return PrettyPrintRecursive(t, 0);
-                    }
-                    catch (Exception)
-                    {
-                        return t.Name;
-                    }
-                });
+            if (PrettyPrintCache.TryGetValue(type, out var cached))
+            {
+                return cached;
+            }
+
+            string result;
+            try
+            {
+                result = PrettyPrintRecursive(type, 0);
+            }
+            catch (Exception)
+            {
+                result = type.Name;
+            }
+
+            if (PrettyPrintCache.Count < MaxCacheSize)
+            {
+                PrettyPrintCache.TryAdd(type, result);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -102,9 +111,19 @@ namespace RCommon
         /// <returns>A cache key string in the format "TypeName[hash: hashCode]".</returns>
         public static string GetCacheKey(this Type type)
         {
-            return TypeCacheKeys.GetOrAdd(
-                type,
-                t => $"{t.PrettyPrint()}[hash: {t.GetHashCode()}]");
+            if (TypeCacheKeys.TryGetValue(type, out var cached))
+            {
+                return cached;
+            }
+
+            var result = $"{type.PrettyPrint()}[hash: {type.GetHashCode()}]";
+
+            if (TypeCacheKeys.Count < MaxCacheSize)
+            {
+                TypeCacheKeys.TryAdd(type, result);
+            }
+
+            return result;
         }
 
         /// <summary>
