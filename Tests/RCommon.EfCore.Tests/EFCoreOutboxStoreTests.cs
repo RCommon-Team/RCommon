@@ -17,6 +17,7 @@ public class TestOutboxDbContext : RCommonDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.AddOutboxMessages();
+        modelBuilder.AddInboxMessages();
     }
 }
 

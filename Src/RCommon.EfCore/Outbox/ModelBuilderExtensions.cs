@@ -9,4 +9,10 @@ public static class ModelBuilderExtensions
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration(tableName));
         return modelBuilder;
     }
+
+    public static ModelBuilder AddInboxMessages(this ModelBuilder modelBuilder, string tableName = "__InboxMessages")
+    {
+        modelBuilder.ApplyConfiguration(new RCommon.Persistence.EFCore.Inbox.InboxMessageConfiguration(tableName));
+        return modelBuilder;
+    }
 }
