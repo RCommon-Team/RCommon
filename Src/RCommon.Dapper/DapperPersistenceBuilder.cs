@@ -13,6 +13,7 @@ using RCommon.Persistence.Crud;
 using RCommon.Persistence.Sagas;
 using RCommon.Security.Claims;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using RCommon.Persistence.Outbox;
 
 namespace RCommon
 {
@@ -91,6 +92,18 @@ namespace RCommon
         public IPersistenceBuilder SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
             this._services.Configure(options);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers the lock statement provider used for outbox claiming operations.
+        /// </summary>
+        /// <typeparam name="TProvider">The lock statement provider type. Must implement <see cref="ILockStatementProvider"/>.</typeparam>
+        /// <returns>The builder instance for fluent chaining.</returns>
+        public IDapperBuilder UseLockStatementProvider<TProvider>()
+            where TProvider : class, ILockStatementProvider
+        {
+            this._services.AddSingleton<ILockStatementProvider, TProvider>();
             return this;
         }
     }
