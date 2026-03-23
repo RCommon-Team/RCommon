@@ -15,22 +15,6 @@ public record ConcurrencyTestEvent(string Data) : ISerializableEvent;
 public class OutboxConcurrencyTests
 {
     [Fact]
-    public async Task DeadLetterMessages_ExcludedFromGetPending()
-    {
-        var storeMock = new Mock<IOutboxStore>();
-        var deadLetteredMsg = new OutboxMessage
-        {
-            Id = Guid.NewGuid(), EventType = "T", EventPayload = "{}",
-            CreatedAtUtc = DateTimeOffset.UtcNow, DeadLetteredAtUtc = DateTimeOffset.UtcNow
-        };
-        storeMock.Setup(s => s.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<IOutboxMessage>());
-
-        var pending = await storeMock.Object.GetPendingAsync(100);
-        pending.Should().NotContain(m => m.DeadLetteredAtUtc.HasValue);
-    }
-
-    [Fact]
     public async Task EmptyBuffer_PersistBufferedEventsAsync_NoStoreCalls()
     {
         var storeMock = new Mock<IOutboxStore>();
@@ -50,11 +34,9 @@ public class OutboxConcurrencyTests
     }
 
     [Fact]
-    public async Task RouteEventsAsync_NoPending_CompletesQuickly()
+    public async Task RouteEventsAsync_NoRetainedEvents_CompletesQuickly()
     {
         var storeMock = new Mock<IOutboxStore>();
-        storeMock.Setup(s => s.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<IOutboxMessage>());
         var guidGenMock = new Mock<IGuidGenerator>();
         var tenantMock = new Mock<ITenantIdAccessor>();
         var serviceProviderMock = new Mock<IServiceProvider>();
@@ -66,6 +48,7 @@ public class OutboxConcurrencyTests
             NullLogger<OutboxEventRouter>.Instance,
             Options.Create(new OutboxOptions()));
 
+        // No events buffered or persisted, so retained list is empty
         await router.RouteEventsAsync();
         storeMock.Verify(s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }

@@ -23,8 +23,9 @@ namespace RCommon.Persistence.Outbox;
 ///   in-memory without touching the store (called during business logic).</description></item>
 ///   <item><description><see cref="PersistBufferedEventsAsync"/> drains the buffer and writes
 ///   <see cref="OutboxMessage"/> rows to <see cref="IOutboxStore"/> within the active transaction (Phase 1).</description></item>
-///   <item><description><see cref="RouteEventsAsync()"/> reads pending messages from the store, deserializes,
-///   dispatches to producers, and marks each message processed or failed (Phase 3, post-commit).</description></item>
+///   <item><description><see cref="RouteEventsAsync()"/> dispatches the retained events (kept in memory after
+///   <see cref="PersistBufferedEventsAsync"/>) to producers and marks each message processed on success — no store
+///   reads are performed; failures are logged and retried by the background processor (Phase 3, post-commit).</description></item>
 ///   <item><description><see cref="RouteEventsAsync(IEnumerable{ISerializableEvent}, CancellationToken)"/> performs direct
 ///   dispatch without touching the store (for non-outbox routing scenarios).</description></item>
 /// </list>
@@ -41,6 +42,7 @@ public class OutboxEventRouter : IEventRouter
     private readonly ILogger<OutboxEventRouter> _logger;
     private readonly OutboxOptions _options;
     private readonly ConcurrentQueue<ISerializableEvent> _buffer = new();
+    private readonly List<(Guid MessageId, ISerializableEvent Event)> _persistedEvents = new();
 
     public OutboxEventRouter(
         IOutboxStore outboxStore,
@@ -106,30 +108,30 @@ public class OutboxEventRouter : IEventRouter
 
             _logger.LogDebug("Persisting outbox message {Id} for event {EventType}", message.Id, message.EventType);
             await _outboxStore.SaveAsync(message, cancellationToken).ConfigureAwait(false);
+            _persistedEvents.Add((message.Id, @event));
         }
     }
 
     /// <summary>
-    /// Reads pending messages from the <see cref="IOutboxStore"/>, deserializes each, dispatches to registered
-    /// <see cref="IEventProducer"/> instances, and marks messages as processed or failed. This should be called
-    /// post-commit (UnitOfWork Phase 3).
+    /// Dispatches retained events that were persisted during <see cref="PersistBufferedEventsAsync"/> to registered
+    /// <see cref="IEventProducer"/> instances, and marks each message processed on success. Events are dispatched
+    /// from the in-memory retained list — no store reads are performed. This should be called post-commit
+    /// (UnitOfWork Phase 3). If dispatch fails for a message, a warning is logged and the background processor
+    /// will retry via <see cref="IOutboxStore.ClaimAsync"/>.
     /// </summary>
     /// <param name="cancellationToken">A token to observe for cancellation requests.</param>
     public async Task RouteEventsAsync(CancellationToken cancellationToken = default)
     {
-        var pending = await _outboxStore.ClaimAsync(Environment.MachineName, _options.BatchSize, _options.LockDuration, cancellationToken).ConfigureAwait(false);
+        if (_persistedEvents.Count == 0) return;
 
-        if (pending.Count == 0) return;
-
-        _logger.LogInformation("OutboxEventRouter dispatching {Count} pending messages", pending.Count);
+        _logger.LogInformation("OutboxEventRouter dispatching {Count} retained messages", _persistedEvents.Count);
 
         var producers = _serviceProvider.GetServices<IEventProducer>();
 
-        foreach (var message in pending)
+        foreach (var (messageId, @event) in _persistedEvents)
         {
             try
             {
-                var @event = _serializer.Deserialize(message.EventType, message.EventPayload);
                 var filteredProducers = _subscriptionManager.HasSubscriptions
                     ? _subscriptionManager.GetProducersForEvent(producers, @event.GetType())
                     : producers;
@@ -139,16 +141,15 @@ public class OutboxEventRouter : IEventRouter
                     await producer.ProduceEventAsync(@event, cancellationToken).ConfigureAwait(false);
                 }
 
-                await _outboxStore.MarkProcessedAsync(message.Id, cancellationToken).ConfigureAwait(false);
+                await _outboxStore.MarkProcessedAsync(messageId, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to dispatch outbox message {Id}", message.Id);
-                var backoff = new ExponentialBackoffStrategy(_options.BackoffBaseDelay, _options.BackoffMaxDelay, _options.BackoffMultiplier);
-                var nextRetry = DateTimeOffset.UtcNow + backoff.ComputeDelay(message.RetryCount + 1);
-                await _outboxStore.MarkFailedAsync(message.Id, ex.Message, nextRetry, cancellationToken).ConfigureAwait(false);
+                _logger.LogWarning(ex, "Best-effort dispatch failed for message {Id}; background processor will retry", messageId);
             }
         }
+
+        _persistedEvents.Clear();
     }
 
     /// <summary>

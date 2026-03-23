@@ -99,41 +99,29 @@ public class OutboxEventRouterTests
     }
 
     [Fact]
-    public async Task RouteEventsAsync_DispatchesPendingFromStore()
+    public async Task RouteEventsAsync_DispatchesRetainedEvents()
     {
-        var msg = new OutboxMessage
-        {
-            Id = Guid.NewGuid(),
-            EventType = _serializer.GetEventTypeName(new RouterTestEvent("x")),
-            EventPayload = _serializer.Serialize(new RouterTestEvent("x")),
-            CreatedAtUtc = DateTimeOffset.UtcNow
-        };
-        _storeMock.Setup(s => s.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<IOutboxMessage> { msg });
-
         var producerMock = new Mock<IEventProducer>();
         _serviceProviderMock.Setup(sp => sp.GetService(typeof(IEnumerable<IEventProducer>)))
             .Returns(new[] { producerMock.Object });
 
         var router = CreateRouter();
+        router.AddTransactionalEvent(new RouterTestEvent("x"));
+        await router.PersistBufferedEventsAsync();
+
         await router.RouteEventsAsync();
 
-        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<CancellationToken>()), Times.Once);
+        producerMock.Verify(
+            p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+        _storeMock.Verify(
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task RouteEventsAsync_MarksFailedOnException()
+    public async Task RouteEventsAsync_LogsWarningOnException_DoesNotMarkFailed()
     {
-        var msg = new OutboxMessage
-        {
-            Id = Guid.NewGuid(),
-            EventType = _serializer.GetEventTypeName(new RouterTestEvent("x")),
-            EventPayload = _serializer.Serialize(new RouterTestEvent("x")),
-            CreatedAtUtc = DateTimeOffset.UtcNow
-        };
-        _storeMock.Setup(s => s.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<IOutboxMessage> { msg });
-
         var producerMock = new Mock<IEventProducer>();
         producerMock.Setup(p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("broker down"));
@@ -141,8 +129,58 @@ public class OutboxEventRouterTests
             .Returns(new[] { producerMock.Object });
 
         var router = CreateRouter();
+        router.AddTransactionalEvent(new RouterTestEvent("x"));
+        await router.PersistBufferedEventsAsync();
+
         await router.RouteEventsAsync();
 
-        _storeMock.Verify(s => s.MarkFailedAsync(msg.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(
+            s => s.MarkFailedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _storeMock.Verify(
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task RouteEventsAsync_ClearsRetainedEventsAfterDispatch()
+    {
+        var producerMock = new Mock<IEventProducer>();
+        _serviceProviderMock.Setup(sp => sp.GetService(typeof(IEnumerable<IEventProducer>)))
+            .Returns(new[] { producerMock.Object });
+
+        var router = CreateRouter();
+        router.AddTransactionalEvent(new RouterTestEvent("x"));
+        await router.PersistBufferedEventsAsync();
+
+        await router.RouteEventsAsync();
+
+        // Second call should be a no-op: no retained events left
+        _storeMock.Invocations.Clear();
+        producerMock.Invocations.Clear();
+        await router.RouteEventsAsync();
+
+        producerMock.Verify(
+            p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _storeMock.Verify(
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task RouteEventsAsync_NoRetainedEvents_ReturnsImmediately()
+    {
+        var router = CreateRouter();
+
+        // No PersistBufferedEventsAsync called - no retained events
+        await router.RouteEventsAsync();
+
+        _storeMock.Verify(
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _storeMock.Verify(
+            s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

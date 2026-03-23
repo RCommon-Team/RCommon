@@ -64,9 +64,9 @@ public class OutboxEntityEventTrackerTests
     [Fact]
     public async Task EmitTransactionalEventsAsync_ReturnsTrue()
     {
-        _storeMock.Setup(s => s.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<IOutboxMessage>());
-
+        // The router no longer reads from the store in RouteEventsAsync — it dispatches from
+        // the in-memory retained list. Since no events were buffered, the retained list is empty
+        // and RouteEventsAsync returns immediately without any store calls.
         var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter);
 
         var result = await tracker.EmitTransactionalEventsAsync();
