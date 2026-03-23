@@ -22,8 +22,15 @@ public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage
         builder.Property(x => x.CreatedAtUtc).IsRequired();
         builder.Property(x => x.CorrelationId).HasMaxLength(256);
         builder.Property(x => x.TenantId).HasMaxLength(256);
+        builder.Property(x => x.NextRetryAtUtc);
+        builder.Property(x => x.LockedByInstanceId).HasMaxLength(64);
+        builder.Property(x => x.LockedUntilUtc);
 
-        builder.HasIndex(x => new { x.ProcessedAtUtc, x.DeadLetteredAtUtc, x.CreatedAtUtc })
+        builder.HasIndex(x => new { x.ProcessedAtUtc, x.DeadLetteredAtUtc, x.NextRetryAtUtc, x.LockedUntilUtc, x.CreatedAtUtc })
             .HasDatabaseName("IX_OutboxMessages_Pending");
+
+        builder.HasIndex(x => x.DeadLetteredAtUtc)
+            .HasDatabaseName("IX_OutboxMessages_DeadLettered")
+            .HasFilter("[DeadLetteredAtUtc] IS NOT NULL");
     }
 }
