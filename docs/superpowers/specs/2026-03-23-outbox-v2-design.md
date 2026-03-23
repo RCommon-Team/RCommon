@@ -171,17 +171,24 @@ Unsupported providers throw `NotSupportedException` with a clear message.
 **SQL Server:**
 
 ```sql
-UPDATE TOP(@batchSize) o
+WITH batch AS (
+    SELECT TOP(@batchSize) Id
+    FROM __OutboxMessages WITH (UPDLOCK, ROWLOCK, READPAST)
+    WHERE ProcessedAtUtc IS NULL
+      AND DeadLetteredAtUtc IS NULL
+      AND RetryCount < @maxRetries
+      AND (NextRetryAtUtc IS NULL OR NextRetryAtUtc <= @now)
+      AND (LockedUntilUtc IS NULL OR LockedUntilUtc <= @now)
+    ORDER BY CreatedAtUtc
+)
+UPDATE o
 SET o.LockedByInstanceId = @instanceId, o.LockedUntilUtc = @lockUntil
 OUTPUT INSERTED.*
 FROM __OutboxMessages o
-WHERE o.ProcessedAtUtc IS NULL
-  AND o.DeadLetteredAtUtc IS NULL
-  AND o.RetryCount < @maxRetries
-  AND (o.NextRetryAtUtc IS NULL OR o.NextRetryAtUtc <= @now)
-  AND (o.LockedUntilUtc IS NULL OR o.LockedUntilUtc <= @now)
-ORDER BY o.CreatedAtUtc;
+INNER JOIN batch ON o.Id = batch.Id;
 ```
+
+`UPDLOCK, ROWLOCK, READPAST` ensures concurrent instances skip rows already being claimed by another instance, preventing deadlocks and double-dispatch.
 
 **PostgreSQL:**
 
@@ -238,6 +245,8 @@ public class OutboxProcessingService : BackgroundService
 ```
 
 ### 4.2 ProcessBatchAsync — revised flow
+
+> **Note:** The pseudocode below omits `.ConfigureAwait(false)` for readability. The real implementation must use `.ConfigureAwait(false)` on all `await` calls, consistent with V1.
 
 ```csharp
 public async Task ProcessBatchAsync(CancellationToken cancellationToken)
@@ -383,7 +392,7 @@ public interface IInboxStore
 __InboxMessages
 ├── MessageId       (Guid)
 ├── EventType       (string)
-├── ConsumerType    (string, nullable — stored as "" for null in composite PK)
+├── ConsumerType    (string, NOT NULL at DB level — C# property is `string?`, stored as "" when null)
 ├── ReceivedAtUtc   (DateTimeOffset)
 ├── PK: (MessageId, ConsumerType)
 └── IX_InboxMessages_Cleanup: (ReceivedAtUtc)
@@ -531,7 +540,9 @@ Each ORM project implements both `IOutboxStore` (updated) and `IInboxStore` (new
 - `RCommon.EfCore/Outbox/OutboxMessageConfiguration.cs` — new columns, updated index
 - `RCommon.EfCore/Outbox/ModelBuilderExtensions.cs` — add inbox configuration
 - `RCommon.Dapper/Outbox/DapperOutboxStore.cs` — same updates
+- `RCommon.Dapper/DapperPersistenceBuilder.cs` — `ILockStatementProvider` registration support
 - `RCommon.Linq2Db/Outbox/Linq2DbOutboxStore.cs` — same updates
+- `RCommon.Linq2Db/Linq2DbPersistenceBuilder.cs` — `ILockStatementProvider` registration support
 
 ### New files (ORM projects)
 - `RCommon.EfCore/Inbox/EFCoreInboxStore.cs`
