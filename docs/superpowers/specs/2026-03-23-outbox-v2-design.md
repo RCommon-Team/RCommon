@@ -355,6 +355,45 @@ Users can register a custom `IBackoffStrategy` before calling `AddOutbox` to ove
 
 **After (V2):** `PersistBufferedEventsAsync` retains the persisted message IDs and deserialized events in a private list. `RouteEventsAsync()` dispatches only those just-persisted events (no store read). On success → `MarkProcessedAsync`. On failure → log warning and skip (the background processor picks it up on the next `ClaimAsync` poll with backoff).
 
+**Implementation sketch:**
+
+```csharp
+// New private field
+private readonly List<(Guid MessageId, ISerializableEvent Event)> _persistedEvents = new();
+
+// In PersistBufferedEventsAsync, after SaveAsync:
+_persistedEvents.Add((message.Id, @event));
+
+// RouteEventsAsync() revised:
+public async Task RouteEventsAsync(CancellationToken cancellationToken = default)
+{
+    if (_persistedEvents.Count == 0) return;
+
+    var producers = _serviceProvider.GetServices<IEventProducer>();
+
+    foreach (var (messageId, @event) in _persistedEvents)
+    {
+        try
+        {
+            var filteredProducers = _subscriptionManager.HasSubscriptions
+                ? _subscriptionManager.GetProducersForEvent(producers, @event.GetType())
+                : producers;
+
+            foreach (var producer in filteredProducers)
+            {
+                await producer.ProduceEventAsync(@event, cancellationToken).ConfigureAwait(false);
+            }
+
+            await _outboxStore.MarkProcessedAsync(messageId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Best-effort dispatch failed for message {Id}; background processor will retry", messageId);
+        }
+    }
+}
+```
+
 This means `RouteEventsAsync()`:
 - **No longer calls** `GetPendingAsync` (removed from interface)
 - **No longer calls** `MarkFailedAsync` (failures left for background processor)
@@ -418,23 +457,24 @@ Composite PK on `(MessageId, ConsumerType)` allows the same message to be proces
 
 ### 5.4 Mode 1: Standalone Opt-In
 
-Consumers check the inbox explicitly:
+Consumers check the inbox explicitly. The `MessageId` is a domain-specific deduplication key chosen by the consumer — typically a domain event ID, correlation ID, or any stable identifier the consumer can derive from the event. `ISerializableEvent` does not define an `Id` property; the concrete event type is responsible for carrying an appropriate identifier.
 
 ```csharp
+// Assumes OrderCreatedEvent has an OrderId property suitable for deduplication
 public class OrderCreatedHandler : IAppEventHandler<OrderCreatedEvent>
 {
     private readonly IInboxStore _inbox;
 
     public async Task HandleAsync(OrderCreatedEvent @event, CancellationToken ct)
     {
-        if (await _inbox.ExistsAsync(@event.Id, GetType().FullName, ct))
+        if (await _inbox.ExistsAsync(@event.OrderId, GetType().FullName, ct))
             return;
 
         // ... handle event ...
 
         await _inbox.RecordAsync(new InboxMessage
         {
-            MessageId = @event.Id,
+            MessageId = @event.OrderId,
             ConsumerType = GetType().FullName,
             EventType = @event.GetType().FullName!,
             ReceivedAtUtc = DateTimeOffset.UtcNow
@@ -442,6 +482,8 @@ public class OrderCreatedHandler : IAppEventHandler<OrderCreatedEvent>
     }
 }
 ```
+
+> **Mode 2 (integrated auto-check)** uses `OutboxMessage.Id` as the `MessageId`, which is always available. Mode 1 requires the consumer to choose an appropriate deduplication key from the concrete event type.
 
 ### 5.5 Mode 2: Integrated Auto-Check
 
