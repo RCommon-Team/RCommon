@@ -347,6 +347,22 @@ builder.Services.TryAddSingleton<IBackoffStrategy>(sp =>
 
 Users can register a custom `IBackoffStrategy` before calling `AddOutbox` to override.
 
+### 4.4 OutboxEventRouter Changes
+
+`OutboxEventRouter.RouteEventsAsync()` currently calls `GetPendingAsync` and `MarkFailedAsync` with V1 signatures. V2 changes its behavior:
+
+**Before (V1):** `RouteEventsAsync()` reads all pending messages from the store, dispatches, marks processed/failed.
+
+**After (V2):** `PersistBufferedEventsAsync` retains the persisted message IDs and deserialized events in a private list. `RouteEventsAsync()` dispatches only those just-persisted events (no store read). On success → `MarkProcessedAsync`. On failure → log warning and skip (the background processor picks it up on the next `ClaimAsync` poll with backoff).
+
+This means `RouteEventsAsync()`:
+- **No longer calls** `GetPendingAsync` (removed from interface)
+- **No longer calls** `MarkFailedAsync` (failures left for background processor)
+- Only calls `MarkProcessedAsync` on success
+- Becomes a best-effort immediate dispatch of the current scope's events only
+
+The `RouteEventsAsync(IEnumerable<ISerializableEvent>, CancellationToken)` overload (direct dispatch without store) is unchanged.
+
 ---
 
 ## 5. Inbox / Idempotency
@@ -534,6 +550,7 @@ Each ORM project implements both `IOutboxStore` (updated) and `IInboxStore` (new
 - `Outbox/OutboxOptions.cs` — 5 new properties
 - `Outbox/OutboxProcessingService.cs` — instance ID, claim-based polling, backoff, inbox auto-check
 - `Outbox/OutboxPersistenceBuilderExtensions.cs` — register `IBackoffStrategy`
+- `Outbox/OutboxEventRouter.cs` — remove `GetPendingAsync`/`MarkFailedAsync` calls, retain persisted events for immediate dispatch
 
 ### Modified files (ORM projects)
 - `RCommon.EfCore/Outbox/EFCoreOutboxStore.cs` — implement `ClaimAsync`, `GetDeadLettersAsync`, `ReplayDeadLetterAsync`, update `MarkFailedAsync`
@@ -559,6 +576,9 @@ Each ORM project implements both `IOutboxStore` (updated) and `IInboxStore` (new
 - New: `Tests/RCommon.Linq2Db.Tests/Linq2DbInboxStoreTests.cs`
 - New: `Tests/RCommon.Persistence.Tests/ExponentialBackoffStrategyTests.cs`
 - Updated: `Tests/RCommon.Persistence.Tests/OutboxProcessingServiceTests.cs`
+- Updated: `Tests/RCommon.Persistence.Tests/OutboxEventRouterTests.cs` — remove `GetPendingAsync`/`MarkFailedAsync` mocks, test retained-event dispatch
+- Updated: `Tests/RCommon.Persistence.Tests/OutboxEntityEventTrackerTests.cs` — update mocks for changed `RouteEventsAsync` behavior
+- Updated: `Tests/RCommon.Persistence.Tests/OutboxConcurrencyTests.cs` — update mocks for removed `GetPendingAsync`
 
 ---
 
