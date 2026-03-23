@@ -117,7 +117,7 @@ public class OutboxEventRouter : IEventRouter
     /// <param name="cancellationToken">A token to observe for cancellation requests.</param>
     public async Task RouteEventsAsync(CancellationToken cancellationToken = default)
     {
-        var pending = await _outboxStore.GetPendingAsync(_options.BatchSize, cancellationToken).ConfigureAwait(false);
+        var pending = await _outboxStore.ClaimAsync(Environment.MachineName, _options.BatchSize, _options.LockDuration, cancellationToken).ConfigureAwait(false);
 
         if (pending.Count == 0) return;
 
@@ -144,7 +144,9 @@ public class OutboxEventRouter : IEventRouter
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to dispatch outbox message {Id}", message.Id);
-                await _outboxStore.MarkFailedAsync(message.Id, ex.Message, cancellationToken).ConfigureAwait(false);
+                var backoff = new ExponentialBackoffStrategy(_options.BackoffBaseDelay, _options.BackoffMaxDelay, _options.BackoffMultiplier);
+                var nextRetry = DateTimeOffset.UtcNow + backoff.ComputeDelay(message.RetryCount + 1);
+                await _outboxStore.MarkFailedAsync(message.Id, ex.Message, nextRetry, cancellationToken).ConfigureAwait(false);
             }
         }
     }

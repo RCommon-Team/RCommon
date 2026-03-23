@@ -14,4 +14,7 @@ public class OutboxMessage : IOutboxMessage
     public int RetryCount { get; set; }
     public string? CorrelationId { get; set; }
     public string? TenantId { get; set; }
+    public DateTimeOffset? NextRetryAtUtc { get; set; }
+    public string? LockedByInstanceId { get; set; }
+    public DateTimeOffset? LockedUntilUtc { get; set; }
 }

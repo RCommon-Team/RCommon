@@ -55,7 +55,7 @@ public class OutboxProcessingService : BackgroundService
         var producers = scope.ServiceProvider.GetServices<IEventProducer>();
         var subscriptionManager = scope.ServiceProvider.GetRequiredService<EventSubscriptionManager>();
 
-        var pending = await store.GetPendingAsync(_options.BatchSize, cancellationToken).ConfigureAwait(false);
+        var pending = await store.ClaimAsync(Environment.MachineName, _options.BatchSize, _options.LockDuration, cancellationToken).ConfigureAwait(false);
 
         foreach (var message in pending)
         {
@@ -94,7 +94,9 @@ public class OutboxProcessingService : BackgroundService
                 }
                 else
                 {
-                    await store.MarkFailedAsync(message.Id, ex.Message, cancellationToken).ConfigureAwait(false);
+                    var backoff = new ExponentialBackoffStrategy(_options.BackoffBaseDelay, _options.BackoffMaxDelay, _options.BackoffMultiplier);
+                    var nextRetry = DateTimeOffset.UtcNow + backoff.ComputeDelay(message.RetryCount + 1);
+                    await store.MarkFailedAsync(message.Id, ex.Message, nextRetry, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

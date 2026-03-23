@@ -14,4 +14,7 @@ public interface IOutboxMessage
     int RetryCount { get; set; }
     string? CorrelationId { get; set; }
     string? TenantId { get; set; }
+    DateTimeOffset? NextRetryAtUtc { get; set; }
+    string? LockedByInstanceId { get; set; }
+    DateTimeOffset? LockedUntilUtc { get; set; }
 }
