@@ -107,10 +107,11 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <returns>This repository instance for fluent chaining of additional includes.</returns>
         public override IEagerLoadableQueryable<TAggregate> Include(Expression<Func<TAggregate, object>> path)
         {
-            // On first call, start from the DbSet; on subsequent calls, chain from the existing includable query
             if (_includableQueryable == null)
             {
-                _includableQueryable = ObjectContext.Set<TAggregate>().Include(path);
+                // Start from existing query state (preserves prior ThenInclude chains) or fresh DbSet
+                var source = _repositoryQuery ?? (IQueryable<TAggregate>)ObjectContext.Set<TAggregate>();
+                _includableQueryable = source.Include(path);
             }
             else
             {
@@ -129,8 +130,8 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <returns>This repository instance for fluent chaining.</returns>
         public override IEagerLoadableQueryable<TAggregate> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
         {
-            // TODO: This is likely a bug. The receiver is incorrect.
             _repositoryQuery = _includableQueryable!.ThenInclude(path);
+            _includableQueryable = null; // Consumed — RepositoryQuery getter will use _repositoryQuery
             return this;
         }
 
