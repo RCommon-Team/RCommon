@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RCommon.EventHandling.Producers;
 using RCommon.Models.Events;
+using RCommon.Persistence.Inbox;
 
 namespace RCommon.Persistence.Outbox;
 
@@ -16,16 +17,20 @@ public class OutboxProcessingService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly OutboxOptions _options;
     private readonly ILogger<OutboxProcessingService> _logger;
+    private readonly IBackoffStrategy _backoffStrategy;
+    private readonly string _instanceId = Guid.NewGuid().ToString("N");
     private DateTimeOffset _lastCleanupUtc = DateTimeOffset.MinValue;
 
     public OutboxProcessingService(
         IServiceProvider serviceProvider,
         IOptions<OutboxOptions> options,
-        ILogger<OutboxProcessingService> logger)
+        ILogger<OutboxProcessingService> logger,
+        IBackoffStrategy backoffStrategy)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _backoffStrategy = backoffStrategy ?? throw new ArgumentNullException(nameof(backoffStrategy));
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -54,8 +59,9 @@ public class OutboxProcessingService : BackgroundService
         var serializer = scope.ServiceProvider.GetRequiredService<IOutboxSerializer>();
         var producers = scope.ServiceProvider.GetServices<IEventProducer>();
         var subscriptionManager = scope.ServiceProvider.GetRequiredService<EventSubscriptionManager>();
+        var inboxStore = scope.ServiceProvider.GetService<IInboxStore>();
 
-        var pending = await store.ClaimAsync(Environment.MachineName, _options.BatchSize, _options.LockDuration, cancellationToken).ConfigureAwait(false);
+        var pending = await store.ClaimAsync(_instanceId, _options.BatchSize, _options.LockDuration, cancellationToken).ConfigureAwait(false);
 
         foreach (var message in pending)
         {
@@ -69,6 +75,14 @@ public class OutboxProcessingService : BackgroundService
                     continue;
                 }
 
+                // Inbox auto-check: skip if already processed
+                if (inboxStore != null && await inboxStore.ExistsAsync(message.Id, cancellationToken: cancellationToken).ConfigureAwait(false))
+                {
+                    _logger.LogDebug("Outbox message {Id} already in inbox, marking processed", message.Id);
+                    await store.MarkProcessedAsync(message.Id, cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
                 var @event = serializer.Deserialize(message.EventType, message.EventPayload);
                 var filteredProducers = subscriptionManager.HasSubscriptions
                     ? subscriptionManager.GetProducersForEvent(producers, @event.GetType())
@@ -76,9 +90,18 @@ public class OutboxProcessingService : BackgroundService
 
                 foreach (var producer in filteredProducers)
                 {
-                    // Use dynamic dispatch so ProduceEventAsync<T> is invoked with the concrete
-                    // runtime type of the event rather than the ISerializableEvent interface type.
                     await producer.ProduceEventAsync((dynamic)@event, cancellationToken).ConfigureAwait(false);
+                }
+
+                // Record in inbox after successful dispatch
+                if (inboxStore != null)
+                {
+                    await inboxStore.RecordAsync(new InboxMessage
+                    {
+                        MessageId = message.Id,
+                        EventType = message.EventType,
+                        ReceivedAtUtc = DateTimeOffset.UtcNow
+                    }, cancellationToken).ConfigureAwait(false);
                 }
 
                 await store.MarkProcessedAsync(message.Id, cancellationToken).ConfigureAwait(false);
@@ -94,9 +117,8 @@ public class OutboxProcessingService : BackgroundService
                 }
                 else
                 {
-                    var backoff = new ExponentialBackoffStrategy(_options.BackoffBaseDelay, _options.BackoffMaxDelay, _options.BackoffMultiplier);
-                    var nextRetry = DateTimeOffset.UtcNow + backoff.ComputeDelay(message.RetryCount + 1);
-                    await store.MarkFailedAsync(message.Id, ex.Message, nextRetry, cancellationToken).ConfigureAwait(false);
+                    var delay = _backoffStrategy.ComputeDelay(message.RetryCount + 1);
+                    await store.MarkFailedAsync(message.Id, ex.Message, DateTimeOffset.UtcNow + delay, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -106,6 +128,10 @@ public class OutboxProcessingService : BackgroundService
         {
             await store.DeleteProcessedAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
             await store.DeleteDeadLetteredAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
+            if (inboxStore != null)
+            {
+                await inboxStore.CleanupAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
+            }
             _lastCleanupUtc = DateTimeOffset.UtcNow;
         }
     }

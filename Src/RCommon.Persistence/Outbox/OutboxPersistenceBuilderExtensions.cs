@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using RCommon.Entities;
 using RCommon.EventHandling.Producers;
 using RCommon.Persistence.Outbox;
@@ -59,6 +60,13 @@ public static class OutboxPersistenceBuilderExtensions
         {
             builder.Services.Configure<OutboxOptions>(_ => { });
         }
+
+        // Backoff strategy (singleton, replaceable)
+        builder.Services.TryAddSingleton<IBackoffStrategy>(sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<OutboxOptions>>().Value;
+            return new ExponentialBackoffStrategy(opts.BackoffBaseDelay, opts.BackoffMaxDelay, opts.BackoffMultiplier);
+        });
 
         return builder;
     }
