@@ -16,6 +16,7 @@ using RCommon.Persistence.Sagas;
 using RCommon.Security.Claims;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using LinqToDB.Extensions.DependencyInjection;
+using RCommon.Persistence.Outbox;
 
 namespace RCommon.Persistence.Linq2Db
 {
@@ -87,6 +88,14 @@ namespace RCommon.Persistence.Linq2Db
         public IPersistenceBuilder SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
             this._services.Configure(options);
+            return this;
+        }
+
+        /// <inheritdoc />
+        public ILinq2DbPersistenceBuilder UseLockStatementProvider<TProvider>()
+            where TProvider : class, ILockStatementProvider
+        {
+            this._services.AddSingleton<ILockStatementProvider, TProvider>();
             return this;
         }
     }

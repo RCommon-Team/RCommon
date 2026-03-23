@@ -1,5 +1,6 @@
 using LinqToDB;
 using LinqToDB.Async;
+using LinqToDB.Data;
 using Microsoft.Extensions.Options;
 using RCommon.Persistence.Outbox;
 using System;
@@ -19,6 +20,7 @@ public class Linq2DbOutboxStore : IOutboxStore
     private readonly string _dataStoreName;
     private readonly string _tableName;
     private readonly int _maxRetries;
+    private readonly ILockStatementProvider _lockProvider;
 
     /// <summary>
     /// Initializes a new instance of <see cref="Linq2DbOutboxStore"/>.
@@ -26,17 +28,20 @@ public class Linq2DbOutboxStore : IOutboxStore
     /// <param name="dataStoreFactory">Factory used to resolve the <see cref="RCommonDataConnection"/> for the configured data store.</param>
     /// <param name="defaultDataStoreOptions">Options specifying which data store to use when none is explicitly set.</param>
     /// <param name="outboxOptions">Options for outbox behaviour such as table name and max retries.</param>
+    /// <param name="lockStatementProvider">Provider that determines the SQL locking dialect to use for <see cref="ClaimAsync"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when any required parameter is <c>null</c> or yields a null value.</exception>
     public Linq2DbOutboxStore(
         IDataStoreFactory dataStoreFactory,
         IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
-        IOptions<OutboxOptions> outboxOptions)
+        IOptions<OutboxOptions> outboxOptions,
+        ILockStatementProvider lockStatementProvider)
     {
         _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
         _dataStoreName = defaultDataStoreOptions?.Value?.DefaultDataStoreName
             ?? throw new ArgumentNullException(nameof(defaultDataStoreOptions));
         _tableName = outboxOptions?.Value?.TableName ?? "__OutboxMessages";
         _maxRetries = outboxOptions?.Value?.MaxRetries ?? 5;
+        _lockProvider = lockStatementProvider ?? throw new ArgumentNullException(nameof(lockStatementProvider));
     }
 
     /// <summary>
@@ -65,22 +70,12 @@ public class Linq2DbOutboxStore : IOutboxStore
             ErrorMessage = message.ErrorMessage,
             RetryCount = message.RetryCount,
             CorrelationId = message.CorrelationId,
-            TenantId = message.TenantId
+            TenantId = message.TenantId,
+            NextRetryAtUtc = message.NextRetryAtUtc,
+            LockedByInstanceId = message.LockedByInstanceId,
+            LockedUntilUtc = message.LockedUntilUtc
         };
         await DataConnection.InsertAsync(entity, _tableName, token: cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
-    public async Task<IReadOnlyList<IOutboxMessage>> GetPendingAsync(int batchSize, CancellationToken cancellationToken = default)
-    {
-        return await Table
-            .Where(m => m.ProcessedAtUtc == null
-                && m.DeadLetteredAtUtc == null
-                && m.RetryCount < _maxRetries)
-            .OrderBy(m => m.CreatedAtUtc)
-            .Take(batchSize)
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -94,12 +89,15 @@ public class Linq2DbOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task MarkFailedAsync(Guid messageId, string error, CancellationToken cancellationToken = default)
+    public async Task MarkFailedAsync(Guid messageId, string error, DateTimeOffset nextRetryAtUtc, CancellationToken cancellationToken = default)
     {
         await Table
             .Where(m => m.Id == messageId)
             .Set(m => m.ErrorMessage, error)
             .Set(m => m.RetryCount, m => m.RetryCount + 1)
+            .Set(m => m.NextRetryAtUtc, nextRetryAtUtc)
+            .Set(m => m.LockedByInstanceId, (string?)null)
+            .Set(m => m.LockedUntilUtc, (DateTimeOffset?)null)
             .UpdateAsync(cancellationToken)
             .ConfigureAwait(false);
     }
@@ -132,5 +130,92 @@ public class Linq2DbOutboxStore : IOutboxStore
             .Where(m => m.DeadLetteredAtUtc != null && m.DeadLetteredAtUtc < cutoff)
             .DeleteAsync(cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<IOutboxMessage>> ClaimAsync(string instanceId, int batchSize, TimeSpan lockDuration, CancellationToken cancellationToken = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var lockUntil = now + lockDuration;
+        var dc = DataConnection;
+
+        string sql;
+        if (_lockProvider.ProviderName == "PostgreSql")
+        {
+            sql = $@"
+                UPDATE ""{_tableName}"" o
+                SET ""LockedByInstanceId"" = @InstanceId, ""LockedUntilUtc"" = @LockUntil
+                FROM (
+                    SELECT ""Id"" FROM ""{_tableName}""
+                    WHERE ""ProcessedAtUtc"" IS NULL
+                      AND ""DeadLetteredAtUtc"" IS NULL
+                      AND ""RetryCount"" < @MaxRetries
+                      AND (""NextRetryAtUtc"" IS NULL OR ""NextRetryAtUtc"" <= @Now)
+                      AND (""LockedUntilUtc"" IS NULL OR ""LockedUntilUtc"" <= @Now)
+                    ORDER BY ""CreatedAtUtc""
+                    LIMIT @BatchSize
+                    FOR UPDATE SKIP LOCKED
+                ) AS batch
+                WHERE o.""Id"" = batch.""Id""
+                RETURNING o.*";
+        }
+        else // SQL Server
+        {
+            sql = $@"
+                WITH batch AS (
+                    SELECT TOP (@BatchSize) Id
+                    FROM [{_tableName}] WITH (UPDLOCK, ROWLOCK, READPAST)
+                    WHERE ProcessedAtUtc IS NULL
+                      AND DeadLetteredAtUtc IS NULL
+                      AND RetryCount < @MaxRetries
+                      AND (NextRetryAtUtc IS NULL OR NextRetryAtUtc <= @Now)
+                      AND (LockedUntilUtc IS NULL OR LockedUntilUtc <= @Now)
+                    ORDER BY CreatedAtUtc
+                )
+                UPDATE o
+                SET o.LockedByInstanceId = @InstanceId, o.LockedUntilUtc = @LockUntil
+                OUTPUT INSERTED.*
+                FROM [{_tableName}] o
+                INNER JOIN batch ON o.Id = batch.Id";
+        }
+
+        var result = await dc.QueryToListAsync<OutboxMessage>(
+            sql,
+            new { BatchSize = batchSize, MaxRetries = _maxRetries, Now = now, InstanceId = instanceId, LockUntil = lockUntil },
+            cancellationToken).ConfigureAwait(false);
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<IOutboxMessage>> GetDeadLettersAsync(int batchSize, int offset = 0, CancellationToken cancellationToken = default)
+    {
+        return await Table
+            .Where(m => m.DeadLetteredAtUtc != null)
+            .OrderByDescending(m => m.DeadLetteredAtUtc)
+            .Skip(offset)
+            .Take(batchSize)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async Task ReplayDeadLetterAsync(Guid messageId, CancellationToken cancellationToken = default)
+    {
+        var rows = await Table
+            .Where(m => m.Id == messageId && m.DeadLetteredAtUtc != null)
+            .Set(m => m.DeadLetteredAtUtc, (DateTimeOffset?)null)
+            .Set(m => m.ProcessedAtUtc, (DateTimeOffset?)null)
+            .Set(m => m.ErrorMessage, (string?)null)
+            .Set(m => m.RetryCount, 0)
+            .Set(m => m.NextRetryAtUtc, (DateTimeOffset?)null)
+            .Set(m => m.LockedByInstanceId, (string?)null)
+            .Set(m => m.LockedUntilUtc, (DateTimeOffset?)null)
+            .UpdateAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (rows == 0)
+        {
+            throw new InvalidOperationException($"Message {messageId} does not exist or is not dead-lettered.");
+        }
     }
 }
