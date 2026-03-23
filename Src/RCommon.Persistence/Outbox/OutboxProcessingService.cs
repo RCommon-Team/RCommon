@@ -16,6 +16,7 @@ public class OutboxProcessingService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly OutboxOptions _options;
     private readonly ILogger<OutboxProcessingService> _logger;
+    private DateTimeOffset _lastCleanupUtc = DateTimeOffset.MinValue;
 
     public OutboxProcessingService(
         IServiceProvider serviceProvider,
@@ -98,8 +99,12 @@ public class OutboxProcessingService : BackgroundService
             }
         }
 
-        // Periodic cleanup
-        await store.DeleteProcessedAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
-        await store.DeleteDeadLetteredAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
+        // Periodic cleanup (throttled by CleanupInterval)
+        if (DateTimeOffset.UtcNow - _lastCleanupUtc >= _options.CleanupInterval)
+        {
+            await store.DeleteProcessedAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
+            await store.DeleteDeadLetteredAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
+            _lastCleanupUtc = DateTimeOffset.UtcNow;
+        }
     }
 }

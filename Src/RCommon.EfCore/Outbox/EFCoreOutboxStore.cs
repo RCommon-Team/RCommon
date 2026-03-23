@@ -72,6 +72,9 @@ public class EFCoreOutboxStore : IOutboxStore
     /// <inheritdoc />
     public async Task<IReadOnlyList<IOutboxMessage>> GetPendingAsync(int batchSize, CancellationToken cancellationToken = default)
     {
+        // Filter server-side (uses composite index), then order and limit client-side.
+        // OrderBy(DateTimeOffset) is not supported by all EF Core providers (e.g. SQLite),
+        // and the result set is bounded by the unprocessed message count which is typically small.
         var results = await DbContext.Set<OutboxMessage>()
             .Where(m => m.ProcessedAtUtc == null && m.DeadLetteredAtUtc == null && m.RetryCount < _maxRetries)
             .ToListAsync(cancellationToken).ConfigureAwait(false);

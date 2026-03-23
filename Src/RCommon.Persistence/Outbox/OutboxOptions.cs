@@ -8,6 +8,7 @@ public class OutboxOptions
     public int BatchSize { get; set; } = 100;
     public int MaxRetries { get; set; } = 5;
     public TimeSpan CleanupAge { get; set; } = TimeSpan.FromDays(7);
+    public TimeSpan CleanupInterval { get; set; } = TimeSpan.FromHours(1);
     public string TableName { get; set; } = "__OutboxMessages";
 }
 
