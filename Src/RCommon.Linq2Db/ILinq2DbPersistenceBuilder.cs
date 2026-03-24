@@ -20,5 +20,14 @@ namespace RCommon.Persistence.Linq2Db
         /// <param name="options">A factory function that receives the <see cref="IServiceProvider"/> and existing <see cref="DataOptions"/>, returning configured <see cref="DataOptions"/>.</param>
         /// <returns>The builder instance for fluent chaining.</returns>
         ILinq2DbPersistenceBuilder AddDataConnection<TDataConnection>(string dataStoreName, Func<IServiceProvider, DataOptions, DataOptions> options) where TDataConnection : RCommonDataConnection;
+
+        /// <summary>
+        /// Registers a singleton <see cref="ILockStatementProvider"/> implementation used by <see cref="Outbox.Linq2DbOutboxStore"/>
+        /// to select the correct SQL locking dialect for <c>ClaimAsync</c>.
+        /// </summary>
+        /// <typeparam name="TProvider">The <see cref="ILockStatementProvider"/> implementation to register.</typeparam>
+        /// <returns>The builder instance for fluent chaining.</returns>
+        ILinq2DbPersistenceBuilder UseLockStatementProvider<TProvider>()
+            where TProvider : class, RCommon.Persistence.Outbox.ILockStatementProvider;
     }
 }

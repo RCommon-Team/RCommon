@@ -1,4 +1,3 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveAllocations.Requests.Commands;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Commands;
@@ -17,13 +16,11 @@ namespace HR.LeaveManagement.Application.Features.LeaveAllocations.Handlers.Comm
     public class DeleteLeaveAllocationCommandHandler : IAppRequestHandler<DeleteLeaveAllocationCommand>
     {
         private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
-        private readonly IMapper _mapper;
 
-        public DeleteLeaveAllocationCommandHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository, IMapper mapper)
+        public DeleteLeaveAllocationCommandHandler(IGraphRepository<LeaveAllocation> leaveAllocationRepository)
         {
             this._leaveAllocationRepository = leaveAllocationRepository;
             this._leaveAllocationRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
-            _mapper = mapper;
         }
 
         public async Task HandleAsync(DeleteLeaveAllocationCommand request, CancellationToken cancellationToken)

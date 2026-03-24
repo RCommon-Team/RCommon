@@ -371,6 +371,42 @@ public class EventSubscriptionManagerTests
         manager.HasSubscriptions.Should().BeTrue();
     }
 
+    [Fact]
+    public void ClearSubscriptions_RemovesAllMappings()
+    {
+        // Arrange
+        var manager = new EventSubscriptionManager();
+        manager.AddProducerForBuilder(typeof(FakeBuilderA), typeof(FakeProducerA));
+        manager.AddSubscription(typeof(FakeBuilderA), typeof(TestSyncEvent));
+        manager.HasSubscriptions.Should().BeTrue();
+
+        // Act
+        manager.ClearSubscriptions();
+
+        // Assert
+        manager.HasSubscriptions.Should().BeFalse();
+        manager.ShouldProduceEvent(typeof(FakeProducerA), typeof(TestSyncEvent)).Should().BeTrue(); // fallback behavior
+    }
+
+    [Fact]
+    public void ClearSubscriptions_AllowsReregistration()
+    {
+        // Arrange
+        var manager = new EventSubscriptionManager();
+        manager.AddProducerForBuilder(typeof(FakeBuilderA), typeof(FakeProducerA));
+        manager.AddSubscription(typeof(FakeBuilderA), typeof(TestSyncEvent));
+
+        // Act
+        manager.ClearSubscriptions();
+        manager.AddProducerForBuilder(typeof(FakeBuilderB), typeof(FakeProducerB));
+        manager.AddSubscription(typeof(FakeBuilderB), typeof(TestSyncEvent));
+
+        // Assert
+        manager.HasSubscriptions.Should().BeTrue();
+        manager.ShouldProduceEvent(typeof(FakeProducerB), typeof(TestSyncEvent)).Should().BeTrue();
+        manager.ShouldProduceEvent(typeof(FakeProducerA), typeof(TestSyncEvent)).Should().BeFalse();
+    }
+
     #endregion
 
     #region Concurrency Tests

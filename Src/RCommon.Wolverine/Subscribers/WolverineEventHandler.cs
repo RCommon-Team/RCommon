@@ -36,7 +36,7 @@ namespace RCommon.MassTransit.Subscribers
         public async Task HandleAsync(TEvent @event, CancellationToken cancellationToken = default)
         {
             _logger.LogDebug("{0} handling event {1}", new object[] { this.GetGenericTypeName(), @event.GetGenericTypeName() });
-            await _subscriber.HandleAsync(@event);
+            await _subscriber.HandleAsync(@event, cancellationToken).ConfigureAwait(false);
         }
     }
 }

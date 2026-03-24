@@ -1,5 +1,5 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.MVC.Contracts;
+using HR.LeaveManagement.MVC.Mappings;
 using HR.LeaveManagement.MVC.Models;
 using HR.LeaveManagement.MVC.Services.Base;
 using System;
@@ -12,13 +12,11 @@ namespace HR.LeaveManagement.MVC.Services
     public class LeaveTypeService : BaseHttpService, ILeaveTypeService
     {
         private readonly ILocalStorageService _localStorageService;
-        private readonly IMapper _mapper;
         private readonly IClient _httpclient;
 
-        public LeaveTypeService(IMapper mapper, IClient httpclient, ILocalStorageService localStorageService) : base(httpclient, localStorageService)
+        public LeaveTypeService(IClient httpclient, ILocalStorageService localStorageService) : base(httpclient, localStorageService)
         {
             this._localStorageService = localStorageService;
-            this._mapper = mapper;
             this._httpclient = httpclient;
         }
 
@@ -27,7 +25,7 @@ namespace HR.LeaveManagement.MVC.Services
             try
             {
                 var response = new Response<int>();
-                CreateLeaveTypeDto createLeaveType = _mapper.Map<CreateLeaveTypeDto>(leaveType);
+                CreateLeaveTypeDto createLeaveType = leaveType.ToCreateLeaveTypeDto();
                 AddBearerToken();
                 var apiResponse = await _client.LeaveTypesPOSTAsync(createLeaveType);
                 if (apiResponse.Success)
@@ -68,21 +66,21 @@ namespace HR.LeaveManagement.MVC.Services
         {
             AddBearerToken();
             var leaveType = await _client.LeaveTypesGETAsync(id);
-            return _mapper.Map<LeaveTypeVM>(leaveType);
+            return leaveType.ToLeaveTypeVM();
         }
 
         public async Task<List<LeaveTypeVM>> GetLeaveTypes()
         {
             AddBearerToken();
             var leaveTypes = await _client.LeaveTypesAllAsync();
-            return _mapper.Map<List<LeaveTypeVM>>(leaveTypes);
+            return leaveTypes.ToLeaveTypeVMList();
         }
 
         public async Task<Response<int>> UpdateLeaveType(int id, LeaveTypeVM leaveType)
         {
             try
             {
-                LeaveTypeDto leaveTypeDto = _mapper.Map<LeaveTypeDto>(leaveType);
+                LeaveTypeDto leaveTypeDto = leaveType.ToLeaveTypeDto();
                 AddBearerToken();
                 await _client.LeaveTypesPUTAsync(id.ToString(), leaveTypeDto);
                 return new Response<int>() { Success = true };
@@ -92,6 +90,5 @@ namespace HR.LeaveManagement.MVC.Services
                 return ConvertApiExceptions<int>(ex);
             }
         }
-
     }
 }

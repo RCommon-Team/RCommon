@@ -128,7 +128,7 @@ public class UnitOfWorkBehaviorTests
         await behavior.Handle(request, next, CancellationToken.None);
 
         // Assert
-        mockUnitOfWork.Verify(x => x.Commit(), Times.Once);
+        mockUnitOfWork.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public class UnitOfWorkBehaviorTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>();
-        mockUnitOfWork.Verify(x => x.Commit(), Times.Never);
+        mockUnitOfWork.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -349,7 +349,7 @@ public class UnitOfWorkBehaviorTests
         await behavior.Handle(request, next, CancellationToken.None);
 
         // Assert
-        mockUnitOfWork.Verify(x => x.Commit(), Times.Once);
+        mockUnitOfWork.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -406,7 +406,7 @@ public class UnitOfWorkBehaviorTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>();
-        mockUnitOfWork.Verify(x => x.Commit(), Times.Never);
+        mockUnitOfWork.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

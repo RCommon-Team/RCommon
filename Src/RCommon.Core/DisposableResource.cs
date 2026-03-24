@@ -13,19 +13,10 @@ namespace RCommon
     /// </summary>
     /// <remarks>
     /// Derived classes should override <see cref="Dispose(bool)"/> and/or <see cref="DisposeAsync(bool)"/>
-    /// to release managed and unmanaged resources. The finalizer calls <see cref="Dispose(bool)"/>
-    /// with <c>false</c> to release unmanaged resources only.
+    /// to release managed and unmanaged resources.
     /// </remarks>
     public abstract class DisposableResource : IDisposable, IAsyncDisposable
     {
-        /// <summary>
-        /// Finalizer that invokes <see cref="Dispose(bool)"/> with <c>false</c> to release unmanaged resources.
-        /// </summary>
-        ~DisposableResource()
-        {
-            Dispose(false);
-        }
-
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting resources.
         /// Suppresses finalization after disposal.
@@ -44,7 +35,7 @@ namespace RCommon
         /// <returns>A <see cref="ValueTask"/> representing the asynchronous dispose operation.</returns>
         public async ValueTask DisposeAsync()
         {
-            await this.DisposeAsync(true);
+            await this.DisposeAsync(true).ConfigureAwait(false);
             GC.SuppressFinalize(this);
         }
 
@@ -61,10 +52,9 @@ namespace RCommon
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous dispose operation.</returns>
-        protected async virtual Task DisposeAsync(bool disposing)
+        protected virtual Task DisposeAsync(bool disposing)
         {
-
-            await Task.Yield();
+            return Task.CompletedTask;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using HR.LeaveManagement.MVC.Contracts;
+﻿using HR.LeaveManagement.MVC.Contracts;
 using HR.LeaveManagement.MVC.Models;
 using HR.LeaveManagement.MVC.Services.Base;
 using System;

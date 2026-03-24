@@ -1,9 +1,9 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.DTOs;
 using HR.LeaveManagement.Application.DTOs.LeaveType;
 using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Queries;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
+using HR.LeaveManagement.Application.Mappings;
 using HR.LeaveManagement.Domain;
 using RCommon.Mediator.Subscribers;
 using RCommon.Persistence;
@@ -19,18 +19,17 @@ namespace HR.LeaveManagement.Application.Features.LeaveTypes.Handlers.Queries
     public class GetLeaveTypeDetailRequestHandler : IAppRequestHandler<GetLeaveTypeDetailRequest, LeaveTypeDto>
     {
         private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
-        private readonly IMapper _mapper;
 
-        public GetLeaveTypeDetailRequestHandler(IGraphRepository<LeaveType> leaveTypeRepository, IMapper mapper)
+        public GetLeaveTypeDetailRequestHandler(IGraphRepository<LeaveType> leaveTypeRepository)
         {
             _leaveTypeRepository = leaveTypeRepository;
             this._leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
-            _mapper = mapper;
         }
+
         public async Task<LeaveTypeDto> HandleAsync(GetLeaveTypeDetailRequest request, CancellationToken cancellationToken)
         {
             var leaveType = await _leaveTypeRepository.FindAsync(request.Id);
-            return _mapper.Map<LeaveTypeDto>(leaveType);
+            return leaveType.ToLeaveTypeDto();
         }
     }
 }

@@ -62,12 +62,12 @@ namespace RCommon.Emailing.SendGrid
         /// Converts the <see cref="MailMessage"/> to a SendGrid <see cref="SendGridMessage"/>,
         /// streams any attachments, then sends via the SendGrid API client.
         /// </remarks>
-        public async Task SendEmailAsync(MailMessage message)
+        public async Task SendEmailAsync(MailMessage message, CancellationToken cancellationToken = default)
         {
             // No-op when there are no recipients.
             if (message.To.Count == 0)
             {
-                await Task.CompletedTask;
+                return;
             }
 
             // Map the MailMessage to a SendGrid message, choosing plain text or HTML based on IsBodyHtml.
@@ -83,10 +83,10 @@ namespace RCommon.Emailing.SendGrid
             {
                 foreach (var attachment in message.Attachments)
                 {
-                    await sgMessage.AddAttachmentAsync(attachment.Name, attachment.ContentStream);
+                    await sgMessage.AddAttachmentAsync(attachment.Name, attachment.ContentStream).ConfigureAwait(false);
                 }
             }
-            await _client.SendEmailAsync(sgMessage);
+            await _client.SendEmailAsync(sgMessage).ConfigureAwait(false);
 
             OnEmailSent(message);
         }

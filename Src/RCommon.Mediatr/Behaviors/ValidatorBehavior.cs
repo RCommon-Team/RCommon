@@ -42,8 +42,8 @@ namespace RCommon.Mediator.MediatR.Behaviors
 
             _logger.LogInformation("----- Validating command {CommandType}", typeName);
             // Validate the request and throw on failure (second param = throwOnFailure)
-            await _validationService.ValidateAsync<TRequest>(request, true, cancellationToken);
-            return await next();
+            await _validationService.ValidateAsync<TRequest>(request, true, cancellationToken).ConfigureAwait(false);
+            return await next().ConfigureAwait(false);
         }
     }
 
@@ -78,8 +78,8 @@ namespace RCommon.Mediator.MediatR.Behaviors
 
             _logger.LogInformation("----- Validating command {CommandType}", typeName);
             // Validate the request and throw on failure (second param = throwOnFailure)
-            await _validationService.ValidateAsync<TRequest>(request, true, cancellationToken);
-            return await next();
+            await _validationService.ValidateAsync<TRequest>(request, true, cancellationToken).ConfigureAwait(false);
+            return await next().ConfigureAwait(false);
         }
     }
 

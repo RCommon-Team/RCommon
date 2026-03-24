@@ -34,9 +34,8 @@ namespace RCommon
 					rv = defaultValue;
 				}
 			}
-			catch (Exception)
+			catch (IndexOutOfRangeException)
 			{
-
 				rv = defaultValue;
 			}
 			return rv;
@@ -63,9 +62,8 @@ namespace RCommon
 					rv = defaultValue;
 				}
 			}
-			catch (Exception)
+			catch (IndexOutOfRangeException)
 			{
-
 				rv = defaultValue;
 			}
 			return rv;
@@ -83,7 +81,7 @@ namespace RCommon
 			DataTable dtData = new DataTable();
 			DataColumn dc;
 			DataRow row;
-			System.Collections.ArrayList al = new System.Collections.ArrayList();
+			var al = new List<string>();
 
 			if (dtSchema == null) return dtData;
 
@@ -113,7 +111,7 @@ namespace RCommon
 
 				for (int i = 0; i < al.Count; i++)
 				{
-					row[((string)al[i]!)] = dr[(string)al[i]!];
+					row[al[i]] = dr[al[i]];
 				}
 
 				dtData.Rows.Add(row);
@@ -137,7 +135,7 @@ namespace RCommon
 				DataTable dtData = new DataTable();
 				DataColumn dc;
 				DataRow row;
-				System.Collections.ArrayList al = new System.Collections.ArrayList();
+				var al = new List<string>();
 
 				if (dtSchema == null) return dtData;
 
@@ -165,7 +163,7 @@ namespace RCommon
 
 					for (int i = 0; i < al.Count; i++)
 					{
-						row[((string)al[i]!)] = dr[(string)al[i]!];
+						row[al[i]] = dr[al[i]];
 					}
 
 					dtData.Rows.Add(row);
@@ -174,11 +172,6 @@ namespace RCommon
 
 
 				return dtData;
-			}
-			catch (Exception)
-			{
-
-				throw;
 			}
 			finally
 			{

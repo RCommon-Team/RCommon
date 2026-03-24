@@ -8,9 +8,12 @@ using System.Threading.Tasks;
 using RCommon.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.Persistence.Dapper.Crud;
+using RCommon.Persistence.Dapper.Sagas;
 using RCommon.Persistence.Crud;
+using RCommon.Persistence.Sagas;
 using RCommon.Security.Claims;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using RCommon.Persistence.Outbox;
 
 namespace RCommon
 {
@@ -46,6 +49,9 @@ namespace RCommon
             services.AddTransient(typeof(ISqlMapperRepository<>), typeof(DapperRepository<>));
             services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(DapperRepository<>));
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(DapperRepository<>));
+            services.AddTransient(typeof(IAggregateRepository<,>), typeof(DapperAggregateRepository<,>));
+            services.AddTransient(typeof(IReadModelRepository<>), typeof(DapperReadModelRepository<>));
+            services.AddScoped(typeof(ISagaStore<,>), typeof(DapperSagaStore<,>));
 
         }
 
@@ -86,6 +92,18 @@ namespace RCommon
         public IPersistenceBuilder SetDefaultDataStore(Action<DefaultDataStoreOptions> options)
         {
             this._services.Configure(options);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers the lock statement provider used for outbox claiming operations.
+        /// </summary>
+        /// <typeparam name="TProvider">The lock statement provider type. Must implement <see cref="ILockStatementProvider"/>.</typeparam>
+        /// <returns>The builder instance for fluent chaining.</returns>
+        public IDapperBuilder UseLockStatementProvider<TProvider>()
+            where TProvider : class, ILockStatementProvider
+        {
+            this._services.AddSingleton<ILockStatementProvider, TProvider>();
             return this;
         }
     }

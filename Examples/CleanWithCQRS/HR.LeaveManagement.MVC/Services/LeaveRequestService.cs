@@ -1,5 +1,5 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.MVC.Contracts;
+using HR.LeaveManagement.MVC.Mappings;
 using HR.LeaveManagement.MVC.Models;
 using HR.LeaveManagement.MVC.Services.Base;
 using System;
@@ -12,13 +12,11 @@ namespace HR.LeaveManagement.MVC.Services
     public class LeaveRequestService : BaseHttpService, ILeaveRequestService
     {
         private readonly ILocalStorageService _localStorageService;
-        private readonly IMapper _mapper;
         private readonly IClient _httpclient;
 
-        public LeaveRequestService(IMapper mapper, IClient httpclient, ILocalStorageService localStorageService) : base(httpclient, localStorageService)
+        public LeaveRequestService(IClient httpclient, ILocalStorageService localStorageService) : base(httpclient, localStorageService)
         {
             this._localStorageService = localStorageService;
-            this._mapper = mapper;
             this._httpclient = httpclient;
         }
 
@@ -32,7 +30,6 @@ namespace HR.LeaveManagement.MVC.Services
             }
             catch (Exception)
             {
-
                 throw;
             }
         }
@@ -42,7 +39,7 @@ namespace HR.LeaveManagement.MVC.Services
             try
             {
                 var response = new Response<int>();
-                CreateLeaveRequestDto createLeaveRequest = _mapper.Map<CreateLeaveRequestDto>(leaveRequest);
+                CreateLeaveRequestDto createLeaveRequest = leaveRequest.ToCreateLeaveRequestDto();
                 AddBearerToken();
                 var apiResponse = await _client.LeaveRequestsPOSTAsync(createLeaveRequest);
                 if (apiResponse.Success)
@@ -81,7 +78,7 @@ namespace HR.LeaveManagement.MVC.Services
                 ApprovedRequests = leaveRequests.Count(q => q.Approved == true),
                 PendingRequests = leaveRequests.Count(q => q.Approved == null),
                 RejectedRequests = leaveRequests.Count(q => q.Approved == false),
-                LeaveRequests = _mapper.Map<List<LeaveRequestVM>>(leaveRequests)
+                LeaveRequests = leaveRequests.ToLeaveRequestVMList()
             };
             return model;
         }
@@ -90,7 +87,7 @@ namespace HR.LeaveManagement.MVC.Services
         {
             AddBearerToken();
             var leaveRequest = await _client.LeaveRequestsGETAsync(id);
-            return _mapper.Map<LeaveRequestVM>(leaveRequest);
+            return leaveRequest.ToLeaveRequestVM();
         }
 
         public async Task<EmployeeLeaveRequestViewVM> GetUserLeaveRequests()
@@ -100,8 +97,8 @@ namespace HR.LeaveManagement.MVC.Services
             var allocations = await _client.LeaveAllocationsAllAsync(isLoggedInUser: true);
             var model = new EmployeeLeaveRequestViewVM
             {
-                LeaveAllocations = _mapper.Map<List<LeaveAllocationVM>>(allocations),
-                LeaveRequests = _mapper.Map<List<LeaveRequestVM>>(leaveRequests)
+                LeaveAllocations = allocations.ToLeaveAllocationVMList(),
+                LeaveRequests = leaveRequests.ToLeaveRequestVMList()
             };
 
             return model;

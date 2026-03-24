@@ -32,7 +32,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             _logger.LogInformation("----- Handling command {CommandName} ({@Command})", request.GetGenericTypeName(), request);
-            var response = await next();
+            var response = await next().ConfigureAwait(false);
             _logger.LogInformation("----- Command {CommandName} handled - response: {@Response}", request.GetGenericTypeName(), response);
 
             return response;
@@ -61,7 +61,7 @@ namespace RCommon.Mediator.MediatR.Behaviors
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             _logger.LogInformation("----- Handling command {CommandName} ({@Command})", request.GetGenericTypeName(), request);
-            var response = await next();
+            var response = await next().ConfigureAwait(false);
             _logger.LogInformation("----- Command {CommandName} handled - response: {@Response}", request.GetGenericTypeName(), response);
 
             return response;

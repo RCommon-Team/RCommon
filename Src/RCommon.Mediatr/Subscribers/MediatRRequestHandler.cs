@@ -50,7 +50,7 @@ namespace RCommon.MediatR.Subscribers
                 "IAppRequestHandler<T> of type: " + typeof(T).GetGenericTypeName() + " could not be resolved by IServiceProvider");
 
             // Handle the event using the event handler we resolved
-            await handler!.HandleAsync(request.Request);
+            await handler!.HandleAsync(request.Request, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -93,7 +93,7 @@ namespace RCommon.MediatR.Subscribers
                 "IAppRequestHandler<T> of type: " + typeof(T).GetGenericTypeName() + " could not be resolved by IServiceProvider");
 
             // Handle the event using the event handler we resolved
-            return await handler!.HandleAsync(request.Request);
+            return await handler!.HandleAsync(request.Request, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -1,4 +1,3 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.Contracts.Identity;
 using HR.LeaveManagement.Application.Models.Identity;
 using HR.LeaveManagement.Identity.Models;
@@ -36,7 +35,7 @@ namespace HR.LeaveManagement.Identity.Services
         public async Task<List<Employee>> GetEmployees()
         {
             var employees = await _userManager.GetUsersInRoleAsync("Employee");
-            return employees.Select(q => new Employee { 
+            return employees.Select(q => new Employee {
                 Id = q.Id,
                 Email = q.Email,
                 Firstname = q.FirstName,

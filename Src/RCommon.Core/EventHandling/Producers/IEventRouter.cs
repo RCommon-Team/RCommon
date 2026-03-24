@@ -1,5 +1,6 @@
 ﻿using RCommon.Models.Events;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RCommon.EventHandling.Producers
@@ -27,17 +28,19 @@ namespace RCommon.EventHandling.Producers
         /// Wires up all of the event producers for all stored transactional events and then executes each <see cref="IEventProducer"/>
         /// for <see cref="ISyncEvent"/> events and <see cref="IAsyncEvent"/> events.
         /// </summary>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>Async Task Result</returns>
-        Task RouteEventsAsync();
+        Task RouteEventsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Wires up all of the event producers for all events passed into parameters and then executes each <see cref="IEventProducer"/>
-        /// for <see cref="ISyncEvent"/> events and <see cref="IAsyncEvent"/> events. 
+        /// for <see cref="ISyncEvent"/> events and <see cref="IAsyncEvent"/> events.
         /// </summary>
-        /// <param name="transactionalEvents">Events that needs to be published or sent through the <see cref="IEventProducer"/> 
+        /// <param name="transactionalEvents">Events that needs to be published or sent through the <see cref="IEventProducer"/>
         /// producers that are registered.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>Async Task Result</returns>
         /// <remarks>This will not send stored transactional events, only the events sent through the parameter.</remarks>
-        Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents);
+        Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents, CancellationToken cancellationToken = default);
     }
 }

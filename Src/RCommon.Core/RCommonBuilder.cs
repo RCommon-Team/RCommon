@@ -38,7 +38,7 @@ namespace RCommon
             // Event Bus
             Services.AddSingleton<IEventBus>(sp =>
             {
-                return new InMemoryEventBus(sp, Services);
+                return new InMemoryEventBus(sp);
             });
             Services.AddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
         }

@@ -68,7 +68,7 @@ namespace RCommon.MassTransit.Producers
                     {
                         _logger.LogDebug("{0} publishing event: {1}", new object[] { this.GetGenericTypeName(), @event });
                     }
-                    await _bus.Publish(@event, cancellationToken);
+                    await _bus.Publish(@event, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

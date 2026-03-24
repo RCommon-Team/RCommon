@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using HR.LeaveManagement.MVC.Contracts;
 using HR.LeaveManagement.MVC.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,14 +16,11 @@ namespace leave_management.Controllers
     {
         private readonly ILeaveTypeService _leaveTypeService;
         private readonly ILeaveRequestService _leaveRequestService;
-        private readonly IMapper _mapper;
 
-        public LeaveRequestsController(ILeaveTypeService leaveTypeService, ILeaveRequestService leaveRequestService,
-            IMapper mapper)
+        public LeaveRequestsController(ILeaveTypeService leaveTypeService, ILeaveRequestService leaveRequestService)
         {
             this._leaveTypeService = leaveTypeService;
             this._leaveRequestService = leaveRequestService;
-            this._mapper = mapper;
         }
 
         // GET: LeaveRequest/Create

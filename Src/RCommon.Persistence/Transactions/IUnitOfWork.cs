@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -41,10 +42,20 @@ namespace RCommon.Persistence.Transactions
         TransactionMode TransactionMode { get; set; }
 
         /// <summary>
+        /// Asynchronously commits the unit of work, completing the underlying transaction scope
+        /// and dispatching any tracked domain events after the transaction is fully committed.
+        /// </summary>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <exception cref="ObjectDisposedException">Thrown if the unit of work has already been disposed.</exception>
+        /// <exception cref="UnitOfWorkException">Thrown if the unit of work has already been completed.</exception>
+        Task CommitAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Commits the unit of work, completing the underlying transaction scope.
         /// </summary>
         /// <exception cref="ObjectDisposedException">Thrown if the unit of work has already been disposed.</exception>
         /// <exception cref="UnitOfWorkException">Thrown if the unit of work has already been completed.</exception>
+        [Obsolete("Use CommitAsync instead for automatic domain event dispatch.")]
         void Commit();
     }
 }

@@ -1,18 +1,18 @@
-﻿#region MIT License
+#region MIT License
 // The MIT License (MIT)
-// 
+//
 // Original Source: https://github.com/jacqueskang/EventBus/blob/develop/src/JKang.EventBus.Core/InMemory/InMemoryEventBus.cs
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
 // the Software without restriction, including without limitation the rights to
 // use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
 // the Software, and to permit persons to whom the Software is furnished to do so,
 // subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
 // FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -39,38 +39,42 @@ namespace RCommon.EventHandling
     /// <see cref="ISubscriber{TEvent}"/> handlers from the dependency injection container.
     /// </summary>
     /// <remarks>
-    /// Subscriptions are registered directly into the <see cref="IServiceCollection"/> at configuration time.
-    /// Publishing creates a new scope and resolves all handlers via reflection to support polymorphic event dispatch.
+    /// Subscriptions registered via <see cref="Subscribe{TEvent, TEventHandler}"/> or
+    /// <see cref="SubscribeAllHandledEvents{TEventHandler}"/> are tracked internally and resolved
+    /// at publish time via <see cref="ActivatorUtilities"/>. For best results, register subscribers
+    /// in the DI container during configuration using <c>InMemoryEventBusBuilderExtensions.AddSubscriber</c>.
     /// </remarks>
     public class InMemoryEventBus : IEventBus
     {
-        private readonly IServiceCollection _services;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ConcurrentBag<(Type serviceType, Type implementationType)> _dynamicSubscriptions = new();
 
         /// <summary>
         /// Initializes a new instance of <see cref="InMemoryEventBus"/>.
         /// </summary>
         /// <param name="serviceProvider">The root service provider used to create scopes for event publishing.</param>
-        /// <param name="services">The service collection for registering subscriber services at configuration time.</param>
-        public InMemoryEventBus(IServiceProvider serviceProvider, IServiceCollection services)
+        public InMemoryEventBus(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _services = services;
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// Tracks the subscription internally. The handler will be resolved via <see cref="ActivatorUtilities"/>
+        /// at publish time within a new scope.
+        /// </remarks>
         public IEventBus Subscribe<TEvent, TEventHandler>()
             where TEvent : class
             where TEventHandler : class, ISubscriber<TEvent>
         {
-            _services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
+            _dynamicSubscriptions.Add((typeof(ISubscriber<TEvent>), typeof(TEventHandler)));
             return this;
         }
 
         /// <inheritdoc />
         /// <remarks>
         /// Uses reflection to discover all <see cref="ISubscriber{TEvent}"/> interfaces on
-        /// <typeparamref name="TEventHandler"/> and registers each as a scoped service.
+        /// <typeparamref name="TEventHandler"/> and tracks each for resolution at publish time.
         /// </remarks>
         public IEventBus SubscribeAllHandledEvents<TEventHandler>()
             where TEventHandler : class
@@ -84,7 +88,7 @@ namespace RCommon.EventHandling
 
             foreach (Type serviceType in serviceTypes)
             {
-                _services.AddScoped(serviceType, implementationType);
+                _dynamicSubscriptions.Add((serviceType, implementationType));
             }
 
             return this;
@@ -94,8 +98,9 @@ namespace RCommon.EventHandling
         /// <remarks>
         /// Creates a new DI scope and uses reflection to resolve handlers for the runtime event type,
         /// invoking <see cref="ISubscriber{TEvent}.HandleAsync"/> on each handler sequentially.
+        /// Also resolves handlers from dynamic subscriptions registered via <see cref="Subscribe{TEvent, TEventHandler}"/>.
         /// </remarks>
-        public async Task PublishAsync<TEvent>(TEvent @event)
+        public async Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
         {
             using (IServiceScope scope = _serviceProvider.CreateScope())
             {
@@ -104,7 +109,13 @@ namespace RCommon.EventHandling
                 Type openHandlerType = typeof(ISubscriber<>);
                 Type handlerType = openHandlerType.MakeGenericType(eventType);
                 IEnumerable<object?> handlers = scope.ServiceProvider.GetServices(handlerType);
-                foreach (object? handler in handlers)
+
+                // Also resolve dynamically subscribed handlers via ActivatorUtilities
+                var dynamicHandlers = _dynamicSubscriptions
+                    .Where(s => s.serviceType == handlerType)
+                    .Select(s => ActivatorUtilities.CreateInstance(scope.ServiceProvider, s.implementationType));
+
+                foreach (object? handler in handlers.Concat(dynamicHandlers))
                 {
                     if (handler == null) continue;
 
@@ -112,10 +123,10 @@ namespace RCommon.EventHandling
                     object? result = handlerType
                         .GetTypeInfo()
                         .GetDeclaredMethod(nameof(ISubscriber<TEvent>.HandleAsync))
-                        ?.Invoke(handler, new object[] { @event, CancellationToken.None});
+                        ?.Invoke(handler, new object[] { @event, cancellationToken });
                     if (result is Task task)
                     {
-                        await task;
+                        await task.ConfigureAwait(false);
                     }
                 }
             }

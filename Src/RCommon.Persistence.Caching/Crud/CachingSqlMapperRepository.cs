@@ -48,103 +48,103 @@ namespace RCommon.Persistence.Caching.Crud
         /// <inheritdoc />
         public async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
-            await _repository.AddAsync(entity, token);
+            await _repository.AddAsync(entity, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<bool> AnyAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await _repository.AnyAsync(expression, token);
+            return await _repository.AnyAsync(expression, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _repository.AnyAsync(specification, token);
+            return await _repository.AnyAsync(specification, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task DeleteAsync(TEntity entity, CancellationToken token = default)
         {
-            await _repository.DeleteAsync(entity, token);
+            await _repository.DeleteAsync(entity, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task DeleteAsync(TEntity entity, bool isSoftDelete, CancellationToken token = default)
         {
-            await _repository.DeleteAsync(entity, isSoftDelete, token);
+            await _repository.DeleteAsync(entity, isSoftDelete, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<ICollection<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _repository.FindAsync(specification, token);
+            return await _repository.FindAsync(specification, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<ICollection<TEntity>> FindAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await _repository.FindAsync(expression, token);
+            return await _repository.FindAsync(expression, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<TEntity> FindAsync(object primaryKey, CancellationToken token = default)
         {
-            return await _repository.FindAsync(primaryKey, token);
+            return await _repository.FindAsync(primaryKey, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<TEntity> FindSingleOrDefaultAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await _repository.FindSingleOrDefaultAsync(expression, token);
+            return await _repository.FindSingleOrDefaultAsync(expression, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<TEntity> FindSingleOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _repository.FindSingleOrDefaultAsync(specification, token);
+            return await _repository.FindSingleOrDefaultAsync(specification, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<long> GetCountAsync(ISpecification<TEntity> selectSpec, CancellationToken token = default)
         {
-            return await _repository.GetCountAsync(selectSpec, token);
+            return await _repository.GetCountAsync(selectSpec, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<long> GetCountAsync(System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await _repository.GetCountAsync(expression, token);
+            return await _repository.GetCountAsync(expression, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
-            await _repository.UpdateAsync(entity, token);
+            await _repository.UpdateAsync(entity, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<int> DeleteManyAsync(ISpecification<TEntity> specification, CancellationToken token = default)
         {
-            return await _repository.DeleteManyAsync(specification, token);
+            return await _repository.DeleteManyAsync(specification, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<int> DeleteManyAsync(ISpecification<TEntity> specification, bool isSoftDelete, CancellationToken token = default)
         {
-            return await _repository.DeleteManyAsync(specification, isSoftDelete, token);
+            return await _repository.DeleteManyAsync(specification, isSoftDelete, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
-            return await _repository.DeleteManyAsync(expression, token);
+            return await _repository.DeleteManyAsync(expression, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<int> DeleteManyAsync(Expression<Func<TEntity, bool>> expression, bool isSoftDelete, CancellationToken token = default)
         {
-            return await _repository.DeleteManyAsync(expression, isSoftDelete, token);
+            return await _repository.DeleteManyAsync(expression, isSoftDelete, token).ConfigureAwait(false);
         }
 
         // Cached Items — these overloads check the cache first and fall through to the inner repository on a miss.
@@ -153,16 +153,16 @@ namespace RCommon.Persistence.Caching.Crud
         public async Task<ICollection<TEntity>> FindAsync(object cacheKey, ISpecification<TEntity> specification, CancellationToken token = default)
         {
             var data = await _cacheService.GetOrCreateAsync(cacheKey,
-                async () => await _repository.FindAsync(specification, token));
-            return await data;
+                async () => await _repository.FindAsync(specification, token).ConfigureAwait(false)).ConfigureAwait(false);
+            return await data.ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<ICollection<TEntity>> FindAsync(object cacheKey, System.Linq.Expressions.Expression<Func<TEntity, bool>> expression, CancellationToken token = default)
         {
             var data = await _cacheService.GetOrCreateAsync(cacheKey,
-                async () => await _repository.FindAsync(expression, token));
-            return await data;
+                async () => await _repository.FindAsync(expression, token).ConfigureAwait(false)).ConfigureAwait(false);
+            return await data.ConfigureAwait(false);
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace RCommon.Persistence.Caching.Crud
         public async Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken token = default)
         {
             if (entities == null) throw new ArgumentNullException(nameof(entities));
-            await _repository.AddRangeAsync(entities, token);
+            await _repository.AddRangeAsync(entities, token).ConfigureAwait(false);
         }
     }
 }

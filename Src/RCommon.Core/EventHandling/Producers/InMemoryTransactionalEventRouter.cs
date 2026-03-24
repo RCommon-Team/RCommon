@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,7 @@ namespace RCommon.EventHandling.Producers
         }
 
         /// <inheritdoc />
-        public async Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents)
+        public async Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -58,21 +59,21 @@ namespace RCommon.EventHandling.Producers
                     {
                         // Produce the Synchronized Events first
                         _logger.LogInformation($"{this.GetGenericTypeName()} is routing {syncEvents.Count().ToString()} synchronized transactional events.");
-                        await this.ProduceSyncEvents(syncEvents, eventProducers).ConfigureAwait(false);
+                        await this.ProduceSyncEvents(syncEvents, eventProducers, cancellationToken).ConfigureAwait(false);
                     }
 
                     if (asyncEvents.Any())
                     {
                         // Produce the Async Events
                         _logger.LogInformation($"{this.GetGenericTypeName()} is routing {asyncEvents.Count().ToString()} asynchronous transactional events.");
-                        await this.ProduceAsyncEvents(asyncEvents, eventProducers).ConfigureAwait(false);
+                        await this.ProduceAsyncEvents(asyncEvents, eventProducers, cancellationToken).ConfigureAwait(false);
                     }
-                    
+
                     if (remainingEvents.Any()) // Could be ISerializable events left over that are not marked as ISyncEvent or IAsyncEvent
                     {
                         // Send as synchronized by default
                         _logger.LogInformation($"No sync/async events found. {this.GetGenericTypeName()} is routing {remainingEvents.Count().ToString()} serializable events as synchronized transactional events by default.");
-                        await this.ProduceSyncEvents(remainingEvents, eventProducers).ConfigureAwait(false);
+                        await this.ProduceSyncEvents(remainingEvents, eventProducers, cancellationToken).ConfigureAwait(false);
                     }
 
                 }
@@ -97,7 +98,7 @@ namespace RCommon.EventHandling.Producers
         /// </summary>
         /// <param name="asyncEvents">The async events to produce.</param>
         /// <param name="eventProducers">All registered event producers (will be filtered per event).</param>
-        private async Task ProduceAsyncEvents(IEnumerable<ISerializableEvent> asyncEvents, IEnumerable<IEventProducer> eventProducers)
+        private async Task ProduceAsyncEvents(IEnumerable<ISerializableEvent> asyncEvents, IEnumerable<IEventProducer> eventProducers, CancellationToken cancellationToken = default)
         {
             var eventTaskList = new List<Task>();
             foreach (var @event in asyncEvents)
@@ -105,10 +106,10 @@ namespace RCommon.EventHandling.Producers
                 var filteredProducers = _subscriptionManager.GetProducersForEvent(eventProducers, @event.GetType());
                 foreach (var producer in filteredProducers)
                 {
-                    eventTaskList.Add(producer.ProduceEventAsync(@event));
+                    eventTaskList.Add(producer.ProduceEventAsync(@event, cancellationToken));
                 }
             }
-            await Task.WhenAll(eventTaskList);
+            await Task.WhenAll(eventTaskList).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -116,7 +117,7 @@ namespace RCommon.EventHandling.Producers
         /// </summary>
         /// <param name="syncEvents">The synchronous events to produce.</param>
         /// <param name="eventProducers">All registered event producers (will be filtered per event).</param>
-        private async Task ProduceSyncEvents(IEnumerable<ISerializableEvent> syncEvents, IEnumerable<IEventProducer> eventProducers)
+        private async Task ProduceSyncEvents(IEnumerable<ISerializableEvent> syncEvents, IEnumerable<IEventProducer> eventProducers, CancellationToken cancellationToken = default)
         {
             foreach (var @event in syncEvents)
             {
@@ -124,7 +125,7 @@ namespace RCommon.EventHandling.Producers
                 var filteredProducers = _subscriptionManager.GetProducersForEvent(eventProducers, @event.GetType());
                 foreach (var producer in filteredProducers)
                 {
-                    await producer.ProduceEventAsync(@event).ConfigureAwait(false);
+                    await producer.ProduceEventAsync(@event, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -134,14 +135,14 @@ namespace RCommon.EventHandling.Producers
         /// </summary>
         /// <returns>Completed Task</returns>
         /// <remarks>This should help us avoid race conditions e.g. a subscriber/event handler adds new events while we are processing the current list</remarks>
-        public async Task RouteEventsAsync()
+        public async Task RouteEventsAsync(CancellationToken cancellationToken = default)
         {
-            
-            while (_storedTransactionalEvents.Any()) 
+
+            while (_storedTransactionalEvents.Any())
             {
                 var currentEvents = new List<ISerializableEvent>();
                 _storedTransactionalEvents.ForEach(x => currentEvents.Add(x));
-                await this.RouteEventsAsync(currentEvents).ConfigureAwait(false);
+                await this.RouteEventsAsync(currentEvents, cancellationToken).ConfigureAwait(false);
                 RemoveEvents(currentEvents);
             }
         }

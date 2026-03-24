@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RCommon.Entities\RCommon.Entities.csproj" />
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
+    <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
     <ProjectReference Include="..\RCommon.Security\RCommon.Security.csproj" />
   </ItemGroup>
 
@@ -44,6 +45,12 @@
 
   <ItemGroup>
     <PackageReference Update="MinVer" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" Condition=" '$(TargetFramework)' == 'net8.0' " />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.10" Condition=" '$(TargetFramework)' == 'net9.0' " />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" Condition=" '$(TargetFramework)' == 'net10.0' " />
   </ItemGroup>
 
 </Project>

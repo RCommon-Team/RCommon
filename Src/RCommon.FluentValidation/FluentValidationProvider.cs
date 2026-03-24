@@ -65,7 +65,7 @@ namespace RCommon.FluentValidation
 
                 Guard.IsNotNull(untypedValidators, nameof(untypedValidators));
 
-                var validationResults = await ExecuteValidationAsync(target, untypedValidators!, cancellationToken); // TODO: Need a better way than passing in object[]
+                var validationResults = await ExecuteValidationAsync(target, untypedValidators!, cancellationToken).ConfigureAwait(false); // TODO: Need a better way than passing in object[]
 
                 // Flatten all validation errors from all validators into a single list
                 var failures = validationResults.SelectMany(r => r.Errors).Where(f => f != null).ToList();
@@ -110,7 +110,7 @@ namespace RCommon.FluentValidation
                 var context = new ValidationContext<T>(target);
 
                 // Run all validators in parallel via Task.WhenAll, casting each to the non-generic IValidator interface
-                var validationResults = await Task.WhenAll(validators.Select(v => ((IValidator)v).ValidateAsync(context, cancellationToken)));
+                var validationResults = await Task.WhenAll(validators.Select(v => ((IValidator)v).ValidateAsync(context, cancellationToken))).ConfigureAwait(false);
                 return validationResults;
             }
             else

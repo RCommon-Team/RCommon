@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using HR.LeaveManagement.MVC.Mappings;
 using HR.LeaveManagement.MVC.Models;
 using HR.LeaveManagement.MVC.Services.Base;
 using Microsoft.AspNetCore.Authentication;
@@ -18,15 +18,12 @@ namespace HR.LeaveManagement.MVC.Contracts
     public class AuthenticationService : BaseHttpService, IAuthenticationService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMapper _mapper;
         private JsonWebTokenHandler _tokenHandler;
 
-        public AuthenticationService(IClient client, ILocalStorageService localStorage, IHttpContextAccessor httpContextAccessor,
-            IMapper mapper)
+        public AuthenticationService(IClient client, ILocalStorageService localStorage, IHttpContextAccessor httpContextAccessor)
             : base(client, localStorage)
         {
             this._httpContextAccessor = httpContextAccessor;
-            this._mapper = mapper;
             this._tokenHandler = new JsonWebTokenHandler();
         }
 
@@ -50,7 +47,7 @@ namespace HR.LeaveManagement.MVC.Contracts
                 }
                 return false;
             }
-            catch 
+            catch
             {
                 return false;
             }
@@ -58,8 +55,7 @@ namespace HR.LeaveManagement.MVC.Contracts
 
         public async Task<bool> Register(RegisterVM registration)
         {
-
-            RegistrationRequest registrationRequest = _mapper.Map<RegistrationRequest>(registration);
+            RegistrationRequest registrationRequest = registration.ToRegistrationRequest();
             var response = await _client.RegisterAsync(registrationRequest);
 
             if (!string.IsNullOrEmpty(response.UserId))

@@ -1,9 +1,9 @@
-﻿using AutoMapper;
 using HR.LeaveManagement.Application.DTOs;
 using HR.LeaveManagement.Application.DTOs.LeaveRequest;
 using HR.LeaveManagement.Application.Features.LeaveRequests.Requests.Queries;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests;
 using HR.LeaveManagement.Application.Features.LeaveTypes.Requests.Queries;
+using HR.LeaveManagement.Application.Mappings;
 using RCommon.Mediator.Subscribers;
 using System;
 using System.Collections.Generic;
@@ -20,24 +20,22 @@ namespace HR.LeaveManagement.Application.Features.LeaveRequests.Handlers.Queries
     public class GetLeaveRequestDetailRequestHandler : IAppRequestHandler<GetLeaveRequestDetailRequest, LeaveRequestDto>
     {
         private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
-        private readonly IMapper _mapper;
         private readonly IUserService _userService;
 
         public GetLeaveRequestDetailRequestHandler(IGraphRepository<LeaveRequest> leaveRequestRepository,
-            IMapper mapper,
             IUserService userService)
         {
             _leaveRequestRepository = leaveRequestRepository;
             this._leaveRequestRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
-            _mapper = mapper;
             this._userService = userService;
         }
+
         public async Task<LeaveRequestDto> HandleAsync(GetLeaveRequestDetailRequest request, CancellationToken cancellationToken)
         {
             _leaveRequestRepository.Include(x => x.LeaveType);
-            var leaveRequest = _mapper.Map<LeaveRequestDto>(await _leaveRequestRepository.FindAsync(request.Id));
-            leaveRequest.Employee = await _userService.GetEmployee(leaveRequest.RequestingEmployeeId);
-            return leaveRequest;
+            var leaveRequestDto = (await _leaveRequestRepository.FindAsync(request.Id)).ToLeaveRequestDto();
+            leaveRequestDto.Employee = await _userService.GetEmployee(leaveRequestDto.RequestingEmployeeId);
+            return leaveRequestDto;
         }
     }
 }

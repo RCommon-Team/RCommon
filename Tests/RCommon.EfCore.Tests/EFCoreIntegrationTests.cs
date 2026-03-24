@@ -8,6 +8,7 @@ using RCommon.Persistence;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.EFCore.Crud;
+using System.Threading;
 using Xunit;
 
 namespace RCommon.EfCore.Tests;
@@ -286,7 +287,9 @@ public class TestEntityEventTracker : IEntityEventTracker
         _trackedEntities.Add(entity);
     }
 
-    public Task<bool> EmitTransactionalEventsAsync()
+    public Task PersistEventsAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    public Task<bool> EmitTransactionalEventsAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult(true);
     }

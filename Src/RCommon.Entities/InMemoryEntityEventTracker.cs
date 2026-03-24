@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RCommon.Entities
@@ -51,10 +52,18 @@ namespace RCommon.Entities
 
         /// <inheritdoc />
         /// <remarks>
+        /// The in-memory implementation is a no-op. The transactional outbox decorator
+        /// (<c>OutboxEntityEventTracker</c>) overrides this to persist events within the active
+        /// transaction before it is committed.
+        /// </remarks>
+        public Task PersistEventsAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        /// <inheritdoc />
+        /// <remarks>
         /// Traverses the object graph of each tracked entity to discover nested <see cref="IBusinessEntity"/>
         /// instances, collects their local events, and routes all events through the <see cref="IEventRouter"/>.
         /// </remarks>
-        public async Task<bool> EmitTransactionalEventsAsync()
+        public async Task<bool> EmitTransactionalEventsAsync(CancellationToken cancellationToken = default)
         {
             // Walk each tracked root entity and traverse its object graph for nested IBusinessEntity instances
             foreach (var entity in this._businessEntities)
@@ -67,8 +76,8 @@ namespace RCommon.Entities
                     _eventRouter.AddTransactionalEvents(graphEntity.LocalEvents);
                 }
             }
-            await _eventRouter.RouteEventsAsync();
-            return await Task.FromResult(true);
+            await _eventRouter.RouteEventsAsync(cancellationToken).ConfigureAwait(false);
+            return true;
         }
     }
 }

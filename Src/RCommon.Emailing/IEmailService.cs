@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Mail;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RCommon.Emailing
@@ -24,7 +25,8 @@ namespace RCommon.Emailing
         /// Sends the specified <paramref name="message"/> asynchronously.
         /// </summary>
         /// <param name="message">The <see cref="MailMessage"/> to send.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous send operation.</returns>
-        Task SendEmailAsync(MailMessage message);
+        Task SendEmailAsync(MailMessage message, CancellationToken cancellationToken = default);
     }
 }
