@@ -1,8 +1,157 @@
 ---
-title: System Time
+title: System Time Abstraction
 sidebar_position: 4
 ---
 
-# System Time
+import NuGetInstall from '@site/src/components/NuGetInstall';
 
-*Documentation coming soon.*
+# System Time Abstraction
+
+## Overview
+
+Code that calls `DateTime.Now` or `DateTime.UtcNow` directly is difficult to test because the value changes with wall-clock time. RCommon provides an `ISystemTime` abstraction that wraps the system clock. Injecting `ISystemTime` instead of reading the clock directly lets you substitute a fixed time in unit tests without modifying production code.
+
+Beyond testability, `ISystemTime` also centralizes time zone handling. When `DateTimeKind.Utc` is configured, `ISystemTime.Now` always returns UTC, and the `Normalize` method converts any incoming `DateTime` to match that kind.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Core" />
+
+## Configuration
+
+Configure the system time inside the `AddRCommon()` builder chain.
+
+### UTC time (recommended for multi-timezone applications)
+
+```csharp
+builder.Services.AddRCommon()
+    .WithDateTimeSystem(options =>
+    {
+        options.Kind = DateTimeKind.Utc;
+    });
+```
+
+### Local server time
+
+```csharp
+builder.Services.AddRCommon()
+    .WithDateTimeSystem(options =>
+    {
+        options.Kind = DateTimeKind.Local;
+    });
+```
+
+### Unspecified (default)
+
+When `Kind` is `DateTimeKind.Unspecified`, `ISystemTime.Now` returns `DateTime.Now` and no normalization conversions are applied.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithDateTimeSystem(options =>
+    {
+        options.Kind = DateTimeKind.Unspecified;
+    });
+```
+
+Only one `WithDateTimeSystem` call is permitted per application. A second call throws `RCommonBuilderException`.
+
+## Usage
+
+### Injecting ISystemTime in production code
+
+```csharp
+using RCommon;
+
+public class AuditService
+{
+    private readonly ISystemTime _systemTime;
+    private readonly IAuditRepository _repository;
+
+    public AuditService(ISystemTime systemTime, IAuditRepository repository)
+    {
+        _systemTime = systemTime;
+        _repository = repository;
+    }
+
+    public async Task RecordEvent(string description)
+    {
+        var entry = new AuditEntry
+        {
+            OccurredAt = _systemTime.Now,
+            Description = description
+        };
+        await _repository.AddAsync(entry);
+    }
+}
+```
+
+### Normalizing incoming DateTime values
+
+Use `Normalize` when accepting a `DateTime` from an external source (e.g., an API request) and you need it to conform to the application's configured `DateTimeKind`:
+
+```csharp
+public void SetScheduledDate(DateTime scheduledDate)
+{
+    // Converts from UTC to Local, or Local to UTC, depending on configured Kind.
+    var normalized = _systemTime.Normalize(scheduledDate);
+    _scheduledDate = normalized;
+}
+```
+
+`Normalize` rules:
+- If the configured `Kind` is `Unspecified`, the input is returned unchanged.
+- If the configured `Kind` matches the input's `Kind`, no conversion occurs.
+- `Local` + UTC input: converts to local time via `ToLocalTime()`.
+- `Utc` + Local input: converts to UTC via `ToUniversalTime()`.
+- `Unspecified` input: re-specifies the `Kind` without converting the value.
+
+### In unit tests
+
+Substitute `ISystemTime` with a test double that returns a known timestamp:
+
+```csharp
+public class FakeSystemTime : ISystemTime
+{
+    private readonly DateTime _fixedTime;
+
+    public FakeSystemTime(DateTime fixedTime)
+    {
+        _fixedTime = fixedTime;
+    }
+
+    public DateTime Now => _fixedTime;
+    public DateTimeKind Kind => _fixedTime.Kind;
+    public bool SupportsMultipleTimezone => _fixedTime.Kind == DateTimeKind.Utc;
+    public DateTime Normalize(DateTime dateTime) => dateTime;
+}
+
+// In a test
+var fixedTime = new DateTime(2026, 1, 15, 9, 0, 0, DateTimeKind.Utc);
+var fakeTime = new FakeSystemTime(fixedTime);
+var service = new AuditService(fakeTime, repositoryMock.Object);
+
+await service.RecordEvent("order placed");
+
+repositoryMock.Verify(r => r.AddAsync(It.Is<AuditEntry>(e => e.OccurredAt == fixedTime)));
+```
+
+## API Summary
+
+### `ISystemTime`
+
+| Member | Description |
+|---|---|
+| `DateTime Now { get; }` | Returns the current date and time according to the configured `Kind`. |
+| `DateTimeKind Kind { get; }` | The `DateTimeKind` this instance was configured with. |
+| `bool SupportsMultipleTimezone { get; }` | `true` when `Kind` is `Utc`, indicating the time is safe to store across time zones. |
+| `DateTime Normalize(DateTime dateTime)` | Converts the provided `DateTime` to match the configured `Kind`. |
+
+### `SystemTime` (default implementation)
+
+Registered as `ISystemTime` by `WithDateTimeSystem(...)`. Transient lifetime. `Now` returns `DateTime.UtcNow` when `Kind` is `Utc`, otherwise `DateTime.Now`.
+
+### `SystemTimeOptions`
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `Kind` | `DateTimeKind` | `DateTimeKind.Unspecified` | Controls whether the system clock operates in UTC, Local, or Unspecified mode. |

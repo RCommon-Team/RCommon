@@ -3,6 +3,142 @@ title: GUID Generation
 sidebar_position: 3
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # GUID Generation
 
-*Documentation coming soon.*
+## Overview
+
+RCommon abstracts GUID generation behind an `IGuidGenerator` interface for two reasons:
+
+1. **Testability.** Code that calls `Guid.NewGuid()` directly cannot be controlled in unit tests. Injecting `IGuidGenerator` lets tests substitute a predictable implementation.
+2. **Database performance.** Standard random GUIDs cause index fragmentation in clustered indexes because their values are not monotonically increasing. Sequential GUIDs embed a timestamp in the byte layout so new rows are always appended at the end of the index.
+
+RCommon ships two implementations out of the box: `SimpleGuidGenerator` and `SequentialGuidGenerator`. You pick one during application configuration; only one generator may be registered per application.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Core" />
+
+## Configuration
+
+Configure GUID generation inside the `AddRCommon()` builder chain.
+
+### Simple (random) GUIDs
+
+Uses `Guid.NewGuid()` internally. Suitable for non-database use cases or when the underlying database handles GUID ordering itself (e.g., `NEWSEQUENTIALID()` in SQL Server).
+
+```csharp
+builder.Services.AddRCommon()
+    .WithSimpleGuidGenerator();
+```
+
+### Sequential GUIDs
+
+Generates GUIDs with an embedded timestamp so that successive calls produce values that sort in the correct order for a given database platform. The byte layout varies by platform; choose the appropriate `SequentialGuidType` for your database:
+
+| `SequentialGuidType` | Database |
+|---|---|
+| `SequentialAsString` | MySQL, PostgreSQL |
+| `SequentialAsBinary` | Oracle |
+| `SequentialAtEnd` | SQL Server (default) |
+
+```csharp
+builder.Services.AddRCommon()
+    .WithSequentialGuidGenerator(options =>
+    {
+        options.DefaultSequentialGuidType = SequentialGuidType.SequentialAtEnd;
+    });
+```
+
+When `DefaultSequentialGuidType` is left `null`, the generator defaults to `SequentialAtEnd`.
+
+## Usage
+
+Inject `IGuidGenerator` wherever you need to create a new identifier:
+
+```csharp
+using RCommon;
+
+public class OrderService
+{
+    private readonly IGuidGenerator _guidGenerator;
+
+    public OrderService(IGuidGenerator guidGenerator)
+    {
+        _guidGenerator = guidGenerator;
+    }
+
+    public Order CreateOrder(CustomerId customerId)
+    {
+        var orderId = _guidGenerator.Create();
+        return new Order(orderId, customerId);
+    }
+}
+```
+
+### Generating a specific sequential GUID type at runtime
+
+`SequentialGuidGenerator` exposes an overload that accepts a `SequentialGuidType` directly, which is useful when a single application works with multiple databases:
+
+```csharp
+// Only available when you have a reference to SequentialGuidGenerator directly
+var generator = serviceProvider.GetRequiredService<IGuidGenerator>() as SequentialGuidGenerator;
+var guid = generator?.Create(SequentialGuidType.SequentialAsString);
+```
+
+For most scenarios, rely on the default configured via `WithSequentialGuidGenerator` and inject `IGuidGenerator` — the concrete type is an implementation detail.
+
+### In unit tests
+
+Substitute `IGuidGenerator` with a test double that returns a known value:
+
+```csharp
+public class FakeGuidGenerator : IGuidGenerator
+{
+    private readonly Guid _value;
+
+    public FakeGuidGenerator(Guid value)
+    {
+        _value = value;
+    }
+
+    public Guid Create() => _value;
+}
+
+// In a test
+var knownId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+var service = new OrderService(new FakeGuidGenerator(knownId));
+var order = service.CreateOrder(customerId);
+Assert.Equal(knownId, order.Id);
+```
+
+## API Summary
+
+### `IGuidGenerator`
+
+| Member | Description |
+|---|---|
+| `Guid Create()` | Creates and returns a new `Guid`. |
+
+### `SimpleGuidGenerator`
+
+Registered by `WithSimpleGuidGenerator()`. Calls `Guid.NewGuid()` on every invocation. Scoped lifetime.
+
+### `SequentialGuidGenerator`
+
+Registered by `WithSequentialGuidGenerator(...)`. Transient lifetime. Generates a GUID composed of 10 bytes of cryptographically random data and a 6-byte millisecond-resolution timestamp. Byte layout is controlled by `SequentialGuidType`.
+
+### `SequentialGuidGeneratorOptions`
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `DefaultSequentialGuidType` | `SequentialGuidType?` | `null` (resolves to `SequentialAtEnd`) | The byte layout strategy used when `Create()` is called without an explicit type. |
+
+### `SequentialGuidType` enum
+
+| Value | Description |
+|---|---|
+| `SequentialAsString` | Timestamp at start; sequential when formatted as a string. Use with MySQL, PostgreSQL. |
+| `SequentialAsBinary` | Timestamp at start; sequential when compared as a byte array. Use with Oracle. |
+| `SequentialAtEnd` | Timestamp at end of the Data4 block. Use with SQL Server. |

@@ -1,8 +1,221 @@
 ---
-title: Execution Results
+title: Execution Results & Models
 sidebar_position: 5
 ---
 
-# Execution Results
+import NuGetInstall from '@site/src/components/NuGetInstall';
 
-*Documentation coming soon.*
+# Execution Results & Models
+
+## Overview
+
+The `RCommon.Models` package provides a set of shared model types used throughout the framework: execution results for conveying operation outcomes, paginated list models for returning paged data, and marker interfaces that create consistent type constraints across commands, queries, and events.
+
+Using these shared types instead of raw booleans or thrown exceptions gives your application a uniform, serializable contract between layers.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Models" />
+
+## Execution Results
+
+### Overview
+
+The `IExecutionResult` pattern replaces raw exception-based control flow for predictable failures (validation errors, business rule violations, etc.). Instead of throwing, a method returns an `IExecutionResult` that carries a success flag and, on failure, a list of error messages.
+
+`ExecutionResult` is an abstract record with static factory methods that return cached singleton instances for the common success and generic failure cases, avoiding unnecessary allocations.
+
+### Basic usage
+
+```csharp
+using RCommon.Models.ExecutionResults;
+
+// Returning success
+public IExecutionResult ActivateAccount(Account account)
+{
+    if (account.IsAlreadyActive)
+        return ExecutionResult.Failed("Account is already active.");
+
+    account.Activate();
+    return ExecutionResult.Success();
+}
+
+// Returning failure with multiple errors
+public IExecutionResult ValidateOrder(Order order)
+{
+    var errors = new List<string>();
+
+    if (order.Items.Count == 0)
+        errors.Add("Order must contain at least one item.");
+
+    if (order.CustomerId == Guid.Empty)
+        errors.Add("Order must be assigned to a customer.");
+
+    return errors.Count > 0
+        ? ExecutionResult.Failed(errors)
+        : ExecutionResult.Success();
+}
+```
+
+### Consuming a result
+
+```csharp
+var result = ActivateAccount(account);
+
+if (!result.IsSuccess)
+{
+    // Cast to FailedExecutionResult to access error messages
+    var failed = result as FailedExecutionResult;
+    foreach (var error in failed?.Errors ?? [])
+    {
+        logger.LogWarning("Activation failed: {Error}", error);
+    }
+    return;
+}
+
+// proceed with successful path
+```
+
+### Wrapping a result in a CommandResult
+
+When a command handler needs to return an execution result to the caller, wrap it in `CommandResult<TExecutionResult>`:
+
+```csharp
+using RCommon.Models.Commands;
+using RCommon.Models.ExecutionResults;
+
+public class ActivateAccountHandler
+{
+    public ICommandResult<IExecutionResult> Handle(ActivateAccountCommand command)
+    {
+        var result = ActivateAccount(command.AccountId);
+        return new CommandResult<IExecutionResult>(result);
+    }
+}
+```
+
+---
+
+## Pagination Models
+
+### Overview
+
+RCommon provides two complementary pagination abstractions:
+
+- `PagedResult<T>` / `IPagedResult<T>` — a lightweight, immutable result container. Construct it directly from a list of items and total count metadata.
+- `PaginatedListModel<TSource>` / `PaginatedListModel<TSource, TOut>` — abstract base records that apply pagination and optional projection to an `IQueryable<TSource>` source. Derive from these when building response DTOs.
+
+### `PagedResult<T>` — simple paged container
+
+Use `PagedResult<T>` when you already have a materialized page of items and just need to attach pagination metadata:
+
+```csharp
+using RCommon.Models;
+
+public async Task<IPagedResult<OrderSummary>> GetOrdersAsync(int pageNumber, int pageSize)
+{
+    var query = _dbContext.Orders.Where(o => o.CustomerId == _currentUserId);
+    var totalCount = await query.CountAsync();
+    var items = await query
+        .OrderByDescending(o => o.CreatedAt)
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .Select(o => new OrderSummary(o.Id, o.CreatedAt, o.Total))
+        .ToListAsync();
+
+    return new PagedResult<OrderSummary>(items, totalCount, pageNumber, pageSize);
+}
+```
+
+`PagedResult<T>` computes `TotalPages`, `HasNextPage`, and `HasPreviousPage` automatically.
+
+### `PaginatedListRequest` — standardized request input
+
+Derive from `PaginatedListRequest` to build your own request types with a consistent paging interface:
+
+```csharp
+using RCommon.Models;
+
+public record GetOrdersRequest : PaginatedListRequest
+{
+    public string? CustomerName { get; init; }
+}
+```
+
+Defaults: page 1, page size 20, sort by "id", sort direction `None`.
+
+### `PaginatedListModel<TSource>` — queryable-based DTO
+
+Derive from `PaginatedListModel<TSource>` when your response DTO should be built directly from an `IQueryable` source:
+
+```csharp
+using RCommon.Models;
+
+public record OrderListModel : PaginatedListModel<Order>
+{
+    public OrderListModel(IQueryable<Order> source, PaginatedListRequest request)
+        : base(source, request) { }
+}
+
+// Usage in a query handler:
+var query = _dbContext.Orders.AsQueryable();
+var model = new OrderListModel(query, request);
+// model.Items, model.TotalCount, model.TotalPages, model.HasNextPage, etc. are all set
+```
+
+### `PaginatedListModel<TSource, TOut>` — queryable with projection
+
+Use the two-type-parameter variant when you need to project source entities into a different output type. Implement the abstract `CastItems` method:
+
+```csharp
+using RCommon.Models;
+
+public record OrderListModel : PaginatedListModel<Order, OrderSummaryDto>
+{
+    public OrderListModel(IQueryable<Order> source, PaginatedListRequest request)
+        : base(source, request) { }
+
+    protected override IQueryable<OrderSummaryDto> CastItems(IQueryable<Order> source)
+    {
+        return source.Select(o => new OrderSummaryDto
+        {
+            Id = o.Id,
+            CreatedAt = o.CreatedAt,
+            Total = o.Total
+        });
+    }
+}
+```
+
+---
+
+## API Summary
+
+### Execution result types
+
+| Type | Description |
+|---|---|
+| `IExecutionResult` | Contract: `bool IsSuccess`. Base for all execution results. |
+| `ExecutionResult` | Abstract record. Factory methods: `Success()`, `Failed()`, `Failed(IEnumerable<string>)`, `Failed(params string[])`. |
+| `SuccessExecutionResult` | Concrete record; `IsSuccess = true`. |
+| `FailedExecutionResult` | Concrete record; `IsSuccess = false`; exposes `IReadOnlyCollection<string> Errors`. |
+| `ICommandResult<TExecutionResult>` | Wraps an `IExecutionResult` as a command handler return type. |
+| `CommandResult<TExecutionResult>` | Default implementation of `ICommandResult<TExecutionResult>`. Serialization-ready (`[DataContract]`). |
+
+### Pagination types
+
+| Type | Description |
+|---|---|
+| `IPagedResult<T>` | Interface: `Items`, `TotalCount`, `PageNumber`, `PageSize`, `TotalPages`, `HasNextPage`, `HasPreviousPage`. |
+| `PagedResult<T>` | Concrete implementation of `IPagedResult<T>`. Constructor: `(items, totalCount, pageNumber, pageSize)`. |
+| `IPaginatedListRequest` | Interface for paging/sorting parameters: `PageNumber`, `PageSize`, `SortBy`, `SortDirection`. |
+| `PaginatedListRequest` | Abstract base record. Defaults: page 1, page size 20, sort by "id", no direction. |
+| `PaginatedListModel<TSource>` | Abstract base record that paginates an `IQueryable<TSource>` in-constructor. |
+| `PaginatedListModel<TSource, TOut>` | Same as above, plus abstract `CastItems` for projecting to a different output type. |
+| `SortDirectionEnum` | `Ascending = 1`, `Descending = 2`, `None = 3`. |
+
+### Marker interface
+
+| Type | Description |
+|---|---|
+| `IModel` | Empty marker interface. Implemented by all model types to enable consistent generic constraints across the framework. |

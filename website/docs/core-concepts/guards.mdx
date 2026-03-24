@@ -1,8 +1,183 @@
 ---
-title: Guards
+title: Guards & Validation
 sidebar_position: 2
 ---
 
-# Guards
+import NuGetInstall from '@site/src/components/NuGetInstall';
 
-*Documentation coming soon.*
+# Guards & Validation
+
+## Overview
+
+RCommon ships a `Guard` utility class that implements the guard clause pattern. Guard clauses validate inputs at the top of a method and throw a descriptive exception immediately when a precondition is violated, rather than allowing invalid state to propagate further into the call stack.
+
+All methods are static, so no instantiation or dependency injection is required. You call them directly at the start of any method that needs to validate its arguments.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Core" />
+
+No additional configuration is required. The `Guard` class is part of the `RCommon` namespace and is available as soon as the package is referenced.
+
+## Usage
+
+### Null checks
+
+```csharp
+using RCommon;
+
+public class OrderService
+{
+    private readonly IOrderRepository _repository;
+
+    public OrderService(IOrderRepository repository)
+    {
+        Guard.IsNotNull(repository, nameof(repository));
+        _repository = repository;
+    }
+
+    public async Task SubmitOrder(Order order)
+    {
+        Guard.IsNotNull(order, nameof(order));
+        await _repository.SaveAsync(order);
+    }
+}
+```
+
+`Guard.IsNotNull` throws `ArgumentNullException` when the argument is `null`.
+
+### String checks
+
+```csharp
+public void SetCustomerName(string name)
+{
+    Guard.IsNotEmpty(name, nameof(name));           // null, empty, or whitespace
+    Guard.IsNotOutOfLength(name, 100, nameof(name)); // max length
+    _name = name;
+}
+
+public void SetEmail(string email)
+{
+    Guard.IsNotInvalidEmail(email, nameof(email));
+    _email = email;
+}
+
+public void SetWebsite(string url)
+{
+    Guard.IsNotInvalidWebUrl(url, nameof(url));
+    _website = url;
+}
+```
+
+### GUID checks
+
+```csharp
+public async Task<Order> GetOrder(Guid orderId)
+{
+    Guard.IsNotEmpty(orderId, nameof(orderId));
+    return await _repository.GetByIdAsync(orderId);
+}
+```
+
+`Guard.IsNotEmpty(Guid, string)` throws `ArgumentException` when the value is `Guid.Empty`.
+
+An overload that returns a `bool` instead of throwing is also available when you prefer a conditional check:
+
+```csharp
+if (!Guard.IsNotEmpty(orderId, nameof(orderId), throwException: false))
+{
+    // handle the case gracefully
+    return null;
+}
+```
+
+### Numeric checks
+
+```csharp
+public void SetPageSize(int pageSize)
+{
+    Guard.IsNotNegative(pageSize, nameof(pageSize));        // < 0 throws
+    Guard.IsNotNegativeOrZero(pageSize, nameof(pageSize));  // <= 0 throws
+}
+
+public void SetDiscountRate(decimal rate)
+{
+    Guard.IsNotNegative(rate, nameof(rate));
+    Guard.IsNotOutOfRange((int)rate, 0, 100, nameof(rate)); // range check (int only)
+}
+```
+
+Numeric overloads exist for `int`, `long`, `float`, `decimal`, and `TimeSpan`.
+
+### Date checks
+
+```csharp
+public void SetDeliveryDate(DateTime deliveryDate)
+{
+    Guard.IsNotInvalidDate(deliveryDate, nameof(deliveryDate));
+}
+```
+
+### Collection checks
+
+```csharp
+public void ProcessItems(ICollection<LineItem> items)
+{
+    Guard.IsNotEmpty(items, nameof(items)); // null or Count == 0 throws
+    foreach (var item in items) { /* ... */ }
+}
+```
+
+### Arbitrary condition checks
+
+Use `Guard.Against<TException>` when you need to assert a custom condition and throw a specific exception type:
+
+```csharp
+Guard.Against<InvalidOperationException>(
+    _isLocked,
+    "Cannot modify a locked order.");
+
+// Lambda overload — evaluated lazily
+Guard.Against<InvalidOperationException>(
+    () => order.Status == OrderStatus.Cancelled,
+    "Cannot add items to a cancelled order.");
+```
+
+### Type and interface checks
+
+```csharp
+Guard.TypeOf<IPaymentProvider>(provider, "Provider must implement IPaymentProvider.");
+Guard.Implements<IPaymentProvider>(providerType, "Type does not implement IPaymentProvider.");
+Guard.InheritsFrom<BaseEntity>(entity, "Entity must inherit from BaseEntity.");
+```
+
+### Equality checks
+
+```csharp
+Guard.IsEqual<ArgumentException>(expectedVersion, actualVersion,
+    "Version mismatch — optimistic concurrency violation.");
+```
+
+## API Summary
+
+| Method | Throws | Condition |
+|---|---|---|
+| `IsNotNull(object, string)` | `ArgumentNullException` | Argument is `null` |
+| `IsNotEmpty(string, string)` | `ArgumentException` | String is null, empty, or whitespace |
+| `IsNotEmpty(string, string, bool)` | `ArgumentException` or `false` | String is null, empty, or whitespace |
+| `IsNotOutOfLength(string, int, string)` | `ArgumentException` | String length exceeds maximum |
+| `IsNotInvalidEmail(string, string)` | `ArgumentException` | String is not a valid email address |
+| `IsNotInvalidWebUrl(string, string)` | `ArgumentException` | String is not a valid web URL |
+| `IsNotEmpty(Guid, string)` | `ArgumentException` | GUID is `Guid.Empty` |
+| `IsNotEmpty(Guid, string, bool)` | `ArgumentException` or `false` | GUID is `Guid.Empty` |
+| `IsNotEmpty<T>(ICollection<T>, string)` | `ArgumentException` | Collection is null or empty |
+| `IsNotNegative(int/long/float/decimal/TimeSpan, string)` | `ArgumentOutOfRangeException` | Value is less than zero |
+| `IsNotNegativeOrZero(int/long/float/decimal/TimeSpan, string)` | `ArgumentOutOfRangeException` | Value is zero or less |
+| `IsNotOutOfRange(int, int, int, string)` | `ArgumentOutOfRangeException` | Value is outside [min, max] |
+| `IsNotInvalidDate(DateTime, string)` | `ArgumentOutOfRangeException` | Date is not valid |
+| `Against<TException>(bool, string)` | `TException` | Assertion is `true` |
+| `Against<TException>(Func<bool>, string)` | `TException` | Lambda returns `true` |
+| `TypeOf<TType>(object, string)` | `InvalidOperationException` | Object is not of expected type |
+| `Implements<TInterface>(object/Type, string)` | `InvalidOperationException` | Type does not implement interface |
+| `InheritsFrom<TBase>(object/Type, string)` | `InvalidOperationException` | Type does not inherit from base |
+| `IsEqual<TException>(object, object, string)` | `TException` | Objects are not equal |
