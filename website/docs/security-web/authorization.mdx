@@ -3,6 +3,302 @@ title: Authorization
 sidebar_position: 1
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Authorization
 
-*Documentation coming soon.*
+## Overview
+
+`RCommon.Security` provides the claims and principal accessor abstractions that RCommon uses internally for identity resolution. It does not replace ASP.NET Core's authorization pipeline — instead it sits alongside it, giving your application code a consistent way to read the current user's identity, roles, and claims without taking a hard dependency on `HttpContext` or `Thread.CurrentPrincipal`.
+
+The core design is a layered stack:
+
+- `ICurrentPrincipalAccessor` — retrieves the current `ClaimsPrincipal` and supports temporarily replacing it for a scoped context (useful in background workers and tests).
+- `ICurrentUser` — reads well-known identity properties (ID, roles, tenant, arbitrary claims) from whatever principal the accessor provides.
+- `ICurrentClient` — reads the OAuth client ID claim from the same principal.
+- `ClaimTypesConst` — a static class of configurable claim type URIs so that you can remap standard claims to the values your identity provider actually issues.
+- `AuthorizationException` — a structured exception type for signaling authorization failures through the application tier.
+
+`RCommon.Authorization.Web` adds two Swashbuckle operation filters that keep your OpenAPI/Swagger documentation accurate when your API uses authorization:
+
+- `AuthorizeCheckOperationFilter` — detects `[Authorize]` on controllers and actions and adds 401/403 responses plus an OAuth2 security requirement to the generated operation.
+- `AuthorizationHeaderParameterOperationFilter` — detects `AuthorizeFilter` in the MVC filter pipeline and adds a required `Authorization` header parameter to the operation so that Swagger UI can accept a bearer token.
+
+## Installation
+
+For the core security abstractions (principal accessor, current user, claims helpers):
+
+<NuGetInstall packageName="RCommon.Security" />
+
+For ASP.NET Core web apps that need HTTP-context-aware principal resolution:
+
+<NuGetInstall packageName="RCommon.Web" />
+
+For the Swashbuckle/OpenAPI authorization filters:
+
+<NuGetInstall packageName="RCommon.Authorization.Web" />
+
+## Configuration
+
+### Claims and principal accessor (non-web / background services)
+
+Register the thread-based accessor when your application does not run inside ASP.NET Core request middleware:
+
+```csharp
+using RCommon;
+
+builder.Services.AddRCommon(config =>
+{
+    config.WithClaimsAndPrincipalAccessor();
+});
+```
+
+This registers:
+- `ICurrentPrincipalAccessor` → `ThreadCurrentPrincipalAccessor` (reads `Thread.CurrentPrincipal`)
+- `ICurrentUser` → `CurrentUser`
+- `ICurrentClient` → `CurrentClient`
+- `ITenantIdAccessor` → `ClaimsTenantIdAccessor`
+
+### Claims and principal accessor (ASP.NET Core web apps)
+
+Use the web variant which reads the principal from `HttpContext.User` instead:
+
+```csharp
+using RCommon;
+
+builder.Services.AddRCommon(config =>
+{
+    config.WithClaimsAndPrincipalAccessorForWeb();
+});
+```
+
+This registers the same interfaces but substitutes `HttpContextCurrentPrincipalAccessor` for `ThreadCurrentPrincipalAccessor`, and calls `AddHttpContextAccessor()` automatically.
+
+### Overriding claim type URIs
+
+If your identity provider uses non-standard claim type URIs, override the static properties on `ClaimTypesConst` once at startup before any requests are processed:
+
+```csharp
+using RCommon.Security.Claims;
+
+// Map to the short claim names issued by your OIDC provider.
+ClaimTypesConst.UserId   = "sub";
+ClaimTypesConst.Role     = "roles";
+ClaimTypesConst.Email    = "email";
+ClaimTypesConst.TenantId = "tenant_id";
+ClaimTypesConst.ClientId = "client_id";
+```
+
+### Swashbuckle operation filters
+
+Add both filters to your Swagger generation options:
+
+```csharp
+using RCommon.Authorization.Web.Filters;
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.OperationFilter<AuthorizeCheckOperationFilter>();
+    options.OperationFilter<AuthorizationHeaderParameterOperationFilter>();
+
+    // Register your OAuth2 security scheme so that the filters can reference it.
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows
+        {
+            AuthorizationCode = new OpenApiOAuthFlow
+            {
+                AuthorizationUrl = new Uri("https://your-idp/connect/authorize"),
+                TokenUrl         = new Uri("https://your-idp/connect/token"),
+                Scopes           = new Dictionary<string, string> { ["api"] = "API access" }
+            }
+        }
+    });
+});
+```
+
+## Usage
+
+### Accessing the current user
+
+Inject `ICurrentUser` wherever you need identity information:
+
+```csharp
+using RCommon.Security.Users;
+
+public class OrderCommandHandler
+{
+    private readonly ICurrentUser _currentUser;
+    private readonly IGraphRepository<Order> _orders;
+
+    public OrderCommandHandler(ICurrentUser currentUser, IGraphRepository<Order> orders)
+    {
+        _currentUser = currentUser;
+        _orders = orders;
+    }
+
+    public async Task Handle(PlaceOrderCommand command, CancellationToken ct)
+    {
+        if (!_currentUser.IsAuthenticated)
+            throw new AuthorizationException("You must be signed in to place an order.");
+
+        var order = new Order
+        {
+            CustomerId   = _currentUser.Id!.Value,
+            CustomerName = _currentUser.FindClaimValue(ClaimTypes.GivenName) ?? "Unknown",
+            Total        = command.Total
+        };
+
+        await _orders.AddAsync(order, ct);
+    }
+}
+```
+
+### Reading roles
+
+```csharp
+string[] roles = _currentUser.Roles; // distinct role values from ClaimTypesConst.Role claims
+
+if (!_currentUser.Roles.Contains("Administrator"))
+    throw new AuthorizationException("Only administrators can perform this action.", "INSUFFICIENT_ROLE");
+```
+
+### Reading arbitrary claims
+
+```csharp
+// Find the first matching claim.
+Claim? claim = _currentUser.FindClaim("custom:department");
+
+// Find all matching claims.
+Claim[] allDeptClaims = _currentUser.FindClaims("custom:department");
+
+// Find a claim value as a string.
+string? department = _currentUser.FindClaimValue("custom:department");
+
+// Find a claim value converted to a specific struct type.
+int employeeNumber = _currentUser.FindClaimValue<int>("custom:employee_number");
+```
+
+### Accessing the current client
+
+```csharp
+using RCommon.Security.Clients;
+
+public class ApiAuditMiddleware
+{
+    private readonly ICurrentClient _currentClient;
+
+    public ApiAuditMiddleware(ICurrentClient currentClient)
+    {
+        _currentClient = currentClient;
+    }
+
+    public void LogRequest(string path)
+    {
+        if (_currentClient.IsAuthenticated)
+        {
+            Console.WriteLine($"Client {_currentClient.Id} called {path}");
+        }
+    }
+}
+```
+
+### Temporarily replacing the principal
+
+`ICurrentPrincipalAccessor.Change` replaces the current principal for the lifetime of the returned `IDisposable`. This is useful in background jobs and integration tests:
+
+```csharp
+using RCommon.Security.Claims;
+using System.Security.Claims;
+
+public async Task RunAsServiceAccountAsync(
+    ICurrentPrincipalAccessor principalAccessor,
+    Func<Task> work)
+{
+    var identity = new ClaimsIdentity(new[]
+    {
+        new Claim(ClaimTypesConst.UserId, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypesConst.Role, "ServiceAccount")
+    }, "ServiceAccount");
+
+    using (principalAccessor.Change(new ClaimsPrincipal(identity)))
+    {
+        await work();
+        // Previous principal is restored when the using block exits.
+    }
+}
+```
+
+The extension overloads let you pass a single `Claim`, a collection of claims, or a `ClaimsIdentity` directly:
+
+```csharp
+using (principalAccessor.Change(new Claim(ClaimTypesConst.Role, "Tester")))
+{
+    // ...
+}
+```
+
+### Signaling authorization failures
+
+Throw `AuthorizationException` from application-layer code when a rule is violated. Global exception handlers or middleware can then translate it to an appropriate HTTP 403 response:
+
+```csharp
+using RCommon.Security.Authorization;
+
+public void EnsureCanEdit(Document document)
+{
+    if (document.OwnerId != _currentUser.Id)
+    {
+        throw new AuthorizationException(
+            message: "You do not have permission to edit this document.",
+            code: "DOCUMENT_ACCESS_DENIED")
+            .WithData("DocumentId", document.Id)
+            .WithData("UserId", _currentUser.Id);
+    }
+}
+```
+
+### Claims identity helpers
+
+`ClaimsIdentityExtensions` provides fluent extension methods for managing claims:
+
+```csharp
+using RCommon.Security;
+
+// Add a claim only if one with the same type does not already exist.
+identity.AddIfNotContains(new Claim("custom:role", "Editor"));
+
+// Remove all claims of the same type and set a new value.
+identity.AddOrReplace(new Claim("custom:role", "Administrator"));
+
+// Add an identity to a principal only if the same authentication type is not already present.
+principal.AddIdentityIfNotContains(new ClaimsIdentity(claims, "Cookie"));
+```
+
+Extract well-known values directly from a `ClaimsPrincipal`:
+
+```csharp
+Guid? userId   = principal.FindUserId();    // parses ClaimTypesConst.UserId as Guid
+string? tenant = principal.FindTenantId();  // reads ClaimTypesConst.TenantId
+string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
+```
+
+## API Summary
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `ICurrentPrincipalAccessor` | `RCommon.Security` | Provides the current `ClaimsPrincipal`; supports scoped override via `Change()` |
+| `CurrentPrincipalAccessorBase` | `RCommon.Security` | Abstract base implementing `Change()` with `AsyncLocal` storage |
+| `ThreadCurrentPrincipalAccessor` | `RCommon.Security` | Default implementation; reads `Thread.CurrentPrincipal` |
+| `CurrentPrincipalAccessorExtensions` | `RCommon.Security` | `Change(Claim)`, `Change(IEnumerable<Claim>)`, `Change(ClaimsIdentity)` overloads |
+| `ICurrentUser` | `RCommon.Security` | Exposes `Id`, `IsAuthenticated`, `Roles`, `TenantId`, `FindClaim`, `FindClaims`, `GetAllClaims` |
+| `CurrentUser` | `RCommon.Security` | Default `ICurrentUser` implementation backed by `ICurrentPrincipalAccessor` |
+| `CurrentUserExtensions` | `RCommon.Security` | `FindClaimValue(string)`, `FindClaimValue<T>(string)`, `GetId()` |
+| `ICurrentClient` | `RCommon.Security` | Exposes `Id` and `IsAuthenticated` for OAuth client identities |
+| `CurrentClient` | `RCommon.Security` | Default `ICurrentClient` backed by `ICurrentPrincipalAccessor` |
+| `ClaimTypesConst` | `RCommon.Security` | Configurable claim type URIs: `UserName`, `Name`, `SurName`, `UserId`, `Role`, `Email`, `TenantId`, `ClientId` |
+| `ClaimsIdentityExtensions` | `RCommon.Security` | `FindUserId`, `FindTenantId`, `FindClientId`, `AddIfNotContains`, `AddOrReplace`, `AddIdentityIfNotContains` |
+| `AuthorizationException` | `RCommon.Security` | Application-layer exception for access-denied scenarios; carries `Code`, `LogLevel`, and fluent `WithData()` |
+| `AuthorizeCheckOperationFilter` | `RCommon.Authorization.Web` | Swashbuckle filter: adds 401/403 responses and OAuth2 security requirement to `[Authorize]`-decorated operations |
+| `AuthorizationHeaderParameterOperationFilter` | `RCommon.Authorization.Web` | Swashbuckle filter: adds a required `Authorization` header parameter to operations protected by `AuthorizeFilter` |
