@@ -3,6 +3,166 @@ title: System.Text.Json
 sidebar_position: 3
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # System.Text.Json
 
-*Documentation coming soon.*
+## Overview
+
+`RCommon.SystemTextJson` wraps the built-in `System.Text.Json` library behind the `IJsonSerializer` interface. Because `System.Text.Json` ships with the .NET runtime, this provider adds no external dependencies beyond the NuGet package itself, making it a good default for greenfield applications targeting .NET 6 or later.
+
+The underlying `JsonSerializerOptions` instance is registered via the options pattern so you can configure every aspect of the serializer that `JsonSerializerOptions` exposes, including custom converters.
+
+The package also includes two ready-to-use converters:
+
+- `JsonIntEnumConverter` — serializes enums as integers.
+- `JsonByteEnumConverter` — serializes enums as bytes.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.SystemTextJson" />
+
+## Configuration
+
+### Default setup
+
+```csharp
+using RCommon;
+using RCommon.SystemTextJson;
+
+builder.Services.AddRCommon()
+    .WithJsonSerialization<TextJsonBuilder>();
+```
+
+This registers `TextJsonSerializer` as the `IJsonSerializer` implementation with default `JsonSerializeOptions` (camelCase enabled, indentation disabled).
+
+### Configuring global serialize options
+
+```csharp
+builder.Services.AddRCommon()
+    .WithJsonSerialization<TextJsonBuilder>(opts =>
+    {
+        opts.CamelCase = true;
+        opts.Indented = true;
+    });
+```
+
+### Configuring JsonSerializerOptions directly
+
+Use the `Configure` extension on `ITextJsonBuilder` to access the underlying `JsonSerializerOptions`:
+
+```csharp
+using System.Text.Json;
+using RCommon;
+using RCommon.SystemTextJson;
+
+builder.Services.AddRCommon()
+    .WithJsonSerialization<TextJsonBuilder>(b =>
+    {
+        b.Configure(options =>
+        {
+            options.DefaultIgnoreCondition =
+                System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+            options.Converters.Add(new JsonStringEnumConverter());
+        });
+    });
+```
+
+Combining global serialize options with custom `JsonSerializerOptions`:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithJsonSerialization<TextJsonBuilder>(
+        serializeOptions: opts =>
+        {
+            opts.CamelCase = true;
+            opts.Indented = false;
+        },
+        deSerializeOptions: _ => { },
+        actions: b =>
+        {
+            b.Configure(options =>
+            {
+                options.DefaultIgnoreCondition =
+                    System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+            });
+        });
+```
+
+### Using enum converters
+
+```csharp
+using RCommon.SystemTextJson;
+
+builder.Services.AddRCommon()
+    .WithJsonSerialization<TextJsonBuilder>(b =>
+    {
+        b.Configure(options =>
+        {
+            // Serialize enums as integer values.
+            options.Converters.Add(new JsonIntEnumConverter());
+        });
+    });
+```
+
+## Usage
+
+Inject `IJsonSerializer` and call `Serialize` or `Deserialize`.
+
+```csharp
+public class EventPublisher
+{
+    private readonly IJsonSerializer _serializer;
+
+    public EventPublisher(IJsonSerializer serializer)
+    {
+        _serializer = serializer;
+    }
+
+    public string ToJson(DomainEvent @event)
+    {
+        return _serializer.Serialize(@event);
+    }
+
+    public DomainEvent? FromJson(string json)
+    {
+        return _serializer.Deserialize<DomainEvent>(json);
+    }
+}
+```
+
+### Per-call options
+
+```csharp
+// Produce indented output for diagnostic logging.
+string pretty = _serializer.Serialize(
+    obj: payload,
+    options: new JsonSerializeOptions { Indented = true, CamelCase = true });
+```
+
+## API Summary
+
+### `TextJsonBuilder`
+
+Implements `IJsonBuilder` and `ITextJsonBuilder`. Registered automatically by `WithJsonSerialization<TextJsonBuilder>`.
+
+On construction it registers `TextJsonSerializer` as `IJsonSerializer` with a transient lifetime.
+
+### `ITextJsonBuilder` extension methods
+
+| Method | Description |
+|--------|-------------|
+| `Configure(Action<JsonSerializerOptions>)` | Configures the underlying `JsonSerializerOptions` used by `TextJsonSerializer`. Returns `ITextJsonBuilder` for chaining. |
+
+### `TextJsonSerializer`
+
+Registered as `IJsonSerializer`. Accepts `IOptions<JsonSerializerOptions>` via constructor injection.
+
+Implements all four `IJsonSerializer` methods. Per-call `JsonSerializeOptions` or `JsonDeserializeOptions` mutate the shared options instance for that call: `CamelCase = true` sets `PropertyNamingPolicy = JsonNamingPolicy.CamelCase`; `Indented = true` sets `WriteIndented = true`.
+
+### Built-in converters
+
+| Type | Description |
+|------|-------------|
+| `JsonIntEnumConverter` | Serializes and deserializes enum values as `int`. |
+| `JsonByteEnumConverter` | Serializes and deserializes enum values as `byte`. |

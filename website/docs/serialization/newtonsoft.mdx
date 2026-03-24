@@ -3,6 +3,144 @@ title: Newtonsoft.Json
 sidebar_position: 2
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Newtonsoft.Json
 
-*Documentation coming soon.*
+## Overview
+
+`RCommon.JsonNet` wraps Newtonsoft.Json (Json.NET) behind the `IJsonSerializer` interface. It provides the full feature set of Json.NET — custom converters, reference handling, polymorphic serialization, and so on — while allowing your application code to depend only on the common abstraction.
+
+The underlying `JsonSerializerSettings` instance is registered in the DI container via the options pattern, so you can apply any Newtonsoft.Json setting that `JsonSerializerSettings` exposes.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.JsonNet" />
+
+## Configuration
+
+### Default setup
+
+```csharp
+using RCommon;
+using RCommon.JsonNet;
+
+builder.Services.AddRCommon()
+    .WithJsonSerialization<JsonNetBuilder>();
+```
+
+This registers `JsonNetSerializer` as the `IJsonSerializer` implementation with default `JsonSerializeOptions` (camelCase enabled, indentation disabled).
+
+### Configuring global serialize options
+
+```csharp
+builder.Services.AddRCommon()
+    .WithJsonSerialization<JsonNetBuilder>(opts =>
+    {
+        opts.CamelCase = true;
+        opts.Indented = true;
+    });
+```
+
+### Configuring Newtonsoft.Json settings directly
+
+Use the `Configure` extension on `IJsonNetBuilder` to access the underlying `JsonSerializerSettings`:
+
+```csharp
+using Newtonsoft.Json;
+using RCommon;
+using RCommon.JsonNet;
+
+builder.Services.AddRCommon()
+    .WithJsonSerialization<JsonNetBuilder>(b =>
+    {
+        b.Configure(settings =>
+        {
+            settings.NullValueHandling = NullValueHandling.Ignore;
+            settings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+            settings.Converters.Add(new StringEnumConverter());
+        });
+    });
+```
+
+Combining global serialize options with custom settings:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithJsonSerialization<JsonNetBuilder>(
+        serializeOptions: opts =>
+        {
+            opts.CamelCase = true;
+            opts.Indented = false;
+        },
+        deSerializeOptions: _ => { },
+        actions: b =>
+        {
+            b.Configure(settings =>
+            {
+                settings.NullValueHandling = NullValueHandling.Ignore;
+            });
+        });
+```
+
+## Usage
+
+Inject `IJsonSerializer` and call `Serialize` or `Deserialize` as needed.
+
+```csharp
+public class OrderSyncService
+{
+    private readonly IJsonSerializer _serializer;
+
+    public OrderSyncService(IJsonSerializer serializer)
+    {
+        _serializer = serializer;
+    }
+
+    public string SerializeOrder(Order order)
+    {
+        return _serializer.Serialize(order);
+    }
+
+    public Order? DeserializeOrder(string json)
+    {
+        return _serializer.Deserialize<Order>(json);
+    }
+}
+```
+
+### Using a custom Newtonsoft.Json converter
+
+Register the converter in settings during startup (see Configuration above), then serialize and deserialize as normal. The converter applies automatically to all calls through `IJsonSerializer`.
+
+```csharp
+// In startup — register a custom converter.
+b.Configure(settings =>
+{
+    settings.Converters.Add(new MyCustomConverter());
+});
+
+// In application code — no reference to Newtonsoft.Json needed.
+string json = _serializer.Serialize(myObject);
+MyType result = _serializer.Deserialize<MyType>(json)!;
+```
+
+## API Summary
+
+### `JsonNetBuilder`
+
+Implements `IJsonBuilder` and `IJsonNetBuilder`. Registered automatically by `WithJsonSerialization<JsonNetBuilder>`.
+
+On construction it registers `JsonNetSerializer` as `IJsonSerializer` with a transient lifetime.
+
+### `IJsonNetBuilder` extension methods
+
+| Method | Description |
+|--------|-------------|
+| `Configure(Action<JsonSerializerSettings>)` | Configures the underlying `JsonSerializerSettings` used by `JsonNetSerializer`. Returns `IJsonNetBuilder` for chaining. |
+
+### `JsonNetSerializer`
+
+Registered as `IJsonSerializer`. Accepts `IOptions<JsonSerializerSettings>` via constructor injection.
+
+Implements all four `IJsonSerializer` methods. Per-call `JsonSerializeOptions` or `JsonDeserializeOptions` override the shared settings instance for that call: `CamelCase = true` applies `CamelCasePropertyNamesContractResolver`; `Indented = true` sets `Formatting.Indented`.

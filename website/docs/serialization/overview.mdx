@@ -3,6 +3,165 @@ title: Overview
 sidebar_position: 1
 ---
 
-# Overview
+import NuGetInstall from '@site/src/components/NuGetInstall';
 
-*Documentation coming soon.*
+# Serialization Overview
+
+## Overview
+
+RCommon provides a thin abstraction over JSON serialization so that the rest of your application depends on an interface rather than a specific library. You can swap between Newtonsoft.Json (Json.NET) and System.Text.Json without touching any code outside of startup configuration.
+
+### Why abstract serialization?
+
+Different teams and libraries have different preferences and compatibility requirements. Newtonsoft.Json has a richer feature set and broader third-party support; System.Text.Json is part of the .NET runtime and tends to perform better on modern runtimes. By writing against `IJsonSerializer`, your domain and application services remain insulated from that choice, and testing becomes simpler because the serializer can be swapped for a stub.
+
+### Core abstractions
+
+`IJsonSerializer` is the single interface your code should depend on. It exposes four methods:
+
+- `Serialize(object, options?)` — serialize to a JSON string using the runtime type.
+- `Serialize(object, type, options?)` — serialize using a specific declared type, useful when the declared type differs from the runtime type.
+- `Deserialize<T>(json, options?)` — deserialize to a strongly typed result.
+- `Deserialize(json, type, options?)` — deserialize when the target type is only known at runtime.
+
+`JsonSerializeOptions` carries per-call serialization settings: `CamelCase` (defaults to `true`) and `Indented` (defaults to `false`).
+
+`JsonDeserializeOptions` carries per-call deserialization settings: `CamelCase` (defaults to `true`).
+
+The global defaults for these options are set during startup via the `WithJsonSerialization<T>` builder overloads, so most code can call `Serialize` and `Deserialize` without passing options at all.
+
+## Installation
+
+Install the abstractions package:
+
+<NuGetInstall packageName="RCommon.Json" />
+
+Then install one provider package:
+
+<NuGetInstall packageName="RCommon.JsonNet" />
+
+or
+
+<NuGetInstall packageName="RCommon.SystemTextJson" />
+
+## Configuration
+
+Call `WithJsonSerialization<T>` inside your `AddRCommon()` block. Pass the builder type for the provider you want to use.
+
+### Default configuration
+
+```csharp
+using RCommon;
+using RCommon.JsonNet;
+
+builder.Services.AddRCommon()
+    .WithJsonSerialization<JsonNetBuilder>();
+```
+
+This uses Newtonsoft.Json with camelCase naming and no indentation — the defaults defined in `JsonSerializeOptions`.
+
+### Configuring serialize options globally
+
+```csharp
+builder.Services.AddRCommon()
+    .WithJsonSerialization<JsonNetBuilder>(opts =>
+    {
+        opts.CamelCase = true;
+        opts.Indented = true;
+    });
+```
+
+### Configuring both serialize and deserialize options
+
+```csharp
+builder.Services.AddRCommon()
+    .WithJsonSerialization<TextJsonBuilder>(
+        serializeOptions: opts =>
+        {
+            opts.CamelCase = true;
+            opts.Indented = false;
+        },
+        deSerializeOptions: opts =>
+        {
+            opts.CamelCase = true;
+        });
+```
+
+## Usage
+
+Inject `IJsonSerializer` wherever you need to serialize or deserialize JSON.
+
+```csharp
+public class ReportService
+{
+    private readonly IJsonSerializer _serializer;
+
+    public ReportService(IJsonSerializer serializer)
+    {
+        _serializer = serializer;
+    }
+
+    public string BuildPayload(ReportRequest request)
+    {
+        return _serializer.Serialize(request);
+    }
+
+    public ReportResponse? ParseResponse(string json)
+    {
+        return _serializer.Deserialize<ReportResponse>(json);
+    }
+}
+```
+
+### Overriding options per call
+
+```csharp
+// Force indented output for a debug log entry.
+string pretty = _serializer.Serialize(
+    obj: myObject,
+    options: new JsonSerializeOptions { Indented = true });
+```
+
+### Using the declared type override
+
+```csharp
+// Serialize using the base type to avoid including derived-type properties.
+string json = _serializer.Serialize(
+    obj: derivedInstance,
+    type: typeof(BaseClass));
+```
+
+## API Summary
+
+### `IJsonSerializer`
+
+| Method | Description |
+|--------|-------------|
+| `Serialize(obj, options?)` | Serializes `obj` to a JSON string using its runtime type. |
+| `Serialize(obj, type, options?)` | Serializes `obj` using the specified declared type. |
+| `Deserialize<T>(json, options?)` | Deserializes `json` into an instance of `T`. |
+| `Deserialize(json, type, options?)` | Deserializes `json` into an instance of the given type. |
+
+### `JsonSerializeOptions`
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `CamelCase` | `true` | Use camelCase property names during serialization. |
+| `Indented` | `false` | Produce indented (pretty-printed) JSON output. |
+
+### `JsonDeserializeOptions`
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `CamelCase` | `true` | Expect camelCase property names during deserialization. |
+
+### `IRCommonBuilder` extension
+
+| Method | Description |
+|--------|-------------|
+| `WithJsonSerialization<T>()` | Registers the serializer with default options. |
+| `WithJsonSerialization<T>(serializeOptions)` | Registers with custom serialize options. |
+| `WithJsonSerialization<T>(deSerializeOptions)` | Registers with custom deserialize options. |
+| `WithJsonSerialization<T>(serializeOptions, deSerializeOptions)` | Registers with both options configured. |
+| `WithJsonSerialization<T>(actions)` | Registers and passes a configuration action to the builder itself. |
+| `WithJsonSerialization<T>(serializeOptions, deSerializeOptions, actions)` | Full overload; covers all configuration scenarios. |
