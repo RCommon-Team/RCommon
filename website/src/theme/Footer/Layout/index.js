@@ -7,14 +7,13 @@ export default function FooterLayout({style, links, logo, copyright}) {
         'footer--dark': style === 'dark',
       })}>
       <div className="container container-fluid">
-        {/* {links} */}
-        {/* {(logo || copyright) && (
+        {links}
+        {(logo || copyright) && (
           <div className="footer__bottom text--center">
             {logo && <div className="margin-bottom--sm">{logo}</div>}
             {copyright}
           </div>
-        )} */}
-        test
+        )}
       </div>
     </footer>
   );
