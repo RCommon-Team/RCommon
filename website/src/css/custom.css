@@ -517,11 +517,9 @@ main {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
-.container > div {
-  @apply m-0;
-}
 .container > div > div:first-child {
   @apply px-20 py-10 !important;
+  margin: 0 auto;
 }
 .markdown h1:first-child {
   @apply mb-2;
