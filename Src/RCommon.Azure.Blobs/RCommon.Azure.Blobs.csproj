@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>RCommon.Azure.Blobs</Title>
+		<PackageProjectUrl>https://rcommon.com</PackageProjectUrl>
+		<PackageTags>RCommon; Azure Blob Storage; Blob; Cloud Storage</PackageTags>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<Description>A cohesive set of infrastructure libraries for dotnet that utilizes abstractions for event handling, persistence, unit of work, mediator, distributed messaging, event bus, CQRS, email, and more</Description>
+		<RepositoryUrl>https://github.com/RCommon-Team/RCommon</RepositoryUrl>
+		<Company>RCommon</Company>
+		<Authors>Jason Webb</Authors>
+		<PackageIcon>RCommon-Icon.jpg</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\RCommon.Blobs\RCommon.Blobs.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\RCommon-Icon.jpg">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Update="MinVer" Version="7.0.0" />
+	</ItemGroup>
+
+</Project>
