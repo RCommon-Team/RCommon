@@ -3,6 +3,524 @@ title: HR Leave Management Sample
 sidebar_position: 1
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # HR Leave Management Sample
 
-*Documentation coming soon.*
+The HR Leave Management sample is the reference application included with RCommon. It demonstrates Clean Architecture, CQRS with MediatR, EF Core persistence, FluentValidation, JWT authentication, and SendGrid email — all wired together through RCommon's fluent builder. This walkthrough explains how each piece fits together.
+
+## Sample Location
+
+```
+Examples/CleanWithCQRS/
+    HR.LeaveManagement.Domain/
+    HR.LeaveManagement.Application/
+    HR.LeaveManagement.Persistence/
+    HR.LeaveManagement.Identity/
+    HR.LeaveManagement.API/
+    HR.LeaveManagement.MVC/
+    HR.LeaveManagement.Application.UnitTests/
+```
+
+## What the Sample Covers
+
+- A leave management system where employees request time off
+- Administrators create leave types (e.g. Annual, Sick, Bereavement) and allocate days to employees
+- Employees submit leave requests against their allocations
+- Requests can be approved or rejected by administrators
+- Email confirmation is sent on successful request submission
+
+## Domain Model
+
+### Entities
+
+All entities inherit from `BaseDomainEntity`, which inherits from RCommon's `AuditedEntity<int, string, string>`. This provides `Id`, `CreatedBy`, `ModifiedBy`, `CreateDate`, and `ModifyDate` automatically:
+
+```csharp
+public abstract class BaseDomainEntity : AuditedEntity<int, string, string>
+{
+}
+
+public class LeaveType : BaseDomainEntity
+{
+    public string Name { get; set; }        // e.g. "Annual Leave"
+    public int DefaultDays { get; set; }    // e.g. 14
+}
+
+public class LeaveAllocation : BaseDomainEntity
+{
+    public int NumberOfDays { get; set; }
+    public LeaveType LeaveType { get; set; }
+    public int LeaveTypeId { get; set; }
+    public int Period { get; set; }          // year
+    public string EmployeeId { get; set; }
+}
+
+public class LeaveRequest : BaseDomainEntity
+{
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public LeaveType LeaveType { get; set; }
+    public int LeaveTypeId { get; set; }
+    public DateTime DateRequested { get; set; }
+    public string RequestComments { get; set; }
+    public bool? Approved { get; set; }
+    public bool Cancelled { get; set; }
+    public string RequestingEmployeeId { get; set; }
+}
+```
+
+### Domain Specifications
+
+A specification encapsulates a reusable query predicate. The `AllocationExistsSpec` checks whether an employee already has an allocation for a given leave type in a given year:
+
+```csharp
+public class AllocationExistsSpec : Specification<LeaveAllocation>
+{
+    public AllocationExistsSpec(string userId, int leaveTypeId, int period)
+        : base(q => q.EmployeeId == userId
+                  && q.LeaveTypeId == leaveTypeId
+                  && q.Period == period)
+    {
+    }
+}
+```
+
+Usage in a command handler:
+
+```csharp
+var allocationCount = await _leaveAllocationRepository
+    .GetCountAsync(new AllocationExistsSpec(emp.Id, leaveType.Id, period));
+
+if (allocationCount > 0)
+    continue; // already allocated for this period
+```
+
+## Application Layer
+
+### Commands and Queries
+
+CQRS is expressed through RCommon's `IAppRequest<TResponse>` and `IAppRequestHandler<TRequest, TResponse>` interfaces.
+
+```csharp
+// Command — modifies state
+public class CreateLeaveTypeCommand : IAppRequest<BaseCommandResponse>
+{
+    public CreateLeaveTypeDto LeaveTypeDto { get; set; }
+}
+
+// Query — reads state, no side effects
+public class GetLeaveTypeListRequest : IAppRequest<List<LeaveTypeDto>>
+{
+}
+```
+
+### Command Handler with Validation
+
+The `CreateLeaveTypeCommandHandler` validates the incoming DTO via `IValidationService` before persisting:
+
+```csharp
+public class CreateLeaveTypeCommandHandler
+    : IAppRequestHandler<CreateLeaveTypeCommand, BaseCommandResponse>
+{
+    private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
+    private readonly IValidationService _validationService;
+
+    public CreateLeaveTypeCommandHandler(
+        IGraphRepository<LeaveType> leaveTypeRepository,
+        IValidationService validationService)
+    {
+        _leaveTypeRepository = leaveTypeRepository;
+        _validationService = validationService;
+        _leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
+    }
+
+    public async Task<BaseCommandResponse> HandleAsync(
+        CreateLeaveTypeCommand request,
+        CancellationToken cancellationToken)
+    {
+        var response = new BaseCommandResponse();
+        var validationResult = await _validationService.ValidateAsync(request.LeaveTypeDto);
+
+        if (!validationResult.IsValid)
+        {
+            response.Success = false;
+            response.Message = "Creation Failed";
+            response.Errors = validationResult.Errors
+                .Select(q => q.ErrorMessage).ToList();
+        }
+        else
+        {
+            var leaveType = request.LeaveTypeDto.ToLeaveType();
+            await _leaveTypeRepository.AddAsync(leaveType);
+            response.Success = true;
+            response.Message = "Creation Successful";
+            response.Id = leaveType.Id;
+        }
+
+        return response;
+    }
+}
+```
+
+### Command Handler with Multiple Repositories and Email
+
+The `CreateLeaveRequestCommandHandler` coordinates multiple repositories, the current user identity, and email delivery. The handler remains unit-testable because all dependencies are injected as interfaces:
+
+```csharp
+public class CreateLeaveRequestCommandHandler
+    : IAppRequestHandler<CreateLeaveRequestCommand, BaseCommandResponse>
+{
+    private readonly IReadOnlyRepository<LeaveType> _leaveTypeRepository;
+    private readonly IGraphRepository<LeaveAllocation> _leaveAllocationRepository;
+    private readonly IGraphRepository<LeaveRequest> _leaveRequestRepository;
+    private readonly IEmailService _emailSender;
+    private readonly ICurrentUser _currentUser;
+    private readonly IValidationService _validationService;
+
+    public async Task<BaseCommandResponse> HandleAsync(
+        CreateLeaveRequestCommand request,
+        CancellationToken cancellationToken)
+    {
+        var response = new BaseCommandResponse();
+        var validationResult = await _validationService.ValidateAsync(request.LeaveRequestDto);
+        var userId = _currentUser.FindClaimValue(CustomClaimTypes.Uid);
+
+        // Check allocation exists
+        var allocation = _leaveAllocationRepository.FirstOrDefault(
+            x => x.EmployeeId == userId
+              && x.LeaveTypeId == request.LeaveRequestDto.LeaveTypeId);
+
+        if (allocation is null)
+        {
+            validationResult.Errors.Add(new ValidationFault(
+                nameof(request.LeaveRequestDto.LeaveTypeId),
+                "You do not have any allocations for this leave type."));
+        }
+        else
+        {
+            int daysRequested = (int)(request.LeaveRequestDto.EndDate
+                - request.LeaveRequestDto.StartDate).TotalDays;
+            if (daysRequested > allocation.NumberOfDays)
+            {
+                validationResult.Errors.Add(new ValidationFault(
+                    nameof(request.LeaveRequestDto.EndDate),
+                    "You do not have enough days for this request"));
+            }
+        }
+
+        if (!validationResult.IsValid)
+        {
+            response.Success = false;
+            response.Message = "Request Failed";
+            response.Errors = validationResult.Errors
+                .Select(q => q.ErrorMessage).ToList();
+        }
+        else
+        {
+            var leaveRequest = request.LeaveRequestDto.ToLeaveRequest();
+            leaveRequest.RequestingEmployeeId = userId;
+            await _leaveRequestRepository.AddAsync(leaveRequest);
+
+            response.Success = true;
+            response.Message = "Request Created Successfully";
+            response.Id = leaveRequest.Id;
+
+            // Send confirmation email — failure does not roll back the request
+            try
+            {
+                var emailAddress = _currentUser.FindClaimValue(ClaimTypes.Email);
+                var email = new MailMessage(
+                    new MailAddress(fromEmail, fromName),
+                    new MailAddress(emailAddress))
+                {
+                    Subject = "Leave Request Submitted",
+                    Body = $"Your leave request for {request.LeaveRequestDto.StartDate:D} " +
+                           $"to {request.LeaveRequestDto.EndDate:D} has been submitted."
+                };
+                await _emailSender.SendEmailAsync(email);
+            }
+            catch (Exception)
+            {
+                // Log but do not propagate — email is non-critical
+            }
+        }
+
+        return response;
+    }
+}
+```
+
+### Allocation Command Handler
+
+The `CreateLeaveAllocationCommandHandler` demonstrates using a specification to avoid duplicate allocations. It retrieves all employees via the `IUserService` contract and allocates days from the leave type's `DefaultDays`:
+
+```csharp
+public async Task<BaseCommandResponse> HandleAsync(
+    CreateLeaveAllocationCommand request,
+    CancellationToken cancellationToken)
+{
+    var leaveType = await _leaveTypeRepository
+        .FindAsync(request.LeaveAllocationDto.LeaveTypeId);
+    var employees = await _userService.GetEmployees();
+    var period = DateTime.Now.Year;
+    var allocations = new List<LeaveAllocation>();
+
+    foreach (var emp in employees)
+    {
+        var allocationCount = await _leaveAllocationRepository
+            .GetCountAsync(new AllocationExistsSpec(emp.Id, leaveType.Id, period));
+
+        if (allocationCount > 0)
+            continue;
+
+        allocations.Add(new LeaveAllocation
+        {
+            EmployeeId = emp.Id,
+            LeaveTypeId = leaveType.Id,
+            NumberOfDays = leaveType.DefaultDays,
+            Period = period
+        });
+    }
+
+    foreach (var item in allocations)
+    {
+        await _leaveAllocationRepository.AddAsync(item);
+    }
+
+    return new BaseCommandResponse { Success = true, Message = "Allocations Successful" };
+}
+```
+
+### Validation
+
+Validators use FluentValidation. They are discovered automatically via `AddValidatorsFromAssemblyContaining`:
+
+```csharp
+public class ILeaveTypeDtoValidator : AbstractValidator<ILeaveTypeDto>
+{
+    public ILeaveTypeDtoValidator()
+    {
+        RuleFor(p => p.Name)
+            .NotEmpty().WithMessage("{PropertyName} is required.")
+            .NotNull()
+            .MaximumLength(50)
+            .WithMessage("{PropertyName} must not exceed {ComparisonValue} characters.");
+
+        RuleFor(p => p.DefaultDays)
+            .NotEmpty().WithMessage("{PropertyName} is required.")
+            .GreaterThan(0).WithMessage("{PropertyName} must be at least 1.")
+            .LessThan(100)
+            .WithMessage("{PropertyName} must be less than {ComparisonValue}.");
+    }
+}
+
+public class CreateLeaveTypeDtoValidator : AbstractValidator<CreateLeaveTypeDto>
+{
+    public CreateLeaveTypeDtoValidator()
+    {
+        Include(new ILeaveTypeDtoValidator());
+    }
+}
+```
+
+## Persistence Layer
+
+`LeaveManagementDbContext` inherits from `AuditableDbContext`. RCommon injects `ICurrentUser` and `ISystemTime` to stamp audit fields on every `SaveChanges`:
+
+```csharp
+public class LeaveManagementDbContext : AuditableDbContext
+{
+    public LeaveManagementDbContext(
+        DbContextOptions<LeaveManagementDbContext> options,
+        ICurrentUser currentUser,
+        ISystemTime systemTime)
+        : base(options, currentUser, systemTime)
+    {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(LeaveManagementDbContext).Assembly);
+    }
+
+    public DbSet<LeaveRequest> LeaveRequests { get; set; }
+    public DbSet<LeaveType> LeaveTypes { get; set; }
+    public DbSet<LeaveAllocation> LeaveAllocations { get; set; }
+}
+```
+
+The data store name constant keeps the name in one place:
+
+```csharp
+public static class DataStoreNamesConst
+{
+    public const string LeaveManagement = "LeaveManagement";
+}
+```
+
+## API Controllers
+
+Controllers use `IMediatorService` exclusively — no direct handler references:
+
+```csharp
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class LeaveTypesController : ControllerBase
+{
+    private readonly IMediatorService _mediator;
+
+    public LeaveTypesController(IMediatorService mediator)
+        => _mediator = mediator;
+
+    [HttpGet]
+    public async Task<ActionResult<List<LeaveTypeDto>>> Get()
+    {
+        var leaveTypes = await _mediator.Send<GetLeaveTypeListRequest, List<LeaveTypeDto>>(
+            new GetLeaveTypeListRequest());
+        return Ok(leaveTypes);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Administrator")]
+    public async Task<ActionResult<BaseCommandResponse>> Post(
+        [FromBody] CreateLeaveTypeDto leaveType)
+    {
+        var command = new CreateLeaveTypeCommand { LeaveTypeDto = leaveType };
+        var response = await _mediator.Send<CreateLeaveTypeCommand, BaseCommandResponse>(command);
+        return Ok(response);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Administrator")]
+    public async Task<ActionResult> Put([FromBody] LeaveTypeDto leaveType)
+    {
+        var command = new UpdateLeaveTypeCommand { LeaveTypeDto = leaveType };
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Administrator")]
+    public async Task<ActionResult> Delete(int id)
+    {
+        var command = new DeleteLeaveTypeCommand { Id = id };
+        await _mediator.Send(command);
+        return NoContent();
+    }
+}
+```
+
+## Composition Root
+
+Everything is wired in `Program.cs`. This is the only place in the system where concrete implementations are referenced by name:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithClaimsAndPrincipalAccessor()
+    .WithSendGridEmailServices(x =>
+    {
+        var settings = builder.Configuration.Get<SendGridEmailSettings>();
+        x.SendGridApiKey = settings.SendGridApiKey;
+        x.FromNameDefault = settings.FromNameDefault;
+        x.FromEmailDefault = settings.FromEmailDefault;
+    })
+    .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
+    .WithSequentialGuidGenerator(guid =>
+        guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddRequest<CreateLeaveTypeCommand, BaseCommandResponse,
+            CreateLeaveTypeCommandHandler>();
+        mediator.AddRequest<GetLeaveTypeListRequest, List<LeaveTypeDto>,
+            GetLeaveTypeListRequestHandler>();
+        // ... all other request/handler pairs
+
+        mediator.Configure(config =>
+        {
+            config.RegisterServicesFromAssemblies(
+                typeof(ApplicationServicesRegistration).GetTypeInfo().Assembly);
+        });
+        mediator.AddLoggingToRequestPipeline();
+        mediator.AddUnitOfWorkToRequestPipeline();
+    })
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<LeaveManagementDbContext>(
+            DataStoreNamesConst.LeaveManagement,
+            options => options.UseSqlServer(
+                builder.Configuration.GetConnectionString(
+                    DataStoreNamesConst.LeaveManagement)));
+        ef.SetDefaultDataStore(dataStore =>
+            dataStore.DefaultDataStoreName = DataStoreNamesConst.LeaveManagement);
+    })
+    .WithUnitOfWork<DefaultUnitOfWorkBuilder>(unitOfWork =>
+    {
+        unitOfWork.SetOptions(options =>
+        {
+            options.AutoCompleteScope = true;
+            options.DefaultIsolation = IsolationLevel.ReadCommitted;
+        });
+    })
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining(
+            typeof(ApplicationServicesRegistration));
+    });
+```
+
+## Unit Testing Handlers
+
+Because every handler depends on interfaces, tests use mocks and require no database:
+
+```csharp
+[TestFixture]
+public class CreateLeaveTypeCommandHandlerTests
+{
+    private readonly CreateLeaveTypeDto _leaveTypeDto;
+    private readonly CreateLeaveTypeCommandHandler _handler;
+
+    public CreateLeaveTypeCommandHandlerTests()
+    {
+        var repositoryMock = new Mock<IGraphRepository<LeaveType>>();
+        var validationMock = new Mock<IValidationService>();
+
+        _leaveTypeDto = new CreateLeaveTypeDto
+        {
+            DefaultDays = 15,
+            Name = "Test DTO"
+        };
+
+        validationMock
+            .Setup(x => x.ValidateAsync(_leaveTypeDto, false, CancellationToken.None))
+            .Returns(() => Task.FromResult(new ValidationOutcome()));
+
+        _handler = new CreateLeaveTypeCommandHandler(
+            repositoryMock.Object,
+            validationMock.Object);
+    }
+
+    [Test]
+    public async Task Valid_LeaveType_Added()
+    {
+        var result = await _handler.HandleAsync(
+            new CreateLeaveTypeCommand { LeaveTypeDto = _leaveTypeDto },
+            CancellationToken.None);
+
+        result.ShouldBeOfType<BaseCommandResponse>();
+        result.Success.ShouldBeTrue();
+    }
+}
+```
+
+## Key Takeaways
+
+- **`IGraphRepository<T>`** decouples handlers from the ORM. Switch from EF Core to NHibernate without touching a single handler.
+- **`IValidationService`** decouples handlers from FluentValidation. The validator registration is a composition-root concern.
+- **`ICurrentUser`** provides the authenticated user identity without importing ASP.NET Core into the domain or application layers.
+- **`AuditableDbContext`** eliminates boilerplate audit stamping across every save.
+- **Pipeline behaviors** (`AddLoggingToRequestPipeline`, `AddUnitOfWorkToRequestPipeline`) apply cross-cutting concerns to every handler without modifying handler code.
+- **`DataStoreName`** enables routing to the correct `DbContext` when multiple databases are registered.
