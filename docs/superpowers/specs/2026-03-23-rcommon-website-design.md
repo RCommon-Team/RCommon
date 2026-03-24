@@ -139,7 +139,7 @@ Persistence
     └── Redis Cache
 
 CQRS & Mediator
-├── Command & Query Bus
+├── Command & Query Bus (RCommon.ApplicationServices)
 ├── Commands & Handlers
 ├── Queries & Handlers
 └── Providers
@@ -159,10 +159,14 @@ Event Handling
 Messaging
 ├── Message Bus Overview
 ├── Transactional Outbox
-├── State Machines
+├── State Machines (MassTransit)
 └── Providers
     ├── MassTransit
     └── Wolverine
+
+State Machines
+├── State Machine Overview (RCommon.Stateless)
+└── Stateless Integration
 
 Caching
 ├── Caching Overview
@@ -183,9 +187,8 @@ Validation
 └── FluentValidation Integration
 
 Email
-├── Email Abstraction
-├── SMTP
-└── SendGrid
+├── Email Abstraction (RCommon.Emailing — includes built-in SMTP support)
+└── SendGrid Provider (RCommon.SendGrid)
 
 Multi-Tenancy
 ├── Multi-Tenancy Overview
