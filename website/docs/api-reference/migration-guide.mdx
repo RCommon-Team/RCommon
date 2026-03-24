@@ -3,6 +3,237 @@ title: Migration Guide
 sidebar_position: 3
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Migration Guide
 
-*Documentation coming soon.*
+This guide covers the patterns and steps required when upgrading between RCommon versions. Because RCommon follows semantic versioning, breaking changes only appear in major version increments.
+
+For the specific changes in each release, see the [Changelog](./changelog.mdx) or the [GitHub Releases page](https://github.com/RCommon-Team/RCommon/releases).
+
+## General Upgrade Steps
+
+Before upgrading to a new major version, follow these steps:
+
+1. Read the release notes for every version between your current version and the target version.
+2. Update NuGet packages one major version at a time rather than skipping multiple majors.
+3. Address compiler errors first — these represent API changes that must be resolved.
+4. Run the full test suite and address any runtime failures.
+5. Verify logging output during integration tests to catch behavioral differences.
+
+## Upgrading Package References
+
+Update all `RCommon.*` packages in your project files at once. Because all packages share the same version, mixing versions across packages in the same application is not supported and may cause type resolution failures.
+
+```xml
+<PackageReference Include="RCommon.Core" Version="3.0.0" />
+<PackageReference Include="RCommon.Entities" Version="3.0.0" />
+<PackageReference Include="RCommon.Persistence" Version="3.0.0" />
+<PackageReference Include="RCommon.EFCore" Version="3.0.0" />
+<!-- All RCommon.* packages should share the same version -->
+```
+
+## Breaking Change Patterns
+
+The following sections describe the categories of breaking changes that appear in major RCommon releases and how to address them.
+
+### Repository Interface Changes
+
+When repository interfaces gain or lose methods, implement the new contract on any custom repository implementations you have written:
+
+```csharp
+// Before: your custom repository implementing the old interface
+public class MyCustomRepository : ILinqRepository<Product>
+{
+    // ...
+}
+
+// After: check what methods were added or removed, then add or remove them
+public class MyCustomRepository : ILinqRepository<Product>
+{
+    // Add any new required methods from the updated interface
+    public async Task<long> CountAsync(Expression<Func<Product, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        // implementation
+    }
+}
+```
+
+If you only inject the built-in repositories (such as `IGraphRepository<T>` or `ILinqRepository<T>`) you are not affected by these changes.
+
+### Builder API Changes
+
+The fluent builder methods on `IRCommonBuilder` occasionally move or are renamed. The compiler will surface these as errors on the `AddRCommon(builder => ...)` call in `Program.cs`.
+
+```csharp
+// Before (hypothetical old API)
+services.AddRCommon()
+    .WithPersistence(ef =>
+    {
+        ef.UsingEFCore<AppDbContext>("AppDb", /* ... */);
+    });
+
+// After
+services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>("AppDb", /* ... */);
+        ef.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+    });
+```
+
+### Entity Base Class Changes
+
+If your entities inherit from `BusinessEntity<TKey>` or `AuditedEntity` and those classes gain new abstract or virtual members, you may need to implement or override them.
+
+The most common change is the addition of new opt-in interfaces:
+
+```csharp
+// Adding soft delete support to an existing entity
+public class Customer : BusinessEntity<int>, ISoftDelete
+{
+    // Add the required property from the ISoftDelete interface
+    public bool IsDeleted { get; set; }
+    // ... existing properties
+}
+
+// Adding multitenancy to an existing entity
+public class Customer : BusinessEntity<int>, IMultiTenant
+{
+    // Add the required property from the IMultiTenant interface
+    public string? TenantId { get; set; }
+    // ... existing properties
+}
+```
+
+When you add `ISoftDelete` to an entity, you must also add a migration to your EF Core project to add the `IsDeleted` column.
+
+When you add `IMultiTenant`, you must add a migration to add the `TenantId` column and ensure the `ITenantIdAccessor` is configured in DI.
+
+### Event Handling Changes
+
+If `IEventBus`, `IEventRouter`, `IEventProducer`, or `ISubscriber<T>` change signatures, update your handler registrations and any custom event producer implementations.
+
+The most common pattern is subscriber registration moving from one builder method to another:
+
+```csharp
+// Register event handlers through the event handling builder
+services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(events =>
+    {
+        events.AddSubscriber<OrderCreatedEvent, OrderCreatedEventHandler>();
+        events.AddSubscriber<OrderShippedEvent, OrderShippedEventHandler>();
+    });
+```
+
+### Mediator Adapter Changes
+
+If you use `IMediatorService` through the `RCommon.Mediatr` adapter, check whether `MediatRAdapter` or the builder registration changed. The application-facing `IMediatorService` interface is stable; only the adapter registration may change:
+
+```csharp
+// Configure the mediator with the MediatR adapter
+services.AddRCommon()
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddRequest<CreateOrderCommand, CreateOrderCommandHandler>();
+        mediator.AddNotification<OrderCreatedNotification, OrderCreatedHandler>();
+        mediator.AddLoggingToRequestPipeline();
+        mediator.AddUnitOfWorkToRequestPipeline();
+    });
+```
+
+### Security and Web Changes
+
+If your application uses `ICurrentUser`, `ITenantIdAccessor`, or `ICurrentPrincipalAccessor`, verify that the registration method you call still exists:
+
+```csharp
+// For ASP.NET Core web applications (reads from HttpContext.User)
+services.AddRCommon(config =>
+{
+    config.WithClaimsAndPrincipalAccessorForWeb();
+});
+
+// For non-web applications (reads from Thread.CurrentPrincipal)
+services.AddRCommon(config =>
+{
+    config.WithClaimsAndPrincipalAccessor();
+});
+```
+
+## Multi-Tenancy Migration
+
+If you are adding multi-tenancy to an existing application that previously had none, follow this sequence:
+
+1. Install `RCommon.MultiTenancy` and a provider package (e.g., `RCommon.Finbuckle`).
+2. Add `IMultiTenant` to any entities that should be tenant-scoped.
+3. Create EF Core migrations for any new `TenantId` columns.
+4. Register the tenancy provider in `Program.cs`.
+5. Populate `TenantId` on existing rows via a data migration if your application is being retrofitted.
+
+```csharp
+// 1. Set up Finbuckle tenant resolution
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHeaderStrategy("X-Tenant")
+    .WithConfigurationStore();
+
+// 2. Register RCommon with Finbuckle
+builder.Services.AddRCommon(config =>
+{
+    config
+        .WithClaimsAndPrincipalAccessorForWeb()
+        .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        {
+            ef.AddDbContext<AppDbContext>("AppDb", options =>
+                options.UseSqlServer(connectionString));
+            ef.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+        })
+        .WithMultiTenancy<FinbuckleMultiTenantBuilder<TenantInfo>>(mt => { });
+});
+```
+
+## Soft Delete Migration
+
+If you are adding soft delete to entities that previously used physical deletion, follow this sequence:
+
+1. Add `ISoftDelete` to the entity class and add the `IsDeleted` property.
+2. Create an EF Core migration to add the `IsDeleted` column with a default value of `false`.
+3. Verify that any existing raw SQL queries or stored procedures you use are updated to filter on `IsDeleted = 0`.
+
+```csharp
+// Entity before soft delete
+public class Order : BusinessEntity<int>
+{
+    public string ProductName { get; set; }
+}
+
+// Entity after adding soft delete
+public class Order : BusinessEntity<int>, ISoftDelete
+{
+    public string ProductName { get; set; }
+    public bool IsDeleted { get; set; }
+}
+```
+
+After adding the migration, soft-deleted records are excluded from all repository queries automatically. Code that previously called `DeleteAsync(order)` continues to work — it performs a physical delete. To perform a soft delete, call `DeleteAsync(order, isSoftDelete: true)`.
+
+## Target Framework Upgrades
+
+RCommon targets .NET 8, .NET 9, and .NET 10. When upgrading your application's target framework, update the `TargetFramework` in your project file and ensure all RCommon packages are updated to a version that supports the new framework:
+
+```xml
+<PropertyGroup>
+  <TargetFramework>net10.0</TargetFramework>
+</PropertyGroup>
+```
+
+Check the package listing on NuGet to confirm which frameworks each package supports. All current RCommon packages support .NET 8, .NET 9, and .NET 10.
+
+## Getting Help
+
+If you encounter an upgrade issue not covered here:
+
+- Search existing [GitHub Issues](https://github.com/RCommon-Team/RCommon/issues) — others may have hit the same problem.
+- Start a [GitHub Discussion](https://github.com/RCommon-Team/RCommon/discussions) for questions that are not bugs.
+- Open a new issue with a minimal reproduction if you believe you have found a bug in the upgrade path.

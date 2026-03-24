@@ -3,6 +3,203 @@ title: NuGet Packages
 sidebar_position: 1
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # NuGet Packages
 
-*Documentation coming soon.*
+All RCommon packages target .NET 8, .NET 9, and .NET 10 and are published to [NuGet.org](https://www.nuget.org/profiles/RCommon). The packages follow a layered design: a small set of foundation packages define abstractions and extension points, and provider-specific packages supply concrete implementations.
+
+## Foundation Packages
+
+These packages define the abstractions that your application code programs against. They do not pull in any third-party libraries beyond the Microsoft.Extensions ecosystem.
+
+| Package | Description |
+|---|---|
+| [RCommon.Core](https://www.nuget.org/packages/RCommon.Core) | Fluent `AddRCommon()` builder, in-memory event bus, `IEventRouter`, guard clauses, GUID generators, `ISystemTime`, extension methods, and reflection utilities |
+| [RCommon.Entities](https://www.nuget.org/packages/RCommon.Entities) | `BusinessEntity<TKey>`, `AuditedEntity`, transactional event tracking, `IEntityEventTracker`, soft delete (`ISoftDelete`), and multitenancy (`IMultiTenant`) |
+| [RCommon.Models](https://www.nuget.org/packages/RCommon.Models) | CQRS contracts (`ICommand`, `IQuery`), event markers (`IAsyncEvent`, `ISyncEvent`), `ExecutionResult`, and pagination models |
+| [RCommon.Persistence](https://www.nuget.org/packages/RCommon.Persistence) | Repository pattern interfaces (`IReadOnlyRepository`, `IWriteOnlyRepository`, `ILinqRepository`, `IGraphRepository`, `ISqlMapperRepository`), unit of work, specification pattern, and `IDataStoreFactory` |
+| [RCommon.Caching](https://www.nuget.org/packages/RCommon.Caching) | `ICacheService`, `CacheKey`, and builder contracts for memory and distributed caching providers |
+| [RCommon.Emailing](https://www.nuget.org/packages/RCommon.Emailing) | `IEmailService` abstraction with a built-in SMTP implementation |
+| [RCommon.Security](https://www.nuget.org/packages/RCommon.Security) | `ICurrentUser`, `ICurrentClient`, `ICurrentPrincipalAccessor`, `ITenantIdAccessor`, claims extensions, and `AuthorizationException` |
+| [RCommon.Mediator](https://www.nuget.org/packages/RCommon.Mediator) | `IMediatorService`, `IMediatorAdapter`, and request/notification marker interfaces for library-agnostic mediator usage |
+| [RCommon.ApplicationServices](https://www.nuget.org/packages/RCommon.ApplicationServices) | CQRS command and query buses (`ICommandBus`, `IQueryBus`), handler registration, and `IValidationService` pipeline integration |
+| [RCommon.MultiTenancy](https://www.nuget.org/packages/RCommon.MultiTenancy) | `WithMultiTenancy<T>()` builder extension and `IMultiTenantBuilder` interface for registering tenancy providers |
+
+## Persistence Providers
+
+Drop-in implementations of the persistence abstractions for the ORM or SQL mapper of your choice.
+
+| Package | ORM / Driver | Description |
+|---|---|---|
+| [RCommon.EFCore](https://www.nuget.org/packages/RCommon.EFCore) | Entity Framework Core | `EFCoreRepository<T>`, `RCommonDbContext`, `EFCorePerisistenceBuilder`; full LINQ, eager loading, change tracking, and bulk delete |
+| [RCommon.Dapper](https://www.nuget.org/packages/RCommon.Dapper) | Dapper + Dommel | `DapperRepository<T>`, `RDbConnection`, `DapperPersistenceBuilder`; expression-based CRUD via Dommel |
+| [RCommon.Linq2Db](https://www.nuget.org/packages/RCommon.Linq2Db) | Linq2Db | `Linq2DbRepository<T>`, `RCommonDataConnection`, `Linq2DbPersistenceBuilder`; full LINQ, eager loading via `LoadWith`, and paginated queries |
+
+### Choosing a Persistence Provider
+
+<Tabs>
+<TabItem value="efcore" label="EF Core">
+
+Best when you need full change tracking, navigation properties, eager loading with `Include`/`ThenInclude`, and rich LINQ queries. Supports `IGraphRepository<T>`, `ILinqRepository<T>`, `IReadOnlyRepository<T>`, and `IWriteOnlyRepository<T>`.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>("AppDb", options =>
+            options.UseSqlServer(connectionString));
+        ef.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+    });
+```
+
+</TabItem>
+<TabItem value="dapper" label="Dapper">
+
+Best for performance-critical paths where you want lightweight SQL mapping without the overhead of a full ORM. Uses Dommel for expression-based queries. Supports `ISqlMapperRepository<T>`, `IReadOnlyRepository<T>`, and `IWriteOnlyRepository<T>`.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<DapperPersistenceBuilder>(dapper =>
+    {
+        dapper.AddDbConnection<AppDbConnection>("AppDb", options =>
+        {
+            options.DbFactory = SqlClientFactory.Instance;
+            options.ConnectionString = connectionString;
+        });
+        dapper.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+    });
+```
+
+</TabItem>
+<TabItem value="linq2db" label="Linq2Db">
+
+Best when you need LINQ-based queries and eager loading with a lighter runtime than EF Core. Supports `ILinqRepository<T>`, `IReadOnlyRepository<T>`, and `IWriteOnlyRepository<T>`.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<Linq2DbPersistenceBuilder>(linq2db =>
+    {
+        linq2db.AddDataConnection<AppDataConnection>("AppDb",
+            (sp, options) => options.UseSqlServer(connectionString));
+        linq2db.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+    });
+```
+
+</TabItem>
+</Tabs>
+
+## Caching Providers
+
+| Package | Backing Store | Description |
+|---|---|---|
+| [RCommon.MemoryCache](https://www.nuget.org/packages/RCommon.MemoryCache) | `IMemoryCache` / `IDistributedCache` (in-memory) | Two `ICacheService` implementations: `InMemoryCacheService` (in-process) and `DistributedMemoryCacheService` |
+| [RCommon.RedisCache](https://www.nuget.org/packages/RCommon.RedisCache) | Redis via StackExchange.Redis | `RedisCacheService` implementing `ICacheService` with JSON serialization |
+| [RCommon.Persistence.Caching](https://www.nuget.org/packages/RCommon.Persistence.Caching) | Any `ICacheService` | Caching decorator repositories (`CachingGraphRepository<T>`, `CachingLinqRepository<T>`, `CachingSqlMapperRepository<T>`) wrapping any persistence provider |
+| [RCommon.Persistence.Caching.MemoryCache](https://www.nuget.org/packages/RCommon.Persistence.Caching.MemoryCache) | Memory | Wires `InMemoryCacheService` into the persistence caching decorators |
+| [RCommon.Persistence.Caching.RedisCache](https://www.nuget.org/packages/RCommon.Persistence.Caching.RedisCache) | Redis | Wires `RedisCacheService` into the persistence caching decorators |
+
+## Messaging Providers
+
+These packages bridge RCommon's `IEventProducer` and `ISubscriber<T>` abstractions to specific messaging libraries.
+
+| Package | Library | Description |
+|---|---|---|
+| [RCommon.MassTransit](https://www.nuget.org/packages/RCommon.MassTransit) | MassTransit | Publish/send event producers and `MassTransitEventHandler<T>` consumer bridge |
+| [RCommon.MassTransit.Outbox](https://www.nuget.org/packages/RCommon.MassTransit.Outbox) | MassTransit + EF Core | Entity Framework Core outbox integration for durable MassTransit messaging |
+| [RCommon.MassTransit.StateMachines](https://www.nuget.org/packages/RCommon.MassTransit.StateMachines) | MassTransit | Dictionary-based state machine adapter implementing `IStateMachine<TState, TTrigger>` |
+| [RCommon.Wolverine](https://www.nuget.org/packages/RCommon.Wolverine) | Wolverine | Publish/send event producers and `WolverineEventHandler<T>` message handler bridge |
+| [RCommon.Wolverine.Outbox](https://www.nuget.org/packages/RCommon.Wolverine.Outbox) | Wolverine + EF Core | Wolverine durable messaging outbox integration for RCommon |
+
+## Mediator Providers
+
+| Package | Library | Description |
+|---|---|---|
+| [RCommon.Mediatr](https://www.nuget.org/packages/RCommon.Mediatr) | MediatR | `MediatRAdapter` implementing `IMediatorAdapter`; event producers, notification/request handlers, and pipeline behaviors (logging, validation, unit of work) |
+
+## Serialization
+
+| Package | Library | Description |
+|---|---|---|
+| [RCommon.Json](https://www.nuget.org/packages/RCommon.Json) | — | `IJsonSerializer` abstraction used internally by caching and messaging packages |
+| [RCommon.SystemTextJson](https://www.nuget.org/packages/RCommon.SystemTextJson) | System.Text.Json | `IJsonSerializer` implementation using `System.Text.Json` |
+| [RCommon.JsonNet](https://www.nuget.org/packages/RCommon.JsonNet) | Newtonsoft.Json | `IJsonSerializer` implementation using Newtonsoft.Json |
+
+## Email Providers
+
+| Package | Provider | Description |
+|---|---|---|
+| [RCommon.Emailing](https://www.nuget.org/packages/RCommon.Emailing) | SMTP | Built-in SMTP implementation (`SmtpEmailService`) and the `IEmailService` abstraction |
+| [RCommon.SendGrid](https://www.nuget.org/packages/RCommon.SendGrid) | SendGrid API | `SendGridEmailService` implementing `IEmailService` via the SendGrid API client |
+
+## Security and Web
+
+| Package | Description |
+|---|---|
+| [RCommon.Security](https://www.nuget.org/packages/RCommon.Security) | Claims-based `ICurrentUser`, `ICurrentClient`, `ITenantIdAccessor`, and principal accessor abstractions |
+| [RCommon.Web](https://www.nuget.org/packages/RCommon.Web) | `HttpContextCurrentPrincipalAccessor` for ASP.NET Core; use `WithClaimsAndPrincipalAccessorForWeb()` instead of the non-web variant |
+| [RCommon.Authorization.Web](https://www.nuget.org/packages/RCommon.Authorization.Web) | Swashbuckle/OpenAPI operation filters that surface authorization requirements in Swagger UI |
+
+## Multitenancy
+
+| Package | Provider | Description |
+|---|---|---|
+| [RCommon.MultiTenancy](https://www.nuget.org/packages/RCommon.MultiTenancy) | — | Builder abstraction (`WithMultiTenancy<T>`) for registering tenancy providers |
+| [RCommon.Finbuckle](https://www.nuget.org/packages/RCommon.Finbuckle) | Finbuckle.MultiTenant | `FinbuckleTenantIdAccessor<TTenantInfo>` bridging Finbuckle's tenant context to `ITenantIdAccessor` |
+
+## Validation
+
+| Package | Library | Description |
+|---|---|---|
+| [RCommon.FluentValidation](https://www.nuget.org/packages/RCommon.FluentValidation) | FluentValidation | `FluentValidationProvider` implementing `IValidationProvider`; resolves and runs all `IValidator<T>` instances from DI |
+
+## State Machines
+
+| Package | Library | Description |
+|---|---|---|
+| [RCommon.Stateless](https://www.nuget.org/packages/RCommon.Stateless) | Stateless | Adapter wrapping the Stateless library to implement `IStateMachine<TState, TTrigger>` |
+
+## Blob Storage
+
+| Package | Provider | Description |
+|---|---|---|
+| [RCommon.Blobs](https://www.nuget.org/packages/RCommon.Blobs) | — | Blob storage abstraction layer |
+| [RCommon.Azure.Blobs](https://www.nuget.org/packages/RCommon.Azure.Blobs) | Azure Blob Storage | Azure Blob Storage implementation |
+| [RCommon.Amazon.S3Objects](https://www.nuget.org/packages/RCommon.Amazon.S3Objects) | Amazon S3 | Amazon S3 implementation |
+
+## Dependency Map
+
+The following shows which foundation packages each provider depends on:
+
+```
+RCommon.Core
+  └─ RCommon.Entities
+       └─ RCommon.Persistence
+            ├─ RCommon.EFCore
+            ├─ RCommon.Dapper
+            └─ RCommon.Linq2Db
+
+RCommon.Models
+  └─ RCommon.ApplicationServices
+       └─ RCommon.FluentValidation (optional validation pipeline)
+
+RCommon.Mediator
+  └─ RCommon.Mediatr
+
+RCommon.Core (IEventProducer, ISubscriber)
+  ├─ RCommon.MassTransit
+  └─ RCommon.Wolverine
+
+RCommon.Caching
+  ├─ RCommon.MemoryCache
+  └─ RCommon.RedisCache
+
+RCommon.Emailing
+  └─ RCommon.SendGrid
+
+RCommon.Security
+  ├─ RCommon.Web
+  └─ RCommon.MultiTenancy
+       └─ RCommon.Finbuckle
+```
