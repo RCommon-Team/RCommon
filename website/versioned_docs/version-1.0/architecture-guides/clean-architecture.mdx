@@ -1,0 +1,442 @@
+---
+title: Clean Architecture
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Clean Architecture with RCommon
+
+Clean Architecture organizes code into concentric layers where the dependency rule states that source code dependencies can only point inward. The domain and application layers have no knowledge of databases, frameworks, or external systems. RCommon supports this structure by providing infrastructure abstractions that your application layer depends on via interfaces, with concrete implementations registered at the composition root.
+
+## When to Use This Approach
+
+Use Clean Architecture with RCommon when:
+
+- Your domain logic is complex enough to warrant isolation from infrastructure concerns
+- You want to swap persistence providers (EF Core to NHibernate, SQL to NoSQL) without rewriting business logic
+- You need testable handlers that do not depend on a real database or message broker
+- Multiple teams work on different layers independently
+
+## Layer Overview
+
+Clean Architecture splits the codebase into four layers. With RCommon, the boundaries map as follows:
+
+```
++-------------------------------+
+|         Presentation          |  ASP.NET Core Controllers / MVC
++-------------------------------+
+|         Application           |  Command/Query Handlers, DTOs, Validation
++-------------------------------+
+|           Domain              |  Entities, Specifications, Domain Events
++-------------------------------+
+|        Infrastructure         |  EF Core DbContext, Identity, Email, etc.
++-------------------------------+
+```
+
+Dependency direction: Presentation -> Application -> Domain. Infrastructure implements the interfaces defined in Application.
+
+## Project Structure
+
+The HR Leave Management sample included with RCommon demonstrates this layout:
+
+```
+HR.LeaveManagement.Domain/
+    LeaveType.cs
+    LeaveRequest.cs
+    LeaveAllocation.cs
+    Common/BaseDomainEntity.cs
+    Specifications/AllocationExistsSpec.cs
+
+HR.LeaveManagement.Application/
+    Features/
+        LeaveTypes/
+            Requests/Commands/CreateLeaveTypeCommand.cs
+            Requests/Queries/GetLeaveTypeListRequest.cs
+            Handlers/Commands/CreateLeaveTypeCommandHandler.cs
+            Handlers/Queries/GetLeaveTypeListRequestHandler.cs
+    DTOs/LeaveType/
+    Contracts/Identity/IUserService.cs
+    ApplicationServicesRegistration.cs
+
+HR.LeaveManagement.Persistence/
+    LeaveManagementDbContext.cs
+    Configurations/
+
+HR.LeaveManagement.Identity/
+    IdentityServicesRegistration.cs
+    Services/AuthService.cs
+
+HR.LeaveManagement.API/
+    Controllers/LeaveTypesController.cs
+    Program.cs
+```
+
+Each project references only what is allowed by the dependency rule. The Domain project has no external references beyond RCommon.Entities. The Application project references Domain but not Persistence or Identity.
+
+## The Domain Layer
+
+Domain entities inherit from RCommon's `AuditedEntity` base class, which provides auditing fields (created by, modified by, timestamps) automatically.
+
+```csharp
+// HR.LeaveManagement.Domain/Common/BaseDomainEntity.cs
+using RCommon.Entities;
+
+namespace HR.LeaveManagement.Domain.Common
+{
+    public abstract class BaseDomainEntity : AuditedEntity<int, string, string>
+    {
+    }
+}
+
+// HR.LeaveManagement.Domain/LeaveType.cs
+public class LeaveType : BaseDomainEntity
+{
+    public string Name { get; set; }
+    public int DefaultDays { get; set; }
+}
+
+// HR.LeaveManagement.Domain/LeaveRequest.cs
+public class LeaveRequest : BaseDomainEntity
+{
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public LeaveType LeaveType { get; set; }
+    public int LeaveTypeId { get; set; }
+    public DateTime DateRequested { get; set; }
+    public string RequestComments { get; set; }
+    public bool? Approved { get; set; }
+    public bool Cancelled { get; set; }
+    public string RequestingEmployeeId { get; set; }
+}
+```
+
+### Specifications
+
+Domain specifications encapsulate business query logic as reusable, composable objects. RCommon's `Specification<T>` provides this:
+
+```csharp
+// HR.LeaveManagement.Domain/Specifications/AllocationExistsSpec.cs
+using RCommon;
+
+public class AllocationExistsSpec : Specification<LeaveAllocation>
+{
+    public AllocationExistsSpec(string userId, int leaveTypeId, int period)
+        : base(q => q.EmployeeId == userId
+                  && q.LeaveTypeId == leaveTypeId
+                  && q.Period == period)
+    {
+    }
+}
+```
+
+The specification is used in the Application layer without any knowledge of EF Core or SQL:
+
+```csharp
+var allocationCount = await _leaveAllocationRepository
+    .GetCountAsync(new AllocationExistsSpec(emp.Id, leaveType.Id, period));
+```
+
+## The Application Layer
+
+The Application layer contains commands, queries, and their handlers. Handlers implement RCommon's `IAppRequestHandler<TRequest, TResponse>` interface.
+
+### Commands
+
+A command encapsulates the intent to change state:
+
+```csharp
+// CreateLeaveTypeCommand.cs
+using RCommon.Mediator.Subscribers;
+
+public class CreateLeaveTypeCommand : IAppRequest<BaseCommandResponse>
+{
+    public CreateLeaveTypeDto LeaveTypeDto { get; set; }
+}
+```
+
+The handler receives the command, runs validation through `IValidationService`, and persists via the repository interface:
+
+```csharp
+// CreateLeaveTypeCommandHandler.cs
+public class CreateLeaveTypeCommandHandler
+    : IAppRequestHandler<CreateLeaveTypeCommand, BaseCommandResponse>
+{
+    private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
+    private readonly IValidationService _validationService;
+
+    public CreateLeaveTypeCommandHandler(
+        IGraphRepository<LeaveType> leaveTypeRepository,
+        IValidationService validationService)
+    {
+        _leaveTypeRepository = leaveTypeRepository;
+        _validationService = validationService;
+        _leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
+    }
+
+    public async Task<BaseCommandResponse> HandleAsync(
+        CreateLeaveTypeCommand request,
+        CancellationToken cancellationToken)
+    {
+        var response = new BaseCommandResponse();
+        var validationResult = await _validationService.ValidateAsync(request.LeaveTypeDto);
+
+        if (!validationResult.IsValid)
+        {
+            response.Success = false;
+            response.Message = "Creation Failed";
+            response.Errors = validationResult.Errors
+                .Select(q => q.ErrorMessage).ToList();
+        }
+        else
+        {
+            var leaveType = request.LeaveTypeDto.ToLeaveType();
+            await _leaveTypeRepository.AddAsync(leaveType);
+            response.Success = true;
+            response.Message = "Creation Successful";
+            response.Id = leaveType.Id;
+        }
+
+        return response;
+    }
+}
+```
+
+### Queries
+
+Queries return data without modifying state:
+
+```csharp
+// GetLeaveTypeListRequestHandler.cs
+public class GetLeaveTypeListRequestHandler
+    : IAppRequestHandler<GetLeaveTypeListRequest, List<LeaveTypeDto>>
+{
+    private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
+
+    public GetLeaveTypeListRequestHandler(IGraphRepository<LeaveType> leaveTypeRepository)
+    {
+        _leaveTypeRepository = leaveTypeRepository;
+        _leaveTypeRepository.DataStoreName = DataStoreNamesConst.LeaveManagement;
+    }
+
+    public async Task<List<LeaveTypeDto>> HandleAsync(
+        GetLeaveTypeListRequest request,
+        CancellationToken cancellationToken)
+    {
+        var leaveTypes = await _leaveTypeRepository.FindAsync(x => true);
+        return leaveTypes.Select(x => x.ToLeaveTypeDto()).ToList();
+    }
+}
+```
+
+### Cross-Cutting Concerns in the Application Layer
+
+The Application layer defines contracts for cross-cutting concerns as interfaces. Infrastructure implements them:
+
+```csharp
+// Contracts/Identity/IUserService.cs
+public interface IUserService
+{
+    Task<List<Employee>> GetEmployees();
+}
+
+// Contracts/Identity/IAuthService.cs
+public interface IAuthService
+{
+    Task<AuthResponse> Login(AuthRequest request);
+    Task<RegistrationResponse> Register(RegistrationRequest request);
+}
+```
+
+## The Infrastructure Layer
+
+The `LeaveManagementDbContext` inherits from RCommon's `AuditableDbContext`, which automatically stamps the `CreatedBy`, `ModifiedBy`, `CreateDate`, and `ModifyDate` fields on every save operation:
+
+```csharp
+// HR.LeaveManagement.Persistence/LeaveManagementDbContext.cs
+public class LeaveManagementDbContext : AuditableDbContext
+{
+    public LeaveManagementDbContext(
+        DbContextOptions<LeaveManagementDbContext> options,
+        ICurrentUser currentUser,
+        ISystemTime systemTime)
+        : base(options, currentUser, systemTime)
+    {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(LeaveManagementDbContext).Assembly);
+    }
+
+    public DbSet<LeaveRequest> LeaveRequests { get; set; }
+    public DbSet<LeaveType> LeaveTypes { get; set; }
+    public DbSet<LeaveAllocation> LeaveAllocations { get; set; }
+}
+```
+
+## The Composition Root (Program.cs)
+
+All layers are wired together in `Program.cs` using RCommon's fluent builder. This is the only place where concrete implementations are named:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithClaimsAndPrincipalAccessor()
+    .WithSendGridEmailServices(x =>
+    {
+        var sendGridSettings = builder.Configuration.Get<SendGridEmailSettings>();
+        x.SendGridApiKey = sendGridSettings.SendGridApiKey;
+        x.FromNameDefault = sendGridSettings.FromNameDefault;
+        x.FromEmailDefault = sendGridSettings.FromEmailDefault;
+    })
+    .WithDateTimeSystem(dateTime => dateTime.Kind = DateTimeKind.Utc)
+    .WithSequentialGuidGenerator(guid =>
+        guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddRequest<CreateLeaveTypeCommand, BaseCommandResponse,
+            CreateLeaveTypeCommandHandler>();
+        mediator.AddRequest<GetLeaveTypeListRequest, List<LeaveTypeDto>,
+            GetLeaveTypeListRequestHandler>();
+        // ... register all handlers
+
+        mediator.Configure(config =>
+        {
+            config.RegisterServicesFromAssemblies(
+                typeof(ApplicationServicesRegistration).GetTypeInfo().Assembly);
+        });
+        mediator.AddLoggingToRequestPipeline();
+        mediator.AddUnitOfWorkToRequestPipeline();
+    })
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<LeaveManagementDbContext>(
+            DataStoreNamesConst.LeaveManagement,
+            options =>
+            {
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString(
+                        DataStoreNamesConst.LeaveManagement));
+            });
+        ef.SetDefaultDataStore(dataStore =>
+        {
+            dataStore.DefaultDataStoreName = DataStoreNamesConst.LeaveManagement;
+        });
+    })
+    .WithUnitOfWork<DefaultUnitOfWorkBuilder>(unitOfWork =>
+    {
+        unitOfWork.SetOptions(options =>
+        {
+            options.AutoCompleteScope = true;
+            options.DefaultIsolation = IsolationLevel.ReadCommitted;
+        });
+    })
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining(
+            typeof(ApplicationServicesRegistration));
+    });
+```
+
+## The Presentation Layer
+
+Controllers depend only on `IMediatorService`. They dispatch commands and queries without knowing which handler handles them:
+
+```csharp
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class LeaveTypesController : ControllerBase
+{
+    private readonly IMediatorService _mediator;
+
+    public LeaveTypesController(IMediatorService mediator)
+    {
+        _mediator = mediator;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<List<LeaveTypeDto>>> Get()
+    {
+        var leaveTypes = await _mediator.Send<GetLeaveTypeListRequest, List<LeaveTypeDto>>(
+            new GetLeaveTypeListRequest());
+        return Ok(leaveTypes);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Administrator")]
+    public async Task<ActionResult<BaseCommandResponse>> Post(
+        [FromBody] CreateLeaveTypeDto leaveType)
+    {
+        var command = new CreateLeaveTypeCommand { LeaveTypeDto = leaveType };
+        var response = await _mediator.Send<CreateLeaveTypeCommand, BaseCommandResponse>(command);
+        return Ok(response);
+    }
+}
+```
+
+## Testing Application Handlers
+
+Because handlers depend only on interfaces, they can be tested with mocks. No database or web server is required:
+
+```csharp
+[TestFixture]
+public class CreateLeaveTypeCommandHandlerTests
+{
+    private readonly CreateLeaveTypeDto _leaveTypeDto;
+    private readonly CreateLeaveTypeCommandHandler _handler;
+
+    public CreateLeaveTypeCommandHandlerTests()
+    {
+        var mock = new Mock<IGraphRepository<LeaveType>>();
+        var validationMock = new Mock<IValidationService>();
+
+        _leaveTypeDto = new CreateLeaveTypeDto
+        {
+            DefaultDays = 15,
+            Name = "Test DTO"
+        };
+
+        validationMock
+            .Setup(x => x.ValidateAsync(_leaveTypeDto, false, CancellationToken.None))
+            .Returns(() => Task.FromResult(new ValidationOutcome()));
+
+        _handler = new CreateLeaveTypeCommandHandler(mock.Object, validationMock.Object);
+    }
+
+    [Test]
+    public async Task Valid_LeaveType_Added()
+    {
+        var result = await _handler.HandleAsync(
+            new CreateLeaveTypeCommand { LeaveTypeDto = _leaveTypeDto },
+            CancellationToken.None);
+
+        result.ShouldBeOfType<BaseCommandResponse>();
+    }
+}
+```
+
+## Key Design Decisions
+
+**`IGraphRepository<T>` as the persistence abstraction.** Handlers declare a dependency on `IGraphRepository<LeaveType>`. EF Core, NHibernate, or any future provider implements this interface. Swapping providers requires a one-line change in the composition root.
+
+**`DataStoreName` for multi-context routing.** When an application has multiple databases, handlers set `repository.DataStoreName` to tell RCommon which registered `DbContext` to use. This keeps the routing decision in the handler where it is most visible.
+
+**`AuditableDbContext` for automatic audit trails.** Inheriting from `AuditableDbContext` removes the need for explicit audit field management across every handler. The `ICurrentUser` and `ISystemTime` services supply the values automatically.
+
+**Pipeline behaviors via `.AddLoggingToRequestPipeline()` and `.AddUnitOfWorkToRequestPipeline()`.** These decorators wrap every handler with structured logging and unit-of-work demarcation without modifying the handler code.
+
+## API Reference
+
+| Type | Package | Purpose |
+|------|---------|---------|
+| `AuditedEntity<TId, TCreatedBy, TModifiedBy>` | `RCommon.Entities` | Base class for domain entities with auditing |
+| `Specification<T>` | `RCommon` | Composable predicate for domain queries |
+| `IAppRequest<TResponse>` | `RCommon.Mediator` | Marker interface for commands and queries |
+| `IAppRequestHandler<TRequest, TResponse>` | `RCommon.Mediator` | Handler contract |
+| `IGraphRepository<T>` | `RCommon.Persistence` | Full-featured repository with LINQ support |
+| `AuditableDbContext` | `RCommon.Persistence.EFCore` | EF Core DbContext with automatic audit stamping |
+| `IMediatorService` | `RCommon.Mediator` | Dispatcher used in controllers |
+| `IValidationService` | `RCommon.ApplicationServices` | Validation abstraction used in handlers |

@@ -1,0 +1,331 @@
+---
+title: Event Handling Examples
+sidebar_position: 2
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Event Handling Examples
+
+This page walks through the event handling examples included with RCommon. Each example is a self-contained console application showing a different event handling provider.
+
+## Example Projects
+
+```
+Examples/EventHandling/
+    Examples.EventHandling.InMemoryEventBus/
+    Examples.EventHandling.MediatR/
+```
+
+## Step 1: Define an Event
+
+An event is a plain class that implements `ISyncEvent`. It is immutable after construction:
+
+```csharp
+using RCommon.Models.Events;
+
+public class TestEvent : ISyncEvent
+{
+    public TestEvent() { }
+
+    public TestEvent(DateTime dateTime, Guid guid)
+    {
+        DateTime = dateTime;
+        Guid = guid;
+    }
+
+    public DateTime DateTime { get; }
+    public Guid Guid { get; }
+}
+```
+
+`ISyncEvent` is the marker interface that RCommon's routing infrastructure uses to identify events. No base class is required.
+
+## Step 2: Define a Subscriber
+
+A subscriber implements `ISubscriber<TEvent>` and contains the handling logic:
+
+```csharp
+using RCommon.EventHandling.Subscribers;
+
+public class TestEventHandler : ISubscriber<TestEvent>
+{
+    public async Task HandleAsync(TestEvent notification,
+        CancellationToken cancellationToken = default)
+    {
+        Console.WriteLine("Handled event: {0}", notification.ToString());
+        await Task.CompletedTask;
+    }
+}
+```
+
+Subscribers are registered with a specific builder, which scopes their routing.
+
+## Example 1: In-Memory Event Bus
+
+### Installation
+
+<NuGetInstall packageName="RCommon.EventHandling" />
+
+### Configuration
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+    });
+```
+
+`WithEventHandling<InMemoryEventBusBuilder>` registers an in-process bus. Events are dispatched synchronously within the same process with no external broker dependency.
+
+### Publishing
+
+Resolve all registered `IEventProducer` instances and call `ProduceEventAsync`:
+
+```csharp
+var eventProducers = host.Services.GetServices<IEventProducer>();
+var testEvent = new TestEvent(DateTime.Now, Guid.NewGuid());
+
+foreach (var producer in eventProducers)
+{
+    await producer.ProduceEventAsync(testEvent);
+}
+```
+
+### Full Program.cs
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using RCommon;
+using RCommon.EventHandling;
+using RCommon.EventHandling.Producers;
+
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        services.AddRCommon()
+            .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+            {
+                eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+                eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+            });
+    }).Build();
+
+Console.WriteLine("Example Starting");
+
+var eventProducers = host.Services.GetServices<IEventProducer>();
+var testEvent = new TestEvent(DateTime.Now, Guid.NewGuid());
+
+foreach (var producer in eventProducers)
+{
+    await producer.ProduceEventAsync(testEvent);
+}
+
+Console.WriteLine("Example Complete");
+```
+
+### Expected Output
+
+```
+Example Starting
+Handled event: Examples.EventHandling.InMemoryEventBus.TestEvent
+Example Complete
+```
+
+## Example 2: MediatR Event Bus
+
+### Installation
+
+<NuGetInstall packageName="RCommon.MediatR" />
+
+### Configuration
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithMediatREventProducer>();
+        eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+    });
+```
+
+`WithEventHandling<MediatREventHandlingBuilder>` routes events through MediatR's `IPublisher`. This integrates with existing MediatR pipeline behaviors.
+
+### Full Program.cs
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using RCommon;
+using RCommon.EventHandling.Producers;
+using RCommon.MediatR;
+using RCommon.MediatR.Producers;
+
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        services.AddRCommon()
+            .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
+            {
+                eventHandling.AddProducer<PublishWithMediatREventProducer>();
+                eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+            });
+    }).Build();
+
+Console.WriteLine("Example Starting");
+
+var eventProducers = host.Services.GetServices<IEventProducer>();
+var testEvent = new TestEvent(DateTime.Now, Guid.NewGuid());
+
+foreach (var producer in eventProducers)
+{
+    await producer.ProduceEventAsync(testEvent);
+}
+
+Console.WriteLine("Example Complete");
+```
+
+## Multiple Subscribers for the Same Event
+
+Register the same event type with multiple handlers. All handlers are invoked when the event is published:
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<OrderPlacedEvent, SendConfirmationEmailHandler>();
+        eventHandling.AddSubscriber<OrderPlacedEvent, UpdateInventoryHandler>();
+        eventHandling.AddSubscriber<OrderPlacedEvent, NotifyWarehouseHandler>();
+    });
+```
+
+## Event Handling in an ASP.NET Core Application
+
+Wire event handling alongside the rest of your RCommon configuration:
+
+```csharp
+// Program.cs — ASP.NET Core Web API
+builder.Services.AddRCommon()
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddRequest<PlaceOrderCommand, BaseCommandResponse,
+            PlaceOrderCommandHandler>();
+        mediator.AddUnitOfWorkToRequestPipeline();
+    })
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<OrderPlacedEvent, SendConfirmationEmailHandler>();
+        eventHandling.AddSubscriber<OrderPlacedEvent, UpdateDashboardHandler>();
+    })
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>("AppDb", options =>
+        {
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("AppDb"));
+        });
+        ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "AppDb");
+    });
+```
+
+In a command handler, inject and use `IEnumerable<IEventProducer>`:
+
+```csharp
+public class PlaceOrderCommandHandler
+    : IAppRequestHandler<PlaceOrderCommand, BaseCommandResponse>
+{
+    private readonly IGraphRepository<Order> _orderRepository;
+    private readonly IEnumerable<IEventProducer> _eventProducers;
+
+    public PlaceOrderCommandHandler(
+        IGraphRepository<Order> orderRepository,
+        IEnumerable<IEventProducer> eventProducers)
+    {
+        _orderRepository = orderRepository;
+        _eventProducers = eventProducers;
+    }
+
+    public async Task<BaseCommandResponse> HandleAsync(
+        PlaceOrderCommand request,
+        CancellationToken cancellationToken)
+    {
+        var order = new Order(request.CustomerId, request.Items);
+        await _orderRepository.AddAsync(order);
+
+        var @event = new OrderPlacedEvent(order.Id, order.CustomerId);
+
+        foreach (var producer in _eventProducers)
+        {
+            await producer.ProduceEventAsync(@event);
+        }
+
+        return new BaseCommandResponse { Success = true, Id = order.Id };
+    }
+}
+```
+
+## Testing an Event Handler
+
+Event handlers are plain classes and test without a running host:
+
+```csharp
+[Test]
+public async Task Handler_Writes_To_Console_On_Event()
+{
+    var handler = new TestEventHandler();
+    var @event = new TestEvent(DateTime.UtcNow, Guid.NewGuid());
+
+    // Should not throw
+    await handler.HandleAsync(@event, CancellationToken.None);
+}
+```
+
+For handlers with dependencies, use mocks:
+
+```csharp
+[Test]
+public async Task SendConfirmationEmailHandler_Calls_Email_Service()
+{
+    var emailMock = new Mock<IEmailService>();
+    var handler = new SendConfirmationEmailHandler(emailMock.Object);
+
+    await handler.HandleAsync(
+        new OrderPlacedEvent(Guid.NewGuid(), "customer-1"),
+        CancellationToken.None);
+
+    emailMock.Verify(
+        x => x.SendAsync(It.Is<EmailRequest>(r => r.To == "customer-1")),
+        Times.Once);
+}
+```
+
+## Choosing Between In-Memory and MediatR
+
+| Aspect | InMemoryEventBusBuilder | MediatREventHandlingBuilder |
+|--------|-------------------------|-----------------------------|
+| External dependency | None beyond RCommon | MediatR NuGet package |
+| Pipeline behaviors | Not supported | Supported via MediatR behaviors |
+| Multi-publisher isolation | Yes | Yes |
+| Distributed messaging | No | No |
+| Best for | Simple in-process events | Projects already using MediatR |
+
+For distributed messaging across services, see the [Messaging Examples](./messaging) page.
+
+## API Reference
+
+| Type | Package | Purpose |
+|------|---------|---------|
+| `ISyncEvent` | `RCommon.Models` | Base interface for all events |
+| `IEventProducer` | `RCommon.EventHandling` | Publishes events |
+| `ISubscriber<TEvent>` | `RCommon.EventHandling` | Handles events |
+| `InMemoryEventBusBuilder` | `RCommon.EventHandling` | Registers the in-process event bus |
+| `PublishWithEventBusEventProducer` | `RCommon.EventHandling` | In-memory producer |
+| `MediatREventHandlingBuilder` | `RCommon.MediatR` | Registers MediatR-backed event handling |
+| `PublishWithMediatREventProducer` | `RCommon.MediatR` | MediatR-backed producer |

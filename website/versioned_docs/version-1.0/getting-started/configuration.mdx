@@ -1,0 +1,229 @@
+---
+title: Configuration & Bootstrapping
+sidebar_position: 4
+---
+
+# Configuration & Bootstrapping
+
+RCommon uses a single fluent builder entry point. All configuration happens at application startup before the DI container is built.
+
+## The AddRCommon() extension method
+
+`AddRCommon()` is an extension method on `IServiceCollection` defined in `RCommon.Core`. Calling it creates an `RCommonBuilder`, registers the core framework services, and returns an `IRCommonBuilder` for further configuration.
+
+```csharp
+using RCommon;
+
+// In Program.cs or a DI registration method
+builder.Services.AddRCommon();
+```
+
+Calling `AddRCommon()` always registers these services regardless of what else is configured:
+
+- `EventSubscriptionManager` (singleton) — tracks event-to-producer subscriptions
+- `IEventBus` backed by `InMemoryEventBus` (singleton) — in-process publish/subscribe
+- `IEventRouter` backed by `InMemoryTransactionalEventRouter` (scoped) — coordinates domain events with the unit of work
+- `CachingOptions` configured with caching disabled by default
+
+## Builder chain
+
+The return value of `AddRCommon()` is `IRCommonBuilder`. Every `With*` method on the builder returns the same `IRCommonBuilder` instance so calls can be chained:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithSequentialGuidGenerator(...)
+    .WithDateTimeSystem(...)
+    .WithPersistence<EFCorePerisistenceBuilder>(...)
+    .WithUnitOfWork<DefaultUnitOfWorkBuilder>(...)
+    .WithMediator<MediatRBuilder>(...)
+    .WithEventHandling<InMemoryEventBusBuilder>(...);
+```
+
+Every `With*` call is independent and opt-in. Omitting a call means those services are not registered.
+
+## Core builder methods
+
+### WithSequentialGuidGenerator
+
+Registers `IGuidGenerator` as a `SequentialGuidGenerator`. Sequential GUIDs are ordered in a way that reduces index fragmentation in SQL databases.
+
+```csharp
+.WithSequentialGuidGenerator(options =>
+{
+    options.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString;
+})
+```
+
+`SequentialGuidType` values:
+
+| Value | Description |
+|---|---|
+| `SequentialAsString` | Sequential in string representation — compatible with MySQL and PostgreSQL |
+| `SequentialAsBinary` | Sequential in binary representation — compatible with Oracle |
+| `SequentialAtEnd` | Sequential at the end — compatible with SQL Server |
+
+Only one GUID generator may be configured. Calling `WithSequentialGuidGenerator` or `WithSimpleGuidGenerator` a second time throws `RCommonBuilderException`.
+
+### WithSimpleGuidGenerator
+
+Registers `IGuidGenerator` as a `SimpleGuidGenerator` that wraps `Guid.NewGuid()`.
+
+```csharp
+.WithSimpleGuidGenerator()
+```
+
+### WithDateTimeSystem
+
+Registers `ISystemTime` as `SystemTime`. Inject `ISystemTime` wherever you need the current time so that tests can substitute a known value.
+
+```csharp
+.WithDateTimeSystem(options =>
+{
+    options.Kind = DateTimeKind.Utc;
+})
+```
+
+Only one date/time system may be configured per builder instance.
+
+### WithCommonFactory
+
+Registers a service type alongside a DI-aware `ICommonFactory<TService>` that can create instances through the container.
+
+```csharp
+.WithCommonFactory<IMyService, MyServiceImpl>()
+```
+
+## Persistence configuration
+
+`WithPersistence<T>` accepts any type that implements `IPersistenceBuilder`. The built-in options are `EFCorePerisistenceBuilder`, `DapperPersistenceBuilder`, and `Linq2DbPersistenceBuilder`.
+
+```csharp
+.WithPersistence<EFCorePerisistenceBuilder>(ef =>
+{
+    ef.AddDbContext<AppDbContext>("AppDb", options =>
+    {
+        options.UseSqlServer(connectionString);
+    });
+    ef.SetDefaultDataStore(ds =>
+    {
+        ds.DefaultDataStoreName = "AppDb";
+    });
+})
+```
+
+Multiple DbContexts can be registered with different names. The name is used to resolve the correct context at runtime via `IDataStoreFactory`. Use `SetDefaultDataStore` to declare which context a repository uses when no explicit data store name is specified on the repository instance.
+
+## Unit of work configuration
+
+`WithUnitOfWork<T>` accepts any type that implements `IUnitOfWorkBuilder`. Use `DefaultUnitOfWorkBuilder` for the standard `System.Transactions`-based implementation.
+
+```csharp
+.WithUnitOfWork<DefaultUnitOfWorkBuilder>(uow =>
+{
+    uow.SetOptions(options =>
+    {
+        options.AutoCompleteScope = true;
+        options.DefaultIsolation = IsolationLevel.ReadCommitted;
+    });
+})
+```
+
+`AutoCompleteScope` causes the unit of work scope to commit automatically when the outermost scope completes without an exception. Set it to `false` if you need explicit `Complete()` calls.
+
+## Mediator configuration
+
+`WithMediator<T>` accepts any type that implements `IMediatorBuilder`. Use `MediatRBuilder` for MediatR integration.
+
+```csharp
+.WithMediator<MediatRBuilder>(mediator =>
+{
+    mediator.AddRequest<CreateOrderCommand, CreateOrderCommandHandler>();
+    mediator.AddRequest<GetOrderQuery, OrderDto, GetOrderQueryHandler>();
+
+    mediator.Configure(config =>
+    {
+        config.RegisterServicesFromAssemblies(typeof(ApplicationAssemblyMarker).Assembly);
+    });
+
+    mediator.AddLoggingToRequestPipeline();
+    mediator.AddUnitOfWorkToRequestPipeline();
+})
+```
+
+## Event handling configuration
+
+`WithEventHandling<T>` accepts any type that implements `IEventHandlingBuilder`. Use `InMemoryEventBusBuilder` for in-process events.
+
+```csharp
+.WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+{
+    eventHandling.AddSubscriber<OrderCreatedEvent, OrderCreatedEventHandler>();
+    eventHandling.AddSubscriber<OrderCancelledEvent, OrderCancelledEventHandler>();
+})
+```
+
+Each `AddSubscriber<TEvent, THandler>` call registers the handler as a scoped `ISubscriber<TEvent>` and records the event-to-producer subscription in the `EventSubscriptionManager` so the `IEventRouter` knows which producers handle which events.
+
+## Complete example
+
+The following shows a realistic `Program.cs` configuration for a web API that uses EF Core persistence, MediatR, FluentValidation, and in-process events:
+
+```csharp
+using RCommon;
+using RCommon.Persistence.EFCore;
+using RCommon.Persistence.Transactions;
+using RCommon.Mediator.MediatR;
+using RCommon.EventHandling;
+using RCommon.FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using System.Transactions;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddRCommon()
+    .WithSequentialGuidGenerator(guid =>
+        guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
+    .WithDateTimeSystem(dt =>
+        dt.Kind = DateTimeKind.Utc)
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>("AppDb", options =>
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("DefaultConnection")));
+        ef.SetDefaultDataStore(ds =>
+            ds.DefaultDataStoreName = "AppDb");
+    })
+    .WithUnitOfWork<DefaultUnitOfWorkBuilder>(uow =>
+    {
+        uow.SetOptions(options =>
+        {
+            options.AutoCompleteScope = true;
+            options.DefaultIsolation = IsolationLevel.ReadCommitted;
+        });
+    })
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.Configure(config =>
+            config.RegisterServicesFromAssemblies(typeof(ApplicationAssemblyMarker).Assembly));
+        mediator.AddLoggingToRequestPipeline();
+        mediator.AddUnitOfWorkToRequestPipeline();
+    })
+    .WithEventHandling<InMemoryEventBusBuilder>(events =>
+    {
+        events.AddSubscriber<OrderCreatedEvent, OrderCreatedEventHandler>();
+    })
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining<ApplicationAssemblyMarker>();
+    });
+```
+
+## Diagnostics
+
+During development you can print all registered services to the console to verify configuration:
+
+```csharp
+Console.WriteLine(builder.Services.GenerateServiceDescriptorsString());
+```
+
+This produces a sorted list of every `ServiceDescriptor` in the container, which is useful for spotting missing or duplicate registrations.

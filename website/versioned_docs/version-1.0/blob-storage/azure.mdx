@@ -1,0 +1,163 @@
+---
+title: Azure Blob Storage
+sidebar_position: 2
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Azure Blob Storage
+
+## Overview
+
+The `RCommon.Azure.Blobs` package wraps the official Azure Blob Storage SDK (`Azure.Storage.Blobs`) behind the `IBlobStorageService` interface. Your application code uses the provider-agnostic interface while the Azure implementation handles all SDK-specific details.
+
+Multiple stores can be registered under different names, which is useful when different containers should use different credentials or service URIs (for example, a development emulator alongside a production account).
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Azure.Blobs" />
+
+This package depends on `RCommon.Blobs` and will bring it in automatically.
+
+## Configuration
+
+Call `WithBlobStorage<AzureBlobStorageBuilder>` inside your `AddRCommon()` block. Use `AddBlobStore` to register each named store. Provide either a connection string or a service URI combined with a `TokenCredential`.
+
+### Using a connection string
+
+A connection string is the simplest option for development and for environments where managed identity is not available.
+
+```csharp
+using RCommon;
+using RCommon.Azure.Blobs;
+
+builder.Services.AddRCommon()
+    .WithBlobStorage<AzureBlobStorageBuilder>(azure =>
+    {
+        azure.AddBlobStore("primary", opts =>
+        {
+            opts.ConnectionString = builder.Configuration
+                .GetConnectionString("AzureStorage");
+        });
+    });
+```
+
+Typical `appsettings.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "AzureStorage": "DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...;EndpointSuffix=core.windows.net"
+  }
+}
+```
+
+For local development with the Azurite emulator:
+
+```json
+{
+  "ConnectionStrings": {
+    "AzureStorage": "UseDevelopmentStorage=true"
+  }
+}
+```
+
+### Using a service URI with managed identity
+
+Managed identity avoids storing credentials in configuration. Pass the storage account endpoint URI and a `DefaultAzureCredential` (or any other `TokenCredential` from `Azure.Identity`).
+
+```csharp
+using Azure.Identity;
+using RCommon;
+using RCommon.Azure.Blobs;
+
+builder.Services.AddRCommon()
+    .WithBlobStorage<AzureBlobStorageBuilder>(azure =>
+    {
+        azure.AddBlobStore("primary", opts =>
+        {
+            opts.ServiceUri = new Uri(
+                "https://myaccount.blob.core.windows.net");
+            opts.Credential = new DefaultAzureCredential();
+        });
+    });
+```
+
+### Registering multiple stores
+
+```csharp
+builder.Services.AddRCommon()
+    .WithBlobStorage<AzureBlobStorageBuilder>(azure =>
+    {
+        azure.AddBlobStore("uploads", opts =>
+            opts.ConnectionString = uploadsConnectionString);
+
+        azure.AddBlobStore("backups", opts =>
+        {
+            opts.ServiceUri = new Uri(
+                "https://backupaccount.blob.core.windows.net");
+            opts.Credential = new DefaultAzureCredential();
+        });
+    });
+```
+
+## Usage
+
+Inject `IBlobStoreFactory` and resolve the store by name, or inject `IBlobStorageService` directly when only one store is registered.
+
+```csharp
+public class FileUploadService
+{
+    private readonly IBlobStorageService _storage;
+
+    public FileUploadService(IBlobStoreFactory factory)
+    {
+        _storage = factory.Resolve("uploads");
+    }
+
+    public async Task UploadAsync(string fileName, Stream content,
+        CancellationToken ct = default)
+    {
+        // Ensure the container exists before uploading.
+        if (!await _storage.ContainerExistsAsync("user-files", ct))
+            await _storage.CreateContainerAsync("user-files", ct);
+
+        await _storage.UploadAsync(
+            containerName: "user-files",
+            blobName: fileName,
+            content: content,
+            options: new BlobUploadOptions { ContentType = "application/octet-stream" },
+            token: ct);
+    }
+
+    public async Task<Stream> DownloadAsync(string fileName,
+        CancellationToken ct = default)
+    {
+        return await _storage.DownloadAsync("user-files", fileName, ct);
+    }
+}
+```
+
+## API Summary
+
+### `AzureBlobStorageBuilder`
+
+Implements `IBlobStorageBuilder` and `IAzureBlobStorageBuilder`. Registered automatically by `WithBlobStorage<AzureBlobStorageBuilder>`.
+
+| Method | Description |
+|--------|-------------|
+| `AddBlobStore(name, configure)` | Registers a named Azure Blob Storage store. The `configure` action receives an `AzureBlobStoreOptions` instance. |
+
+### `AzureBlobStoreOptions`
+
+| Property | Description |
+|----------|-------------|
+| `ConnectionString` | Azure Storage connection string. Use when not using managed identity. |
+| `ServiceUri` | URI of the Azure Blob Storage service (e.g., `https://account.blob.core.windows.net`). Required when using `Credential`. |
+| `Credential` | A `TokenCredential` instance from `Azure.Identity`. Required when using `ServiceUri`. |
+
+Exactly one of the following must be provided:
+- `ConnectionString`
+- `ServiceUri` and `Credential`
+
+If neither combination is supplied, the store throws an `InvalidOperationException` when first resolved.

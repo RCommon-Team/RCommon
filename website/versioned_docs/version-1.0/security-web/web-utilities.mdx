@@ -1,0 +1,212 @@
+---
+title: Web Utilities
+sidebar_position: 2
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Web Utilities
+
+## Overview
+
+`RCommon.Web` provides ASP.NET Core-specific integrations that bridge RCommon's security abstractions to the HTTP request pipeline. Its primary purpose is to replace the thread-based principal accessor with one that reads the authenticated user from the current `HttpContext`, which is the correct source of identity in ASP.NET Core web applications.
+
+The package contains:
+
+- `HttpContextCurrentPrincipalAccessor` — an `ICurrentPrincipalAccessor` implementation that reads `HttpContext.User` via `IHttpContextAccessor`.
+- `WebConfigurationExtensions` — a startup extension method that registers all security services using the HTTP-context-based accessor.
+
+### Why a separate web package?
+
+RCommon's core security library (`RCommon.Security`) has no ASP.NET Core dependency. Its default principal accessor reads from `Thread.CurrentPrincipal`, which works in console apps, background services, and test harnesses. In an ASP.NET Core web app the authenticated user is set on `HttpContext.User` by the authentication middleware, not on `Thread.CurrentPrincipal`. `RCommon.Web` provides the adapter that makes the correct source available to all RCommon services.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Web" />
+
+This package depends on `RCommon.Security`, which is pulled in automatically.
+
+## Configuration
+
+Call `WithClaimsAndPrincipalAccessorForWeb()` instead of `WithClaimsAndPrincipalAccessor()` in your ASP.NET Core startup:
+
+```csharp
+using RCommon;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddRCommon(config =>
+{
+    config.WithClaimsAndPrincipalAccessorForWeb();
+});
+
+var app = builder.Build();
+
+// Ensure authentication and authorization middleware run before your endpoints.
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+app.Run();
+```
+
+`WithClaimsAndPrincipalAccessorForWeb()` registers the following services:
+
+| Interface | Implementation |
+|-----------|----------------|
+| `ICurrentPrincipalAccessor` | `HttpContextCurrentPrincipalAccessor` |
+| `ICurrentUser` | `CurrentUser` |
+| `ICurrentClient` | `CurrentClient` |
+| `ITenantIdAccessor` | `ClaimsTenantIdAccessor` |
+
+It also calls `services.AddHttpContextAccessor()` so that `IHttpContextAccessor` is available for injection.
+
+### Combined with other RCommon features
+
+`WithClaimsAndPrincipalAccessorForWeb()` is fluent and chains naturally with persistence, multi-tenancy, and other configuration:
+
+```csharp
+builder.Services.AddRCommon(config =>
+{
+    config
+        .WithClaimsAndPrincipalAccessorForWeb()
+        .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        {
+            ef.AddDbContext<AppDbContext>(
+                "App",
+                options => options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("Default")));
+        })
+        .WithMultiTenancy<FinbuckleMultiTenantBuilder<TenantInfo>>(mt => { });
+});
+```
+
+## Usage
+
+### Injecting ICurrentUser in a controller or service
+
+Once `WithClaimsAndPrincipalAccessorForWeb()` is registered, inject `ICurrentUser` anywhere in your application. The resolved identity comes from the authenticated `HttpContext.User` for the current request:
+
+```csharp
+using RCommon.Security.Users;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class ProfileController : ControllerBase
+{
+    private readonly ICurrentUser _currentUser;
+
+    public ProfileController(ICurrentUser currentUser)
+    {
+        _currentUser = currentUser;
+    }
+
+    [HttpGet]
+    public IActionResult GetProfile()
+    {
+        return Ok(new
+        {
+            UserId   = _currentUser.Id,
+            Roles    = _currentUser.Roles,
+            TenantId = _currentUser.TenantId
+        });
+    }
+}
+```
+
+### Using ICurrentUser in middleware
+
+```csharp
+using RCommon.Security.Users;
+
+public class RequestAuditMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public RequestAuditMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context, ICurrentUser currentUser)
+    {
+        if (currentUser.IsAuthenticated)
+        {
+            var userId = currentUser.Id?.ToString() ?? "anonymous";
+            context.Items["AuditUserId"] = userId;
+        }
+
+        await _next(context);
+    }
+}
+```
+
+### Temporarily overriding the principal
+
+`HttpContextCurrentPrincipalAccessor` inherits the `Change()` method from `CurrentPrincipalAccessorBase`. The override is stored in `AsyncLocal` and does not mutate `HttpContext.User`, making it safe to use in middleware or background tasks that need to act as a different identity:
+
+```csharp
+using RCommon.Security.Claims;
+using System.Security.Claims;
+
+public class IntegrationEventHandler
+{
+    private readonly ICurrentPrincipalAccessor _principalAccessor;
+    private readonly ICurrentUser _currentUser;
+
+    public IntegrationEventHandler(
+        ICurrentPrincipalAccessor principalAccessor,
+        ICurrentUser currentUser)
+    {
+        _principalAccessor = principalAccessor;
+        _currentUser = currentUser;
+    }
+
+    public async Task HandleAsync(IntegrationEvent @event)
+    {
+        // Run as a system identity when processing out-of-band events.
+        var systemIdentity = new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypesConst.UserId, @event.InitiatingUserId.ToString()),
+            new Claim(ClaimTypesConst.TenantId, @event.TenantId)
+        }, "System");
+
+        using (_principalAccessor.Change(new ClaimsPrincipal(systemIdentity)))
+        {
+            // ICurrentUser now resolves against systemIdentity.
+            Console.WriteLine($"Processing as user {_currentUser.Id} for tenant {_currentUser.TenantId}");
+            await ProcessEventAsync(@event);
+        }
+        // Original principal (or null outside a request) is restored here.
+    }
+
+    private Task ProcessEventAsync(IntegrationEvent @event) => Task.CompletedTask;
+}
+```
+
+### Switching from ThreadCurrentPrincipalAccessor
+
+If you started with `WithClaimsAndPrincipalAccessor()` and are migrating to an ASP.NET Core host, replace it with `WithClaimsAndPrincipalAccessorForWeb()`. The registered interfaces are identical; only the `ICurrentPrincipalAccessor` implementation changes:
+
+```csharp
+// Before (non-web or background service):
+config.WithClaimsAndPrincipalAccessor();
+
+// After (ASP.NET Core web application):
+config.WithClaimsAndPrincipalAccessorForWeb();
+```
+
+No other code changes are needed. All services that depend on `ICurrentUser`, `ICurrentClient`, or `ITenantIdAccessor` continue to work without modification.
+
+## API Summary
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `HttpContextCurrentPrincipalAccessor` | `RCommon.Web` | Reads the current `ClaimsPrincipal` from `IHttpContextAccessor.HttpContext.User`; falls back to `null` outside of a request |
+| `WebConfigurationExtensions.WithClaimsAndPrincipalAccessorForWeb` | `RCommon.Web` | Registers `HttpContextCurrentPrincipalAccessor`, `ICurrentUser`, `ICurrentClient`, `ITenantIdAccessor`, and `IHttpContextAccessor` |
+| `ICurrentPrincipalAccessor` | `RCommon.Security` | Core abstraction; exposes `Principal` and `Change(ClaimsPrincipal)` |
+| `CurrentPrincipalAccessorBase` | `RCommon.Security` | Abstract base; `Change()` stores the override in `AsyncLocal` so it flows across async continuations |
+| `ThreadCurrentPrincipalAccessor` | `RCommon.Security` | Non-web default; reads `Thread.CurrentPrincipal` |

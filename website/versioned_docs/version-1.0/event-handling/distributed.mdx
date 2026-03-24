@@ -1,0 +1,86 @@
+---
+title: Distributed Events
+sidebar_position: 3
+---
+
+# Distributed Events
+
+Distributed event handling extends the in-process model to message brokers, enabling events to cross service boundaries. RCommon integrates with MassTransit and Wolverine as transport backends while keeping the application handler code identical to the in-memory case: every handler implements the same `ISubscriber<TEvent>` interface.
+
+## How distributed events work
+
+When a distributed transport is configured, RCommon registers a broker-specific `IEventProducer` (for example `PublishWithMassTransitEventProducer` or `PublishWithWolverineEventProducer`). When your application calls `IEventRouter.RouteEventsAsync`, the router forwards each event to the producer bound to that event type. The producer then calls the broker's publish or send API.
+
+On the receiving side, the broker delivers the message to a consumer that is registered by RCommon. That consumer resolves the matching `ISubscriber<TEvent>` from the DI container and calls `HandleAsync`.
+
+The result is:
+
+- **Producer code** calls `IEventRouter` or `IEventProducer` — no broker-specific API in application code.
+- **Handler code** implements `ISubscriber<TEvent>` — no broker-specific base class or attribute.
+- **Routing** is managed by the internal `EventSubscriptionManager`, which tracks which events go to which producers.
+
+## Publish vs Send
+
+Both MassTransit and Wolverine support two dispatch patterns:
+
+| Producer | Pattern | Description |
+|----------|---------|-------------|
+| `PublishWithMassTransitEventProducer` | Fan-out | Delivered to all consumers subscribed to the event type |
+| `SendWithMassTransitEventProducer` | Point-to-point | Delivered to a single consumer endpoint |
+| `PublishWithWolverineEventProducer` | Fan-out | Delivered to all Wolverine handlers for the message type |
+| `SendWithWolverineEventProducer` | Point-to-point | Delivered to a single Wolverine handler endpoint |
+
+Use publish (fan-out) for events where multiple downstream services should react. Use send (point-to-point) for command-style messages where exactly one consumer should act.
+
+## Event contract requirements
+
+Events that travel across a message broker must implement `ISerializableEvent`. They should also have a parameterless constructor so the broker can deserialize incoming messages:
+
+```csharp
+using RCommon.Models.Events;
+
+public class OrderShipped : ISyncEvent
+{
+    public OrderShipped(Guid orderId, DateTime shippedAt)
+    {
+        OrderId = orderId;
+        ShippedAt = shippedAt;
+    }
+
+    public OrderShipped() { }
+
+    public Guid OrderId { get; }
+    public DateTime ShippedAt { get; }
+}
+```
+
+## Mixing transports
+
+A single application can register multiple event handling builders simultaneously. For example, you can route one event type to the in-memory bus (for local side-effects) and another to MassTransit (for cross-service delivery):
+
+```csharp
+builder.Services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(local =>
+    {
+        local.AddProducer<PublishWithEventBusEventProducer>();
+        local.AddSubscriber<AuditEvent, AuditEventHandler>();
+    })
+    .WithEventHandling<MassTransitEventHandlingBuilder>(mt =>
+    {
+        mt.AddProducer<PublishWithMassTransitEventProducer>();
+        mt.AddSubscriber<OrderShipped, OrderShippedHandler>();
+        // ... MassTransit transport configuration ...
+    });
+```
+
+The `EventSubscriptionManager` ensures that `AuditEvent` goes only to the in-memory producer and `OrderShipped` goes only to MassTransit. Each handler still implements `ISubscriber<TEvent>` — the transport is invisible to handler code.
+
+## Guaranteed delivery
+
+For reliable at-least-once delivery guarantees, pair MassTransit or Wolverine with the transactional outbox pattern. See [Transactional Outbox](./transactional-outbox.mdx) for details.
+
+## See also
+
+- [MassTransit](./masstransit.mdx) — MassTransit-specific configuration and consumers
+- [Wolverine](./wolverine.mdx) — Wolverine-specific configuration and handlers
+- [Transactional Outbox](./transactional-outbox.mdx) — guaranteeing delivery with an outbox

@@ -1,0 +1,143 @@
+---
+title: MediatR
+sidebar_position: 5
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# MediatR
+
+RCommon integrates with MediatR to route events through the MediatR notification pipeline. Each event is wrapped in a `MediatRNotification<TEvent>` and published to all registered `INotificationHandler` instances. From the application's perspective, handlers still implement `ISubscriber<TEvent>` — the MediatR plumbing is hidden behind the abstraction.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.MediatR" />
+
+## Configuration
+
+Use `WithEventHandling<MediatREventHandlingBuilder>` on the RCommon builder. Register a producer and one subscriber per event type:
+
+```csharp
+using RCommon;
+using RCommon.MediatR;
+using RCommon.MediatR.Producers;
+
+builder.Services.AddRCommon()
+    .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithMediatREventProducer>();
+        eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
+        eventHandling.AddSubscriber<OrderShipped, OrderShippedHandler>();
+    });
+```
+
+`AddSubscriber` does three things internally:
+
+1. Registers `ISubscriber<TEvent>` with the DI container.
+2. Registers a `MediatREventHandler<TEvent, MediatRNotification<TEvent>>` as an `INotificationHandler` so MediatR can dispatch the notification.
+3. Records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to the MediatR producer.
+
+### Custom MediatR service configuration
+
+If you need to control which assemblies MediatR scans for handlers, use the three-parameter overload:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithEventHandling<MediatREventHandlingBuilder>(
+        eventHandling =>
+        {
+            eventHandling.AddProducer<PublishWithMediatREventProducer>();
+            eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
+        },
+        mediatR =>
+        {
+            mediatR.RegisterServicesFromAssembly(typeof(Program).Assembly);
+        });
+```
+
+## Defining an event
+
+Events must implement `ISerializableEvent`. The `ISyncEvent` and `IAsyncEvent` markers control dispatch ordering through the `IEventRouter`:
+
+```csharp
+using RCommon.Models.Events;
+
+public class OrderPlaced : ISyncEvent
+{
+    public OrderPlaced(Guid orderId, DateTime placedAt)
+    {
+        OrderId = orderId;
+        PlacedAt = placedAt;
+    }
+
+    public OrderPlaced() { }
+
+    public Guid OrderId { get; }
+    public DateTime PlacedAt { get; }
+}
+```
+
+## Implementing a subscriber
+
+Implement `ISubscriber<TEvent>`. MediatR delivery is transparent:
+
+```csharp
+using RCommon.EventHandling.Subscribers;
+
+public class OrderPlacedHandler : ISubscriber<OrderPlaced>
+{
+    private readonly ILogger<OrderPlacedHandler> _logger;
+
+    public OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task HandleAsync(OrderPlaced @event, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Order {OrderId} placed at {PlacedAt}", @event.OrderId, @event.PlacedAt);
+        await Task.CompletedTask;
+    }
+}
+```
+
+## Publishing events
+
+Produce events through `IEventRouter` or `IEventProducer`. The producer wraps each event in a `MediatRNotification<TEvent>` and calls `IMediatorService.Publish`, which dispatches to all registered notification handlers:
+
+```csharp
+public class OrderService
+{
+    private readonly IEventRouter _eventRouter;
+
+    public OrderService(IEventRouter eventRouter)
+    {
+        _eventRouter = eventRouter;
+    }
+
+    public async Task PlaceOrderAsync(Order order, CancellationToken cancellationToken)
+    {
+        // ... persist the order ...
+
+        _eventRouter.AddTransactionalEvent(new OrderPlaced(order.Id, DateTime.UtcNow));
+        await _eventRouter.RouteEventsAsync(cancellationToken);
+    }
+}
+```
+
+## How MediatR is wired
+
+Internally, `PublishWithMediatREventProducer` calls `IMediatorService.Publish(@event, cancellationToken)`. The mediator service wraps the event in a `MediatRNotification<TEvent>` and dispatches it through MediatR's notification pipeline. `MediatREventHandler<TEvent, TNotification>` receives the notification and resolves `ISubscriber<TEvent>` from the DI container to call `HandleAsync`.
+
+This means MediatR pipeline behaviours (logging, validation, unit-of-work) apply to event handlers just as they apply to command and query handlers, giving you a consistent cross-cutting-concerns story.
+
+## API summary
+
+| Type | Description |
+|------|-------------|
+| `MediatREventHandlingBuilder` | Builder used with `WithEventHandling<T>` to configure MediatR event handling |
+| `IMediatREventHandlingBuilder` | Interface for the MediatR event handling builder |
+| `PublishWithMediatREventProducer` | `IEventProducer` that publishes via `IMediatorService.Publish` (fan-out) |
+| `SendWithMediatREventProducer` | `IEventProducer` that sends via `IMediatorService.Send` (point-to-point) |
+| `MediatREventHandler<TEvent, TNotification>` | Internal `INotificationHandler` that bridges MediatR to `ISubscriber<TEvent>` |
+| `MediatRNotification<TEvent>` | MediatR `INotification` wrapper used to carry events through the pipeline |

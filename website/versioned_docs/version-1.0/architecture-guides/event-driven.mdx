@@ -1,0 +1,340 @@
+---
+title: Event-Driven Architecture
+sidebar_position: 3
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Event-Driven Architecture with RCommon
+
+Event-driven architecture decouples components by having them communicate through events rather than direct calls. Producers emit events without knowing which consumers exist. Consumers react to events without knowing which producer emitted them. RCommon provides a consistent `IEventProducer` / `ISubscriber<T>` abstraction over in-process buses (InMemoryEventBus, MediatR) and distributed brokers (MassTransit, Wolverine).
+
+## When to Use This Approach
+
+Use event-driven design with RCommon when:
+
+- Side effects (sending email, updating a read model, audit logging) should not be tangled into command handlers
+- You want to scale event consumers independently from producers
+- Components must remain decoupled so they can evolve at different rates
+- You need reliable delivery guarantees provided by a message broker
+
+## Core Concepts
+
+### Events
+
+An event represents something that happened. It is named in the past tense and is immutable after construction:
+
+```csharp
+using RCommon.Models.Events;
+
+// An in-process domain event
+public class LeaveRequestApprovedEvent : ISyncEvent
+{
+    public LeaveRequestApprovedEvent() { }
+
+    public LeaveRequestApprovedEvent(int leaveRequestId, string employeeId)
+    {
+        LeaveRequestId = leaveRequestId;
+        EmployeeId = employeeId;
+    }
+
+    public int LeaveRequestId { get; }
+    public string EmployeeId { get; }
+}
+```
+
+`ISyncEvent` is the base marker interface. All event types in RCommon derive from it.
+
+### Producers
+
+A producer publishes an event to one or more subscribers. At the call site, you depend on `IEventProducer`:
+
+```csharp
+public class ApproveLeaveRequestCommandHandler
+    : IAppRequestHandler<ApproveLeaveRequestCommand, BaseCommandResponse>
+{
+    private readonly IGraphRepository<LeaveRequest> _repository;
+    private readonly IEnumerable<IEventProducer> _eventProducers;
+
+    public ApproveLeaveRequestCommandHandler(
+        IGraphRepository<LeaveRequest> repository,
+        IEnumerable<IEventProducer> eventProducers)
+    {
+        _repository = repository;
+        _eventProducers = eventProducers;
+    }
+
+    public async Task<BaseCommandResponse> HandleAsync(
+        ApproveLeaveRequestCommand request,
+        CancellationToken cancellationToken)
+    {
+        var leaveRequest = await _repository.FindAsync(request.Id);
+        leaveRequest.Approved = true;
+        await _repository.UpdateAsync(leaveRequest);
+
+        var @event = new LeaveRequestApprovedEvent(leaveRequest.Id,
+            leaveRequest.RequestingEmployeeId);
+
+        foreach (var producer in _eventProducers)
+        {
+            await producer.ProduceEventAsync(@event);
+        }
+
+        return new BaseCommandResponse { Success = true };
+    }
+}
+```
+
+### Subscribers
+
+A subscriber reacts to a specific event type. It implements `ISubscriber<TEvent>`:
+
+```csharp
+public class SendApprovalEmailHandler : ISubscriber<LeaveRequestApprovedEvent>
+{
+    private readonly IEmailService _emailService;
+
+    public SendApprovalEmailHandler(IEmailService emailService)
+    {
+        _emailService = emailService;
+    }
+
+    public async Task HandleAsync(
+        LeaveRequestApprovedEvent notification,
+        CancellationToken cancellationToken = default)
+    {
+        await _emailService.SendAsync(new EmailRequest
+        {
+            To = notification.EmployeeId,
+            Subject = "Leave Request Approved",
+            Body = $"Your leave request #{notification.LeaveRequestId} has been approved."
+        });
+    }
+}
+```
+
+## Event Handling Providers
+
+RCommon ships with four event handling providers. You choose one (or more) at startup via the fluent builder.
+
+### In-Memory Event Bus
+
+The simplest provider. Events are dispatched synchronously within the same process. No external broker required. Best for domain events within a single service.
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
+    });
+```
+
+### MediatR
+
+Uses MediatR's notification pipeline. Integrates with existing MediatR configurations and supports MediatR pipeline behaviors:
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithMediatREventProducer>();
+        eventHandling.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
+    });
+```
+
+### MassTransit
+
+Durable, distributed messaging. Supports RabbitMQ, Azure Service Bus, Amazon SQS, and others. Events survive process restarts and can be delivered to subscribers in separate services:
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host("rabbitmq://localhost");
+            cfg.ConfigureEndpoints(context);
+        });
+
+        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+        eventHandling.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
+    });
+```
+
+For development and testing, use the in-memory transport instead of RabbitMQ:
+
+```csharp
+eventHandling.UsingInMemory((context, cfg) =>
+{
+    cfg.ConfigureEndpoints(context);
+});
+```
+
+### Wolverine
+
+Wolverine focuses on high throughput and local queue processing:
+
+```csharp
+// In Program.cs, before services.AddRCommon()
+builder.Host.UseWolverine(options =>
+{
+    options.LocalQueue("leave-events");
+});
+
+services.AddRCommon()
+    .WithEventHandling<WolverineEventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithWolverineEventProducer>();
+        eventHandling.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
+    });
+```
+
+## Subscription Isolation
+
+When a single service needs both in-process events and cross-service events, register multiple builders. Each builder maintains an independent routing table:
+
+```csharp
+services.AddRCommon()
+    // Internal domain events: stay in-process
+    .WithEventHandling<InMemoryEventBusBuilder>(inMemory =>
+    {
+        inMemory.AddProducer<PublishWithEventBusEventProducer>();
+        inMemory.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
+        inMemory.AddSubscriber<LeaveRequestApprovedEvent, UpdateDashboardHandler>();
+    })
+    // Cross-service events: leave the process via the broker
+    .WithEventHandling<MassTransitEventHandlingBuilder>(masstransit =>
+    {
+        masstransit.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host("rabbitmq://localhost");
+            cfg.ConfigureEndpoints(context);
+        });
+        masstransit.AddProducer<PublishWithMassTransitEventProducer>();
+        masstransit.AddSubscriber<PayrollSyncRequiredEvent, SyncPayrollHandler>();
+    });
+```
+
+`LeaveRequestApprovedEvent` is only handled by the InMemoryEventBus producers. `PayrollSyncRequiredEvent` is only handled by MassTransit producers. Events do not cross builder boundaries unless the same event type and handler are registered with both builders.
+
+The subscription isolation example from the RCommon Examples project demonstrates this with three event types:
+
+- `InMemoryOnlyEvent` — subscribed only to `InMemoryEventBusBuilder`, ignored by MassTransit producers
+- `MassTransitOnlyEvent` — subscribed only to `MassTransitEventHandlingBuilder`, ignored by in-memory producers
+- `SharedEvent` — subscribed to both builders, handled by both producer types
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<InMemoryOnlyEvent, InMemoryOnlyEventHandler>();
+        eventHandling.AddSubscriber<SharedEvent, SharedEventHandler>();
+    })
+    .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.UsingInMemory((context, cfg) =>
+        {
+            cfg.ConfigureEndpoints(context);
+        });
+        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+        eventHandling.AddSubscriber<MassTransitOnlyEvent, MassTransitOnlyEventHandler>();
+        eventHandling.AddSubscriber<SharedEvent, SharedEventHandler>();
+    });
+```
+
+## Publishing Events
+
+Regardless of which provider is configured, publishing always uses the same `IEventProducer` abstraction. Inject `IEnumerable<IEventProducer>` to publish to all registered producers:
+
+```csharp
+// From a background worker
+public class Worker : BackgroundService
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public Worker(IServiceProvider serviceProvider)
+        => _serviceProvider = serviceProvider;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        var eventProducers = _serviceProvider.GetServices<IEventProducer>();
+        var @event = new TestEvent(DateTime.UtcNow, Guid.NewGuid());
+
+        foreach (var producer in eventProducers)
+        {
+            await producer.ProduceEventAsync(@event);
+        }
+    }
+}
+```
+
+## Outbox Pattern Considerations
+
+When an event must be published only if the database transaction succeeds, use the unit-of-work pipeline together with event publishing. RCommon's `WithUnitOfWorkToRequestPipeline()` wraps each mediator request in a transaction scope. Publish the event after the state change within the same handler so the event and the state change succeed or fail together:
+
+```csharp
+.WithMediator<MediatRBuilder>(mediator =>
+{
+    mediator.AddUnitOfWorkToRequestPipeline(); // wraps handlers in a transaction
+})
+.WithUnitOfWork<DefaultUnitOfWorkBuilder>(unitOfWork =>
+{
+    unitOfWork.SetOptions(options =>
+    {
+        options.AutoCompleteScope = true;
+        options.DefaultIsolation = IsolationLevel.ReadCommitted;
+    });
+})
+```
+
+For full outbox durability (where events survive process crashes between the write and the publish), integrate the MassTransit outbox or Wolverine's outbox support at the transport layer.
+
+## Testing Event Handlers
+
+Event handlers are ordinary classes with injected dependencies. Testing is straightforward:
+
+```csharp
+[Test]
+public async Task SendApprovalEmailHandler_Sends_Email_On_Approval()
+{
+    var emailServiceMock = new Mock<IEmailService>();
+    var handler = new SendApprovalEmailHandler(emailServiceMock.Object);
+
+    await handler.HandleAsync(
+        new LeaveRequestApprovedEvent(leaveRequestId: 42, employeeId: "emp-001"),
+        CancellationToken.None);
+
+    emailServiceMock.Verify(
+        x => x.SendAsync(It.Is<EmailRequest>(r => r.To == "emp-001")),
+        Times.Once);
+}
+```
+
+## Choosing a Provider
+
+| Scenario | Recommended Provider |
+|---------|---------------------|
+| Single-service, in-process only | `InMemoryEventBusBuilder` |
+| Existing MediatR codebase | `MediatREventHandlingBuilder` |
+| Distributed, cross-service, high reliability | `MassTransitEventHandlingBuilder` |
+| High-throughput local queues, Wolverine ecosystem | `WolverineEventHandlingBuilder` |
+| Mixed: in-process + distributed | Multiple builders with subscription isolation |
+
+## API Reference
+
+| Type | Package | Purpose |
+|------|---------|---------|
+| `ISyncEvent` | `RCommon.Models` | Base marker interface for all events |
+| `IEventProducer` | `RCommon.EventHandling` | Publishes events to subscribers |
+| `ISubscriber<TEvent>` | `RCommon.EventHandling` | Receives and handles events |
+| `InMemoryEventBusBuilder` | `RCommon.EventHandling` | Configures the in-process event bus |
+| `MediatREventHandlingBuilder` | `RCommon.MediatR` | Configures MediatR-backed event handling |
+| `MassTransitEventHandlingBuilder` | `RCommon.MassTransit` | Configures MassTransit-backed event handling |
+| `WolverineEventHandlingBuilder` | `RCommon.Wolverine` | Configures Wolverine-backed event handling |
+| `PublishWithEventBusEventProducer` | `RCommon.EventHandling` | In-memory producer implementation |
+| `PublishWithMediatREventProducer` | `RCommon.MediatR` | MediatR producer implementation |
+| `PublishWithMassTransitEventProducer` | `RCommon.MassTransit` | MassTransit producer implementation |
+| `PublishWithWolverineEventProducer` | `RCommon.Wolverine` | Wolverine producer implementation |

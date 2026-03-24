@@ -1,0 +1,236 @@
+---
+title: Value Objects
+sidebar_position: 3
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Value Objects
+
+Value objects are a DDD building block that model concepts by their value rather than by identity. Two value objects with the same data are considered equal — there is no separate identity field. Common examples include money amounts, addresses, email addresses, date ranges, and geographic coordinates.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Entities" />
+
+## When to Use Value Objects
+
+Use a value object when:
+- The concept is defined entirely by its attributes, not by a unique identifier
+- Instances should be immutable — changing a property means creating a new instance
+- Equality is structural: two instances with the same data represent the same thing
+
+Use an entity instead when:
+- The concept has a lifecycle and a persistent identity
+- Two instances with the same data can still be different things (for example, two orders for the same product)
+
+## ValueObject Base Record
+
+RCommon provides `ValueObject` as an abstract C# `record`. Using a record leverages the language's built-in structural equality, `with`-expression support, and immutability without requiring manual `Equals` and `GetHashCode` implementations:
+
+```csharp
+public abstract record ValueObject;
+```
+
+Derive your value objects from `ValueObject` using positional record syntax:
+
+```csharp
+public record Money(decimal Amount, string Currency) : ValueObject;
+
+public record Address(
+    string Street,
+    string City,
+    string State,
+    string PostalCode,
+    string Country) : ValueObject;
+
+public record DateRange(DateOnly Start, DateOnly End) : ValueObject;
+
+public record GeoCoordinate(double Latitude, double Longitude) : ValueObject;
+```
+
+## ValueObject&lt;T&gt; for Single-Value Wrappers
+
+When a value object wraps a single primitive or simple type, use `ValueObject<T>`. It adds a typed `Value` property and implicit conversions, reducing the noise of constantly unwrapping the underlying value:
+
+```csharp
+public abstract record ValueObject<T>(T Value) : ValueObject
+    where T : notnull
+{
+    public static implicit operator T(ValueObject<T> valueObject) => valueObject.Value;
+    public override string ToString() => Value.ToString() ?? string.Empty;
+}
+```
+
+Concrete single-value wrappers:
+
+```csharp
+public record EmailAddress(string Value) : ValueObject<string>(Value);
+
+public record CustomerId(Guid Value) : ValueObject<Guid>(Value);
+
+public record ProductCode(string Value) : ValueObject<string>(Value);
+
+public record Percentage(decimal Value) : ValueObject<decimal>(Value);
+```
+
+The implicit conversions mean you can use value objects without constantly unwrapping them:
+
+```csharp
+EmailAddress email = new EmailAddress("user@example.com");
+
+// Implicit conversion to the underlying type
+string raw = email; // "user@example.com"
+
+// Or use the Value property explicitly
+Console.WriteLine(email.Value);
+```
+
+## Structural Equality
+
+Because value objects are C# records, equality is structural by default. Two instances with the same property values are equal:
+
+```csharp
+var a = new Money(10.00m, "USD");
+var b = new Money(10.00m, "USD");
+var c = new Money(15.00m, "USD");
+
+bool equal = a == b;    // true
+bool notEqual = a == c; // false
+```
+
+This also applies to complex value objects:
+
+```csharp
+var addr1 = new Address("123 Main St", "Springfield", "IL", "62701", "US");
+var addr2 = new Address("123 Main St", "Springfield", "IL", "62701", "US");
+
+bool same = addr1 == addr2; // true
+```
+
+## Immutability and the `with` Expression
+
+Value objects should be treated as immutable. To represent a changed value, create a new instance using the `with` expression:
+
+```csharp
+var original = new Money(10.00m, "USD");
+
+// Create a new instance rather than mutating the original
+var doubled = original with { Amount = original.Amount * 2 };
+
+Console.WriteLine(original.Amount); // 10.00
+Console.WriteLine(doubled.Amount);  // 20.00
+```
+
+## Adding Domain Logic to Value Objects
+
+Value objects can encapsulate domain logic and validation. Add factory methods, computed properties, and domain operations directly on the record:
+
+```csharp
+public record Money(decimal Amount, string Currency) : ValueObject
+{
+    // Validation in the constructor
+    public Money
+    {
+        if (Amount < 0)
+            throw new ArgumentException("Money amount cannot be negative.", nameof(Amount));
+        if (string.IsNullOrWhiteSpace(Currency))
+            throw new ArgumentException("Currency is required.", nameof(Currency));
+        Currency = Currency.ToUpperInvariant();
+    }
+
+    public Money Add(Money other)
+    {
+        if (Currency != other.Currency)
+            throw new InvalidOperationException($"Cannot add {Currency} and {other.Currency}.");
+        return new Money(Amount + other.Amount, Currency);
+    }
+
+    public Money Subtract(Money other)
+    {
+        if (Currency != other.Currency)
+            throw new InvalidOperationException($"Cannot subtract {Currency} and {other.Currency}.");
+        return new Money(Amount - other.Amount, Currency);
+    }
+
+    public bool IsZero => Amount == 0m;
+
+    public static Money Zero(string currency) => new(0m, currency);
+}
+```
+
+```csharp
+public record EmailAddress(string Value) : ValueObject<string>(Value)
+{
+    public EmailAddress
+    {
+        if (string.IsNullOrWhiteSpace(Value))
+            throw new ArgumentException("Email address cannot be empty.", nameof(Value));
+        if (!Value.Contains('@'))
+            throw new ArgumentException("Email address must contain '@'.", nameof(Value));
+        Value = Value.ToLowerInvariant().Trim();
+    }
+
+    public string Domain => Value.Split('@')[1];
+}
+```
+
+## Using Value Objects in Entities
+
+Value objects compose naturally into entities and aggregate roots:
+
+```csharp
+public class Customer : AggregateRoot<Guid>
+{
+    public EmailAddress Email { get; private set; }
+    public Address ShippingAddress { get; private set; }
+
+    public Customer(Guid id, EmailAddress email, Address shippingAddress)
+    {
+        Id = id;
+        Email = email;
+        ShippingAddress = shippingAddress;
+        AddDomainEvent(new CustomerRegisteredEvent(id, email.Value));
+    }
+
+    public void ChangeEmail(EmailAddress newEmail)
+    {
+        var old = Email;
+        Email = newEmail;
+        AddDomainEvent(new CustomerEmailChangedEvent(Id, old.Value, newEmail.Value));
+    }
+}
+```
+
+## Persisting Value Objects
+
+When using Entity Framework Core, value objects are typically mapped as owned entity types so they are stored in the parent entity's table without a separate identity column:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Customer>(customer =>
+    {
+        customer.OwnsOne(c => c.ShippingAddress, address =>
+        {
+            address.Property(a => a.Street).HasColumnName("ShippingStreet");
+            address.Property(a => a.City).HasColumnName("ShippingCity");
+            address.Property(a => a.PostalCode).HasColumnName("ShippingPostalCode");
+            address.Property(a => a.Country).HasColumnName("ShippingCountry");
+        });
+
+        // Single-value wrappers: map through the Value property
+        customer.Property(c => c.Email)
+            .HasConversion(
+                email => email.Value,
+                raw => new EmailAddress(raw));
+    });
+}
+```
+
+## API Summary
+
+| Type | Description |
+|------|-------------|
+| `ValueObject` | Abstract base record; structural equality via C# record semantics |
+| `ValueObject<T>` | Abstract base record for single-value wrappers; adds typed `Value` property and implicit conversions to/from `T` |

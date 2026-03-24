@@ -1,0 +1,172 @@
+---
+title: Stateless
+sidebar_position: 2
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Stateless
+
+`RCommon.Stateless` wraps the popular [Stateless](https://github.com/dotnet-state-machine/stateless) library behind the RCommon `IStateMachineConfigurator<TState, TTrigger>` abstraction. Application code works only with the RCommon interfaces; the Stateless library is an implementation detail.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Stateless" />
+
+## Configuration
+
+Register the Stateless adapter with `WithStatelessStateMachine` on the RCommon builder:
+
+```csharp
+using RCommon;
+
+builder.Services.AddRCommon()
+    .WithStatelessStateMachine();
+```
+
+This registers `StatelessConfigurator<TState, TTrigger>` as the open-generic `IStateMachineConfigurator<TState, TTrigger>` implementation. Any combination of state and trigger enum types is automatically available for injection.
+
+## Defining states and triggers
+
+States and triggers are plain `struct` enums:
+
+```csharp
+public enum OrderState
+{
+    Pending,
+    Approved,
+    Shipped,
+    Cancelled
+}
+
+public enum OrderTrigger
+{
+    Approve,
+    Ship,
+    Cancel
+}
+```
+
+## Configuring a state machine
+
+Inject `IStateMachineConfigurator<TState, TTrigger>` and configure each state using `ForState`. Call `Build` to produce a running machine instance:
+
+```csharp
+public class OrderStateMachineService
+{
+    private readonly IStateMachineConfigurator<OrderState, OrderTrigger> _configurator;
+
+    public OrderStateMachineService(
+        IStateMachineConfigurator<OrderState, OrderTrigger> configurator)
+    {
+        _configurator = configurator;
+
+        _configurator.ForState(OrderState.Pending)
+            .Permit(OrderTrigger.Approve, OrderState.Approved)
+            .Permit(OrderTrigger.Cancel, OrderState.Cancelled);
+
+        _configurator.ForState(OrderState.Approved)
+            .Permit(OrderTrigger.Ship, OrderState.Shipped)
+            .Permit(OrderTrigger.Cancel, OrderState.Cancelled)
+            .OnEntry(async ct =>
+            {
+                await NotifyWarehouseAsync(ct);
+            })
+            .OnExit(async ct =>
+            {
+                await LogStateChangeAsync("leaving Approved", ct);
+            });
+
+        _configurator.ForState(OrderState.Shipped)
+            .OnEntry(async ct =>
+            {
+                await SendShippingConfirmationAsync(ct);
+            });
+    }
+
+    public IStateMachine<OrderState, OrderTrigger> BuildFor(OrderState currentState)
+        => _configurator.Build(currentState);
+}
+```
+
+Each call to `Build` produces a fully independent machine instance with its own current state. The configurator can be reused across the lifetime of the application without resetting.
+
+## How deferred configuration works
+
+`StatelessConfigurator<TState, TTrigger>` uses a deferred pattern internally. Calls to `ForState` record configuration actions rather than applying them immediately. When `Build` is called:
+
+1. A new `Stateless.StateMachine<TState, TTrigger>` is created with the given initial state.
+2. All recorded configuration actions are replayed against the new machine.
+3. The machine is wrapped in `StatelessStateMachine<TState, TTrigger>` and returned as `IStateMachine<TState, TTrigger>`.
+
+This allows one `IStateMachineConfigurator` instance (registered as transient) to produce many independent machines.
+
+## Guarded transitions
+
+Use `PermitIf` to add a condition to a transition. The guard is evaluated when `CanFire` or `FireAsync` is called:
+
+```csharp
+_configurator.ForState(OrderState.Approved)
+    .PermitIf(OrderTrigger.Ship, OrderState.Shipped, () => _inventoryService.HasStock())
+    .Permit(OrderTrigger.Cancel, OrderState.Cancelled);
+```
+
+## Firing triggers
+
+```csharp
+var machine = _service.BuildFor(order.State);
+
+if (machine.CanFire(OrderTrigger.Approve))
+{
+    await machine.FireAsync(OrderTrigger.Approve, cancellationToken);
+    order.State = machine.CurrentState;
+    await _repository.UpdateAsync(order, cancellationToken);
+}
+```
+
+## Parameterized triggers
+
+The Stateless adapter fully supports parameterized triggers. The `FireAsync<TData>` overload passes data to the underlying Stateless machine using `SetTriggerParameters`:
+
+```csharp
+// Fire a trigger and pass data to the entry action
+await machine.FireAsync(OrderTrigger.Ship, new ShipmentDetails { Carrier = "FedEx" }, cancellationToken);
+```
+
+The trigger parameter descriptor is cached by `(trigger, dataType)` to prevent double-registration, which Stateless does not allow.
+
+## Entry and exit actions
+
+Entry and exit actions are `Func<CancellationToken, Task>`. Stateless's own `OnEntryAsync`/`OnExitAsync` do not accept a `CancellationToken`; the adapter passes `CancellationToken.None` internally when forwarding to Stateless. The `CancellationToken` you provide to `FireAsync` is still checked before the trigger fires.
+
+```csharp
+_configurator.ForState(OrderState.Approved)
+    .OnEntry(async ct =>
+    {
+        // ct is passed from FireAsync; Stateless itself receives CancellationToken.None
+        await _emailService.SendApprovalEmailAsync(ct);
+    });
+```
+
+## Checking permitted triggers
+
+```csharp
+var machine = _service.BuildFor(order.State);
+
+foreach (var trigger in machine.PermittedTriggers)
+{
+    Console.WriteLine($"Can fire: {trigger}");
+}
+```
+
+## API summary
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `StatelessConfigurator<TState, TTrigger>` | `RCommon.Stateless` | Implements `IStateMachineConfigurator`; records deferred config and builds machines |
+| `StatelessStateMachine<TState, TTrigger>` | `RCommon.Stateless` | Wraps `Stateless.StateMachine<TState, TTrigger>` as `IStateMachine` |
+| `DeferredStateConfigurator<TState, TTrigger>` | `RCommon.Stateless` | Internal class that records state configuration for replay at build time |
+| `IStateMachineConfigurator<TState, TTrigger>` | `RCommon.Core` | Abstraction; implement to swap the backing engine |
+| `IStateMachine<TState, TTrigger>` | `RCommon.Core` | Running machine abstraction |
+| `IStateConfigurator<TState, TTrigger>` | `RCommon.Core` | Per-state transition and action configuration |
+| `WithStatelessStateMachine()` | `RCommon.Stateless` | Extension method on `IRCommonBuilder` |
