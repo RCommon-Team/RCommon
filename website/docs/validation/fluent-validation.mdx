@@ -3,6 +3,243 @@ title: FluentValidation
 sidebar_position: 1
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # FluentValidation
 
-*Documentation coming soon.*
+## Overview
+
+`RCommon.FluentValidation` integrates the FluentValidation library with RCommon's validation pipeline. It registers `FluentValidationProvider` as the `IValidationProvider` implementation and wires it into the CQRS command and query buses, so validation runs automatically before handlers execute.
+
+Your application code depends only on `IValidationService` (for manual validation) or on the CQRS pipeline behavior (for automatic validation). The FluentValidation-specific types stay confined to startup configuration and the validator classes themselves.
+
+### How validation works
+
+1. You define validators by extending `AbstractValidator<T>` and declaring rules with FluentValidation's fluent API.
+2. Validators are registered in the DI container during startup.
+3. When a command or query is dispatched (with CQRS validation enabled), `FluentValidationProvider` resolves all `IValidator<T>` instances for that type, runs them in parallel, and collects the results into a `ValidationOutcome`.
+4. If there are failures and `throwOnFaults` is `true`, a `ValidationException` is thrown containing a list of `ValidationFault` objects — each carrying the property name, error message, and attempted value.
+
+You can also call `IValidationService.ValidateAsync` directly from application services when you need to validate outside the CQRS pipeline.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.FluentValidation" />
+
+## Configuration
+
+Call `WithValidation<FluentValidationBuilder>` inside your `AddRCommon()` block. Use the configuration action to register your validators.
+
+### Scan an assembly for all validators
+
+```csharp
+using RCommon;
+using RCommon.ApplicationServices;
+using RCommon.FluentValidation;
+
+builder.Services.AddRCommon()
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining(typeof(MyCommand));
+    });
+```
+
+`AddValidatorsFromAssemblyContaining` scans the assembly that contains the given type and registers every `AbstractValidator<T>` implementation it finds.
+
+### Scan multiple assemblies
+
+```csharp
+builder.Services.AddRCommon()
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblies(new[]
+        {
+            typeof(CreateOrderCommand).Assembly,
+            typeof(ShipOrderCommand).Assembly
+        });
+    });
+```
+
+### Register a single validator explicitly
+
+```csharp
+builder.Services.AddRCommon()
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidator<CreateOrderCommand, CreateOrderCommandValidator>();
+    });
+```
+
+### Enable automatic CQRS pipeline validation
+
+Pass `CqrsValidationOptions` to activate validation in the command bus, the query bus, or both:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining(typeof(MyCommand));
+    })
+    // Enable auto-validation for commands only.
+    .WithValidation<FluentValidationBuilder>(opts =>
+    {
+        opts.ValidateCommands = true;
+        opts.ValidateQueries = false;
+    });
+```
+
+Alternatively, pass `CqrsValidationOptions` in the single `WithValidation` overload that accepts it:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithValidation<FluentValidationBuilder>(opts =>
+    {
+        opts.ValidateCommands = true;
+        opts.ValidateQueries = true;
+    });
+```
+
+Both `ValidateCommands` and `ValidateQueries` default to `false`.
+
+## Usage
+
+### Defining a validator
+
+```csharp
+using FluentValidation;
+
+public class CreateOrderCommand
+{
+    public string CustomerId { get; set; } = string.Empty;
+    public IReadOnlyList<OrderLine> Lines { get; set; } = [];
+}
+
+public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
+{
+    public CreateOrderCommandValidator()
+    {
+        RuleFor(cmd => cmd.CustomerId)
+            .NotEmpty()
+            .WithMessage("Customer ID is required.");
+
+        RuleFor(cmd => cmd.Lines)
+            .NotEmpty()
+            .WithMessage("An order must have at least one line.");
+    }
+}
+```
+
+### Validating manually via IValidationService
+
+```csharp
+public class OrderApplicationService
+{
+    private readonly IValidationService _validationService;
+    private readonly IOrderRepository _repository;
+
+    public OrderApplicationService(
+        IValidationService validationService,
+        IOrderRepository repository)
+    {
+        _validationService = validationService;
+        _repository = repository;
+    }
+
+    public async Task<ValidationOutcome> CreateOrderAsync(
+        CreateOrderCommand command,
+        CancellationToken ct = default)
+    {
+        ValidationOutcome outcome =
+            await _validationService.ValidateAsync(command, throwOnFaults: false, ct);
+
+        if (outcome.Errors.Any())
+        {
+            return outcome;
+        }
+
+        await _repository.AddAsync(Order.From(command), ct);
+        return outcome;
+    }
+}
+```
+
+### Letting the CQRS pipeline validate automatically
+
+When `ValidateCommands` is `true`, the command bus validates the command before dispatching to the handler. If validation fails, a `ValidationException` is thrown before your handler is invoked — no explicit validation code is needed in the handler.
+
+```csharp
+public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand>
+{
+    private readonly IOrderRepository _repository;
+
+    public CreateOrderCommandHandler(IOrderRepository repository)
+    {
+        _repository = repository;
+    }
+
+    // The pipeline has already validated the command by the time this runs.
+    public async Task HandleAsync(CreateOrderCommand command, CancellationToken ct)
+    {
+        await _repository.AddAsync(Order.From(command), ct);
+    }
+}
+```
+
+### Handling ValidationException
+
+```csharp
+try
+{
+    await commandBus.SendAsync(new CreateOrderCommand());
+}
+catch (ValidationException ex)
+{
+    foreach (ValidationFault fault in ex.Faults)
+    {
+        Console.WriteLine($"{fault.PropertyName}: {fault.Message}");
+    }
+}
+```
+
+## API Summary
+
+### `IRCommonBuilder` extension
+
+| Method | Description |
+|--------|-------------|
+| `WithValidation<T>()` | Registers the validation provider with default `CqrsValidationOptions`. |
+| `WithValidation<T>(Action<CqrsValidationOptions>)` | Registers the validation provider and configures CQRS pipeline validation. |
+
+### `IFluentValidationBuilder` extension methods
+
+| Method | Description |
+|--------|-------------|
+| `AddValidator<T, TValidator>()` | Registers a single validator for type `T` with a scoped lifetime. |
+| `AddValidatorsFromAssembly(assembly, lifetime?, filter?, includeInternal?)` | Scans the given assembly and registers all validators found. |
+| `AddValidatorsFromAssemblies(assemblies, lifetime?, filter?, includeInternal?)` | Scans multiple assemblies and registers all validators found. |
+| `AddValidatorsFromAssemblyContaining(type, lifetime?, filter?, includeInternal?)` | Scans the assembly containing the given type. |
+
+### `CqrsValidationOptions`
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `ValidateCommands` | `false` | Automatically validate commands before dispatch. |
+| `ValidateQueries` | `false` | Automatically validate queries before dispatch. |
+
+### `IValidationService`
+
+| Method | Description |
+|--------|-------------|
+| `ValidateAsync<T>(target, throwOnFaults?, cancellationToken?)` | Validates `target` and returns a `ValidationOutcome`. Throws `ValidationException` when `throwOnFaults` is `true` and there are failures. |
+
+### `ValidationOutcome`
+
+Returned by `IValidationService.ValidateAsync`. Contains `IReadOnlyList<ValidationFault> Errors`.
+
+### `ValidationFault`
+
+| Property | Description |
+|----------|-------------|
+| `PropertyName` | The name of the property that failed validation. |
+| `Message` | The human-readable error message. |
+| `AttemptedValue` | The value that was rejected. |
