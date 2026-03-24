@@ -3,6 +3,156 @@ title: In-Memory Events
 sidebar_position: 2
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # In-Memory Events
 
-*Documentation coming soon.*
+The in-memory event bus provides local publish/subscribe within a single process. Events are dispatched synchronously to all registered `ISubscriber<TEvent>` handlers within the same DI scope. No external infrastructure is required.
+
+## Installation
+
+The in-memory event bus is part of `RCommon.Core`, which is included when you install the main package:
+
+<NuGetInstall packageName="RCommon.Core" />
+
+## Configuration
+
+Register the in-memory event bus using `WithEventHandling<InMemoryEventBusBuilder>` on the RCommon builder. Use `AddProducer` to register the producer and `AddSubscriber` to wire each handler to its event type:
+
+```csharp
+using RCommon;
+using RCommon.EventHandling;
+using RCommon.EventHandling.Producers;
+
+builder.Services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
+        eventHandling.AddSubscriber<OrderShipped, OrderShippedHandler>();
+    });
+```
+
+`PublishWithEventBusEventProducer` is the built-in producer that delegates to `IEventBus.PublishAsync`. Additional subscribers can be registered for the same event type; all of them will be called.
+
+## Defining an event
+
+Events must implement `ISerializableEvent`. Use `ISyncEvent` for sequential dispatch or `IAsyncEvent` for concurrent dispatch:
+
+```csharp
+using RCommon.Models.Events;
+
+public class OrderPlaced : ISyncEvent
+{
+    public OrderPlaced(Guid orderId, DateTime placedAt)
+    {
+        OrderId = orderId;
+        PlacedAt = placedAt;
+    }
+
+    public OrderPlaced() { }
+
+    public Guid OrderId { get; }
+    public DateTime PlacedAt { get; }
+}
+```
+
+## Implementing a subscriber
+
+Implement `ISubscriber<TEvent>` and register the class in the DI container via `AddSubscriber`:
+
+```csharp
+using RCommon.EventHandling.Subscribers;
+
+public class OrderPlacedHandler : ISubscriber<OrderPlaced>
+{
+    private readonly ILogger<OrderPlacedHandler> _logger;
+
+    public OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task HandleAsync(OrderPlaced @event, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Order {OrderId} placed at {PlacedAt}", @event.OrderId, @event.PlacedAt);
+        await Task.CompletedTask;
+    }
+}
+```
+
+## Publishing events
+
+### Via IEventProducer (recommended with unit-of-work)
+
+Resolve `IEventProducer` or `IEnumerable<IEventProducer>` and call `ProduceEventAsync`. The router ensures the event reaches only the producers subscribed to it:
+
+```csharp
+public class OrderService
+{
+    private readonly IEventRouter _eventRouter;
+    private readonly IUnitOfWorkFactory _uowFactory;
+
+    public OrderService(IEventRouter eventRouter, IUnitOfWorkFactory uowFactory)
+    {
+        _eventRouter = eventRouter;
+        _uowFactory = uowFactory;
+    }
+
+    public async Task PlaceOrderAsync(Order order, CancellationToken cancellationToken)
+    {
+        using var uow = _uowFactory.CreateUnitOfWork();
+        // ... persist the order ...
+
+        _eventRouter.AddTransactionalEvent(new OrderPlaced(order.Id, DateTime.UtcNow));
+        await uow.SaveChangesAsync(cancellationToken);
+        await _eventRouter.RouteEventsAsync(cancellationToken);
+    }
+}
+```
+
+### Via IEventBus (direct, no routing layer)
+
+You can also publish directly through `IEventBus` without going through the router:
+
+```csharp
+public class NotificationService
+{
+    private readonly IEventBus _eventBus;
+
+    public NotificationService(IEventBus eventBus)
+    {
+        _eventBus = eventBus;
+    }
+
+    public async Task NotifyAsync(OrderPlaced @event, CancellationToken cancellationToken)
+    {
+        await _eventBus.PublishAsync(@event, cancellationToken);
+    }
+}
+```
+
+## Dynamic subscriptions
+
+`IEventBus` supports runtime subscriptions that do not require DI registration. These are resolved via `ActivatorUtilities` at publish time:
+
+```csharp
+eventBus.Subscribe<OrderPlaced, OrderPlacedHandler>();
+
+// or auto-discover all ISubscriber<T> interfaces on a handler type
+eventBus.SubscribeAllHandledEvents<OrderPlacedHandler>();
+```
+
+## API summary
+
+| Type | Description |
+|------|-------------|
+| `InMemoryEventBusBuilder` | Builder used with `WithEventHandling<T>` to configure the in-memory bus |
+| `IEventBus` | In-process event bus; `PublishAsync`, `Subscribe`, `SubscribeAllHandledEvents` |
+| `InMemoryEventBus` | Default `IEventBus` implementation; resolves handlers from a DI scope |
+| `ISubscriber<TEvent>` | Handler interface; implement `HandleAsync` |
+| `PublishWithEventBusEventProducer` | `IEventProducer` that delegates to `IEventBus.PublishAsync` |
+| `IEventRouter` | Queues transactional events and routes them to registered producers |
+| `InMemoryTransactionalEventRouter` | Default `IEventRouter`; registered automatically by `AddRCommon` |
+| `ISyncEvent` | Marker; events produced sequentially |
+| `IAsyncEvent` | Marker; events produced concurrently |

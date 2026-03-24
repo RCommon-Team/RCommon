@@ -3,6 +3,94 @@ title: Overview
 sidebar_position: 1
 ---
 
-# Overview
+# Event Handling Overview
 
-*Documentation coming soon.*
+RCommon provides a unified event handling abstraction that works across multiple transport backends. The same `ISubscriber<TEvent>` interface is used whether events are dispatched in-process via the built-in event bus, fanned out through MediatR notifications, or routed over a message broker using MassTransit or Wolverine.
+
+## Core abstractions
+
+### IEventBus
+
+`IEventBus` is the in-process event bus. It publishes events to all registered `ISubscriber<TEvent>` implementations within the current process.
+
+```csharp
+public interface IEventBus
+{
+    Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default);
+
+    IEventBus Subscribe<TEvent, TEventHandler>()
+        where TEvent : class
+        where TEventHandler : class, ISubscriber<TEvent>;
+
+    IEventBus SubscribeAllHandledEvents<TEventHandler>() where TEventHandler : class;
+}
+```
+
+### ISubscriber&lt;TEvent&gt;
+
+Every event handler in RCommon implements this single interface regardless of transport:
+
+```csharp
+public interface ISubscriber<TEvent>
+{
+    Task HandleAsync(TEvent @event, CancellationToken cancellationToken = default);
+}
+```
+
+### IEventProducer
+
+An `IEventProducer` is responsible for dispatching a serializable event to its destination. Multiple producers can be registered simultaneously; the `EventSubscriptionManager` routes each event only to the producers that have a matching subscription.
+
+```csharp
+public interface IEventProducer
+{
+    Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
+        where TEvent : ISerializableEvent;
+}
+```
+
+### IEventRouter
+
+`IEventRouter` acts as a coordination layer between application code and `IEventProducer` instances. It holds a transactional queue of events and dispatches them when the application signals it is ready:
+
+```csharp
+public interface IEventRouter
+{
+    void AddTransactionalEvent(ISerializableEvent serializableEvent);
+    void AddTransactionalEvents(IEnumerable<ISerializableEvent> serializableEvents);
+
+    Task RouteEventsAsync(CancellationToken cancellationToken = default);
+    Task RouteEventsAsync(IEnumerable<ISerializableEvent> transactionalEvents,
+        CancellationToken cancellationToken = default);
+}
+```
+
+## Event type markers
+
+Events that flow through `IEventProducer` must implement `ISerializableEvent`. Two sub-markers control dispatch ordering:
+
+| Interface | Behaviour |
+|-----------|-----------|
+| `ISyncEvent` | Events are produced sequentially, one after the other. |
+| `IAsyncEvent` | Events are produced concurrently via `Task.WhenAll`. |
+
+Events that implement neither marker are treated as synchronous by default.
+
+## Choosing an approach
+
+| Scenario | Recommended approach |
+|----------|---------------------|
+| In-process publish/subscribe within a single application | In-memory event bus (`InMemoryEventBusBuilder`) |
+| In-process fan-out where MediatR is already the mediator | MediatR (`MediatREventHandlingBuilder`) |
+| Cross-service messaging with a message broker | MassTransit (`MassTransitEventHandlingBuilder`) or Wolverine (`WolverineEventHandlingBuilder`) |
+| Guaranteed at-least-once delivery with a broker | MassTransit + outbox or Wolverine + outbox |
+
+## How the pipeline fits together
+
+1. Application code raises an event by calling `IEventRouter.AddTransactionalEvent` or by using `IEventBus.PublishAsync` directly.
+2. At an appropriate commit boundary (e.g. after a database transaction completes), `IEventRouter.RouteEventsAsync` is called.
+3. The router inspects each event and forwards it only to the `IEventProducer` instances that are subscribed to that event type, as tracked by the internal `EventSubscriptionManager`.
+4. Each producer dispatches the event to its transport: an in-process bus, MediatR pipeline, or an external message broker.
+5. The transport delivers the event to all registered `ISubscriber<TEvent>` handlers.
+
+This layered design lets you mix transports in a single application. For example, one event type can go to the in-memory bus for local side-effects while another goes to MassTransit for cross-service delivery, all sharing the same handler interface.

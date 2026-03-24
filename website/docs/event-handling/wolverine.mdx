@@ -3,6 +3,159 @@ title: Wolverine
 sidebar_position: 7
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Wolverine
 
-*Documentation coming soon.*
+RCommon integrates with Wolverine to deliver events both in-process and across service boundaries. The integration registers `WolverineEventHandler<TEvent>` as a Wolverine `IWolverineHandler` that delegates to the application's `ISubscriber<TEvent>`. Application handler code has no dependency on Wolverine types.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Wolverine" />
+
+Wolverine requires host-level registration via `UseWolverine()` in addition to the RCommon service configuration:
+
+```csharp
+builder.Host.UseWolverine(opts =>
+{
+    // Wolverine transport and endpoint options
+});
+```
+
+## Configuration
+
+Use `WithEventHandling<WolverineEventHandlingBuilder>` on the RCommon builder:
+
+```csharp
+using RCommon;
+using RCommon.Wolverine;
+using RCommon.Wolverine.Producers;
+
+builder.Services.AddRCommon()
+    .WithEventHandling<WolverineEventHandlingBuilder>(wlv =>
+    {
+        // Register the producer that publishes events via Wolverine
+        wlv.AddProducer<PublishWithWolverineEventProducer>();
+
+        // Register subscribers and record routing information
+        wlv.AddSubscriber<OrderShipped, OrderShippedHandler>();
+        wlv.AddSubscriber<PaymentProcessed, PaymentProcessedHandler>();
+    });
+```
+
+`AddSubscriber<TEvent, TEventHandler>` registers `ISubscriber<TEvent>` as scoped in the DI container and records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to Wolverine producers.
+
+## Defining an event
+
+Events must implement `ISerializableEvent`. Include a parameterless constructor for Wolverine deserialization:
+
+```csharp
+using RCommon.Models.Events;
+
+public class OrderShipped : ISyncEvent
+{
+    public OrderShipped(Guid orderId, string trackingNumber)
+    {
+        OrderId = orderId;
+        TrackingNumber = trackingNumber;
+    }
+
+    public OrderShipped() { }
+
+    public Guid OrderId { get; }
+    public string TrackingNumber { get; } = string.Empty;
+}
+```
+
+## Implementing a subscriber
+
+Implement `ISubscriber<TEvent>`. No Wolverine types appear in handler code:
+
+```csharp
+using RCommon.EventHandling.Subscribers;
+
+public class OrderShippedHandler : ISubscriber<OrderShipped>
+{
+    private readonly ILogger<OrderShippedHandler> _logger;
+
+    public OrderShippedHandler(ILogger<OrderShippedHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task HandleAsync(OrderShipped @event, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Order {OrderId} shipped with tracking {TrackingNumber}",
+            @event.OrderId, @event.TrackingNumber);
+        await Task.CompletedTask;
+    }
+}
+```
+
+## Publishing events
+
+Call `IEventRouter.RouteEventsAsync` after queuing events. The router forwards each event to `PublishWithWolverineEventProducer`, which calls `IMessageBus.PublishAsync`:
+
+```csharp
+public class ShippingService
+{
+    private readonly IEventRouter _eventRouter;
+
+    public ShippingService(IEventRouter eventRouter)
+    {
+        _eventRouter = eventRouter;
+    }
+
+    public async Task ShipOrderAsync(Guid orderId, string trackingNumber, CancellationToken cancellationToken)
+    {
+        // ... update order state ...
+
+        _eventRouter.AddTransactionalEvent(new OrderShipped(orderId, trackingNumber));
+        await _eventRouter.RouteEventsAsync(cancellationToken);
+    }
+}
+```
+
+## Publish vs Send
+
+Register `SendWithWolverineEventProducer` instead of (or in addition to) `PublishWithWolverineEventProducer` when you want point-to-point delivery to a single handler endpoint:
+
+```csharp
+wlv.AddProducer<SendWithWolverineEventProducer>();
+```
+
+`SendWithWolverineEventProducer` calls `IMessageBus.SendAsync` internally.
+
+## Transactional outbox
+
+Pair Wolverine with the outbox pattern to guarantee at-least-once delivery. See [Transactional Outbox](./transactional-outbox.mdx#wolverine-outbox).
+
+## How the handler bridge works
+
+`WolverineEventHandler<TEvent>` implements both `IWolverineEventHandler<TEvent>` and Wolverine's `IWolverineHandler`. When Wolverine delivers a message it calls `HandleAsync(TEvent, CancellationToken)`, which delegates to the registered `ISubscriber<TEvent>`:
+
+```csharp
+// Framework code — you do not write this yourself
+public class WolverineEventHandler<TEvent> : IWolverineHandler
+    where TEvent : class, ISerializableEvent
+{
+    public async Task HandleAsync(TEvent @event, CancellationToken cancellationToken = default)
+    {
+        await _subscriber.HandleAsync(@event, cancellationToken);
+    }
+}
+```
+
+This keeps application handler code free of any Wolverine API surface.
+
+## API summary
+
+| Type | Description |
+|------|-------------|
+| `WolverineEventHandlingBuilder` | Builder used with `WithEventHandling<T>` to configure Wolverine event handling |
+| `IWolverineEventHandlingBuilder` | Interface for the Wolverine event handling builder |
+| `PublishWithWolverineEventProducer` | `IEventProducer` that calls `IMessageBus.PublishAsync` (fan-out) |
+| `SendWithWolverineEventProducer` | `IEventProducer` that calls `IMessageBus.SendAsync` (point-to-point) |
+| `WolverineEventHandler<TEvent>` | Internal `IWolverineHandler` that bridges Wolverine to `ISubscriber<TEvent>` |
+| `IWolverineEventHandler<TEvent>` | Marker interface for Wolverine event handlers |
