@@ -1,23 +1,220 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
-.heroBanner {
-  padding: 4rem 0;
+.hero {
   text-align: center;
-  position: relative;
-  overflow: hidden;
+  padding: 80px 24px 48px;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+.heroLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ifm-color-primary);
+  margin-bottom: 12px;
+  font-weight: 600;
 }
 
-.buttons {
+.heroTitle {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.heroSubtitle {
+  color: var(--ifm-color-emphasis-700);
+  max-width: 640px;
+  margin: 0 auto 24px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.heroCta {
   display: flex;
-  align-items: center;
+  gap: 12px;
   justify-content: center;
+  margin-bottom: 16px;
+}
+
+.ctaPrimary {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+.ctaSecondary {
+  border-color: var(--ifm-color-emphasis-400);
+}
+
+.heroInstall {
+  margin-top: 16px;
+}
+
+.heroInstall code {
+  background: var(--ifm-background-surface-color);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  padding: 24px;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+}
+
+.stat {
+  text-align: center;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--ifm-color-primary);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.features {
+  padding: 48px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.sectionSubtitle {
+  text-align: center;
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 32px;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.featureCard {
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+}
+
+.featureCard:hover {
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+  color: inherit;
+}
+
+.featureIcon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.featureCard h3 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.featureCard p {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.codeSection {
+  padding: 48px 24px;
+  background: var(--ifm-background-surface-color);
+}
+
+.codeBlock {
+  max-width: 680px;
+  margin: 0 auto;
+  border-radius: 8px;
+  padding: 24px;
+  font-size: 0.9rem;
+  overflow-x: auto;
+}
+
+.architectures {
+  padding: 48px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.archGrid {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.archCard {
+  text-align: center;
+  padding: 24px;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  flex: 1;
+  max-width: 240px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+}
+
+.archCard:hover {
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+  color: inherit;
+}
+
+.archIcon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.archCard h3 {
+  font-size: 1rem;
+}
+
+.archCard p {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 1.75rem;
+  }
+
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .archGrid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .heroCta {
+    flex-direction: column;
+    align-items: center;
+  }
 }
