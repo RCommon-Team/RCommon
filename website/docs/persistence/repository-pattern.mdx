@@ -3,6 +3,274 @@ title: Repository Pattern
 sidebar_position: 1
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+import ProviderComparison from '@site/src/components/ProviderComparison';
+
 # Repository Pattern
 
-*Documentation coming soon.*
+## Overview
+
+The repository pattern in RCommon provides a uniform, provider-agnostic abstraction over data access. Rather than coupling your domain and application code to a specific ORM or database technology, you program against interfaces from `RCommon.Persistence.Crud`. Swapping from Entity Framework Core to Dapper (or any other supported provider) requires only a configuration change at the composition root.
+
+The abstraction hierarchy works as follows:
+
+- `IReadOnlyRepository<TEntity>` — async query methods
+- `IWriteOnlyRepository<TEntity>` — async write methods (add, update, delete)
+- `ILinqRepository<TEntity>` — combines read, write, and exposes `IQueryable<TEntity>` plus paging helpers
+- `IGraphRepository<TEntity>` — extends `ILinqRepository<TEntity>` with change-tracking control; used with ORM providers such as EF Core
+
+All repository interfaces require the entity to implement `IBusinessEntity`.
+
+## Installation
+
+Install the core persistence package. You will also need at least one provider package (see [EF Core](./efcore), [Dapper](./dapper), or [Linq2Db](./linq2db)).
+
+<NuGetInstall packageName="RCommon.Persistence" />
+
+## Configuration
+
+Repositories are registered automatically when you configure a provider. Call `WithPersistence<TBuilder>` in your application startup:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<LeaveManagementDbContext>(
+            "LeaveManagement",
+            options => options.UseSqlServer(connectionString));
+
+        ef.SetDefaultDataStore(ds =>
+            ds.DefaultDataStoreName = "LeaveManagement");
+    });
+```
+
+When multiple data stores are registered you select which one a repository targets by setting `DataStoreName` on the repository instance:
+
+```csharp
+public class CreateLeaveTypeCommandHandler
+{
+    private readonly IGraphRepository<LeaveType> _repository;
+
+    public CreateLeaveTypeCommandHandler(IGraphRepository<LeaveType> repository)
+    {
+        _repository = repository;
+        _repository.DataStoreName = "LeaveManagement"; // matches the name used in AddDbContext
+    }
+}
+```
+
+## Usage
+
+### Injecting repositories
+
+Inject the interface that matches your needs. For most domain/application code use `IGraphRepository<TEntity>` when the provider is EF Core, or `ILinqRepository<TEntity>` for Linq2Db. Use `IReadOnlyRepository<TEntity>` or `IWriteOnlyRepository<TEntity>` when you want to enforce narrower contracts.
+
+```csharp
+public class OrderService
+{
+    private readonly IGraphRepository<Order> _orders;
+
+    public OrderService(IGraphRepository<Order> orders)
+    {
+        _orders = orders;
+    }
+}
+```
+
+### Create
+
+```csharp
+var order = new Order { CustomerId = customerId, Total = 99.99m };
+await _orders.AddAsync(order, cancellationToken);
+```
+
+Add multiple entities in one call:
+
+```csharp
+await _orders.AddRangeAsync(newOrders, cancellationToken);
+```
+
+### Read
+
+Find by primary key:
+
+```csharp
+var order = await _orders.FindAsync(orderId, cancellationToken);
+```
+
+Find with a lambda expression:
+
+```csharp
+ICollection<Order> pending = await _orders.FindAsync(
+    o => o.Status == OrderStatus.Pending, cancellationToken);
+```
+
+Find a single entity or default:
+
+```csharp
+Order? draft = await _orders.FindSingleOrDefaultAsync(
+    o => o.CustomerId == customerId && o.Status == OrderStatus.Draft,
+    cancellationToken);
+```
+
+Check existence:
+
+```csharp
+bool exists = await _orders.AnyAsync(o => o.Id == orderId, cancellationToken);
+```
+
+Count:
+
+```csharp
+long count = await _orders.GetCountAsync(o => o.Status == OrderStatus.Pending, cancellationToken);
+```
+
+### Paging
+
+`ILinqRepository<TEntity>` and `IGraphRepository<TEntity>` include paged query methods that return `IPaginatedList<TEntity>`:
+
+```csharp
+IPaginatedList<Order> page = await _orders.FindAsync(
+    expression:        o => o.CustomerId == customerId,
+    orderByExpression: o => o.DateCreated,
+    orderByAscending:  false,
+    pageNumber:        2,
+    pageSize:          20,
+    token:             cancellationToken);
+```
+
+Or pass a `PagedSpecification<TEntity>` (see [Specifications](./specifications)):
+
+```csharp
+var spec = new PagedSpecification<Order>(
+    o => o.CustomerId == customerId,
+    o => o.DateCreated,
+    orderByAscending: false,
+    pageNumber: 1,
+    pageSize: 10);
+
+IPaginatedList<Order> page = await _orders.FindAsync(spec, cancellationToken);
+```
+
+### Eager loading
+
+`ILinqRepository<TEntity>` exposes fluent `Include` / `ThenInclude` methods:
+
+```csharp
+var orders = await _orders
+    .Include(o => o.Lines)
+    .FindAsync(o => o.CustomerId == customerId, cancellationToken);
+```
+
+### Update
+
+```csharp
+order.Status = OrderStatus.Shipped;
+await _orders.UpdateAsync(order, cancellationToken);
+```
+
+### Delete
+
+Auto-detects soft delete if the entity implements `ISoftDelete`; otherwise performs a physical delete:
+
+```csharp
+await _orders.DeleteAsync(order, cancellationToken);
+```
+
+Bulk delete by expression:
+
+```csharp
+int affected = await _orders.DeleteManyAsync(
+    o => o.Status == OrderStatus.Cancelled, cancellationToken);
+```
+
+Override soft-delete behaviour explicitly:
+
+```csharp
+// Force physical delete even when ISoftDelete is implemented
+await _orders.DeleteAsync(order, isSoftDelete: false, cancellationToken);
+```
+
+### Turning off change tracking
+
+When `IGraphRepository<TEntity>` is used with EF Core you can disable tracking for read-only scenarios:
+
+```csharp
+_orders.Tracking = false;
+var readOnlyOrders = await _orders.FindAsync(o => o.Status == OrderStatus.Active, cancellationToken);
+```
+
+## Provider Comparison
+
+<ProviderComparison
+  title="Repository Provider Capabilities"
+  features={[
+    "IGraphRepository",
+    "ILinqRepository",
+    "IReadOnlyRepository",
+    "IWriteOnlyRepository",
+    "ISqlMapperRepository",
+    "Paging",
+    "Eager loading",
+    "Soft delete",
+    "Change tracking",
+  ]}
+  providers={[
+    {
+      name: "EF Core",
+      packageName: "RCommon.EfCore",
+      features: {
+        "IGraphRepository": true,
+        "ILinqRepository": true,
+        "IReadOnlyRepository": true,
+        "IWriteOnlyRepository": true,
+        "ISqlMapperRepository": false,
+        "Paging": true,
+        "Eager loading": true,
+        "Soft delete": true,
+        "Change tracking": true,
+      },
+    },
+    {
+      name: "Dapper",
+      packageName: "RCommon.Dapper",
+      features: {
+        "IGraphRepository": false,
+        "ILinqRepository": false,
+        "IReadOnlyRepository": true,
+        "IWriteOnlyRepository": true,
+        "ISqlMapperRepository": true,
+        "Paging": false,
+        "Eager loading": false,
+        "Soft delete": true,
+        "Change tracking": false,
+      },
+    },
+    {
+      name: "Linq2Db",
+      packageName: "RCommon.Linq2Db",
+      features: {
+        "IGraphRepository": false,
+        "ILinqRepository": true,
+        "IReadOnlyRepository": true,
+        "IWriteOnlyRepository": true,
+        "ISqlMapperRepository": false,
+        "Paging": true,
+        "Eager loading": true,
+        "Soft delete": true,
+        "Change tracking": false,
+      },
+    },
+  ]}
+/>
+
+## API Summary
+
+| Interface | Purpose |
+|-----------|---------|
+| `IReadOnlyRepository<TEntity>` | Async query operations: `FindAsync`, `FindSingleOrDefaultAsync`, `AnyAsync`, `GetCountAsync` |
+| `IWriteOnlyRepository<TEntity>` | Async write operations: `AddAsync`, `AddRangeAsync`, `UpdateAsync`, `DeleteAsync`, `DeleteManyAsync` |
+| `ILinqRepository<TEntity>` | Combines read + write + `IQueryable<TEntity>` + paging (`FindAsync` with `IPaginatedList`) + `Include` |
+| `IGraphRepository<TEntity>` | Extends `ILinqRepository` with `Tracking` property for change-tracking control |
+| `ISqlMapperRepository<TEntity>` | Raw-SQL repository for Dapper — exposes `QueryAsync` and `ExecuteAsync` directly |
+| `INamedDataSource` | Base interface exposing `DataStoreName` property, inherited by all repository interfaces |

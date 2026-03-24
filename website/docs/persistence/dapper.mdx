@@ -3,6 +3,175 @@ title: Dapper
 sidebar_position: 5
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Dapper
 
-*Documentation coming soon.*
+## Overview
+
+The Dapper provider wires `DapperRepository<TEntity>` into the repository abstraction layer. It implements `ISqlMapperRepository<TEntity>`, `IReadOnlyRepository<TEntity>`, and `IWriteOnlyRepository<TEntity>`.
+
+Under the hood the Dapper provider uses **Dommel** for SQL generation. Dommel translates entity mappings and LINQ-style lambda expressions into parameterized SQL, so common CRUD operations do not require hand-written SQL. Raw SQL execution is still available through `ISqlMapperRepository<TEntity>` when you need it.
+
+Unlike the EF Core provider, Dapper does not expose `ILinqRepository<TEntity>` or `IGraphRepository<TEntity>` because it has no change-tracking mechanism. Each operation opens a `DbConnection` from the configured `RDbConnection`, executes the statement, and closes the connection.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Dapper" />
+
+## Connection setup
+
+Your connection class must derive from `RDbConnection`, which implements `IDataStore` so that the `IDataStoreFactory` can resolve it by name.
+
+```csharp
+using RCommon.Persistence.Sql;
+
+public class AppDbConnection : RDbConnection
+{
+    public AppDbConnection(RDbConnectionOptions options)
+        : base(options)
+    {
+    }
+}
+```
+
+`RDbConnectionOptions` carries the connection string. Configure it when registering the connection (see below).
+
+## Configuration
+
+Register the Dapper persistence provider in your application startup:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<DapperPersistenceBuilder>(dapper =>
+    {
+        dapper.AddDbConnection<AppDbConnection>(
+            "AppDb",
+            options => options.ConnectionString =
+                builder.Configuration.GetConnectionString("AppDb"));
+
+        dapper.SetDefaultDataStore(ds =>
+            ds.DefaultDataStoreName = "AppDb");
+    });
+```
+
+Multiple connections can be registered by calling `AddDbConnection` more than once with different names.
+
+## Usage
+
+### Injecting and targeting a data store
+
+Inject `ISqlMapperRepository<TEntity>` (or the narrower `IReadOnlyRepository<TEntity>` / `IWriteOnlyRepository<TEntity>`) and set `DataStoreName`:
+
+```csharp
+public class ProductQueryHandler
+{
+    private readonly IReadOnlyRepository<Product> _products;
+
+    public ProductQueryHandler(IReadOnlyRepository<Product> products)
+    {
+        _products = products;
+        _products.DataStoreName = "AppDb";
+    }
+}
+```
+
+### CRUD operations
+
+```csharp
+// Create
+await _repo.AddAsync(product, cancellationToken);
+await _repo.AddRangeAsync(products, cancellationToken);
+
+// Read by primary key
+Product? p = await _repo.FindAsync(productId, cancellationToken);
+
+// Read by expression (Dommel translates to SQL WHERE)
+ICollection<Product> available =
+    await _repo.FindAsync(p => p.StockQuantity > 0, cancellationToken);
+
+// Single or default
+Product? featured =
+    await _repo.FindSingleOrDefaultAsync(p => p.IsFeatured, cancellationToken);
+
+// Existence check
+bool exists = await _repo.AnyAsync(p => p.Sku == sku, cancellationToken);
+
+// Count
+long count = await _repo.GetCountAsync(p => p.CategoryId == categoryId, cancellationToken);
+
+// Update
+await _repo.UpdateAsync(product, cancellationToken);
+
+// Delete (auto-detects ISoftDelete)
+await _repo.DeleteAsync(product, cancellationToken);
+
+// Bulk delete by expression
+int affected = await _repo.DeleteManyAsync(p => p.StockQuantity == 0, cancellationToken);
+```
+
+### Soft delete
+
+If the entity implements `ISoftDelete`, `DeleteAsync` and `DeleteManyAsync` will set `IsDeleted = true` and issue an UPDATE rather than a physical DELETE. To force a physical DELETE regardless of the interface:
+
+```csharp
+await _repo.DeleteAsync(product, isSoftDelete: false, cancellationToken);
+```
+
+### Using specifications
+
+Specifications work the same as with any other provider:
+
+```csharp
+var spec = new ActiveProductSpec();
+ICollection<Product> active = await _repo.FindAsync(spec, cancellationToken);
+```
+
+### Raw SQL via ISqlMapperRepository
+
+`ISqlMapperRepository<TEntity>` exposes `QueryAsync` and `ExecuteAsync` for scenarios where Dommel's SQL generation is insufficient:
+
+```csharp
+public class ReportService
+{
+    private readonly ISqlMapperRepository<SalesReport> _reports;
+
+    public ReportService(ISqlMapperRepository<SalesReport> reports)
+    {
+        _reports = reports;
+        _reports.DataStoreName = "AppDb";
+    }
+
+    public async Task<IEnumerable<SalesReport>> GetMonthlyAsync(int year, int month,
+        CancellationToken cancellationToken)
+    {
+        return await _reports.QueryAsync(
+            "SELECT * FROM SalesReports WHERE Year = @Year AND Month = @Month",
+            new { Year = year, Month = month },
+            cancellationToken);
+    }
+}
+```
+
+## Dommel entity mapping
+
+Dommel infers table and column names from entity class and property names by convention. You can configure mappings explicitly:
+
+```csharp
+DommelMapper.SetTableNameResolver(new PluralizedTableNameResolver());
+
+DommelMapper.AddSqlBuilder(typeof(SqlConnection), new SqlServerSqlBuilder());
+```
+
+Refer to the [Dommel documentation](https://github.com/henkmollema/Dommel) for the full mapping API.
+
+## API Summary
+
+| Type | Purpose |
+|------|---------|
+| `IDapperBuilder` | Fluent startup builder with `AddDbConnection<TDbConnection>` and `SetDefaultDataStore` |
+| `DapperPersistenceBuilder` | Concrete implementation that registers Dapper repositories in the DI container |
+| `RDbConnection` | Abstract base class for all Dapper connections; implements `IDataStore` |
+| `RDbConnectionOptions` | Options carrying the connection string |
+| `DapperRepository<TEntity>` | Concrete repository; implements `ISqlMapperRepository<TEntity>`, `IReadOnlyRepository<TEntity>`, `IWriteOnlyRepository<TEntity>` |
+| `ISqlMapperRepository<TEntity>` | Extends read/write with raw-SQL `QueryAsync` and `ExecuteAsync` |

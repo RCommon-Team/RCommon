@@ -3,6 +3,182 @@ title: Caching with Redis
 sidebar_position: 8
 ---
 
-# Caching with Redis
+import NuGetInstall from '@site/src/components/NuGetInstall';
 
-*Documentation coming soon.*
+# Persistence Caching — Redis
+
+## Overview
+
+The Redis persistence caching package registers `RedisCacheService` as the `ICacheService` backing the caching repository decorators. It shares the same decorator model as the memory caching package — read operations that supply a `cacheKey` are served from Redis on a hit, and fall through to the underlying repository on a miss. Write operations always bypass the cache.
+
+The same three caching repository interfaces are available regardless of which cache backend is used:
+
+- `ICachingGraphRepository<TEntity>` — EF Core
+- `ICachingLinqRepository<TEntity>` — EF Core or Linq2Db through the LINQ interface
+- `ICachingSqlMapperRepository<TEntity>` — Dapper
+
+Use this package when you need a distributed, out-of-process cache that survives application restarts and is shared across multiple service instances.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Persistence.Caching.RedisCache" />
+
+This package depends on `RCommon.Persistence.Caching`, which is pulled in transitively. You will also need a Redis client library; `StackExchange.Redis` is the standard choice and is typically added as a transitive dependency through `Microsoft.Extensions.Caching.StackExchangeRedis`.
+
+## Configuration
+
+### 1. Add Redis distributed cache
+
+Register Redis with ASP.NET Core's distributed cache infrastructure before configuring RCommon:
+
+```csharp
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration        = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName         = "MyApp:";
+});
+```
+
+### 2. Add Redis persistence caching to the persistence builder
+
+Call `AddRedisPersistenceCaching` on the persistence builder **after** configuring the underlying provider:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>(
+            "AppDb",
+            options => options.UseSqlServer(connectionString));
+
+        ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "AppDb");
+
+        ef.AddRedisPersistenceCaching();
+    });
+```
+
+`AddRedisPersistenceCaching` registers:
+
+- `RedisCacheService` as `ICacheService`
+- A `Func<PersistenceCachingStrategy, ICacheService>` factory that resolves `RedisCacheService` for `PersistenceCachingStrategy.Default`
+- `ICachingGraphRepository<>`, `ICachingLinqRepository<>`, `ICachingSqlMapperRepository<>` decorators
+- `CachingOptions` with `CachingEnabled = true` and `CacheDynamicallyCompiledExpressions = true`
+
+## Usage
+
+The API is identical to the memory caching package. Swap the injected interface and the configuration call; your handler code remains the same.
+
+### Injecting a caching repository
+
+```csharp
+public class ProductQueryHandler
+{
+    private readonly ICachingGraphRepository<Product> _products;
+
+    public ProductQueryHandler(ICachingGraphRepository<Product> products)
+    {
+        _products = products;
+        _products.DataStoreName = "AppDb";
+    }
+}
+```
+
+### Cached reads
+
+```csharp
+string key = $"products:category:{categoryId}";
+
+ICollection<Product> cached = await _products.FindAsync(
+    cacheKey:   key,
+    expression: p => p.CategoryId == categoryId,
+    token:      cancellationToken);
+```
+
+Paged result with caching:
+
+```csharp
+string pageKey = $"products:page:{pageNumber}:{pageSize}";
+
+IPaginatedList<Product> page = await _products.FindAsync(
+    cacheKey:          pageKey,
+    expression:        p => p.IsActive,
+    orderByExpression: p => p.Name,
+    orderByAscending:  true,
+    pageNumber:        pageNumber,
+    pageSize:          pageSize,
+    token:             cancellationToken);
+```
+
+Using a specification:
+
+```csharp
+var spec = new ActiveProductSpec();
+
+ICollection<Product> active = await _products.FindAsync(
+    cacheKey:      "products:active",
+    specification: spec,
+    token:         cancellationToken);
+```
+
+### Non-cached operations
+
+Write operations and reads without a `cacheKey` always go to the database:
+
+```csharp
+await _products.AddAsync(product, cancellationToken);
+await _products.UpdateAsync(product, cancellationToken);
+await _products.DeleteAsync(product, cancellationToken);
+```
+
+### Using with Linq2Db
+
+```csharp
+private readonly ICachingLinqRepository<Product> _products;
+
+ICollection<Product> cached = await _products.FindAsync(
+    "products:all", p => true, cancellationToken);
+```
+
+### Using with Dapper
+
+```csharp
+private readonly ICachingSqlMapperRepository<Product> _products;
+
+ICollection<Product> featured = await _products.FindAsync(
+    "products:featured", p => p.IsFeatured, cancellationToken);
+```
+
+## Cache key design
+
+Choose structured, namespaced keys to make cache management straightforward:
+
+```csharp
+// Namespaced by entity, qualifier, and parameter values
+string key = $"products:category:{categoryId}:page:{page}:size:{size}";
+```
+
+Redis keys have no automatic expiration by default when using `RedisCacheService` with `IDistributedCache`; set expiration policies on the `CachingOptions` or manage them through the `ICacheService` interface directly if your use case requires TTL control.
+
+### Invalidation strategy
+
+Cache invalidation after a write is the responsibility of the caller. A common pattern is to delete or refresh the relevant key after mutating data:
+
+```csharp
+await _products.UpdateAsync(product, cancellationToken);
+
+// Evict the stale cache entry so the next read goes to the database
+await _cacheService.DeleteAsync($"products:category:{product.CategoryId}");
+```
+
+Inject `ICacheService` directly when you need explicit cache management outside the repository decorators.
+
+## API Summary
+
+| Type | Purpose |
+|------|---------|
+| `AddRedisPersistenceCaching()` | Extension on `IPersistenceBuilder` that registers `RedisCacheService` and caching repositories |
+| `ICachingGraphRepository<TEntity>` | Decorator over `IGraphRepository<TEntity>`; adds `cacheKey` overloads to `FindAsync` |
+| `ICachingLinqRepository<TEntity>` | Decorator over `ILinqRepository<TEntity>`; adds `cacheKey` overloads to `FindAsync` |
+| `ICachingSqlMapperRepository<TEntity>` | Decorator over `ISqlMapperRepository<TEntity>`; adds `cacheKey` overloads to `FindAsync` |
+| `RedisCacheService` | Concrete `ICacheService` backed by `IDistributedCache` with a Redis store |
+| `PersistenceCachingStrategy` | Enum used internally to select the `ICacheService` implementation |
