@@ -3,6 +3,217 @@ title: Domain Events
 sidebar_position: 2
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Domain Events
 
-*Documentation coming soon.*
+Domain events represent something meaningful that happened within your domain. They are raised by aggregate roots when state changes occur, then dispatched after the unit of work commits. This keeps side effects (sending emails, updating read models, publishing to message brokers) decoupled from the core business logic.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Entities" />
+
+## The IDomainEvent Interface
+
+All domain events must implement `IDomainEvent`, which extends `ISerializableEvent` to make events compatible with the existing RCommon event routing pipeline:
+
+```csharp
+public interface IDomainEvent : ISerializableEvent
+{
+    /// <summary>
+    /// Unique identifier for this event instance.
+    /// </summary>
+    Guid EventId { get; }
+
+    /// <summary>
+    /// The date and time when this event occurred.
+    /// </summary>
+    DateTimeOffset OccurredOn { get; }
+}
+```
+
+## The DomainEvent Base Record
+
+Rather than implementing `IDomainEvent` manually, extend the `DomainEvent` abstract record. It automatically assigns a unique `EventId` and captures `OccurredOn` at construction time:
+
+```csharp
+public abstract record DomainEvent : IDomainEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOn { get; init; } = DateTimeOffset.UtcNow;
+}
+```
+
+Using a C# `record` gives you structural equality, `with`-expression support, and immutability without boilerplate.
+
+## Defining Domain Events
+
+Create concrete domain events by extending `DomainEvent` and adding the properties that describe what happened:
+
+```csharp
+public record OrderCreatedEvent(Guid OrderId, string CustomerId) : DomainEvent;
+
+public record OrderLineAddedEvent(Guid OrderId, string ProductId, int Quantity) : DomainEvent;
+
+public record OrderSubmittedEvent(Guid OrderId) : DomainEvent;
+
+public record CustomerEmailChangedEvent(
+    Guid CustomerId,
+    string OldEmail,
+    string NewEmail) : DomainEvent;
+```
+
+Keep domain events in the past tense. They describe facts about what has already happened, not intentions about what should happen next.
+
+## Raising Events from Aggregate Roots
+
+Domain events are raised inside aggregate root methods using `AddDomainEvent`. Events accumulate on the aggregate until the unit of work completes:
+
+```csharp
+public class Order : AggregateRoot<Guid>
+{
+    public string CustomerId { get; private set; }
+    public OrderStatus Status { get; private set; }
+
+    public Order(Guid id, string customerId)
+    {
+        Id = id;
+        CustomerId = customerId;
+        Status = OrderStatus.Draft;
+        IncrementVersion();
+        AddDomainEvent(new OrderCreatedEvent(id, customerId));
+    }
+
+    public void Submit()
+    {
+        if (Status != OrderStatus.Draft)
+            throw new InvalidOperationException("Only draft orders can be submitted.");
+
+        Status = OrderStatus.Submitted;
+        IncrementVersion();
+        AddDomainEvent(new OrderSubmittedEvent(Id));
+    }
+}
+```
+
+The `AddDomainEvent` method places the event in both:
+- `DomainEvents` — a typed `IReadOnlyCollection<IDomainEvent>` specific to the aggregate root
+- `LocalEvents` — the inherited `BusinessEntity` collection consumed by the event tracking infrastructure
+
+Both collections stay in sync through `AddDomainEvent`, `RemoveDomainEvent`, and `ClearDomainEvents`. Do not call the inherited `AddLocalEvent` directly on an aggregate root, as this would break the dual-list invariant.
+
+## How Events Flow Through the System
+
+After your aggregate is saved through a repository, the event tracking pipeline dispatches all accumulated events:
+
+```
+1. Aggregate raises events via AddDomainEvent()
+      |
+      v
+2. Repository saves the aggregate, then calls IEntityEventTracker.AddEntity(aggregate)
+      |
+      v
+3. IEntityEventTracker.EmitTransactionalEventsAsync()
+      — traverses the aggregate's object graph for IBusinessEntity instances
+      — collects LocalEvents from the aggregate root (and any nested IBusinessEntity children)
+      |
+      v
+4. IEventRouter.AddTransactionalEvents() + RouteEventsAsync()
+      — routes events through registered IEventProducer implementations
+      |
+      v
+5. IEventProducer dispatches events to subscribers
+      — in-memory via IEventBus
+      — or to external brokers (MassTransit, Wolverine, etc.)
+```
+
+This pipeline is provided by `RCommon.Core` and `RCommon.Entities` with no extra configuration needed when you use the standard repository implementations.
+
+## Handling Domain Events
+
+Implement `ISubscriber<TEvent>` to handle a domain event. The framework resolves handlers from the DI container when events are published via `IEventBus`:
+
+```csharp
+public class OrderSubmittedHandler : ISubscriber<OrderSubmittedEvent>
+{
+    private readonly IEmailService _emailService;
+    private readonly IOrderReadModelRepository _readModels;
+
+    public OrderSubmittedHandler(IEmailService emailService, IOrderReadModelRepository readModels)
+    {
+        _emailService = emailService;
+        _readModels = readModels;
+    }
+
+    public async Task HandleAsync(OrderSubmittedEvent @event, CancellationToken cancellationToken = default)
+    {
+        // Update a read model
+        await _readModels.MarkSubmittedAsync(@event.OrderId, cancellationToken);
+
+        // Send a notification
+        await _emailService.SendOrderConfirmationAsync(@event.OrderId, cancellationToken);
+    }
+}
+```
+
+A handler can implement `ISubscriber<TEvent>` for multiple event types if needed:
+
+```csharp
+public class OrderAuditHandler
+    : ISubscriber<OrderCreatedEvent>,
+      ISubscriber<OrderSubmittedEvent>
+{
+    public Task HandleAsync(OrderCreatedEvent @event, CancellationToken cancellationToken = default)
+        => LogAsync("created", @event.OrderId, cancellationToken);
+
+    public Task HandleAsync(OrderSubmittedEvent @event, CancellationToken cancellationToken = default)
+        => LogAsync("submitted", @event.OrderId, cancellationToken);
+
+    private Task LogAsync(string action, Guid orderId, CancellationToken ct) { ... }
+}
+```
+
+## Removing or Cancelling Events
+
+If business logic determines an event should not be dispatched (for example, a validation step fails after the event was raised), remove it before the unit of work completes:
+
+```csharp
+public void CancelSubmission()
+{
+    if (Status == OrderStatus.Submitted)
+    {
+        Status = OrderStatus.Draft;
+        // Remove the previously raised event if still pending
+        var pending = DomainEvents.OfType<OrderSubmittedEvent>().FirstOrDefault();
+        if (pending is not null)
+            RemoveDomainEvent(pending);
+
+        AddDomainEvent(new OrderSubmissionCancelledEvent(Id));
+    }
+}
+```
+
+## Inspecting Pending Events
+
+The `DomainEvents` property on an aggregate root exposes all events that have been raised but not yet dispatched. This is useful for testing:
+
+```csharp
+var order = new Order(Guid.NewGuid(), "C42");
+order.Submit();
+
+Assert.Single(order.DomainEvents.OfType<OrderSubmittedEvent>());
+```
+
+After the repository dispatches events, call `ClearDomainEvents()` or allow the infrastructure to clear them automatically. The `InMemoryEntityEventTracker` does not clear events after dispatch — the repository or unit of work implementation is responsible for this depending on your persistence layer.
+
+## API Summary
+
+| Type | Description |
+|------|-------------|
+| `IDomainEvent` | Interface for all domain events; extends `ISerializableEvent` with `EventId` and `OccurredOn` |
+| `DomainEvent` | Abstract base record; auto-generates `EventId` and `OccurredOn` |
+| `ISubscriber<TEvent>` | Interface for event handlers; resolved from DI on event publication |
+| `IEventBus` | In-process event bus for publishing and subscribing to events |
+| `IEventRouter` | Routes transactional events to registered `IEventProducer` implementations |
+| `IEventProducer` | Dispatches events to their destination (in-memory, broker, etc.) |
+| `IEntityEventTracker` | Collects entities and emits their transactional events after persistence |

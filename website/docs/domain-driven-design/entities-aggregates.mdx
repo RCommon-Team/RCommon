@@ -1,8 +1,200 @@
 ---
-title: Entities & Aggregates
+title: Entities & Aggregate Roots
 sidebar_position: 1
 ---
 
-# Entities & Aggregates
+import NuGetInstall from '@site/src/components/NuGetInstall';
 
-*Documentation coming soon.*
+# Entities & Aggregate Roots
+
+In Domain-Driven Design, entities are objects with a distinct identity that persists over time. Aggregate roots are the primary entities that serve as the entry point for a cluster of related objects, enforcing consistency boundaries. RCommon provides a hierarchy of base classes that give you identity, equality, domain event tracking, and optimistic concurrency out of the box.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Entities" />
+
+## Type Hierarchy
+
+RCommon provides several base types for building your domain model. Understanding when to use each is important:
+
+```
+ITrackedEntity
+  IBusinessEntity
+    BusinessEntity              — composite keys, event tracking (no explicit key type)
+      BusinessEntity<TKey>      — single typed key, event tracking
+
+IAggregateRoot : IBusinessEntity
+  IAggregateRoot<TKey> : IAggregateRoot, IBusinessEntity<TKey>
+    AggregateRoot<TKey> : BusinessEntity<TKey>, IAggregateRoot<TKey>
+
+DomainEntity<TKey>              — child entities inside an aggregate (identity only, no event tracking)
+```
+
+## BusinessEntity
+
+`BusinessEntity` is the foundational base class for all entities. It provides local (transactional) event tracking without requiring a specific key type — useful for entities with composite keys.
+
+`BusinessEntity<TKey>` extends this with a strongly-typed `Id` property and is the type you will most commonly extend when building aggregate roots or tracked persistence entities.
+
+```csharp
+// BusinessEntity<TKey> gives you a typed Id and event tracking
+public abstract class BusinessEntity<TKey> : BusinessEntity, IBusinessEntity<TKey>
+    where TKey : IEquatable<TKey>
+{
+    public virtual TKey Id { get; protected set; }
+    public override object[] GetKeys() => new object[] { Id };
+}
+```
+
+Key characteristics:
+- `GetKeys()` — returns the entity's key values as an object array, enabling generic repository operations
+- `LocalEvents` — a read-only collection of events accumulated during a unit of work, dispatched after persistence
+- `AllowEventTracking` — opt-out flag; set to `false` to suppress event dispatch for a given entity
+- `EntityEquals(IBusinessEntity other)` — identity-based equality via binary comparison
+
+## AggregateRoot
+
+`AggregateRoot<TKey>` extends `BusinessEntity<TKey>` and is the entry point for a consistency boundary in your domain. It adds:
+
+- **Domain event management** — typed `AddDomainEvent`, `RemoveDomainEvent`, and `ClearDomainEvents` methods
+- **Optimistic concurrency** — a `Version` property decorated with `[ConcurrencyCheck]`
+
+```csharp
+public abstract class AggregateRoot<TKey> : BusinessEntity<TKey>, IAggregateRoot<TKey>
+    where TKey : IEquatable<TKey>
+{
+    [ConcurrencyCheck]
+    public virtual int Version { get; protected set; }
+
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
+
+    protected void AddDomainEvent(IDomainEvent domainEvent) { ... }
+    protected void RemoveDomainEvent(IDomainEvent domainEvent) { ... }
+    public void ClearDomainEvents() { ... }
+    protected void IncrementVersion() => Version++;
+}
+```
+
+### Creating an Aggregate Root
+
+Extend `AggregateRoot<TKey>` and raise domain events inside your business methods rather than from application services:
+
+```csharp
+public class Order : AggregateRoot<Guid>
+{
+    public string CustomerId { get; private set; }
+    public OrderStatus Status { get; private set; }
+    private readonly List<OrderLine> _lines = new();
+    public IReadOnlyCollection<OrderLine> Lines => _lines.AsReadOnly();
+
+    protected Order() { } // required for ORM deserialization
+
+    public Order(Guid id, string customerId)
+    {
+        Id = id;
+        CustomerId = customerId;
+        Status = OrderStatus.Draft;
+        IncrementVersion();
+        AddDomainEvent(new OrderCreatedEvent(id, customerId));
+    }
+
+    public void AddLine(string productId, int quantity, decimal unitPrice)
+    {
+        _lines.Add(new OrderLine(productId, quantity, unitPrice));
+        IncrementVersion();
+        AddDomainEvent(new OrderLineAddedEvent(Id, productId, quantity));
+    }
+
+    public void Submit()
+    {
+        if (Status != OrderStatus.Draft)
+            throw new InvalidOperationException("Only draft orders can be submitted.");
+
+        Status = OrderStatus.Submitted;
+        IncrementVersion();
+        AddDomainEvent(new OrderSubmittedEvent(Id));
+    }
+}
+```
+
+## DomainEntity
+
+`DomainEntity<TKey>` is for child entities that live inside an aggregate boundary. It provides identity-based equality but does **not** participate in event tracking. All domain events must be raised on the aggregate root.
+
+```csharp
+public abstract class DomainEntity<TKey> : IEquatable<DomainEntity<TKey>>
+    where TKey : IEquatable<TKey>
+{
+    public virtual TKey Id { get; protected set; }
+
+    public bool IsTransient() => Id is null || Id.Equals(default);
+    // Equals, GetHashCode, == and != are implemented
+}
+```
+
+Use `DomainEntity` for objects within the aggregate that have their own identity but should not be accessed directly outside the aggregate root:
+
+```csharp
+public class OrderLine : DomainEntity<Guid>
+{
+    public string ProductId { get; private set; }
+    public int Quantity { get; private set; }
+    public decimal UnitPrice { get; private set; }
+
+    protected OrderLine() { }
+
+    public OrderLine(string productId, int quantity, decimal unitPrice)
+    {
+        Id = Guid.NewGuid();
+        ProductId = productId;
+        Quantity = quantity;
+        UnitPrice = unitPrice;
+    }
+
+    public decimal LineTotal => Quantity * UnitPrice;
+}
+```
+
+Note: Because `DomainEntity<TKey>` does not implement `IBusinessEntity`, the `InMemoryEntityEventTracker`'s object graph walker will not traverse it. Events raised by child entities must be delegated up to the aggregate root.
+
+## Identity and Equality
+
+Entities in RCommon use identity-based equality. Two entity instances are equal if and only if they are the same type and have the same key value.
+
+```csharp
+var a = new Order(id: guid1, customerId: "C1");
+var b = new Order(id: guid1, customerId: "C2");
+
+bool same = a.EntityEquals(b); // true — same Id
+```
+
+Transient entities (those without an assigned persistent identity) are never equal to any other entity, including themselves by reference:
+
+```csharp
+var transient = new Order(); // Id is default(Guid)
+bool isTransient = transient.IsTransient(); // true
+```
+
+## IAggregateRoot Interfaces
+
+Two interfaces are provided for infrastructure scenarios:
+
+- `IAggregateRoot` — non-generic marker; useful for repository filtering and middleware
+- `IAggregateRoot<TKey>` — generic version with `where TKey : IEquatable<TKey>`
+
+Both expose `Version` and `DomainEvents` for infrastructure code that needs to dispatch events or enforce concurrency after persistence operations.
+
+## API Summary
+
+| Type | Description |
+|------|-------------|
+| `BusinessEntity` | Abstract base with composite key support and transactional event tracking |
+| `BusinessEntity<TKey>` | Abstract base with typed `Id` and event tracking |
+| `AggregateRoot<TKey>` | Extends `BusinessEntity<TKey>`; adds domain events and optimistic concurrency |
+| `DomainEntity<TKey>` | Lightweight child entity with identity equality; no event tracking |
+| `IBusinessEntity` | Interface exposing key access, local events, and equality |
+| `IBusinessEntity<TKey>` | Typed key interface extending `IBusinessEntity` |
+| `IAggregateRoot` | Non-generic marker interface for infrastructure use |
+| `IAggregateRoot<TKey>` | Generic aggregate root interface |
+| `ITrackedEntity` | Minimal interface controlling whether an entity participates in event tracking |

@@ -3,6 +3,250 @@ title: Auditing
 sidebar_position: 4
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Auditing
 
-*Documentation coming soon.*
+Audit tracking records who created an entity, when it was created, who last modified it, and when. RCommon provides `IAuditedEntity` and `AuditedEntity` to standardize these fields across your domain model, making it straightforward to capture audit information in any persistence layer.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Entities" />
+
+## The IAuditedEntity Interface
+
+`IAuditedEntity<TCreatedByUser, TLastModifiedByUser>` defines four audit properties. The generic parameters let you choose the type used to represent a user — typically `string` (for a username or user ID) or a domain-specific type:
+
+```csharp
+public interface IAuditedEntity<TCreatedByUser, TLastModifiedByUser> : IBusinessEntity
+{
+    TCreatedByUser? CreatedBy { get; set; }
+    DateTime? DateCreated { get; set; }
+    DateTime? DateLastModified { get; set; }
+    TLastModifiedByUser? LastModifiedBy { get; set; }
+}
+```
+
+A second overload adds a strongly-typed primary key:
+
+```csharp
+public interface IAuditedEntity<TKey, TCreatedByUser, TLastModifiedByUser>
+    : IAuditedEntity<TCreatedByUser, TLastModifiedByUser>, IBusinessEntity<TKey>
+{
+}
+```
+
+## The AuditedEntity Base Classes
+
+Two abstract base classes implement `IAuditedEntity` and sit on top of the standard `BusinessEntity` hierarchy, so you get audit fields, key support, and transactional event tracking in a single type.
+
+### Without an explicit key type
+
+Use `AuditedEntity<TCreatedByUser, TLastModifiedByUser>` when your entity has a composite key or when you want to define the key separately:
+
+```csharp
+public abstract class AuditedEntity<TCreatedByUser, TLastModifiedByUser>
+    : BusinessEntity, IAuditedEntity<TCreatedByUser, TLastModifiedByUser>
+{
+    public DateTime? DateCreated { get; set; }
+    public TCreatedByUser? CreatedBy { get; set; }
+    public DateTime? DateLastModified { get; set; }
+    public TLastModifiedByUser? LastModifiedBy { get; set; }
+}
+```
+
+### With a strongly-typed primary key
+
+Use `AuditedEntity<TKey, TCreatedByUser, TLastModifiedByUser>` for entities with a single typed primary key — this is the form you will use most often:
+
+```csharp
+public abstract class AuditedEntity<TKey, TCreatedByUser, TLastModifiedByUser>
+    : BusinessEntity<TKey>,
+      IAuditedEntity<TCreatedByUser, TLastModifiedByUser>,
+      IAuditedEntity<TKey, TCreatedByUser, TLastModifiedByUser>
+    where TKey : IEquatable<TKey>
+{
+    public DateTime? DateCreated { get; set; }
+    public TCreatedByUser? CreatedBy { get; set; }
+    public DateTime? DateLastModified { get; set; }
+    public TLastModifiedByUser? LastModifiedBy { get; set; }
+}
+```
+
+## Usage
+
+### Basic audited entity
+
+The most common pattern uses `string` for both user types, storing a user identifier such as a username or a claim value:
+
+```csharp
+public class Invoice : AuditedEntity<Guid, string, string>
+{
+    public string CustomerName { get; private set; }
+    public decimal TotalAmount { get; private set; }
+    public InvoiceStatus Status { get; private set; }
+
+    protected Invoice() { }
+
+    public Invoice(Guid id, string customerName, decimal totalAmount)
+    {
+        Id = id;
+        CustomerName = customerName;
+        TotalAmount = totalAmount;
+        Status = InvoiceStatus.Draft;
+    }
+}
+```
+
+### Setting audit fields
+
+Audit fields are plain settable properties, so your application layer or persistence interceptor can populate them before saving:
+
+```csharp
+public class AuditInterceptor
+{
+    private readonly ICurrentUserService _currentUser;
+    private readonly ISystemClock _clock;
+
+    public AuditInterceptor(ICurrentUserService currentUser, ISystemClock clock)
+    {
+        _currentUser = currentUser;
+        _clock = clock;
+    }
+
+    public void ApplyAudit(IAuditedEntity<string, string> entity, bool isNew)
+    {
+        var now = _clock.UtcNow;
+        var user = _currentUser.UserId;
+
+        if (isNew)
+        {
+            entity.DateCreated = now;
+            entity.CreatedBy = user;
+        }
+
+        entity.DateLastModified = now;
+        entity.LastModifiedBy = user;
+    }
+}
+```
+
+### Combining auditing with aggregate root behavior
+
+You can combine audit tracking with aggregate root capabilities by having your entity extend `AuditedEntity` and separately managing domain events through `BusinessEntity`'s event tracking. If you need both audit fields and domain events on a single aggregate, you can compose the audit interface onto an `AggregateRoot`:
+
+```csharp
+public class Project : AggregateRoot<Guid>, IAuditedEntity<string, string>
+{
+    public string Name { get; private set; }
+    public ProjectStatus Status { get; private set; }
+
+    // Audit properties
+    public string? CreatedBy { get; set; }
+    public DateTime? DateCreated { get; set; }
+    public DateTime? DateLastModified { get; set; }
+    public string? LastModifiedBy { get; set; }
+
+    protected Project() { }
+
+    public Project(Guid id, string name)
+    {
+        Id = id;
+        Name = name;
+        Status = ProjectStatus.Active;
+        IncrementVersion();
+        AddDomainEvent(new ProjectCreatedEvent(id, name));
+    }
+}
+```
+
+### Using a typed user identifier
+
+If your system uses a custom type for users, substitute it for the generic parameters:
+
+```csharp
+// Using an integer user ID
+public class Document : AuditedEntity<Guid, int, int>
+{
+    public string Title { get; private set; }
+    public string Content { get; private set; }
+
+    public Document(Guid id, string title, string content)
+    {
+        Id = id;
+        Title = title;
+        Content = content;
+    }
+}
+```
+
+## Integration with Persistence
+
+The audit properties are plain C# properties with no infrastructure coupling. You wire up population in whichever layer makes sense for your architecture:
+
+**Entity Framework Core SaveChanges override:**
+
+```csharp
+public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+{
+    var now = DateTime.UtcNow;
+    var userId = _currentUserService.UserId;
+
+    foreach (var entry in ChangeTracker.Entries())
+    {
+        if (entry.Entity is IAuditedEntity<string, string> audited)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                audited.DateCreated = now;
+                audited.CreatedBy = userId;
+            }
+
+            if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+            {
+                audited.DateLastModified = now;
+                audited.LastModifiedBy = userId;
+            }
+        }
+    }
+
+    return await base.SaveChangesAsync(cancellationToken);
+}
+```
+
+**Repository base class:**
+
+```csharp
+public class AuditedRepository<TEntity> : EFCoreRepository<TEntity>
+    where TEntity : class
+{
+    private readonly ICurrentUserService _currentUser;
+
+    protected override async Task BeforeSaveAsync(TEntity entity, EntityState state)
+    {
+        if (entity is IAuditedEntity<string, string> audited)
+        {
+            var now = DateTime.UtcNow;
+            var userId = _currentUser.UserId;
+
+            if (state == EntityState.Added)
+            {
+                audited.DateCreated = now;
+                audited.CreatedBy = userId;
+            }
+
+            audited.DateLastModified = now;
+            audited.LastModifiedBy = userId;
+        }
+    }
+}
+```
+
+## API Summary
+
+| Type | Description |
+|------|-------------|
+| `IAuditedEntity<TCreatedByUser, TLastModifiedByUser>` | Interface defining `CreatedBy`, `DateCreated`, `LastModifiedBy`, and `DateLastModified` |
+| `IAuditedEntity<TKey, TCreatedByUser, TLastModifiedByUser>` | Extends the above with a typed primary key |
+| `AuditedEntity<TCreatedByUser, TLastModifiedByUser>` | Abstract base class without explicit key type; extends `BusinessEntity` |
+| `AuditedEntity<TKey, TCreatedByUser, TLastModifiedByUser>` | Abstract base class with typed primary key; extends `BusinessEntity<TKey>` |
