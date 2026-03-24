@@ -3,6 +3,223 @@ title: Commands & Handlers
 sidebar_position: 2
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Commands & Handlers
 
-*Documentation coming soon.*
+## Overview
+
+A **command** in RCommon is a message that expresses intent to change state. It carries the data needed to perform the operation and returns an `IExecutionResult` so the caller knows whether the operation succeeded.
+
+A **command handler** is a class that performs the state change. The `ICommandBus` resolves exactly one handler per command type and invokes it. Registering zero or more than one handler for the same command type is a configuration error.
+
+RCommon provides two command handler interfaces:
+
+- `ICommandHandler<TResult, TCommand>` — handles a command and returns a typed `IExecutionResult`.
+- `ICommandHandler<TCommand>` — handles a command with no return value (fire-and-forget style, resolved internally but not used with `ICommandBus.DispatchCommandAsync`).
+
+The `ICommand<TResult>` and `ICommand` marker interfaces live in `RCommon.Models` and create the generic constraints that connect a command to its result type.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.ApplicationServices" />
+
+## Defining a command
+
+Implement `ICommand<TResult>` on your command class. The `TResult` type parameter must implement `IExecutionResult`.
+
+```csharp
+using RCommon.Models.Commands;
+using RCommon.Models.ExecutionResults;
+
+public class CreateOrderCommand : ICommand<IExecutionResult>
+{
+    public CreateOrderCommand(Guid customerId, IReadOnlyList<OrderLineDto> lines)
+    {
+        CustomerId = customerId;
+        Lines = lines;
+    }
+
+    public Guid CustomerId { get; }
+    public IReadOnlyList<OrderLineDto> Lines { get; }
+}
+```
+
+The command is a plain data-carrying object. It should not reference any services or infrastructure — only the data required to perform the operation.
+
+## Creating a handler
+
+Implement `ICommandHandler<TResult, TCommand>`. The type parameter order is result-first, then command.
+
+```csharp
+using RCommon.ApplicationServices.Commands;
+using RCommon.Models.ExecutionResults;
+
+public class CreateOrderHandler : ICommandHandler<IExecutionResult, CreateOrderCommand>
+{
+    private readonly IOrderRepository _orders;
+
+    public CreateOrderHandler(IOrderRepository orders)
+    {
+        _orders = orders;
+    }
+
+    public async Task<IExecutionResult> HandleAsync(
+        CreateOrderCommand command,
+        CancellationToken cancellationToken)
+    {
+        var order = Order.Create(command.CustomerId, command.Lines);
+        await _orders.AddAsync(order, cancellationToken);
+        return new SuccessExecutionResult();
+    }
+}
+```
+
+The handler receives dependencies through constructor injection. It performs the state change and returns an execution result.
+
+## Registration
+
+Register handlers during startup using the `ICqrsBuilder` extension methods inside `WithCQRS<CqrsBuilder>`.
+
+### Individual registration
+
+```csharp
+using RCommon;
+using RCommon.ApplicationServices;
+
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddCommandHandler<CreateOrderHandler, CreateOrderCommand, IExecutionResult>();
+    });
+```
+
+### Assembly scan
+
+Scanning an assembly is the recommended approach for applications with many handlers. All non-abstract types implementing `ICommandHandler<TResult, TCommand>` are registered automatically. Types whose constructors accept a command handler (i.e., decorator types) are excluded.
+
+```csharp
+using System.Reflection;
+
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddCommandHandlers(typeof(Program).Assembly);
+    });
+```
+
+Apply a predicate to restrict which handlers are included:
+
+```csharp
+cqrs.AddCommandHandlers(
+    typeof(Program).Assembly,
+    t => t.Namespace?.StartsWith("MyApp.Orders") == true);
+```
+
+## Adding validation
+
+When `ValidateCommands` is enabled, the `CommandBus` runs `IValidationService.ValidateAsync` before calling the handler. Define a FluentValidation validator for the command class:
+
+```csharp
+using FluentValidation;
+
+public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
+{
+    public CreateOrderCommandValidator()
+    {
+        RuleFor(c => c.CustomerId).NotEmpty();
+        RuleFor(c => c.Lines).NotEmpty().WithMessage("Order must contain at least one line.");
+    }
+}
+```
+
+Register the validator and enable command validation:
+
+```csharp
+using RCommon.FluentValidation;
+
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddCommandHandlers(typeof(Program).Assembly);
+    })
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining<CreateOrderCommand>();
+
+        validation.UseWithCqrs(options =>
+        {
+            options.ValidateCommands = true;
+        });
+    });
+```
+
+## Dispatching a command
+
+Inject `ICommandBus` and call `DispatchCommandAsync`:
+
+```csharp
+using RCommon.ApplicationServices.Commands;
+using RCommon.Models.ExecutionResults;
+
+public class OrderService
+{
+    private readonly ICommandBus _commandBus;
+
+    public OrderService(ICommandBus commandBus)
+    {
+        _commandBus = commandBus;
+    }
+
+    public async Task<IExecutionResult> PlaceOrder(
+        Guid customerId,
+        IReadOnlyList<OrderLineDto> lines,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new CreateOrderCommand(customerId, lines);
+        return await _commandBus.DispatchCommandAsync(command, cancellationToken);
+    }
+}
+```
+
+Inspect the result:
+
+```csharp
+var result = await _commandBus.DispatchCommandAsync(command);
+
+if (!result.IsSuccess)
+{
+    var failed = result as FailedExecutionResult;
+    foreach (var error in failed?.Errors ?? [])
+        logger.LogWarning("Command failed: {Error}", error);
+}
+```
+
+## API Summary
+
+### `ICommand<TResult>`
+
+| Member | Description |
+|---|---|
+| (marker interface) | Implement on command classes. `TResult` must implement `IExecutionResult`. Consumed by `ICommandBus.DispatchCommandAsync<TResult>`. |
+
+### `ICommandHandler<TResult, TCommand>`
+
+| Member | Description |
+|---|---|
+| `HandleAsync(TCommand, CancellationToken)` | Executes the command and returns a `Task<TResult>`. |
+
+### `ICommandHandler<TCommand>`
+
+| Member | Description |
+|---|---|
+| `HandleAsync(TCommand, CancellationToken)` | Executes the command with no return value. Returns `Task`. |
+
+### `ICqrsBuilder` command registration methods
+
+| Method | Description |
+|---|---|
+| `AddCommandHandler<THandler, TCommand, TResult>()` | Registers one handler for one command type. |
+| `AddCommand<TCommand, THandler, TResult>()` | Alias with command-first parameter order. |
+| `AddCommandHandlers(Assembly, Predicate<Type>?)` | Assembly scan registration. |
+| `AddCommandHandlers(IEnumerable<Type>)` | Explicit bulk registration. |

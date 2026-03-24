@@ -3,6 +3,289 @@ title: MediatR
 sidebar_position: 4
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # MediatR
 
-*Documentation coming soon.*
+## Overview
+
+`RCommon.MediatR` adapts the [MediatR](https://github.com/jbogard/MediatR) library to RCommon's mediator abstraction. It provides:
+
+- `MediatRAdapter` — an `IMediatorAdapter` implementation that delegates `Send` and `Publish` calls to MediatR's `IMediator`.
+- `MediatRBuilder` — an `IMediatRBuilder` that wires MediatR into the RCommon service container.
+- Pre-built pipeline behaviors for logging, validation, and unit-of-work.
+- Wrapper types (`MediatRRequest`, `MediatRNotification`) that bridge RCommon message contracts to MediatR's internal types.
+
+Application code depends only on `IMediatorService` from `RCommon.Mediator`. The MediatR implementation is an infrastructure detail registered at startup.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.MediatR" />
+
+This package depends on `RCommon.Mediator`, `RCommon.ApplicationServices`, `RCommon.Core`, `RCommon.Persistence`, and the `MediatR` NuGet package. All are pulled in transitively.
+
+## Configuration
+
+Register the MediatR provider inside `AddRCommon()` using `WithMediator<MediatRBuilder>`. The configuration delegate is where you register your requests, notifications, and pipeline behaviors.
+
+```csharp
+using RCommon;
+using RCommon.Mediator.MediatR;
+
+builder.Services.AddRCommon()
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        // Register a fire-and-forget request (no response)
+        mediator.AddRequest<PlaceOrderRequest, PlaceOrderRequestHandler>();
+
+        // Register a request that returns a response
+        mediator.AddRequest<GetOrderRequest, OrderDto, GetOrderRequestHandler>();
+
+        // Register a notification (fan-out to all subscribers)
+        mediator.AddNotification<OrderPlacedNotification, OrderPlacedNotificationHandler>();
+    });
+```
+
+### Advanced MediatR configuration
+
+Access the underlying `MediatRServiceConfiguration` to register handlers from additional assemblies or to set MediatR-specific options:
+
+```csharp
+using System.Reflection;
+
+builder.Services.AddRCommon()
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddRequest<PlaceOrderRequest, PlaceOrderRequestHandler>();
+
+        mediator.Configure(config =>
+        {
+            config.RegisterServicesFromAssemblies(typeof(Program).Assembly);
+        });
+    });
+```
+
+### Adding pipeline behaviors
+
+Pipeline behaviors run in registration order before and after every handler. RCommon ships three built-in behaviors:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddRequest<PlaceOrderRequest, PlaceOrderRequestHandler>();
+
+        // Adds LoggingRequestBehavior and LoggingRequestWithResponseBehavior
+        mediator.AddLoggingToRequestPipeline();
+
+        // Adds ValidatorBehavior and ValidatorBehaviorForMediatR (requires IValidationService)
+        mediator.AddValidationToRequestPipeline();
+
+        // Adds UnitOfWorkRequestBehavior and UnitOfWorkRequestWithResponseBehavior
+        mediator.AddUnitOfWorkToRequestPipeline();
+    });
+```
+
+## Usage
+
+### Defining requests
+
+A fire-and-forget request implements `IAppRequest`:
+
+```csharp
+using RCommon.Mediator.Subscribers;
+
+public class PlaceOrderRequest : IAppRequest
+{
+    public PlaceOrderRequest(Guid customerId, IReadOnlyList<OrderLineDto> lines)
+    {
+        CustomerId = customerId;
+        Lines = lines;
+    }
+
+    public Guid CustomerId { get; }
+    public IReadOnlyList<OrderLineDto> Lines { get; }
+}
+```
+
+A request that returns a response implements `IAppRequest<TResponse>`:
+
+```csharp
+using RCommon.Mediator.Subscribers;
+
+public class GetOrderRequest : IAppRequest<OrderDto>
+{
+    public GetOrderRequest(Guid orderId)
+    {
+        OrderId = orderId;
+    }
+
+    public Guid OrderId { get; }
+}
+```
+
+### Defining request handlers
+
+Handle a fire-and-forget request by implementing `IAppRequestHandler<TRequest>`:
+
+```csharp
+using RCommon.Mediator.Subscribers;
+
+public class PlaceOrderRequestHandler : IAppRequestHandler<PlaceOrderRequest>
+{
+    private readonly IOrderRepository _orders;
+
+    public PlaceOrderRequestHandler(IOrderRepository orders)
+    {
+        _orders = orders;
+    }
+
+    public async Task HandleAsync(PlaceOrderRequest request, CancellationToken cancellationToken = default)
+    {
+        var order = Order.Create(request.CustomerId, request.Lines);
+        await _orders.AddAsync(order, cancellationToken);
+    }
+}
+```
+
+Handle a request that returns a response by implementing `IAppRequestHandler<TRequest, TResponse>`:
+
+```csharp
+using RCommon.Mediator.Subscribers;
+
+public class GetOrderRequestHandler : IAppRequestHandler<GetOrderRequest, OrderDto>
+{
+    private readonly IOrderRepository _orders;
+
+    public GetOrderRequestHandler(IOrderRepository orders)
+    {
+        _orders = orders;
+    }
+
+    public async Task<OrderDto> HandleAsync(GetOrderRequest request, CancellationToken cancellationToken = default)
+    {
+        var order = await _orders.GetByIdAsync(request.OrderId, cancellationToken);
+        return new OrderDto { Id = order.Id, CustomerId = order.CustomerId };
+    }
+}
+```
+
+### Defining notifications
+
+Notifications are broadcast to all registered subscribers. Implement `IAppNotification` on the notification class:
+
+```csharp
+using RCommon.Mediator.Subscribers;
+
+public class OrderPlacedNotification : IAppNotification
+{
+    public OrderPlacedNotification(Guid orderId, DateTime placedAt)
+    {
+        OrderId = orderId;
+        PlacedAt = placedAt;
+    }
+
+    public Guid OrderId { get; }
+    public DateTime PlacedAt { get; }
+}
+```
+
+Subscribe by implementing `ISubscriber<TNotification>` from `RCommon.EventHandling.Subscribers`:
+
+```csharp
+using RCommon.EventHandling.Subscribers;
+
+public class OrderPlacedNotificationHandler : ISubscriber<OrderPlacedNotification>
+{
+    public async Task HandleAsync(OrderPlacedNotification notification, CancellationToken cancellationToken = default)
+    {
+        // React to the notification — send email, update read model, etc.
+        await Task.CompletedTask;
+    }
+}
+```
+
+### Sending and publishing
+
+Inject `IMediatorService` and use `Send` or `Publish`:
+
+```csharp
+using RCommon.Mediator;
+
+public class OrderController : ControllerBase
+{
+    private readonly IMediatorService _mediator;
+
+    public OrderController(IMediatorService mediator)
+    {
+        _mediator = mediator;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> PlaceOrder(PlaceOrderRequest request)
+    {
+        // Fire-and-forget: dispatches to a single handler
+        await _mediator.Send(request);
+        return Accepted();
+    }
+
+    [HttpGet("{id}")]
+    public async Task<OrderDto> GetOrder(Guid id)
+    {
+        // Request-response: dispatches to a single handler and returns a result
+        return await _mediator.Send<GetOrderRequest, OrderDto>(new GetOrderRequest(id));
+    }
+
+    [HttpPost("{id}/events")]
+    public async Task<IActionResult> PublishOrderPlaced(Guid id)
+    {
+        // Notification: delivers to all registered subscribers
+        await _mediator.Publish(new OrderPlacedNotification(id, DateTime.UtcNow));
+        return NoContent();
+    }
+}
+```
+
+## API Summary
+
+### `IMediatorService`
+
+| Method | Description |
+|---|---|
+| `Send<TRequest>(TRequest, CancellationToken)` | Dispatches a fire-and-forget request to a single handler. Wraps the request in `MediatRRequest<TRequest>` internally. |
+| `Send<TRequest, TResponse>(TRequest, CancellationToken)` | Dispatches a request to a single handler and returns its response. |
+| `Publish<TNotification>(TNotification, CancellationToken)` | Broadcasts a notification to all registered `ISubscriber<TNotification>` implementations. |
+
+### `IMediatRBuilder` registration methods
+
+| Method | Description |
+|---|---|
+| `AddRequest<TRequest, THandler>()` | Registers a fire-and-forget request and its handler. |
+| `AddRequest<TRequest, TResponse, THandler>()` | Registers a request-response pair and its handler. |
+| `AddNotification<TNotification, THandler>()` | Registers a notification and its subscriber. |
+| `AddLoggingToRequestPipeline()` | Registers `LoggingRequestBehavior` and `LoggingRequestWithResponseBehavior`. |
+| `AddValidationToRequestPipeline()` | Registers `ValidatorBehavior`, `ValidatorBehaviorForMediatR`, and `ValidationService`. |
+| `AddUnitOfWorkToRequestPipeline()` | Registers `UnitOfWorkRequestBehavior` and `UnitOfWorkRequestWithResponseBehavior`. |
+| `Configure(Action<MediatRServiceConfiguration>)` | Passes a configuration delegate directly to MediatR's `AddMediatR`. |
+| `Configure(MediatRServiceConfiguration)` | Passes a pre-built configuration instance to MediatR's `AddMediatR`. |
+
+### Built-in pipeline behaviors
+
+| Behavior | Applies to | Description |
+|---|---|---|
+| `LoggingRequestBehavior<TRequest, TResponse>` | `IRequest` | Logs request name and payload before and after handler execution. |
+| `LoggingRequestWithResponseBehavior<TRequest, TResponse>` | `IRequest<TResponse>` | Same as above for requests that return a response. |
+| `ValidatorBehavior<TRequest, TResponse>` | `IAppRequest<TResponse>` | Validates `IAppRequest<TResponse>` instances using `IValidationService`. Throws on failure. |
+| `ValidatorBehaviorForMediatR<TRequest, TResponse>` | `IRequest<TResponse>` | Validates raw MediatR `IRequest<TResponse>` instances using `IValidationService`. |
+| `UnitOfWorkRequestBehavior<TRequest, TResponse>` | `IRequest` | Wraps handler execution in a `TransactionMode.Default` unit of work. Commits on success. |
+| `UnitOfWorkRequestWithResponseBehavior<TRequest, TResponse>` | `IRequest<TResponse>` | Same as above for requests that return a response. |
+
+### Marker interfaces
+
+| Interface | Package | Description |
+|---|---|---|
+| `IAppRequest` | `RCommon.Mediator` | Marker for fire-and-forget requests dispatched via `Send`. |
+| `IAppRequest<TResponse>` | `RCommon.Mediator` | Marker for request-response requests dispatched via `Send<TRequest, TResponse>`. |
+| `IAppNotification` | `RCommon.Mediator` | Marker for notifications dispatched via `Publish`. |
+| `IAppRequestHandler<TRequest>` | `RCommon.Mediator` | Handler for fire-and-forget requests. |
+| `IAppRequestHandler<TRequest, TResponse>` | `RCommon.Mediator` | Handler for request-response requests. |

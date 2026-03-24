@@ -3,6 +3,154 @@ title: Command & Query Bus
 sidebar_position: 1
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Command & Query Bus
 
-*Documentation coming soon.*
+## Overview
+
+RCommon implements the Command Query Responsibility Segregation (CQRS) pattern through two dedicated bus abstractions: `ICommandBus` and `IQueryBus`. These buses decouple the code that initiates an operation from the code that handles it.
+
+**Commands** represent intent to change state. A command is dispatched through `ICommandBus`, which resolves exactly one handler and returns an `IExecutionResult`. If no handler is registered or more than one is found, the bus throws an exception — enforcing the CQRS contract that a command has a single, authoritative handler.
+
+**Queries** represent requests for data without side effects. A query is dispatched through `IQueryBus`, which resolves exactly one handler and returns the typed result.
+
+Both buses resolve handlers from the .NET dependency injection container. They use dynamically compiled delegates to invoke `HandleAsync` on the resolved handler, avoiding per-call reflection overhead. These compiled delegates can optionally be cached by enabling expression caching in RCommon's caching configuration.
+
+Both buses also support optional pre-dispatch validation. When validation is enabled through `CqrsValidationOptions`, the bus calls `IValidationService.ValidateAsync` before passing the message to its handler.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.ApplicationServices" />
+
+## Configuration
+
+Wire up the CQRS buses inside `AddRCommon()` using `WithCQRS<CqrsBuilder>`. The builder's configuration delegate is where you register your command and query handlers.
+
+```csharp
+using RCommon;
+using RCommon.ApplicationServices;
+
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        // Register handlers individually (explicit, verbose)
+        cqrs.AddCommandHandler<CreateOrderHandler, CreateOrderCommand, IExecutionResult>();
+        cqrs.AddQueryHandler<GetOrderHandler, GetOrderQuery, OrderDto>();
+
+        // Or scan an assembly for all handlers (concise)
+        cqrs.AddCommandHandlers(typeof(Program).Assembly);
+        cqrs.AddQueryHandlers(typeof(Program).Assembly);
+    });
+```
+
+### Enabling validation
+
+Combine `WithCQRS` with `WithValidation` to run validators before dispatch:
+
+```csharp
+using RCommon;
+using RCommon.ApplicationServices;
+using RCommon.FluentValidation;
+
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddCommandHandlers(typeof(Program).Assembly);
+        cqrs.AddQueryHandlers(typeof(Program).Assembly);
+    })
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining<CreateOrderCommand>();
+
+        validation.UseWithCqrs(options =>
+        {
+            options.ValidateCommands = true;
+            options.ValidateQueries = true;
+        });
+    });
+```
+
+### Enabling expression caching
+
+Enable caching to avoid recompiling handler invocation delegates on every dispatch:
+
+```csharp
+using RCommon.MemoryCache;
+
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddCommandHandlers(typeof(Program).Assembly);
+    })
+    .WithMemoryCaching<InMemoryCachingBuilder>(cache =>
+    {
+        cache.CacheDynamicallyCompiledExpressions();
+    });
+```
+
+## Usage
+
+Inject `ICommandBus` or `IQueryBus` into any service and call the dispatch methods:
+
+```csharp
+using RCommon.ApplicationServices.Commands;
+using RCommon.ApplicationServices.Queries;
+using RCommon.Models.ExecutionResults;
+
+public class OrderApplicationService
+{
+    private readonly ICommandBus _commandBus;
+    private readonly IQueryBus _queryBus;
+
+    public OrderApplicationService(ICommandBus commandBus, IQueryBus queryBus)
+    {
+        _commandBus = commandBus;
+        _queryBus = queryBus;
+    }
+
+    public async Task<IExecutionResult> PlaceOrder(PlaceOrderCommand command)
+    {
+        return await _commandBus.DispatchCommandAsync(command, CancellationToken.None);
+    }
+
+    public async Task<OrderDto> GetOrder(GetOrderQuery query)
+    {
+        return await _queryBus.DispatchQueryAsync(query, CancellationToken.None);
+    }
+}
+```
+
+## API Summary
+
+### `ICommandBus`
+
+| Member | Description |
+|---|---|
+| `DispatchCommandAsync<TResult>(ICommand<TResult>, CancellationToken)` | Resolves the single registered `ICommandHandler<TResult, TCommand>` and invokes it. Throws `NoCommandHandlersException` when no handler is found; throws `InvalidOperationException` when more than one is found. |
+
+### `IQueryBus`
+
+| Member | Description |
+|---|---|
+| `DispatchQueryAsync<TResult>(IQuery<TResult>, CancellationToken)` | Resolves the single registered `IQueryHandler<TQuery, TResult>` and invokes it. |
+
+### `ICqrsBuilder` extension methods
+
+| Method | Description |
+|---|---|
+| `AddCommandHandler<THandler, TCommand, TResult>()` | Registers a single command handler as a transient service. |
+| `AddCommand<TCommand, THandler, TResult>()` | Alias for `AddCommandHandler` with command-first type parameter order. |
+| `AddCommandHandlers(Assembly, Predicate<Type>?)` | Scans an assembly and registers all `ICommandHandler<TResult, TCommand>` implementations. Excludes decorator types. |
+| `AddCommandHandlers(IEnumerable<Type>)` | Registers the provided command handler types explicitly. |
+| `AddQueryHandler<THandler, TQuery, TResult>()` | Registers a single query handler as a transient service. |
+| `AddQuery<TQuery, THandler, TResult>()` | Alias for `AddQueryHandler` with query-first type parameter order. |
+| `AddQueryHandlers(Assembly, Predicate<Type>?)` | Scans an assembly and registers all `IQueryHandler<TQuery, TResult>` implementations. Excludes decorator types. |
+| `AddQueryHandlers(IEnumerable<Type>)` | Registers the provided query handler types explicitly. |
+
+### `CqrsValidationOptions`
+
+| Property | Default | Description |
+|---|---|---|
+| `ValidateCommands` | `false` | When `true`, the `CommandBus` calls `IValidationService.ValidateAsync` before dispatching. |
+| `ValidateQueries` | `false` | When `true`, the `QueryBus` calls `IValidationService.ValidateAsync` before dispatching. |

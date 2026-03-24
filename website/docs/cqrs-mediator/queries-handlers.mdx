@@ -3,6 +3,210 @@ title: Queries & Handlers
 sidebar_position: 3
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Queries & Handlers
 
-*Documentation coming soon.*
+## Overview
+
+A **query** in RCommon is a message that requests data without modifying state. It carries the parameters needed to fetch or compute results and returns a strongly-typed response.
+
+A **query handler** performs the data retrieval. The `IQueryBus` resolves exactly one handler per query type and invokes it. Queries are read-only by design — a handler should never cause side effects.
+
+The `IQuery<TResult>` marker interface lives in `RCommon.Models` and binds a query class to its result type. `IQueryHandler<TQuery, TResult>` defines the handler contract. Registration follows the same fluent pattern used for commands.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.ApplicationServices" />
+
+## Defining a query
+
+Implement `IQuery<TResult>` on your query class. `TResult` can be any type — a DTO, a collection, a paginated result, or a primitive.
+
+```csharp
+using RCommon.Models.Queries;
+
+public class GetOrderByIdQuery : IQuery<OrderDto>
+{
+    public GetOrderByIdQuery(Guid orderId)
+    {
+        OrderId = orderId;
+    }
+
+    public Guid OrderId { get; }
+}
+```
+
+For paginated results, derive the result type from `PagedResult<T>` (from `RCommon.Models`):
+
+```csharp
+using RCommon.Models.Queries;
+
+public class GetOrdersQuery : IQuery<IPagedResult<OrderSummaryDto>>
+{
+    public GetOrdersQuery(int pageNumber, int pageSize)
+    {
+        PageNumber = pageNumber;
+        PageSize = pageSize;
+    }
+
+    public int PageNumber { get; }
+    public int PageSize { get; }
+}
+```
+
+## Creating a handler
+
+Implement `IQueryHandler<TQuery, TResult>`. The type parameters match those declared on the query: query type first, result type second.
+
+```csharp
+using RCommon.ApplicationServices.Queries;
+
+public class GetOrderByIdHandler : IQueryHandler<GetOrderByIdQuery, OrderDto>
+{
+    private readonly IOrderRepository _orders;
+
+    public GetOrderByIdHandler(IOrderRepository orders)
+    {
+        _orders = orders;
+    }
+
+    public async Task<OrderDto> HandleAsync(
+        GetOrderByIdQuery query,
+        CancellationToken cancellationToken)
+    {
+        var order = await _orders.GetByIdAsync(query.OrderId, cancellationToken);
+
+        return new OrderDto
+        {
+            Id = order.Id,
+            CustomerId = order.CustomerId,
+            Status = order.Status,
+            Lines = order.Lines.Select(l => new OrderLineDto(l.ProductId, l.Quantity, l.UnitPrice)).ToList()
+        };
+    }
+}
+```
+
+Handlers receive dependencies through constructor injection. The handler should only read data, never write it.
+
+## Registration
+
+Register handlers during startup inside `WithCQRS<CqrsBuilder>`.
+
+### Individual registration
+
+```csharp
+using RCommon;
+using RCommon.ApplicationServices;
+
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddQueryHandler<GetOrderByIdHandler, GetOrderByIdQuery, OrderDto>();
+    });
+```
+
+### Assembly scan
+
+Scanning an assembly is the recommended approach for applications with many handlers. All non-abstract types implementing `IQueryHandler<TQuery, TResult>` are registered automatically. Decorator types (those accepting a query handler in their constructor) are excluded from the scan.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddQueryHandlers(typeof(Program).Assembly);
+    });
+```
+
+Apply a predicate to limit which namespaces or types are included:
+
+```csharp
+cqrs.AddQueryHandlers(
+    typeof(Program).Assembly,
+    t => t.Namespace?.StartsWith("MyApp.Ordering") == true);
+```
+
+## Adding validation
+
+When `ValidateQueries` is enabled, the `QueryBus` runs `IValidationService.ValidateAsync` before dispatching. Define a FluentValidation validator for the query class:
+
+```csharp
+using FluentValidation;
+
+public class GetOrderByIdQueryValidator : AbstractValidator<GetOrderByIdQuery>
+{
+    public GetOrderByIdQueryValidator()
+    {
+        RuleFor(q => q.OrderId).NotEmpty();
+    }
+}
+```
+
+Register the validator and enable query validation:
+
+```csharp
+using RCommon.FluentValidation;
+
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddQueryHandlers(typeof(Program).Assembly);
+    })
+    .WithValidation<FluentValidationBuilder>(validation =>
+    {
+        validation.AddValidatorsFromAssemblyContaining<GetOrderByIdQuery>();
+
+        validation.UseWithCqrs(options =>
+        {
+            options.ValidateQueries = true;
+        });
+    });
+```
+
+## Dispatching a query
+
+Inject `IQueryBus` and call `DispatchQueryAsync`:
+
+```csharp
+using RCommon.ApplicationServices.Queries;
+
+public class OrderApplicationService
+{
+    private readonly IQueryBus _queryBus;
+
+    public OrderApplicationService(IQueryBus queryBus)
+    {
+        _queryBus = queryBus;
+    }
+
+    public async Task<OrderDto> GetOrder(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        var query = new GetOrderByIdQuery(orderId);
+        return await _queryBus.DispatchQueryAsync(query, cancellationToken);
+    }
+}
+```
+
+## API Summary
+
+### `IQuery<TResult>`
+
+| Member | Description |
+|---|---|
+| (marker interface) | Implement on query classes. `TResult` is the return type produced by the handler. Consumed by `IQueryBus.DispatchQueryAsync<TResult>`. |
+
+### `IQueryHandler<TQuery, TResult>`
+
+| Member | Description |
+|---|---|
+| `HandleAsync(TQuery, CancellationToken)` | Handles the query and returns a `Task<TResult>`. Should not cause side effects. |
+
+### `ICqrsBuilder` query registration methods
+
+| Method | Description |
+|---|---|
+| `AddQueryHandler<THandler, TQuery, TResult>()` | Registers one handler for one query type as a transient service. |
+| `AddQuery<TQuery, THandler, TResult>()` | Alias with query-first parameter order. |
+| `AddQueryHandlers(Assembly, Predicate<Type>?)` | Assembly scan registration. Excludes decorator types. |
+| `AddQueryHandlers(IEnumerable<Type>)` | Explicit bulk registration. |
