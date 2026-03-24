@@ -1,0 +1,28 @@
+{
+  "id": "serialization/system-text-json",
+  "title": "System.Text.Json",
+  "description": "Overview",
+  "source": "@site/versioned_docs/version-2.4.1/serialization/system-text-json.mdx",
+  "sourceDirName": "serialization",
+  "slug": "/serialization/system-text-json",
+  "permalink": "/docs/serialization/system-text-json",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/serialization/system-text-json.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "System.Text.Json",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Newtonsoft.Json",
+    "permalink": "/docs/serialization/newtonsoft"
+  },
+  "next": {
+    "title": "Validation",
+    "permalink": "/docs/category/validation"
+  }
+}

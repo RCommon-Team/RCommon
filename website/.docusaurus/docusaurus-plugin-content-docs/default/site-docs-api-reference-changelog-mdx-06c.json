@@ -1,0 +1,28 @@
+{
+  "id": "api-reference/changelog",
+  "title": "Changelog",
+  "description": "The authoritative release history for all RCommon packages is maintained on GitHub Releases.",
+  "source": "@site/docs/api-reference/changelog.mdx",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/changelog",
+  "permalink": "/docs/next/api-reference/changelog",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/api-reference/changelog.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Changelog",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "NuGet Packages",
+    "permalink": "/docs/next/api-reference/nuget-packages"
+  },
+  "next": {
+    "title": "Migration Guide",
+    "permalink": "/docs/next/api-reference/migration-guide"
+  }
+}

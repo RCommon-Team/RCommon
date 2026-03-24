@@ -1,0 +1,28 @@
+{
+  "id": "examples-recipes/caching",
+  "title": "Caching Examples",
+  "description": "This page walks through the three caching examples included with RCommon: in-process memory cache, distributed memory cache, Redis distributed cache, and the persistence caching layer that caches repository query results.",
+  "source": "@site/docs/examples-recipes/caching.mdx",
+  "sourceDirName": "examples-recipes",
+  "slug": "/examples-recipes/caching",
+  "permalink": "/docs/next/examples-recipes/caching",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/examples-recipes/caching.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Caching Examples",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Event Handling Examples",
+    "permalink": "/docs/next/examples-recipes/event-handling"
+  },
+  "next": {
+    "title": "Messaging Examples",
+    "permalink": "/docs/next/examples-recipes/messaging"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "index",
+  "title": "RCommon Documentation",
+  "description": "Welcome to the RCommon documentation. Use the sidebar to navigate through the available topics.",
+  "source": "@site/docs/index.mdx",
+  "sourceDirName": ".",
+  "slug": "/",
+  "permalink": "/docs/next/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/index.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "RCommon Documentation",
+    "sidebar_position": 1
+  }
+}

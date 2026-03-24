@@ -1,0 +1,28 @@
+{
+  "id": "event-handling/transactional-outbox",
+  "title": "Transactional Outbox",
+  "description": "The transactional outbox pattern guarantees that events are published to a message broker if and only if the database transaction that triggered them commits. RCommon provides outbox integration for both MassTransit and Wolverine.",
+  "source": "@site/docs/event-handling/transactional-outbox.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/transactional-outbox",
+  "permalink": "/docs/next/event-handling/transactional-outbox",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/event-handling/transactional-outbox.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Transactional Outbox",
+    "sidebar_position": 4
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Distributed Events",
+    "permalink": "/docs/next/event-handling/distributed"
+  },
+  "next": {
+    "title": "MediatR",
+    "permalink": "/docs/next/event-handling/mediatr"
+  }
+}

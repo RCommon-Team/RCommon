@@ -1,0 +1,28 @@
+{
+  "id": "testing/overview",
+  "title": "Overview",
+  "description": "RCommon is designed with testability as a first-class concern. Because RCommon wraps infrastructure concerns — persistence, messaging, caching, emailing — behind clean abstractions, you can substitute real implementations with mocks or in-memory alternatives in your test suite without changing your application code.",
+  "source": "@site/versioned_docs/version-2.4.1/testing/overview.mdx",
+  "sourceDirName": "testing",
+  "slug": "/testing/overview",
+  "permalink": "/docs/testing/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/testing/overview.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Testing",
+    "permalink": "/docs/category/testing"
+  },
+  "next": {
+    "title": "Test Base Classes",
+    "permalink": "/docs/testing/test-base-classes"
+  }
+}

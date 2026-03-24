@@ -265,6 +265,17 @@ img {
   background-color: var(--primary-blue-600);
 }
 
+/* Search bar */
+.navbar__search-input {
+  width: 220px;
+  padding: 8px 40px 8px 36px;
+  font-size: 0.875rem;
+  border-radius: 48px;
+}
+.navbar__search-input:focus {
+  width: 280px;
+}
+
 /* Version dropdown */
 .navbar__item.dropdown.dropdown--hoverable {
   @apply rounded-full;
@@ -516,10 +527,20 @@ main {
   @apply p-0;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
+  max-width: 100% !important;
 }
-.container > div > div:first-child {
+/* Neutralize Infima row negative margins inside doc container */
+.container > .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+/* Doc item pages: padding on content column within the row */
+.container > .row > div:first-child {
   @apply px-20 py-10 !important;
-  margin: 0 auto;
+}
+/* Category/generated-index pages: padding on the wrapper div (not a .row) */
+.container > div:not(.row) {
+  @apply px-20 py-10 !important;
 }
 .markdown h1:first-child {
   @apply mb-2;
@@ -1149,7 +1170,8 @@ table td {
 /* ── Responsive breakpoints ──────────────────────────────── */
 
 @media (max-width: 1150px) {
-  .container > div > div:first-child {
+  .container > .row > div:first-child,
+  .container > div:not(.row) {
     @apply px-10 py-10 !important;
   }
   .front-matter {
@@ -1159,8 +1181,29 @@ table td {
 }
 
 @media (max-width: 768px) {
-  .container > div > div:first-child {
-    @apply px-4 py-4 !important;
+  .container > .row > div:first-child,
+  .container > div:not(.row) {
+    padding: 1.5rem 1.25rem !important;
+  }
+  .card-wrapper {
+    grid-template-columns: 1fr;
+    grid-gap: 16px;
+  }
+  p code, li code, td code {
+    word-break: break-all;
+  }
+  pre {
+    overflow-x: auto;
+  }
+  h1 {
+    font-size: 1.5rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+  }
+  table {
+    display: block;
+    overflow-x: auto;
   }
 }
 
@@ -1172,7 +1215,8 @@ table td {
 }
 
 @media (min-width: 997px) and (max-width: 1327px) {
-  .container > div > div:first-child {
+  .container > .row > div:first-child,
+  .container > div:not(.row) {
     padding-left: 4rem !important;
     padding-right: 4rem !important;
   }
@@ -1199,9 +1243,9 @@ table td {
 }
 
 @media (max-width: 600px) {
-  .card-wrapper {
-    grid-template-columns: 1fr;
-    grid-gap: 24px;
+  .container > .row > div:first-child,
+  .container > div:not(.row) {
+    padding: 1rem 1rem !important;
   }
   .pagination-nav {
     display: block;

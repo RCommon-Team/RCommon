@@ -1,0 +1,28 @@
+{
+  "id": "security-web/web-utilities",
+  "title": "Web Utilities",
+  "description": "Overview",
+  "source": "@site/versioned_docs/version-2.4.1/security-web/web-utilities.mdx",
+  "sourceDirName": "security-web",
+  "slug": "/security-web/web-utilities",
+  "permalink": "/docs/security-web/web-utilities",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/security-web/web-utilities.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Web Utilities",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Authorization",
+    "permalink": "/docs/security-web/authorization"
+  },
+  "next": {
+    "title": "Architecture Guides",
+    "permalink": "/docs/category/architecture-guides"
+  }
+}

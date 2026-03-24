@@ -1,0 +1,143 @@
+<h2>RCommon Documentation Sidebar Structure</h2>
+<p class="subtitle">Proposed navigation hierarchy for all 37+ packages — organized by domain, not by package name</p>
+
+<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+
+  <!-- Left column: Main docs nav -->
+  <div style="flex: 1; min-width: 320px;">
+    <div class="mockup">
+      <div class="mockup-header">Sidebar Navigation</div>
+      <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 2;">
+        <div><strong>Getting Started</strong></div>
+        <div style="padding-left: 16px;">Overview &amp; Philosophy</div>
+        <div style="padding-left: 16px;">Installation</div>
+        <div style="padding-left: 16px;">Quick Start Guide</div>
+        <div style="padding-left: 16px;">Configuration &amp; Bootstrapping</div>
+        <div style="padding-left: 16px;">Dependency Injection</div>
+        <br/>
+        <div><strong>Core Concepts</strong></div>
+        <div style="padding-left: 16px;">Fluent Configuration Builder</div>
+        <div style="padding-left: 16px;">Guards &amp; Validation</div>
+        <div style="padding-left: 16px;">GUID Generation</div>
+        <div style="padding-left: 16px;">System Time Abstraction</div>
+        <div style="padding-left: 16px;">Execution Results &amp; Models</div>
+        <br/>
+        <div><strong>Domain-Driven Design</strong></div>
+        <div style="padding-left: 16px;">Entities &amp; Aggregate Roots</div>
+        <div style="padding-left: 16px;">Domain Events</div>
+        <div style="padding-left: 16px;">Value Objects</div>
+        <div style="padding-left: 16px;">Auditing (Created, Updated)</div>
+        <div style="padding-left: 16px;">Soft Delete</div>
+        <br/>
+        <div><strong>Persistence</strong></div>
+        <div style="padding-left: 16px;">Repository Pattern</div>
+        <div style="padding-left: 16px;">Specifications</div>
+        <div style="padding-left: 16px;">Unit of Work</div>
+        <div style="padding-left: 16px; color: #888;">Providers:</div>
+        <div style="padding-left: 32px;">Entity Framework Core</div>
+        <div style="padding-left: 32px;">Dapper</div>
+        <div style="padding-left: 32px;">Linq2Db</div>
+        <div style="padding-left: 16px;">Persistence Caching</div>
+        <div style="padding-left: 32px;">Memory Cache</div>
+        <div style="padding-left: 32px;">Redis Cache</div>
+        <br/>
+        <div><strong>CQRS &amp; Mediator</strong></div>
+        <div style="padding-left: 16px;">Command &amp; Query Bus</div>
+        <div style="padding-left: 16px;">Commands &amp; Handlers</div>
+        <div style="padding-left: 16px;">Queries &amp; Handlers</div>
+        <div style="padding-left: 16px; color: #888;">Providers:</div>
+        <div style="padding-left: 32px;">MediatR</div>
+        <div style="padding-left: 32px;">Wolverine</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column: continued -->
+  <div style="flex: 1; min-width: 320px;">
+    <div class="mockup">
+      <div class="mockup-header">Sidebar Navigation (continued)</div>
+      <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 2;">
+        <div><strong>Event Handling</strong></div>
+        <div style="padding-left: 16px;">Event Bus Overview</div>
+        <div style="padding-left: 16px;">In-Memory Events</div>
+        <div style="padding-left: 16px;">Distributed Events</div>
+        <div style="padding-left: 16px;">Transactional Outbox</div>
+        <div style="padding-left: 16px; color: #888;">Providers:</div>
+        <div style="padding-left: 32px;">MediatR</div>
+        <div style="padding-left: 32px;">MassTransit</div>
+        <div style="padding-left: 32px;">Wolverine</div>
+        <br/>
+        <div><strong>Messaging</strong></div>
+        <div style="padding-left: 16px;">Message Bus Overview</div>
+        <div style="padding-left: 16px;">Transactional Outbox</div>
+        <div style="padding-left: 16px;">State Machines</div>
+        <div style="padding-left: 16px; color: #888;">Providers:</div>
+        <div style="padding-left: 32px;">MassTransit</div>
+        <div style="padding-left: 32px;">Wolverine</div>
+        <br/>
+        <div><strong>Caching</strong></div>
+        <div style="padding-left: 16px;">Caching Overview</div>
+        <div style="padding-left: 16px;">Memory Cache</div>
+        <div style="padding-left: 16px;">Redis Cache</div>
+        <br/>
+        <div><strong>Blob Storage</strong></div>
+        <div style="padding-left: 16px;">Blob Storage Overview</div>
+        <div style="padding-left: 16px;">Azure Blob Storage</div>
+        <div style="padding-left: 16px;">Amazon S3</div>
+        <br/>
+        <div><strong>Serialization</strong></div>
+        <div style="padding-left: 16px;">JSON Abstraction</div>
+        <div style="padding-left: 16px;">Newtonsoft.Json</div>
+        <div style="padding-left: 16px;">System.Text.Json</div>
+        <br/>
+        <div><strong>Validation</strong></div>
+        <div style="padding-left: 16px;">FluentValidation Integration</div>
+        <br/>
+        <div><strong>Email</strong></div>
+        <div style="padding-left: 16px;">Email Abstraction</div>
+        <div style="padding-left: 16px;">SMTP</div>
+        <div style="padding-left: 16px;">SendGrid</div>
+        <br/>
+        <div><strong>Multi-Tenancy</strong></div>
+        <div style="padding-left: 16px;">Multi-Tenancy Overview</div>
+        <div style="padding-left: 16px;">Finbuckle Integration</div>
+        <br/>
+        <div><strong>Security &amp; Web</strong></div>
+        <div style="padding-left: 16px;">Authorization</div>
+        <div style="padding-left: 16px;">Web Utilities</div>
+        <br/>
+        <div><strong>Architecture Guides</strong></div>
+        <div style="padding-left: 16px;">Clean Architecture</div>
+        <div style="padding-left: 16px;">Microservices</div>
+        <div style="padding-left: 16px;">Event-Driven Architecture</div>
+        <br/>
+        <div><strong>Examples &amp; Recipes</strong></div>
+        <div style="padding-left: 16px;">HR Leave Management (Clean + CQRS)</div>
+        <div style="padding-left: 16px;">Event Handling Examples</div>
+        <div style="padding-left: 16px;">Caching Examples</div>
+        <div style="padding-left: 16px;">Messaging Examples</div>
+        <br/>
+        <div><strong>Testing</strong></div>
+        <div style="padding-left: 16px;">Testing with RCommon</div>
+        <div style="padding-left: 16px;">Test Base Classes</div>
+        <br/>
+        <div><strong>API Reference</strong></div>
+        <div style="padding-left: 16px;">NuGet Packages</div>
+        <div style="padding-left: 16px;">Changelog</div>
+        <div style="padding-left: 16px;">Migration Guide</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <h3 style="margin-top: 0;">Key Design Decisions</h3>
+  <ul style="line-height: 2;">
+    <li><strong>Domain-organized, not package-organized</strong> — users think in terms of "persistence" or "events", not "RCommon.EfCore"</li>
+    <li><strong>Abstraction → Provider pattern</strong> — each section explains the abstraction first, then shows provider-specific setup</li>
+    <li><strong>Progressive complexity</strong> — Getting Started → Core Concepts → Domain features → Architecture → Examples</li>
+    <li><strong>Recipes section</strong> — real-world patterns combining multiple features together</li>
+    <li><strong>Every page includes</strong>: concept overview, NuGet install, configuration, usage examples, provider comparison (where applicable)</li>
+  </ul>
+</div>

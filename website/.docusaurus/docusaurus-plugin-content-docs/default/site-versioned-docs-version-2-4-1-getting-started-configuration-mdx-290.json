@@ -1,0 +1,28 @@
+{
+  "id": "getting-started/configuration",
+  "title": "Configuration & Bootstrapping",
+  "description": "RCommon uses a single fluent builder entry point. All configuration happens at application startup before the DI container is built.",
+  "source": "@site/versioned_docs/version-2.4.1/getting-started/configuration.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/configuration",
+  "permalink": "/docs/getting-started/configuration",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/getting-started/configuration.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Configuration & Bootstrapping",
+    "sidebar_position": 4
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Quick Start Guide",
+    "permalink": "/docs/getting-started/quick-start"
+  },
+  "next": {
+    "title": "Dependency Injection",
+    "permalink": "/docs/getting-started/dependency-injection"
+  }
+}

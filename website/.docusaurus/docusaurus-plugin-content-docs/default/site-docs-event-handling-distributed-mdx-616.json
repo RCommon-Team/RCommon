@@ -1,0 +1,28 @@
+{
+  "id": "event-handling/distributed",
+  "title": "Distributed Events",
+  "description": "Distributed event handling extends the in-process model to message brokers, enabling events to cross service boundaries. RCommon integrates with MassTransit and Wolverine as transport backends while keeping the application handler code identical to the in-memory case: every handler implements the same ISubscriber interface.",
+  "source": "@site/docs/event-handling/distributed.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/distributed",
+  "permalink": "/docs/next/event-handling/distributed",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/event-handling/distributed.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Distributed Events",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "In-Memory Events",
+    "permalink": "/docs/next/event-handling/in-memory"
+  },
+  "next": {
+    "title": "Transactional Outbox",
+    "permalink": "/docs/next/event-handling/transactional-outbox"
+  }
+}

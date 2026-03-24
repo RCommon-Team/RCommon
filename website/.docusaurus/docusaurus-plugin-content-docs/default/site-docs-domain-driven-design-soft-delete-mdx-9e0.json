@@ -1,0 +1,28 @@
+{
+  "id": "domain-driven-design/soft-delete",
+  "title": "Soft Delete",
+  "description": "Soft delete is the practice of marking a record as deleted rather than physically removing it from the database. The record remains in the data store with IsDeleted = true, allowing you to audit what was deleted, restore records if needed, and avoid referential integrity problems caused by physical deletes.",
+  "source": "@site/docs/domain-driven-design/soft-delete.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/soft-delete",
+  "permalink": "/docs/next/domain-driven-design/soft-delete",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/domain-driven-design/soft-delete.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Soft Delete",
+    "sidebar_position": 5
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Auditing",
+    "permalink": "/docs/next/domain-driven-design/auditing"
+  },
+  "next": {
+    "title": "Persistence",
+    "permalink": "/docs/next/category/persistence"
+  }
+}

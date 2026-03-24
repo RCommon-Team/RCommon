@@ -1,0 +1,28 @@
+{
+  "id": "event-handling/mediatr",
+  "title": "MediatR",
+  "description": "RCommon integrates with MediatR to route events through the MediatR notification pipeline. Each event is wrapped in a MediatRNotification and published to all registered INotificationHandler instances. From the application's perspective, handlers still implement ISubscriber — the MediatR plumbing is hidden behind the abstraction.",
+  "source": "@site/versioned_docs/version-2.4.1/event-handling/mediatr.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/mediatr",
+  "permalink": "/docs/event-handling/mediatr",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/event-handling/mediatr.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "MediatR",
+    "sidebar_position": 5
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Transactional Outbox",
+    "permalink": "/docs/event-handling/transactional-outbox"
+  },
+  "next": {
+    "title": "MassTransit",
+    "permalink": "/docs/event-handling/masstransit"
+  }
+}

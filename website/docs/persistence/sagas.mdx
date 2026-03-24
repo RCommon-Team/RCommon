@@ -1,0 +1,274 @@
+---
+title: Sagas
+sidebar_position: 8
+---
+
+# Sagas
+
+RCommon includes a saga orchestration framework that coordinates multi-step business processes with automatic compensation on failure. The saga pattern manages long-running transactions that span multiple services or aggregates, using state machines to drive transitions and persistent stores to track progress.
+
+## When to use sagas
+
+Use sagas when you need to:
+
+- Coordinate a business process across multiple aggregates or bounded contexts
+- Ensure compensating actions run when a step fails (e.g. refund a payment if shipping fails)
+- Track the progress of a multi-step workflow with durable state
+- Combine event-driven processing with state machine logic
+
+## Core abstractions
+
+### SagaState&lt;TKey&gt;
+
+The base class for all saga state. Tracks the lifecycle of a saga instance:
+
+```csharp
+public abstract class SagaState<TKey>
+    where TKey : IEquatable<TKey>
+{
+    public TKey Id { get; set; }
+    public string CorrelationId { get; set; }
+    public DateTimeOffset StartedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+    public string CurrentStep { get; set; }
+    public bool IsCompleted { get; set; }
+    public bool IsFaulted { get; set; }
+    public string? FaultReason { get; set; }
+    public int Version { get; set; }
+}
+```
+
+Extend this to add domain-specific state for your saga:
+
+```csharp
+public class OrderSagaState : SagaState<Guid>
+{
+    public Guid OrderId { get; set; }
+    public decimal Amount { get; set; }
+    public string PaymentTransactionId { get; set; }
+    public bool InventoryReserved { get; set; }
+}
+```
+
+### ISaga&lt;TState, TKey&gt;
+
+The contract every saga must implement — handle events and compensate on failure:
+
+```csharp
+public interface ISaga<TState, TKey>
+    where TState : SagaState<TKey>
+    where TKey : IEquatable<TKey>
+{
+    Task HandleAsync<TEvent>(TEvent @event, TState state, CancellationToken ct = default)
+        where TEvent : ISerializableEvent;
+    Task CompensateAsync(TState state, CancellationToken ct = default);
+}
+```
+
+### ISagaStore&lt;TState, TKey&gt;
+
+Persistence interface for saga state. Supports lookup by primary key or correlation ID:
+
+```csharp
+public interface ISagaStore<TState, TKey>
+    where TState : SagaState<TKey>
+    where TKey : IEquatable<TKey>
+{
+    Task<TState?> FindByCorrelationIdAsync(string correlationId, CancellationToken ct = default);
+    Task<TState?> GetByIdAsync(TKey id, CancellationToken ct = default);
+    Task SaveAsync(TState state, CancellationToken ct = default);
+    Task DeleteAsync(TState state, CancellationToken ct = default);
+}
+```
+
+### SagaOrchestrator&lt;TState, TKey, TSagaState, TSagaTrigger&gt;
+
+The abstract base class that wires together `ISaga`, `ISagaStore`, and `IStateMachineConfigurator`. You define the state machine transitions, map incoming events to triggers, and implement compensation logic:
+
+```csharp
+public abstract class SagaOrchestrator<TState, TKey, TSagaState, TSagaTrigger>
+    : ISaga<TState, TKey>
+    where TState : SagaState<TKey>
+    where TKey : IEquatable<TKey>
+    where TSagaState : struct, Enum
+    where TSagaTrigger : struct, Enum
+{
+    protected ISagaStore<TState, TKey> Store { get; }
+
+    protected abstract void ConfigureStateMachine(
+        IStateMachineConfigurator<TSagaState, TSagaTrigger> configurator);
+
+    protected abstract TSagaTrigger MapEventToTrigger<TEvent>(TEvent @event)
+        where TEvent : ISerializableEvent;
+
+    protected abstract TSagaState InitialState { get; }
+
+    public abstract Task CompensateAsync(TState state, CancellationToken ct = default);
+}
+```
+
+When `HandleAsync` is called, the orchestrator:
+
+1. Reads the current step from the saga state (or uses `InitialState` if new)
+2. Builds a state machine instance at that state
+3. Maps the incoming event to a trigger via `MapEventToTrigger`
+4. Fires the trigger if permitted (no-op if not)
+5. Updates `CurrentStep` and persists the state via the store
+
+## Example: order fulfillment saga
+
+### Define states and triggers
+
+```csharp
+public enum OrderSagaStep
+{
+    Pending,
+    PaymentProcessed,
+    InventoryReserved,
+    Shipped,
+    Completed,
+    Faulted
+}
+
+public enum OrderSagaTrigger
+{
+    PaymentReceived,
+    InventoryConfirmed,
+    ShipmentDispatched,
+    OrderDelivered,
+    StepFailed
+}
+```
+
+### Implement the orchestrator
+
+```csharp
+public class OrderFulfillmentSaga
+    : SagaOrchestrator<OrderSagaState, Guid, OrderSagaStep, OrderSagaTrigger>
+{
+    public OrderFulfillmentSaga(
+        ISagaStore<OrderSagaState, Guid> store,
+        IStateMachineConfigurator<OrderSagaStep, OrderSagaTrigger> configurator)
+        : base(store, configurator)
+    {
+    }
+
+    protected override OrderSagaStep InitialState => OrderSagaStep.Pending;
+
+    protected override void ConfigureStateMachine(
+        IStateMachineConfigurator<OrderSagaStep, OrderSagaTrigger> configurator)
+    {
+        configurator.ForState(OrderSagaStep.Pending)
+            .Permit(OrderSagaTrigger.PaymentReceived, OrderSagaStep.PaymentProcessed)
+            .Permit(OrderSagaTrigger.StepFailed, OrderSagaStep.Faulted);
+
+        configurator.ForState(OrderSagaStep.PaymentProcessed)
+            .Permit(OrderSagaTrigger.InventoryConfirmed, OrderSagaStep.InventoryReserved)
+            .Permit(OrderSagaTrigger.StepFailed, OrderSagaStep.Faulted);
+
+        configurator.ForState(OrderSagaStep.InventoryReserved)
+            .Permit(OrderSagaTrigger.ShipmentDispatched, OrderSagaStep.Shipped)
+            .Permit(OrderSagaTrigger.StepFailed, OrderSagaStep.Faulted);
+
+        configurator.ForState(OrderSagaStep.Shipped)
+            .Permit(OrderSagaTrigger.OrderDelivered, OrderSagaStep.Completed);
+    }
+
+    protected override OrderSagaTrigger MapEventToTrigger<TEvent>(TEvent @event)
+    {
+        return @event switch
+        {
+            PaymentReceivedEvent => OrderSagaTrigger.PaymentReceived,
+            InventoryConfirmedEvent => OrderSagaTrigger.InventoryConfirmed,
+            ShipmentDispatchedEvent => OrderSagaTrigger.ShipmentDispatched,
+            OrderDeliveredEvent => OrderSagaTrigger.OrderDelivered,
+            _ => OrderSagaTrigger.StepFailed
+        };
+    }
+
+    public override async Task CompensateAsync(
+        OrderSagaState state, CancellationToken ct = default)
+    {
+        // Reverse completed steps in order
+        if (state.InventoryReserved)
+        {
+            // Release reserved inventory
+        }
+        if (!string.IsNullOrEmpty(state.PaymentTransactionId))
+        {
+            // Issue refund
+        }
+
+        state.IsFaulted = true;
+        state.FaultReason = "Compensation executed";
+        await Store.SaveAsync(state, ct);
+    }
+}
+```
+
+### Register and use
+
+```csharp
+services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<OrderDbContext>("OrderDb", options =>
+            options.UseSqlServer(connectionString));
+    })
+    .WithStateMachine<StatelessBuilder>(sm =>
+    {
+        sm.AddStatelessStateMachine();
+    });
+
+// Register your saga
+services.AddScoped<OrderFulfillmentSaga>();
+```
+
+The `ISagaStore<,>` is automatically registered by each persistence builder — no manual registration needed.
+
+## Saga store providers
+
+Each persistence provider includes a saga store implementation that is automatically registered when you configure the provider:
+
+| Provider | Store class | Package |
+|----------|------------|---------|
+| EF Core | `EFCoreSagaStore<TState, TKey>` | `RCommon.EfCore` |
+| Dapper | `DapperSagaStore<TState, TKey>` | `RCommon.Dapper` |
+| Linq2Db | `Linq2DbSagaStore<TState, TKey>` | `RCommon.Linq2Db` |
+| In-Memory | `InMemorySagaStore<TState, TKey>` | `RCommon.Persistence` |
+
+All stores are registered as `ISagaStore<TState, TKey>` with scoped lifetime.
+
+### In-memory store
+
+The `InMemorySagaStore` uses a `ConcurrentDictionary` and is useful for testing or prototyping. It is included in the base `RCommon.Persistence` package:
+
+```csharp
+services.AddScoped(typeof(ISagaStore<,>), typeof(InMemorySagaStore<,>));
+```
+
+### EF Core store
+
+Requires your `RCommonDbContext` to include a `DbSet<TSagaState>` for the saga state entity. The store uses the `IDataStoreFactory` to resolve the correct context:
+
+```csharp
+public class OrderDbContext : RCommonDbContext
+{
+    public DbSet<OrderSagaState> OrderSagas { get; set; }
+}
+```
+
+### Dapper and Linq2Db stores
+
+Both use `IDataStoreFactory` to resolve connections and follow the same upsert pattern — attempt an update first, insert if no rows were affected (Dapper) or use `InsertOrReplace` (Linq2Db).
+
+## Relationship to state machines
+
+The `SagaOrchestrator` depends on `IStateMachineConfigurator<TSagaState, TSagaTrigger>` from the [State Machines](../state-machines/overview.mdx) module. You must configure a state machine provider (Stateless or MassTransit) for the orchestrator to function. The state machine drives the transitions while the saga store provides durability.
+
+## Key design decisions
+
+- **Correlation ID** — Every saga instance has a `CorrelationId` that ties together all events belonging to the same business process. Use `FindByCorrelationIdAsync` to look up an in-flight saga when an event arrives.
+- **Optimistic concurrency** — The `Version` property on `SagaState` can be used for optimistic concurrency checks in your store implementation.
+- **Compensation** — `CompensateAsync` is called explicitly when your application detects a failure. The framework does not auto-compensate; you decide when and how to trigger compensation based on your domain logic.
+- **Idempotency** — The orchestrator checks `CanFire` before firing a trigger. If an event arrives for a transition that isn't permitted in the current state, it is silently ignored. This provides natural idempotency for duplicate event delivery.

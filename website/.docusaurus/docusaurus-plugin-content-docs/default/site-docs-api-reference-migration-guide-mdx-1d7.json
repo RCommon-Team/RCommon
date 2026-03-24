@@ -1,0 +1,24 @@
+{
+  "id": "api-reference/migration-guide",
+  "title": "Migration Guide",
+  "description": "This guide covers the patterns and steps required when upgrading between RCommon versions. Because RCommon follows semantic versioning, breaking changes only appear in major version increments.",
+  "source": "@site/docs/api-reference/migration-guide.mdx",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/migration-guide",
+  "permalink": "/docs/next/api-reference/migration-guide",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/api-reference/migration-guide.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Migration Guide",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Changelog",
+    "permalink": "/docs/next/api-reference/changelog"
+  }
+}

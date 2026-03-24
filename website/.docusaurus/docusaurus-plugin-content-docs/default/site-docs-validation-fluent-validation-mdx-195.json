@@ -1,0 +1,28 @@
+{
+  "id": "validation/fluent-validation",
+  "title": "FluentValidation",
+  "description": "Overview",
+  "source": "@site/docs/validation/fluent-validation.mdx",
+  "sourceDirName": "validation",
+  "slug": "/validation/fluent-validation",
+  "permalink": "/docs/next/validation/fluent-validation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/validation/fluent-validation.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "FluentValidation",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Validation",
+    "permalink": "/docs/next/category/validation"
+  },
+  "next": {
+    "title": "Email",
+    "permalink": "/docs/next/category/email"
+  }
+}

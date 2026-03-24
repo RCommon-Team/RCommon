@@ -1,0 +1,28 @@
+{
+  "id": "blob-storage/s3",
+  "title": "Amazon S3",
+  "description": "Overview",
+  "source": "@site/docs/blob-storage/s3.mdx",
+  "sourceDirName": "blob-storage",
+  "slug": "/blob-storage/s3",
+  "permalink": "/docs/next/blob-storage/s3",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/blob-storage/s3.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Amazon S3",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Azure Blob Storage",
+    "permalink": "/docs/next/blob-storage/azure"
+  },
+  "next": {
+    "title": "Serialization",
+    "permalink": "/docs/next/category/serialization"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "serialization/newtonsoft",
+  "title": "Newtonsoft.Json",
+  "description": "Overview",
+  "source": "@site/docs/serialization/newtonsoft.mdx",
+  "sourceDirName": "serialization",
+  "slug": "/serialization/newtonsoft",
+  "permalink": "/docs/next/serialization/newtonsoft",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/serialization/newtonsoft.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Newtonsoft.Json",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/next/serialization/overview"
+  },
+  "next": {
+    "title": "System.Text.Json",
+    "permalink": "/docs/next/serialization/system-text-json"
+  }
+}

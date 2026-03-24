@@ -1,0 +1,28 @@
+{
+  "id": "cqrs-mediator/mediatr",
+  "title": "MediatR",
+  "description": "Overview",
+  "source": "@site/versioned_docs/version-2.4.1/cqrs-mediator/mediatr.mdx",
+  "sourceDirName": "cqrs-mediator",
+  "slug": "/cqrs-mediator/mediatr",
+  "permalink": "/docs/cqrs-mediator/mediatr",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/cqrs-mediator/mediatr.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "MediatR",
+    "sidebar_position": 4
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Queries & Handlers",
+    "permalink": "/docs/cqrs-mediator/queries-handlers"
+  },
+  "next": {
+    "title": "Wolverine",
+    "permalink": "/docs/cqrs-mediator/wolverine"
+  }
+}

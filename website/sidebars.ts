@@ -49,6 +49,7 @@ const sidebars: SidebarsConfig = {
         'persistence/efcore',
         'persistence/dapper',
         'persistence/linq2db',
+        'persistence/sagas',
         'persistence/caching-memory',
         'persistence/caching-redis',
       ],

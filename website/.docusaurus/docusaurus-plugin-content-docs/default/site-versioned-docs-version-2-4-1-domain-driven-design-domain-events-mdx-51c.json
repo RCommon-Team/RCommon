@@ -1,0 +1,28 @@
+{
+  "id": "domain-driven-design/domain-events",
+  "title": "Domain Events",
+  "description": "Domain events represent something meaningful that happened within your domain. They are raised by aggregate roots when state changes occur, then dispatched after the unit of work commits. This keeps side effects (sending emails, updating read models, publishing to message brokers) decoupled from the core business logic.",
+  "source": "@site/versioned_docs/version-2.4.1/domain-driven-design/domain-events.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/domain-events",
+  "permalink": "/docs/domain-driven-design/domain-events",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/domain-driven-design/domain-events.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Domain Events",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Entities & Aggregate Roots",
+    "permalink": "/docs/domain-driven-design/entities-aggregates"
+  },
+  "next": {
+    "title": "Value Objects",
+    "permalink": "/docs/domain-driven-design/value-objects"
+  }
+}

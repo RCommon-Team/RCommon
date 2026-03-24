@@ -1,0 +1,28 @@
+{
+  "id": "persistence/sagas",
+  "title": "Sagas",
+  "description": "RCommon includes a saga orchestration framework that coordinates multi-step business processes with automatic compensation on failure. The saga pattern manages long-running transactions that span multiple services or aggregates, using state machines to drive transitions and persistent stores to track progress.",
+  "source": "@site/versioned_docs/version-2.4.1/persistence/sagas.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/sagas",
+  "permalink": "/docs/persistence/sagas",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/persistence/sagas.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "title": "Sagas",
+    "sidebar_position": 8
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Linq2Db",
+    "permalink": "/docs/persistence/linq2db"
+  },
+  "next": {
+    "title": "Caching with Memory",
+    "permalink": "/docs/persistence/caching-memory"
+  }
+}

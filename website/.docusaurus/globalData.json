@@ -1,0 +1,954 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": false,
+          "path": "/docs/next",
+          "mainDocId": "index",
+          "docs": [
+            {
+              "id": "api-reference/changelog",
+              "path": "/docs/next/api-reference/changelog",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api-reference/migration-guide",
+              "path": "/docs/next/api-reference/migration-guide",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api-reference/nuget-packages",
+              "path": "/docs/next/api-reference/nuget-packages",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "architecture-guides/clean-architecture",
+              "path": "/docs/next/architecture-guides/clean-architecture",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "architecture-guides/event-driven",
+              "path": "/docs/next/architecture-guides/event-driven",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "architecture-guides/microservices",
+              "path": "/docs/next/architecture-guides/microservices",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "blob-storage/azure",
+              "path": "/docs/next/blob-storage/azure",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "blob-storage/overview",
+              "path": "/docs/next/blob-storage/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "blob-storage/s3",
+              "path": "/docs/next/blob-storage/s3",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "caching/memory",
+              "path": "/docs/next/caching/memory",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "caching/overview",
+              "path": "/docs/next/caching/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "caching/redis",
+              "path": "/docs/next/caching/redis",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/execution-results",
+              "path": "/docs/next/core-concepts/execution-results",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/fluent-configuration",
+              "path": "/docs/next/core-concepts/fluent-configuration",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/guards",
+              "path": "/docs/next/core-concepts/guards",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/guid-generation",
+              "path": "/docs/next/core-concepts/guid-generation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/system-time",
+              "path": "/docs/next/core-concepts/system-time",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/command-query-bus",
+              "path": "/docs/next/cqrs-mediator/command-query-bus",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/commands-handlers",
+              "path": "/docs/next/cqrs-mediator/commands-handlers",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/mediatr",
+              "path": "/docs/next/cqrs-mediator/mediatr",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/queries-handlers",
+              "path": "/docs/next/cqrs-mediator/queries-handlers",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/wolverine",
+              "path": "/docs/next/cqrs-mediator/wolverine",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/auditing",
+              "path": "/docs/next/domain-driven-design/auditing",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/domain-events",
+              "path": "/docs/next/domain-driven-design/domain-events",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/entities-aggregates",
+              "path": "/docs/next/domain-driven-design/entities-aggregates",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/soft-delete",
+              "path": "/docs/next/domain-driven-design/soft-delete",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/value-objects",
+              "path": "/docs/next/domain-driven-design/value-objects",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "email/overview",
+              "path": "/docs/next/email/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "email/sendgrid",
+              "path": "/docs/next/email/sendgrid",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/distributed",
+              "path": "/docs/next/event-handling/distributed",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/in-memory",
+              "path": "/docs/next/event-handling/in-memory",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/masstransit",
+              "path": "/docs/next/event-handling/masstransit",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/mediatr",
+              "path": "/docs/next/event-handling/mediatr",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/overview",
+              "path": "/docs/next/event-handling/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/transactional-outbox",
+              "path": "/docs/next/event-handling/transactional-outbox",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/wolverine",
+              "path": "/docs/next/event-handling/wolverine",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples-recipes/caching",
+              "path": "/docs/next/examples-recipes/caching",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples-recipes/event-handling",
+              "path": "/docs/next/examples-recipes/event-handling",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples-recipes/hr-leave-management",
+              "path": "/docs/next/examples-recipes/hr-leave-management",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples-recipes/messaging",
+              "path": "/docs/next/examples-recipes/messaging",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/configuration",
+              "path": "/docs/next/getting-started/configuration",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/dependency-injection",
+              "path": "/docs/next/getting-started/dependency-injection",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/installation",
+              "path": "/docs/next/getting-started/installation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/overview",
+              "path": "/docs/next/getting-started/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/quick-start",
+              "path": "/docs/next/getting-started/quick-start",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "index",
+              "path": "/docs/next/"
+            },
+            {
+              "id": "messaging/masstransit",
+              "path": "/docs/next/messaging/masstransit",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "messaging/overview",
+              "path": "/docs/next/messaging/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "messaging/state-machines",
+              "path": "/docs/next/messaging/state-machines",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "messaging/transactional-outbox",
+              "path": "/docs/next/messaging/transactional-outbox",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "messaging/wolverine",
+              "path": "/docs/next/messaging/wolverine",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "multi-tenancy/finbuckle",
+              "path": "/docs/next/multi-tenancy/finbuckle",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "multi-tenancy/overview",
+              "path": "/docs/next/multi-tenancy/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/caching-memory",
+              "path": "/docs/next/persistence/caching-memory",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/caching-redis",
+              "path": "/docs/next/persistence/caching-redis",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/dapper",
+              "path": "/docs/next/persistence/dapper",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/efcore",
+              "path": "/docs/next/persistence/efcore",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/linq2db",
+              "path": "/docs/next/persistence/linq2db",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/repository-pattern",
+              "path": "/docs/next/persistence/repository-pattern",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/sagas",
+              "path": "/docs/next/persistence/sagas",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/specifications",
+              "path": "/docs/next/persistence/specifications",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/unit-of-work",
+              "path": "/docs/next/persistence/unit-of-work",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "security-web/authorization",
+              "path": "/docs/next/security-web/authorization",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "security-web/web-utilities",
+              "path": "/docs/next/security-web/web-utilities",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "serialization/newtonsoft",
+              "path": "/docs/next/serialization/newtonsoft",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "serialization/overview",
+              "path": "/docs/next/serialization/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "serialization/system-text-json",
+              "path": "/docs/next/serialization/system-text-json",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "state-machines/overview",
+              "path": "/docs/next/state-machines/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "state-machines/stateless",
+              "path": "/docs/next/state-machines/stateless",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "testing/overview",
+              "path": "/docs/next/testing/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "testing/test-base-classes",
+              "path": "/docs/next/testing/test-base-classes",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "validation/fluent-validation",
+              "path": "/docs/next/validation/fluent-validation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/getting-started",
+              "path": "/docs/next/category/getting-started",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/core-concepts",
+              "path": "/docs/next/category/core-concepts",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/domain-driven-design",
+              "path": "/docs/next/category/domain-driven-design",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/persistence",
+              "path": "/docs/next/category/persistence",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/cqrs--mediator",
+              "path": "/docs/next/category/cqrs--mediator",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/event-handling",
+              "path": "/docs/next/category/event-handling",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/messaging",
+              "path": "/docs/next/category/messaging",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/state-machines",
+              "path": "/docs/next/category/state-machines",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/caching",
+              "path": "/docs/next/category/caching",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/blob-storage",
+              "path": "/docs/next/category/blob-storage",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/serialization",
+              "path": "/docs/next/category/serialization",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/validation",
+              "path": "/docs/next/category/validation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/email",
+              "path": "/docs/next/category/email",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/multi-tenancy",
+              "path": "/docs/next/category/multi-tenancy",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/security--web",
+              "path": "/docs/next/category/security--web",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/architecture-guides",
+              "path": "/docs/next/category/architecture-guides",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/examples--recipes",
+              "path": "/docs/next/category/examples--recipes",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/testing",
+              "path": "/docs/next/category/testing",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/api-reference",
+              "path": "/docs/next/category/api-reference",
+              "sidebar": "docsSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "docsSidebar": {
+              "link": {
+                "path": "/docs/next/category/getting-started",
+                "label": "Getting Started"
+              }
+            }
+          }
+        },
+        {
+          "name": "2.4.1",
+          "label": "2.4.1",
+          "isLast": true,
+          "path": "/docs",
+          "mainDocId": "index",
+          "docs": [
+            {
+              "id": "api-reference/changelog",
+              "path": "/docs/api-reference/changelog",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api-reference/migration-guide",
+              "path": "/docs/api-reference/migration-guide",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api-reference/nuget-packages",
+              "path": "/docs/api-reference/nuget-packages",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "architecture-guides/clean-architecture",
+              "path": "/docs/architecture-guides/clean-architecture",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "architecture-guides/event-driven",
+              "path": "/docs/architecture-guides/event-driven",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "architecture-guides/microservices",
+              "path": "/docs/architecture-guides/microservices",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "blob-storage/azure",
+              "path": "/docs/blob-storage/azure",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "blob-storage/overview",
+              "path": "/docs/blob-storage/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "blob-storage/s3",
+              "path": "/docs/blob-storage/s3",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "caching/memory",
+              "path": "/docs/caching/memory",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "caching/overview",
+              "path": "/docs/caching/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "caching/redis",
+              "path": "/docs/caching/redis",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/execution-results",
+              "path": "/docs/core-concepts/execution-results",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/fluent-configuration",
+              "path": "/docs/core-concepts/fluent-configuration",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/guards",
+              "path": "/docs/core-concepts/guards",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/guid-generation",
+              "path": "/docs/core-concepts/guid-generation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "core-concepts/system-time",
+              "path": "/docs/core-concepts/system-time",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/command-query-bus",
+              "path": "/docs/cqrs-mediator/command-query-bus",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/commands-handlers",
+              "path": "/docs/cqrs-mediator/commands-handlers",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/mediatr",
+              "path": "/docs/cqrs-mediator/mediatr",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/queries-handlers",
+              "path": "/docs/cqrs-mediator/queries-handlers",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "cqrs-mediator/wolverine",
+              "path": "/docs/cqrs-mediator/wolverine",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/auditing",
+              "path": "/docs/domain-driven-design/auditing",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/domain-events",
+              "path": "/docs/domain-driven-design/domain-events",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/entities-aggregates",
+              "path": "/docs/domain-driven-design/entities-aggregates",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/soft-delete",
+              "path": "/docs/domain-driven-design/soft-delete",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "domain-driven-design/value-objects",
+              "path": "/docs/domain-driven-design/value-objects",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "email/overview",
+              "path": "/docs/email/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "email/sendgrid",
+              "path": "/docs/email/sendgrid",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/distributed",
+              "path": "/docs/event-handling/distributed",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/in-memory",
+              "path": "/docs/event-handling/in-memory",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/masstransit",
+              "path": "/docs/event-handling/masstransit",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/mediatr",
+              "path": "/docs/event-handling/mediatr",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/overview",
+              "path": "/docs/event-handling/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/transactional-outbox",
+              "path": "/docs/event-handling/transactional-outbox",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "event-handling/wolverine",
+              "path": "/docs/event-handling/wolverine",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples-recipes/caching",
+              "path": "/docs/examples-recipes/caching",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples-recipes/event-handling",
+              "path": "/docs/examples-recipes/event-handling",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples-recipes/hr-leave-management",
+              "path": "/docs/examples-recipes/hr-leave-management",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples-recipes/messaging",
+              "path": "/docs/examples-recipes/messaging",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/configuration",
+              "path": "/docs/getting-started/configuration",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/dependency-injection",
+              "path": "/docs/getting-started/dependency-injection",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/installation",
+              "path": "/docs/getting-started/installation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/overview",
+              "path": "/docs/getting-started/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/quick-start",
+              "path": "/docs/getting-started/quick-start",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "index",
+              "path": "/docs/"
+            },
+            {
+              "id": "messaging/masstransit",
+              "path": "/docs/messaging/masstransit",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "messaging/overview",
+              "path": "/docs/messaging/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "messaging/state-machines",
+              "path": "/docs/messaging/state-machines",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "messaging/transactional-outbox",
+              "path": "/docs/messaging/transactional-outbox",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "messaging/wolverine",
+              "path": "/docs/messaging/wolverine",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "multi-tenancy/finbuckle",
+              "path": "/docs/multi-tenancy/finbuckle",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "multi-tenancy/overview",
+              "path": "/docs/multi-tenancy/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/caching-memory",
+              "path": "/docs/persistence/caching-memory",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/caching-redis",
+              "path": "/docs/persistence/caching-redis",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/dapper",
+              "path": "/docs/persistence/dapper",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/efcore",
+              "path": "/docs/persistence/efcore",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/linq2db",
+              "path": "/docs/persistence/linq2db",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/repository-pattern",
+              "path": "/docs/persistence/repository-pattern",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/sagas",
+              "path": "/docs/persistence/sagas",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/specifications",
+              "path": "/docs/persistence/specifications",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "persistence/unit-of-work",
+              "path": "/docs/persistence/unit-of-work",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "security-web/authorization",
+              "path": "/docs/security-web/authorization",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "security-web/web-utilities",
+              "path": "/docs/security-web/web-utilities",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "serialization/newtonsoft",
+              "path": "/docs/serialization/newtonsoft",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "serialization/overview",
+              "path": "/docs/serialization/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "serialization/system-text-json",
+              "path": "/docs/serialization/system-text-json",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "state-machines/overview",
+              "path": "/docs/state-machines/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "state-machines/stateless",
+              "path": "/docs/state-machines/stateless",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "testing/overview",
+              "path": "/docs/testing/overview",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "testing/test-base-classes",
+              "path": "/docs/testing/test-base-classes",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "validation/fluent-validation",
+              "path": "/docs/validation/fluent-validation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/getting-started",
+              "path": "/docs/category/getting-started",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/core-concepts",
+              "path": "/docs/category/core-concepts",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/domain-driven-design",
+              "path": "/docs/category/domain-driven-design",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/persistence",
+              "path": "/docs/category/persistence",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/cqrs--mediator",
+              "path": "/docs/category/cqrs--mediator",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/event-handling",
+              "path": "/docs/category/event-handling",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/messaging",
+              "path": "/docs/category/messaging",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/state-machines",
+              "path": "/docs/category/state-machines",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/caching",
+              "path": "/docs/category/caching",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/blob-storage",
+              "path": "/docs/category/blob-storage",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/serialization",
+              "path": "/docs/category/serialization",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/validation",
+              "path": "/docs/category/validation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/email",
+              "path": "/docs/category/email",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/multi-tenancy",
+              "path": "/docs/category/multi-tenancy",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/security--web",
+              "path": "/docs/category/security--web",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/architecture-guides",
+              "path": "/docs/category/architecture-guides",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/examples--recipes",
+              "path": "/docs/category/examples--recipes",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/testing",
+              "path": "/docs/category/testing",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "/category/api-reference",
+              "path": "/docs/category/api-reference",
+              "sidebar": "docsSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "docsSidebar": {
+              "link": {
+                "path": "/docs/category/getting-started",
+                "label": "Getting Started"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

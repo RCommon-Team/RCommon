@@ -1,0 +1,28 @@
+{
+  "id": "event-handling/in-memory",
+  "title": "In-Memory Events",
+  "description": "The in-memory event bus provides local publish/subscribe within a single process. Events are dispatched synchronously to all registered ISubscriber handlers within the same DI scope. No external infrastructure is required.",
+  "source": "@site/versioned_docs/version-2.4.1/event-handling/in-memory.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/in-memory",
+  "permalink": "/docs/event-handling/in-memory",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/event-handling/in-memory.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "In-Memory Events",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/event-handling/overview"
+  },
+  "next": {
+    "title": "Distributed Events",
+    "permalink": "/docs/event-handling/distributed"
+  }
+}

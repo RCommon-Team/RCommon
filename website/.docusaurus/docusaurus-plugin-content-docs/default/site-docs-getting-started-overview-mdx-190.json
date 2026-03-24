@@ -1,0 +1,28 @@
+{
+  "id": "getting-started/overview",
+  "title": "Overview & Philosophy",
+  "description": "RCommon is a .NET infrastructure library that provides battle-tested abstractions for the concerns common to every production application: persistence, CQRS/mediator, event handling, caching, validation, emailing, and more.",
+  "source": "@site/docs/getting-started/overview.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/overview",
+  "permalink": "/docs/next/getting-started/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/getting-started/overview.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview & Philosophy",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Getting Started",
+    "permalink": "/docs/next/category/getting-started"
+  },
+  "next": {
+    "title": "Installation",
+    "permalink": "/docs/next/getting-started/installation"
+  }
+}

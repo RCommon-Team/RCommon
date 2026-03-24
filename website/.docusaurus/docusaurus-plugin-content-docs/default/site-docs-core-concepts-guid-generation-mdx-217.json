@@ -1,0 +1,28 @@
+{
+  "id": "core-concepts/guid-generation",
+  "title": "GUID Generation",
+  "description": "Overview",
+  "source": "@site/docs/core-concepts/guid-generation.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/guid-generation",
+  "permalink": "/docs/next/core-concepts/guid-generation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/core-concepts/guid-generation.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "GUID Generation",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Guards & Validation",
+    "permalink": "/docs/next/core-concepts/guards"
+  },
+  "next": {
+    "title": "System Time Abstraction",
+    "permalink": "/docs/next/core-concepts/system-time"
+  }
+}

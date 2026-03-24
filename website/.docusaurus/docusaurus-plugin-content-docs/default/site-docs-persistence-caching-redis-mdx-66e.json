@@ -1,0 +1,28 @@
+{
+  "id": "persistence/caching-redis",
+  "title": "Caching with Redis",
+  "description": "Overview",
+  "source": "@site/docs/persistence/caching-redis.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/caching-redis",
+  "permalink": "/docs/next/persistence/caching-redis",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/persistence/caching-redis.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "title": "Caching with Redis",
+    "sidebar_position": 8
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Caching with Memory",
+    "permalink": "/docs/next/persistence/caching-memory"
+  },
+  "next": {
+    "title": "CQRS & Mediator",
+    "permalink": "/docs/next/category/cqrs--mediator"
+  }
+}

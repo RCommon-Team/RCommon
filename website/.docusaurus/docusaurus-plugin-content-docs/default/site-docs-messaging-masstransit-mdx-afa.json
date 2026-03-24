@@ -1,0 +1,28 @@
+{
+  "id": "messaging/masstransit",
+  "title": "MassTransit",
+  "description": "RCommon integrates with MassTransit to deliver events to consumers across service boundaries. The integration registers MassTransitEventHandler as a MassTransit IConsumer that delegates to the application's ISubscriber. Handler code has no dependency on MassTransit types.",
+  "source": "@site/docs/messaging/masstransit.mdx",
+  "sourceDirName": "messaging",
+  "slug": "/messaging/masstransit",
+  "permalink": "/docs/next/messaging/masstransit",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/messaging/masstransit.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "MassTransit",
+    "sidebar_position": 4
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "State Machines",
+    "permalink": "/docs/next/messaging/state-machines"
+  },
+  "next": {
+    "title": "Wolverine",
+    "permalink": "/docs/next/messaging/wolverine"
+  }
+}

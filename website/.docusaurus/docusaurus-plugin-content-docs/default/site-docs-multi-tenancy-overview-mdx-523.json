@@ -1,0 +1,28 @@
+{
+  "id": "multi-tenancy/overview",
+  "title": "Overview",
+  "description": "Overview",
+  "source": "@site/docs/multi-tenancy/overview.mdx",
+  "sourceDirName": "multi-tenancy",
+  "slug": "/multi-tenancy/overview",
+  "permalink": "/docs/next/multi-tenancy/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/multi-tenancy/overview.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Multi-Tenancy",
+    "permalink": "/docs/next/category/multi-tenancy"
+  },
+  "next": {
+    "title": "Finbuckle",
+    "permalink": "/docs/next/multi-tenancy/finbuckle"
+  }
+}

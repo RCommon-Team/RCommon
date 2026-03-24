@@ -1,0 +1,28 @@
+{
+  "id": "persistence/repository-pattern",
+  "title": "Repository Pattern",
+  "description": "Overview",
+  "source": "@site/docs/persistence/repository-pattern.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/repository-pattern",
+  "permalink": "/docs/next/persistence/repository-pattern",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/persistence/repository-pattern.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Repository Pattern",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Persistence",
+    "permalink": "/docs/next/category/persistence"
+  },
+  "next": {
+    "title": "Specifications",
+    "permalink": "/docs/next/persistence/specifications"
+  }
+}

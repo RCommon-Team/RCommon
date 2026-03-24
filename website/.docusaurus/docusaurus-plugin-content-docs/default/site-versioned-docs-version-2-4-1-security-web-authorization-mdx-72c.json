@@ -1,0 +1,28 @@
+{
+  "id": "security-web/authorization",
+  "title": "Authorization",
+  "description": "Overview",
+  "source": "@site/versioned_docs/version-2.4.1/security-web/authorization.mdx",
+  "sourceDirName": "security-web",
+  "slug": "/security-web/authorization",
+  "permalink": "/docs/security-web/authorization",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/security-web/authorization.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Authorization",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Security & Web",
+    "permalink": "/docs/category/security--web"
+  },
+  "next": {
+    "title": "Web Utilities",
+    "permalink": "/docs/security-web/web-utilities"
+  }
+}

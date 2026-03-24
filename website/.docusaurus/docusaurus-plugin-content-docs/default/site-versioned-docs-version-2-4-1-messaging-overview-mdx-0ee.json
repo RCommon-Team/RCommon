@@ -1,0 +1,28 @@
+{
+  "id": "messaging/overview",
+  "title": "Overview",
+  "description": "RCommon's messaging layer sits on top of the event handling infrastructure and provides transport-backed, cross-service message delivery. It reuses the same ISubscriber interface as in-process event handling, so handler code is portable across transports.",
+  "source": "@site/versioned_docs/version-2.4.1/messaging/overview.mdx",
+  "sourceDirName": "messaging",
+  "slug": "/messaging/overview",
+  "permalink": "/docs/messaging/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/messaging/overview.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Messaging",
+    "permalink": "/docs/category/messaging"
+  },
+  "next": {
+    "title": "Transactional Outbox",
+    "permalink": "/docs/messaging/transactional-outbox"
+  }
+}
