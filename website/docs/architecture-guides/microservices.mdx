@@ -3,6 +3,318 @@ title: Microservices
 sidebar_position: 2
 ---
 
-# Microservices
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-*Documentation coming soon.*
+# Microservices with RCommon
+
+Microservices decompose a system into independently deployable services that communicate over a network. RCommon provides the abstractions and integrations that make this communication consistent, testable, and swappable across a distributed system.
+
+## When to Use This Approach
+
+Consider a microservices architecture with RCommon when:
+
+- Different parts of your domain have different scaling requirements
+- Separate teams own separate services and need clear contracts between them
+- You need to evolve service internals without redeploying the entire system
+- Integration points require durable, reliable messaging (not just HTTP calls)
+
+## Core Patterns for Microservices
+
+RCommon supports three primary patterns that are essential in microservice environments:
+
+1. **Messaging** — Publish events that other services subscribe to via MassTransit or Wolverine
+2. **Shared abstractions** — `IGraphRepository<T>`, `IMediatorService`, and `IEventProducer` are the same across every service; only the registered implementation changes
+3. **Subscription isolation** — Each service subscribes to exactly the events it needs, routing them to the correct transport
+
+## Setting Up a Service with Messaging
+
+Each microservice calls `AddRCommon()` independently. The following shows how a service is configured to publish and receive messages via MassTransit:
+
+```csharp
+// Program.cs — Order Service
+services.AddRCommon()
+    .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+    {
+        // Configure the transport (RabbitMQ, Azure Service Bus, etc.)
+        eventHandling.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host("rabbitmq://localhost");
+            cfg.ConfigureEndpoints(context);
+        });
+
+        // This service produces order events
+        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+
+        // This service consumes inventory events
+        eventHandling.AddSubscriber<InventoryReservedEvent, InventoryReservedEventHandler>();
+    });
+```
+
+On the inventory service side:
+
+```csharp
+// Program.cs — Inventory Service
+services.AddRCommon()
+    .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host("rabbitmq://localhost");
+            cfg.ConfigureEndpoints(context);
+        });
+
+        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+
+        // This service handles order placed events
+        eventHandling.AddSubscriber<OrderPlacedEvent, ReserveInventoryHandler>();
+    });
+```
+
+## Defining Events as Shared Contracts
+
+Events that cross service boundaries should be defined in a shared contracts library. Both services reference this library, never each other:
+
+```csharp
+// SharedContracts/OrderPlacedEvent.cs
+using RCommon.Models.Events;
+
+public class OrderPlacedEvent : ISyncEvent
+{
+    public OrderPlacedEvent() { }
+
+    public OrderPlacedEvent(Guid orderId, string customerId, decimal total)
+    {
+        OrderId = orderId;
+        CustomerId = customerId;
+        Total = total;
+    }
+
+    public Guid OrderId { get; }
+    public string CustomerId { get; }
+    public decimal Total { get; }
+}
+```
+
+`ISyncEvent` is RCommon's base marker interface. The transport-specific serialization and routing is handled by the infrastructure layer — the event itself stays clean.
+
+## Publishing Events
+
+Services publish events through `IEventProducer`. The call site does not know which transport is registered:
+
+```csharp
+public class PlaceOrderCommandHandler
+    : IAppRequestHandler<PlaceOrderCommand, BaseCommandResponse>
+{
+    private readonly IGraphRepository<Order> _orderRepository;
+    private readonly IEnumerable<IEventProducer> _eventProducers;
+
+    public PlaceOrderCommandHandler(
+        IGraphRepository<Order> orderRepository,
+        IEnumerable<IEventProducer> eventProducers)
+    {
+        _orderRepository = orderRepository;
+        _eventProducers = eventProducers;
+    }
+
+    public async Task<BaseCommandResponse> HandleAsync(
+        PlaceOrderCommand request,
+        CancellationToken cancellationToken)
+    {
+        var order = new Order(request.CustomerId, request.Items);
+        await _orderRepository.AddAsync(order);
+
+        var @event = new OrderPlacedEvent(order.Id, order.CustomerId, order.Total);
+
+        foreach (var producer in _eventProducers)
+        {
+            await producer.ProduceEventAsync(@event);
+        }
+
+        return new BaseCommandResponse { Success = true, Id = order.Id };
+    }
+}
+```
+
+## Subscribing to Events
+
+Event handlers implement `ISubscriber<TEvent>`. The handler contains only business logic — no transport concerns:
+
+```csharp
+// Inventory Service
+public class ReserveInventoryHandler : ISubscriber<OrderPlacedEvent>
+{
+    private readonly IGraphRepository<InventoryItem> _inventoryRepository;
+    private readonly IEnumerable<IEventProducer> _eventProducers;
+
+    public ReserveInventoryHandler(
+        IGraphRepository<InventoryItem> inventoryRepository,
+        IEnumerable<IEventProducer> eventProducers)
+    {
+        _inventoryRepository = inventoryRepository;
+        _eventProducers = eventProducers;
+    }
+
+    public async Task HandleAsync(
+        OrderPlacedEvent notification,
+        CancellationToken cancellationToken = default)
+    {
+        // Reserve inventory items
+        var reserved = await ReserveItems(notification.OrderId);
+
+        // Emit a confirmation event back
+        var confirmEvent = new InventoryReservedEvent(notification.OrderId, reserved);
+        foreach (var producer in _eventProducers)
+        {
+            await producer.ProduceEventAsync(confirmEvent);
+        }
+    }
+}
+```
+
+## Subscription Isolation
+
+In a service with mixed internal and external event routing, RCommon allows you to register multiple event handling builders. Each builder maintains its own set of subscribers, so an event published to one transport does not bleed into another.
+
+This is useful when:
+- Some events stay within the process (in-memory, for domain event notifications)
+- Other events cross service boundaries (MassTransit or Wolverine)
+
+```csharp
+services.AddRCommon()
+    // In-process events: only handled internally
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<LeaveApprovedDomainEvent, NotifyEmployeeHandler>();
+    })
+    // Cross-service events: routed through the message broker
+    .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host("rabbitmq://localhost");
+            cfg.ConfigureEndpoints(context);
+        });
+        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+        eventHandling.AddSubscriber<InventoryReservedEvent, UpdateOrderStatusHandler>();
+    });
+```
+
+Events subscribed only in `InMemoryEventBusBuilder` will not be published to the RabbitMQ exchange and vice versa.
+
+## Wolverine Alternative
+
+For services using Wolverine as the message transport, the configuration pattern is identical — only the builder type changes:
+
+```csharp
+// In Program.cs, before AddRCommon
+builder.Host.UseWolverine(options =>
+{
+    options.UseRabbitMq(rabbit =>
+    {
+        rabbit.HostName = "localhost";
+    }).AutoProvision();
+});
+
+// Then in services
+services.AddRCommon()
+    .WithEventHandling<WolverineEventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithWolverineEventProducer>();
+        eventHandling.AddSubscriber<OrderPlacedEvent, ReserveInventoryHandler>();
+    });
+```
+
+## Sharing Infrastructure Abstractions Across Services
+
+Because RCommon's abstractions are transport-agnostic, a shared application services library can be referenced by multiple services without binding them to a specific message broker. Each service registers its own concrete implementations at startup.
+
+```csharp
+// Shared library
+public interface IOrderEventPublisher
+{
+    Task PublishOrderPlacedAsync(OrderPlacedEvent @event);
+}
+
+// Service A: MassTransit implementation
+public class MassTransitOrderEventPublisher : IOrderEventPublisher
+{
+    private readonly IEnumerable<IEventProducer> _producers;
+
+    public MassTransitOrderEventPublisher(IEnumerable<IEventProducer> producers)
+        => _producers = producers;
+
+    public async Task PublishOrderPlacedAsync(OrderPlacedEvent @event)
+    {
+        foreach (var producer in _producers)
+            await producer.ProduceEventAsync(@event);
+    }
+}
+
+// Service B: Wolverine implementation
+public class WolverineOrderEventPublisher : IOrderEventPublisher
+{
+    private readonly IEnumerable<IEventProducer> _producers;
+
+    public WolverineOrderEventPublisher(IEnumerable<IEventProducer> producers)
+        => _producers = producers;
+
+    public async Task PublishOrderPlacedAsync(OrderPlacedEvent @event)
+    {
+        foreach (var producer in _producers)
+            await producer.ProduceEventAsync(@event);
+    }
+}
+```
+
+Both implementations are structurally identical. The difference is which `IEventProducer` is injected, determined by the `WithEventHandling<>` call in `Program.cs`.
+
+## Per-Service Persistence
+
+Each microservice owns its own database and schema. The `WithPersistence<>` builder call and `DbContext` registration are scoped to the service:
+
+```csharp
+// Order Service
+services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<OrderDbContext>("Orders", options =>
+        {
+            options.UseSqlServer(config.GetConnectionString("Orders"));
+        });
+        ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Orders");
+    });
+
+// Inventory Service
+services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<InventoryDbContext>("Inventory", options =>
+        {
+            options.UseNpgsql(config.GetConnectionString("Inventory"));
+        });
+        ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Inventory");
+    });
+```
+
+The Order Service uses SQL Server; the Inventory Service uses PostgreSQL. Both use the same `IGraphRepository<T>` interface in their handlers.
+
+## Health Considerations
+
+- Register transport-specific health checks alongside your normal ASP.NET health checks
+- Use `WithUnitOfWork` in services that need transactional consistency around persistence and event publishing
+- Consider idempotency in handlers — MassTransit and Wolverine may redeliver messages on failure
+
+## API Reference
+
+| Type | Package | Purpose |
+|------|---------|---------|
+| `ISyncEvent` | `RCommon.Models` | Base interface for all events |
+| `IEventProducer` | `RCommon.EventHandling` | Produces events to a transport |
+| `ISubscriber<TEvent>` | `RCommon.EventHandling` | Handles events from a transport |
+| `MassTransitEventHandlingBuilder` | `RCommon.MassTransit` | Configures MassTransit as the event transport |
+| `WolverineEventHandlingBuilder` | `RCommon.Wolverine` | Configures Wolverine as the event transport |
+| `InMemoryEventBusBuilder` | `RCommon.EventHandling` | In-process event bus (no external broker) |
+| `PublishWithMassTransitEventProducer` | `RCommon.MassTransit` | MassTransit-backed event producer |
+| `PublishWithWolverineEventProducer` | `RCommon.Wolverine` | Wolverine-backed event producer |
