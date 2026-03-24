@@ -55,7 +55,7 @@ const config: Config = {
   themeConfig: {
     image: 'img/og-social-card.jpg',
     navbar: {
-      title: 'RCommon',
+      title: '',
       logo: {
         alt: 'RCommon Logo',
         src: 'img/rcommon-logo-light-bg.png',
