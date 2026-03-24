@@ -3,6 +3,133 @@ title: Overview
 sidebar_position: 1
 ---
 
-# Overview
+import NuGetInstall from '@site/src/components/NuGetInstall';
 
-*Documentation coming soon.*
+# Multi-Tenancy Overview
+
+## Overview
+
+Multi-tenancy support in RCommon allows a single application instance to serve multiple tenants while keeping their data isolated. The framework provides a thin abstraction layer over third-party tenant resolution libraries so that your domain and persistence code remains unaware of how tenants are identified.
+
+The design is split across two concerns:
+
+- **Tenant resolution** — determining which tenant is active for the current request. This is delegated to a provider (currently Finbuckle) that inspects the HTTP context, claims, route data, or any other signal you configure.
+- **Tenant filtering** — automatically scoping repository queries and entity stamps to the active tenant. This happens inside RCommon's repository implementations whenever the entity implements `IMultiTenant`.
+
+### Core abstractions
+
+`ITenantIdAccessor` is the single point of integration between tenant resolution and the persistence layer. Its `GetTenantId()` method is called by repositories whenever they need to apply tenant isolation. The default registration (`NullTenantIdAccessor`) returns `null`, which disables filtering entirely — useful during bootstrapping or when multi-tenancy is not yet configured.
+
+`IMultiTenantBuilder` is the fluent builder interface that all provider-specific builders implement. It gives providers access to the DI service collection so they can replace `NullTenantIdAccessor` with their own implementation.
+
+`WithMultiTenancy<TBuilder>` is the extension method on `IRCommonBuilder` that wires a provider into the RCommon startup pipeline. It constructs the builder by convention (via `Activator.CreateInstance`) and passes it to the configuration action you supply.
+
+### Entity-level isolation
+
+Any entity that implements `IMultiTenant` participates in automatic isolation:
+
+```csharp
+using RCommon.Entities;
+
+public class Invoice : BusinessEntity<Guid>, IMultiTenant
+{
+    public string Number { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+
+    // Populated automatically by the repository on add/update.
+    public string? TenantId { get; set; }
+}
+```
+
+At query time the repository reads the current `TenantId` from `ITenantIdAccessor` and appends a filter expression so only records belonging to that tenant are returned. At write time the same value is stamped onto the entity before it is persisted.
+
+When `GetTenantId()` returns `null` or an empty string all tenant filtering is bypassed, which is intentional for administrative scenarios where a privileged caller needs cross-tenant access.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.MultiTenancy" />
+
+A provider package is also required. For Finbuckle:
+
+<NuGetInstall packageName="RCommon.Finbuckle" />
+
+## Configuration
+
+Call `WithMultiTenancy<TBuilder>` inside your RCommon startup block, passing the concrete builder type for the provider you are using:
+
+```csharp
+using RCommon;
+using RCommon.Finbuckle;
+using Finbuckle.MultiTenant;
+
+// Configure the tenant resolution strategy (Finbuckle's own API).
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHeaderStrategy("X-Tenant-Id")
+    .WithConfigurationStore();
+
+// Wire Finbuckle into RCommon.
+builder.Services.AddRCommon(config =>
+{
+    config
+        .WithClaimsAndPrincipalAccessorForWeb()
+        .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        {
+            ef.AddDbContext<AppDbContext>(
+                "App",
+                options => options.UseSqlServer(connectionString));
+        })
+        .WithMultiTenancy<FinbuckleMultiTenantBuilder<TenantInfo>>(mt =>
+        {
+            // FinbuckleTenantIdAccessor is registered automatically.
+            // No further configuration is required here unless you need
+            // to register custom services against the builder.
+        });
+});
+```
+
+## Usage
+
+### Tenant-scoped entities
+
+Mark entities with `IMultiTenant` to opt into automatic isolation:
+
+```csharp
+public class Product : BusinessEntity<int>, IMultiTenant
+{
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+
+    // Set automatically; do not assign manually in normal usage.
+    public string? TenantId { get; set; }
+}
+```
+
+Repository reads are filtered to the current tenant transparently:
+
+```csharp
+// Returns only the current tenant's products.
+ICollection<Product> products = await _repository.FindAsync(
+    p => p.Price > 0, cancellationToken);
+```
+
+Repository writes stamp the current tenant ID automatically:
+
+```csharp
+// TenantId is populated from ITenantIdAccessor before INSERT.
+await _repository.AddAsync(new Product { Name = "Widget", Price = 9.99m }, cancellationToken);
+```
+
+### Bypassing tenant isolation
+
+For administrative or cross-tenant operations, resolve `ITenantIdAccessor` from your own infrastructure that returns `null`. Because `NullTenantIdAccessor` is the default when no provider is registered, you can also run without calling `WithMultiTenancy<T>` to keep filtering off globally during development.
+
+## API Summary
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `ITenantIdAccessor` | `RCommon.Security` | Returns the current tenant ID; `null` disables all filtering |
+| `NullTenantIdAccessor` | `RCommon.Security` | Default implementation; always returns `null` |
+| `ClaimsTenantIdAccessor` | `RCommon.Security` | Reads tenant ID from the authenticated user's claims |
+| `IMultiTenantBuilder` | `RCommon.MultiTenancy` | Builder interface that provider packages implement |
+| `MultiTenancyBuilderExtensions` | `RCommon.MultiTenancy` | Provides `WithMultiTenancy<TBuilder>()` on `IRCommonBuilder` |
+| `IMultiTenant` | `RCommon.Entities` | Entity marker interface; exposes `string? TenantId` |

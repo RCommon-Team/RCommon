@@ -3,6 +3,273 @@ title: Finbuckle
 sidebar_position: 2
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Finbuckle
 
-*Documentation coming soon.*
+## Overview
+
+`RCommon.Finbuckle` integrates [Finbuckle.MultiTenant](https://www.finbuckle.com/multitenant) with RCommon's persistence layer. Finbuckle handles all tenant resolution — inspecting HTTP headers, route values, host names, JWT claims, or any custom strategy you configure. RCommon's side of the integration is a single adapter class, `FinbuckleTenantIdAccessor<TTenantInfo>`, which implements `ITenantIdAccessor` by reading the tenant ID from Finbuckle's `IMultiTenantContextAccessor<TTenantInfo>`.
+
+When you call `WithMultiTenancy<FinbuckleMultiTenantBuilder<TTenantInfo>>` at startup, `FinbuckleMultiTenantBuilder<TTenantInfo>` replaces the default `NullTenantIdAccessor` registration with `FinbuckleTenantIdAccessor<TTenantInfo>`. From that point on every repository operation that touches an `IMultiTenant` entity is automatically scoped to whichever tenant Finbuckle has resolved for the current request.
+
+### How tenant resolution flows
+
+1. An HTTP request arrives. ASP.NET Core runs the Finbuckle middleware which identifies the tenant using the strategy you configured (header, route segment, hostname, etc.) and sets `IMultiTenantContextAccessor<TTenantInfo>.MultiTenantContext`.
+2. A repository method executes. It calls `ITenantIdAccessor.GetTenantId()`.
+3. `FinbuckleTenantIdAccessor<TTenantInfo>` reads `MultiTenantContext.TenantInfo.Id` and returns it.
+4. The repository appends a tenant filter to the query or stamps the entity's `TenantId` property.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Finbuckle" />
+
+This package depends on `RCommon.MultiTenancy` and `Finbuckle.MultiTenant.Core`, which are pulled in automatically.
+
+## Configuration
+
+### Basic setup
+
+Configure Finbuckle using its own API first, then wire it into RCommon with `WithMultiTenancy<T>`:
+
+```csharp
+using RCommon;
+using RCommon.Finbuckle;
+using Finbuckle.MultiTenant;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// 1. Configure Finbuckle tenant resolution.
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHeaderStrategy("X-Tenant-Id")
+    .WithConfigurationStore();
+
+// 2. Configure RCommon, including the Finbuckle multi-tenancy adapter.
+builder.Services.AddRCommon(config =>
+{
+    config
+        .WithClaimsAndPrincipalAccessorForWeb()
+        .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        {
+            ef.AddDbContext<AppDbContext>(
+                "App",
+                options => options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("Default")));
+
+            ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "App");
+        })
+        .WithMultiTenancy<FinbuckleMultiTenantBuilder<TenantInfo>>(mt =>
+        {
+            // FinbuckleTenantIdAccessor<TenantInfo> is registered automatically.
+        });
+});
+
+var app = builder.Build();
+
+// 3. Add the Finbuckle middleware so tenant resolution runs on every request.
+app.UseMultiTenant();
+
+app.MapControllers();
+app.Run();
+```
+
+### Custom TenantInfo
+
+Finbuckle requires a class that implements `ITenantInfo`. You can use the built-in `TenantInfo` or define your own:
+
+```csharp
+using Finbuckle.MultiTenant.Abstractions;
+
+public class AppTenantInfo : ITenantInfo
+{
+    public string? Id { get; set; }
+    public string? Identifier { get; set; }
+    public string? Name { get; set; }
+
+    // Custom properties for your application.
+    public string? ConnectionString { get; set; }
+    public string? Theme { get; set; }
+}
+```
+
+Pass your custom type as the generic argument everywhere:
+
+```csharp
+builder.Services.AddMultiTenant<AppTenantInfo>()
+    .WithRouteStrategy("tenant")
+    .WithEFCoreStore<TenantDbContext, AppTenantInfo>();
+
+builder.Services.AddRCommon(config =>
+{
+    config.WithMultiTenancy<FinbuckleMultiTenantBuilder<AppTenantInfo>>(mt => { });
+});
+```
+
+### Tenant resolution strategies
+
+Finbuckle ships with several built-in strategies. Choose the one that fits your application's URL scheme:
+
+```csharp
+// Resolve from a request header (e.g. X-Tenant-Id: acme).
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHeaderStrategy("X-Tenant-Id")
+    .WithConfigurationStore();
+
+// Resolve from a route parameter (e.g. /acme/orders).
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithRouteStrategy("tenant")
+    .WithConfigurationStore();
+
+// Resolve from the hostname (e.g. acme.myapp.com).
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHostStrategy("__tenant__.*")
+    .WithConfigurationStore();
+
+// Resolve from a JWT claim.
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithClaimStrategy("tenantid")
+    .WithConfigurationStore();
+```
+
+### Tenant stores
+
+Finbuckle resolves tenant configuration from a store. Common options:
+
+```csharp
+// Store tenant definitions in appsettings.json under "Finbuckle:MultiTenant:Stores:ConfigurationStore".
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHeaderStrategy("X-Tenant-Id")
+    .WithConfigurationStore();
+
+// Store tenants in an EF Core database table.
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHeaderStrategy("X-Tenant-Id")
+    .WithEFCoreStore<TenantDbContext, TenantInfo>();
+
+// In-memory store — useful for testing.
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHeaderStrategy("X-Tenant-Id")
+    .WithInMemoryStore(options =>
+    {
+        options.Tenants.Add(new TenantInfo
+        {
+            Id = "tenant-1",
+            Identifier = "acme",
+            Name = "Acme Corp"
+        });
+    });
+```
+
+## Usage
+
+### Defining tenant-scoped entities
+
+Implement `IMultiTenant` on entities that should be isolated per tenant:
+
+```csharp
+using RCommon.Entities;
+
+public class Order : BusinessEntity<Guid>, IMultiTenant
+{
+    public string CustomerName { get; set; } = string.Empty;
+    public decimal Total { get; set; }
+    public OrderStatus Status { get; set; }
+
+    // Populated automatically by the repository.
+    public string? TenantId { get; set; }
+}
+```
+
+### Reading tenant-scoped data
+
+Inject the repository and query as normal. Tenant filtering is applied transparently:
+
+```csharp
+public class OrderService
+{
+    private readonly IGraphRepository<Order> _orders;
+
+    public OrderService(IGraphRepository<Order> orders)
+    {
+        _orders = orders;
+    }
+
+    public async Task<ICollection<Order>> GetPendingOrdersAsync(CancellationToken ct)
+    {
+        // Only returns orders for the tenant resolved by Finbuckle on this request.
+        return await _orders.FindAsync(o => o.Status == OrderStatus.Pending, ct);
+    }
+}
+```
+
+### Writing tenant-scoped data
+
+```csharp
+public async Task<Guid> PlaceOrderAsync(PlaceOrderRequest request, CancellationToken ct)
+{
+    var order = new Order
+    {
+        CustomerName = request.CustomerName,
+        Total = request.Total,
+        Status = OrderStatus.New
+        // TenantId is not set here; the repository stamps it automatically.
+    };
+
+    await _orders.AddAsync(order, ct);
+    return order.Id;
+}
+```
+
+### Accessing the current tenant directly
+
+If you need the tenant information outside of a repository, inject Finbuckle's context accessor:
+
+```csharp
+using Finbuckle.MultiTenant.Abstractions;
+
+public class TenantAwareService
+{
+    private readonly IMultiTenantContextAccessor<TenantInfo> _tenantAccessor;
+
+    public TenantAwareService(IMultiTenantContextAccessor<TenantInfo> tenantAccessor)
+    {
+        _tenantAccessor = tenantAccessor;
+    }
+
+    public string? GetCurrentTenantName()
+    {
+        return _tenantAccessor.MultiTenantContext?.TenantInfo?.Name;
+    }
+}
+```
+
+Or use RCommon's `ITenantIdAccessor` when you only need the ID:
+
+```csharp
+using RCommon.Security.Claims;
+
+public class AuditService
+{
+    private readonly ITenantIdAccessor _tenantIdAccessor;
+
+    public AuditService(ITenantIdAccessor tenantIdAccessor)
+    {
+        _tenantIdAccessor = tenantIdAccessor;
+    }
+
+    public void LogAction(string action)
+    {
+        var tenantId = _tenantIdAccessor.GetTenantId();
+        // Use tenantId in your audit log entry.
+    }
+}
+```
+
+## API Summary
+
+| Type | Description |
+|------|-------------|
+| `FinbuckleMultiTenantBuilder<TTenantInfo>` | Registers `FinbuckleTenantIdAccessor` and implements `IMultiTenantBuilder`; use as the type argument to `WithMultiTenancy<T>` |
+| `IFinbuckleMultiTenantBuilder<TTenantInfo>` | Marker interface extending `IMultiTenantBuilder`; scoped to `TTenantInfo : ITenantInfo` |
+| `FinbuckleTenantIdAccessor<TTenantInfo>` | Implements `ITenantIdAccessor` by reading `IMultiTenantContextAccessor<TTenantInfo>.MultiTenantContext.TenantInfo.Id` |
+| `ITenantIdAccessor` | RCommon's abstraction; `GetTenantId()` returns the current tenant ID or `null` |
