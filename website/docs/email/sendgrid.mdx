@@ -3,6 +3,169 @@ title: SendGrid
 sidebar_position: 2
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # SendGrid
 
-*Documentation coming soon.*
+## Overview
+
+`RCommon.SendGrid` provides a `SendGridEmailService` that implements `IEmailService` using the official SendGrid .NET SDK. Your application code continues to work with standard `System.Net.Mail.MailMessage` objects; the implementation converts them to SendGrid API calls transparently.
+
+Switching from SMTP to SendGrid is a startup configuration change — no application code needs to be modified.
+
+### How it works
+
+`SendGridEmailService` accepts a `MailMessage` and converts it to a `SendGridMessage` using `MailHelper.CreateSingleEmailToMultipleRecipients`. The body is sent as HTML when `MailMessage.IsBodyHtml` is `true`, otherwise as plain text. Attachments are streamed directly into the SendGrid message before the API call is made.
+
+The synchronous `SendEmail` method wraps the async implementation using `AsyncHelper.RunSync`.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.SendGrid" />
+
+## Configuration
+
+Call `WithSendGridEmailServices` inside your `AddRCommon()` block and provide a delegate that configures `SendGridEmailSettings`.
+
+```csharp
+using RCommon;
+
+builder.Services.AddRCommon()
+    .WithSendGridEmailServices(sg =>
+    {
+        sg.SendGridApiKey = builder.Configuration["SendGrid:ApiKey"];
+        sg.FromEmailDefault = "noreply@example.com";
+        sg.FromNameDefault = "My Application";
+    });
+```
+
+Store the API key in a secrets manager or environment variable, never in source-controlled configuration files:
+
+```json
+{
+  "SendGrid": {
+    "ApiKey": "",
+    "FromEmailDefault": "noreply@example.com",
+    "FromNameDefault": "My Application"
+  }
+}
+```
+
+Set `SendGrid:ApiKey` via:
+- `dotnet user-secrets set "SendGrid:ApiKey" "SG.your_key_here"` during development
+- An environment variable `SendGrid__ApiKey` in production containers
+- Azure Key Vault, AWS Secrets Manager, or your preferred secrets service
+
+### Binding from configuration
+
+```csharp
+builder.Services.AddRCommon()
+    .WithSendGridEmailServices(sg =>
+        builder.Configuration.GetSection("SendGrid").Bind(sg));
+```
+
+## Usage
+
+Inject `IEmailService` exactly as you would with SMTP. No SendGrid-specific types appear in application code.
+
+### Sending a plain-text email
+
+```csharp
+using System.Net.Mail;
+
+public class NotificationService
+{
+    private readonly IEmailService _emailService;
+
+    public NotificationService(IEmailService emailService)
+    {
+        _emailService = emailService;
+    }
+
+    public async Task SendPasswordResetAsync(string email,
+        string resetLink, CancellationToken ct = default)
+    {
+        using var message = new MailMessage(
+            from: "noreply@example.com",
+            to: email,
+            subject: "Reset your password",
+            body: $"Follow this link to reset your password: {resetLink}");
+
+        await _emailService.SendEmailAsync(message, ct);
+    }
+}
+```
+
+### Sending an HTML email
+
+```csharp
+using var message = new MailMessage
+{
+    From = new MailAddress("noreply@example.com", "My App"),
+    Subject = "Your invoice is ready",
+    Body = "<p>Your <strong>invoice</strong> for this month is now available.</p>",
+    IsBodyHtml = true
+};
+message.To.Add(new MailAddress("customer@example.com", "Jane Doe"));
+
+await _emailService.SendEmailAsync(message, ct);
+```
+
+### Sending to multiple recipients
+
+```csharp
+using var message = new MailMessage
+{
+    From = new MailAddress("alerts@example.com"),
+    Subject = "Scheduled maintenance",
+    Body = "The system will be offline on Saturday from 02:00 to 04:00 UTC.",
+    IsBodyHtml = false
+};
+message.To.Add(new MailAddress("alice@example.com"));
+message.To.Add(new MailAddress("bob@example.com"));
+
+await _emailService.SendEmailAsync(message, ct);
+```
+
+### Sending with an attachment
+
+```csharp
+using var message = new MailMessage(
+    "reports@example.com", "finance@example.com")
+{
+    Subject = "Q1 Report",
+    Body = "<p>Please find the Q1 report attached.</p>",
+    IsBodyHtml = true
+};
+
+await using var pdf = File.OpenRead("/tmp/q1-report.pdf");
+message.Attachments.Add(new Attachment(pdf, "q1-report.pdf", "application/pdf"));
+
+await _emailService.SendEmailAsync(message, ct);
+```
+
+## API Summary
+
+### `SendGridEmailService`
+
+Registered as `IEmailService`. Accepts `IOptions<SendGridEmailSettings>` via constructor injection and constructs a `SendGridClient` internally.
+
+| Member | Description |
+|--------|-------------|
+| `SendEmail(MailMessage)` | Synchronous wrapper around `SendEmailAsync`. |
+| `SendEmailAsync(MailMessage, CancellationToken)` | Converts the message and sends it via the SendGrid API. No-op when `message.To` is empty. |
+| `EmailSent` | Raised after the SendGrid API call completes successfully. |
+
+### `SendGridEmailSettings`
+
+| Property | Description |
+|----------|-------------|
+| `SendGridApiKey` | The SendGrid API key used to authenticate all API calls. |
+| `FromEmailDefault` | Default sender email address when no `From` address is set on the `MailMessage`. |
+| `FromNameDefault` | Default sender display name. |
+
+### `IRCommonBuilder` extension
+
+| Method | Description |
+|--------|-------------|
+| `WithSendGridEmailServices(Action<SendGridEmailSettings>)` | Registers `SendGridEmailService` as `IEmailService` and configures SendGrid settings. |

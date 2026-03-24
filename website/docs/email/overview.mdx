@@ -3,6 +3,167 @@ title: Overview
 sidebar_position: 1
 ---
 
-# Overview
+import NuGetInstall from '@site/src/components/NuGetInstall';
 
-*Documentation coming soon.*
+# Email Overview
+
+## Overview
+
+RCommon provides a provider-agnostic email abstraction so that application code does not depend on a specific mail delivery library. Your services depend only on `IEmailService`; the underlying transport — SMTP or a cloud API — is a startup configuration concern.
+
+The `RCommon.Emailing` package delivers a built-in SMTP implementation backed by `System.Net.Mail.SmtpClient`. Third-party providers such as SendGrid are available through separate packages.
+
+### Core abstractions
+
+`IEmailService` exposes two methods and one event:
+
+- `SendEmail(MailMessage)` — synchronous send.
+- `SendEmailAsync(MailMessage, CancellationToken)` — asynchronous send.
+- `EmailSent` event — raised after a message is sent successfully, with `EmailEventArgs` carrying the original `MailMessage`.
+
+Both methods accept a standard `System.Net.Mail.MailMessage`, which means you can use the full .NET mail model (multiple recipients, CC, BCC, attachments, HTML body, inline images) regardless of which provider is configured.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Emailing" />
+
+## Configuration
+
+Call `WithSmtpEmailServices` inside your `AddRCommon()` block and provide a delegate that configures `SmtpEmailSettings`.
+
+```csharp
+using RCommon;
+
+builder.Services.AddRCommon()
+    .WithSmtpEmailServices(smtp =>
+    {
+        smtp.Host = "smtp.example.com";
+        smtp.Port = 587;
+        smtp.EnableSsl = true;
+        smtp.UserName = builder.Configuration["Email:UserName"];
+        smtp.Password = builder.Configuration["Email:Password"];
+        smtp.FromEmailDefault = "noreply@example.com";
+        smtp.FromNameDefault = "My Application";
+    });
+```
+
+Bind settings from `appsettings.json` to avoid hard-coding values:
+
+```json
+{
+  "Email": {
+    "Host": "smtp.example.com",
+    "Port": 587,
+    "EnableSsl": true,
+    "UserName": "",
+    "Password": "",
+    "FromEmailDefault": "noreply@example.com",
+    "FromNameDefault": "My Application"
+  }
+}
+```
+
+```csharp
+builder.Services.AddRCommon()
+    .WithSmtpEmailServices(smtp =>
+        builder.Configuration.GetSection("Email").Bind(smtp));
+```
+
+## Usage
+
+Inject `IEmailService` wherever you need to send mail.
+
+### Sending a plain-text email
+
+```csharp
+using System.Net.Mail;
+
+public class WelcomeEmailService
+{
+    private readonly IEmailService _emailService;
+
+    public WelcomeEmailService(IEmailService emailService)
+    {
+        _emailService = emailService;
+    }
+
+    public async Task SendWelcomeAsync(string recipientEmail,
+        string recipientName, CancellationToken ct = default)
+    {
+        using var message = new MailMessage(
+            from: "noreply@example.com",
+            to: recipientEmail,
+            subject: "Welcome to the platform",
+            body: $"Hi {recipientName}, your account is ready.");
+
+        await _emailService.SendEmailAsync(message, ct);
+    }
+}
+```
+
+### Sending an HTML email
+
+```csharp
+using var message = new MailMessage
+{
+    From = new MailAddress("noreply@example.com", "My App"),
+    Subject = "Your order has shipped",
+    Body = "<h1>Your order is on its way!</h1>",
+    IsBodyHtml = true
+};
+message.To.Add(new MailAddress("customer@example.com", "Jane Doe"));
+
+await _emailService.SendEmailAsync(message, ct);
+```
+
+### Sending with an attachment
+
+```csharp
+using var message = new MailMessage("noreply@example.com", "user@example.com")
+{
+    Subject = "Monthly report",
+    Body = "Please find this month's report attached."
+};
+
+await using var stream = File.OpenRead("/tmp/report.pdf");
+message.Attachments.Add(new Attachment(stream, "report.pdf", "application/pdf"));
+
+await _emailService.SendEmailAsync(message, ct);
+```
+
+### Subscribing to the EmailSent event
+
+```csharp
+_emailService.EmailSent += (sender, args) =>
+{
+    Console.WriteLine($"Email sent to {args.Message.To.First().Address}");
+};
+```
+
+## API Summary
+
+### `IEmailService`
+
+| Member | Description |
+|--------|-------------|
+| `SendEmail(MailMessage)` | Sends the message synchronously. |
+| `SendEmailAsync(MailMessage, CancellationToken)` | Sends the message asynchronously. |
+| `EmailSent` | Event raised after successful delivery. |
+
+### `SmtpEmailSettings`
+
+| Property | Description |
+|----------|-------------|
+| `Host` | SMTP server hostname or IP address. |
+| `Port` | SMTP port (commonly 587 for STARTTLS, 465 for SSL, 25 for unencrypted). |
+| `EnableSsl` | When `true`, the connection is encrypted. |
+| `UserName` | SMTP authentication username. |
+| `Password` | SMTP authentication password. |
+| `FromEmailDefault` | Default sender email address. |
+| `FromNameDefault` | Default sender display name. |
+
+### `IRCommonBuilder` extension
+
+| Method | Description |
+|--------|-------------|
+| `WithSmtpEmailServices(Action<SmtpEmailSettings>)` | Registers `SmtpEmailService` as `IEmailService` and configures SMTP settings. |
