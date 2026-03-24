@@ -1,0 +1,28 @@
+{
+  "id": "persistence/caching-memory",
+  "title": "Caching with Memory",
+  "description": "Overview",
+  "source": "@site/docs/persistence/caching-memory.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/caching-memory",
+  "permalink": "/docs/next/persistence/caching-memory",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/persistence/caching-memory.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "title": "Caching with Memory",
+    "sidebar_position": 7
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Sagas",
+    "permalink": "/docs/next/persistence/sagas"
+  },
+  "next": {
+    "title": "Caching with Redis",
+    "permalink": "/docs/next/persistence/caching-redis"
+  }
+}

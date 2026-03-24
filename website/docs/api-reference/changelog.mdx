@@ -1,0 +1,72 @@
+---
+title: Changelog
+sidebar_position: 2
+---
+
+# Changelog
+
+The authoritative release history for all RCommon packages is maintained on GitHub Releases.
+
+**Full release notes:** [https://github.com/RCommon-Team/RCommon/releases](https://github.com/RCommon-Team/RCommon/releases)
+
+## Recent Changes
+
+### Blob Storage Abstractions
+
+Added `RCommon.Blobs` as a provider-agnostic blob storage abstraction layer, with two concrete implementations:
+
+- `RCommon.Azure.Blobs` — Azure Blob Storage implementation
+- `RCommon.Amazon.S3Objects` — Amazon S3 implementation
+
+### Multi-Tenancy Support
+
+Added complete multi-tenancy infrastructure:
+
+- `RCommon.MultiTenancy` — builder abstraction for registering tenancy providers via `WithMultiTenancy<T>()`
+- `RCommon.Finbuckle` — Finbuckle.MultiTenant integration, providing `FinbuckleTenantIdAccessor<TTenantInfo>` that bridges Finbuckle's resolved tenant context to the `ITenantIdAccessor` consumed by all repositories
+- All persistence providers (`EFCoreRepository`, `DapperRepository`, `Linq2DbRepository`) automatically filter reads by tenant and stamp writes with the current tenant ID when entities implement `IMultiTenant`
+
+### Domain-Driven Design Support
+
+Added soft delete and multitenancy to the entity layer:
+
+- `ISoftDelete` — opt-in interface for logical deletion; repositories set `IsDeleted = true` and perform an UPDATE instead of a physical DELETE
+- `IMultiTenant` — opt-in interface for tenant-scoped entities; repositories filter reads and stamp writes automatically
+- `SoftDeleteHelper` and `MultiTenantHelper` utility classes for filter expression building and entity stamping
+- `EntityNotFoundException` for consistent "entity not found" error handling with type and ID context
+
+### Repository Soft Delete Extras
+
+Extended all persistence providers with explicit soft delete and bulk operation support:
+
+- `DeleteAsync(entity, isSoftDelete: bool)` overload on all write repositories
+- Automatic `!IsDeleted` filtering on all read operations for `ISoftDelete` entities
+- Bulk delete via `ExecuteDeleteAsync` on `EFCoreRepository`
+
+### Editorconfig and Code Hygiene
+
+Added `.editorconfig` to enforce consistent code style across the solution. All public methods and complex code paths now carry XML documentation comments.
+
+## Versioning
+
+RCommon uses [MinVer](https://github.com/adamralph/minver) for automatic semantic versioning from git tags. All packages in the solution share the same version number.
+
+Version numbers follow [Semantic Versioning](https://semver.org/):
+
+- **Major** (`x.0.0`) — breaking API changes
+- **Minor** (`0.x.0`) — new features, backward-compatible additions
+- **Patch** (`0.0.x`) — bug fixes and documentation updates
+
+Pre-release versions (alpha, beta, rc) are tagged accordingly (e.g., `v3.0.0-alpha.1`).
+
+## Release Schedule
+
+RCommon does not follow a fixed release cadence. Releases are made when meaningful features, bug fixes, or breaking changes are ready. Subscribe to [GitHub Releases](https://github.com/RCommon-Team/RCommon/releases) or watch the repository to be notified of new versions.
+
+## Filing Issues
+
+Found a bug or missing a feature? Please open an issue on GitHub:
+
+- **Bug reports:** [https://github.com/RCommon-Team/RCommon/issues/new?template=bug_report.md](https://github.com/RCommon-Team/RCommon/issues/new)
+- **Feature requests:** [https://github.com/RCommon-Team/RCommon/issues/new?template=feature_request.md](https://github.com/RCommon-Team/RCommon/issues/new)
+- **Discussions:** [https://github.com/RCommon-Team/RCommon/discussions](https://github.com/RCommon-Team/RCommon/discussions)

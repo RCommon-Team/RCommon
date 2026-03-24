@@ -1,0 +1,28 @@
+{
+  "id": "cqrs-mediator/queries-handlers",
+  "title": "Queries & Handlers",
+  "description": "Overview",
+  "source": "@site/versioned_docs/version-2.4.1/cqrs-mediator/queries-handlers.mdx",
+  "sourceDirName": "cqrs-mediator",
+  "slug": "/cqrs-mediator/queries-handlers",
+  "permalink": "/docs/cqrs-mediator/queries-handlers",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/cqrs-mediator/queries-handlers.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Queries & Handlers",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Commands & Handlers",
+    "permalink": "/docs/cqrs-mediator/commands-handlers"
+  },
+  "next": {
+    "title": "MediatR",
+    "permalink": "/docs/cqrs-mediator/mediatr"
+  }
+}

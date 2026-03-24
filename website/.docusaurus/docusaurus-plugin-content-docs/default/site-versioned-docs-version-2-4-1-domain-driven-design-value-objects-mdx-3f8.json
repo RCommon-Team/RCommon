@@ -1,0 +1,28 @@
+{
+  "id": "domain-driven-design/value-objects",
+  "title": "Value Objects",
+  "description": "Value objects are a DDD building block that model concepts by their value rather than by identity. Two value objects with the same data are considered equal — there is no separate identity field. Common examples include money amounts, addresses, email addresses, date ranges, and geographic coordinates.",
+  "source": "@site/versioned_docs/version-2.4.1/domain-driven-design/value-objects.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/value-objects",
+  "permalink": "/docs/domain-driven-design/value-objects",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/domain-driven-design/value-objects.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Value Objects",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Domain Events",
+    "permalink": "/docs/domain-driven-design/domain-events"
+  },
+  "next": {
+    "title": "Auditing",
+    "permalink": "/docs/domain-driven-design/auditing"
+  }
+}

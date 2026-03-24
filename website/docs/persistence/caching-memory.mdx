@@ -1,0 +1,193 @@
+---
+title: Caching with Memory
+sidebar_position: 7
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Persistence Caching — Memory
+
+## Overview
+
+The persistence caching layer decorates existing repositories with cache-aware query overloads. Instead of hitting the database on every read, results can be stored in a cache and retrieved by a caller-supplied key. Writes (add, update, delete) are always delegated directly to the underlying repository without touching the cache.
+
+Two in-process memory cache options are available:
+
+- **In-memory (`InMemoryCacheService`)** — uses `IMemoryCache` from `Microsoft.Extensions.Caching.Memory`. Best for single-node deployments.
+- **Distributed memory (`DistributedMemoryCacheService`)** — uses `IDistributedCache` with the in-memory implementation from `Microsoft.Extensions.Caching.StackExchangeRedis`. Useful for testing distributed cache code paths locally without a Redis instance.
+
+Both options register the same set of caching repository decorators:
+
+- `ICachingGraphRepository<TEntity>` — for use with `IGraphRepository<TEntity>` (EF Core)
+- `ICachingLinqRepository<TEntity>` — for use with `ILinqRepository<TEntity>` (EF Core, Linq2Db)
+- `ICachingSqlMapperRepository<TEntity>` — for use with `ISqlMapperRepository<TEntity>` (Dapper)
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Persistence.Caching.MemoryCache" />
+
+This package depends on `RCommon.Persistence.Caching`, which is pulled in transitively.
+
+## Configuration
+
+Call `AddInMemoryPersistenceCaching` or `AddDistributedMemoryPersistenceCaching` on the persistence builder **after** configuring the underlying provider:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>(
+            "AppDb",
+            options => options.UseSqlServer(connectionString));
+
+        ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "AppDb");
+
+        // In-process memory cache
+        ef.AddInMemoryPersistenceCaching();
+
+        // -- OR -- distributed memory cache (useful for local testing)
+        // ef.AddDistributedMemoryPersistenceCaching();
+    });
+```
+
+Both methods configure `CachingOptions` with these defaults:
+
+| Option | Default |
+|--------|---------|
+| `CachingEnabled` | `true` |
+| `CacheDynamicallyCompiledExpressions` | `true` |
+
+## Usage
+
+### Injecting a caching repository
+
+Inject `ICachingGraphRepository<TEntity>` instead of `IGraphRepository<TEntity>`. All non-cached operations fall through to the inner repository unchanged; only the overloads that accept a `cacheKey` use the cache.
+
+```csharp
+public class ProductQueryHandler
+{
+    private readonly ICachingGraphRepository<Product> _products;
+
+    public ProductQueryHandler(ICachingGraphRepository<Product> products)
+    {
+        _products = products;
+        _products.DataStoreName = "AppDb";
+    }
+}
+```
+
+### Cached reads
+
+Every `ICachingGraphRepository<TEntity>` overload that accepts a `cacheKey` checks the cache first and falls through to the database on a miss, storing the result for subsequent calls:
+
+```csharp
+// Cache by a composite key
+string key = $"products:category:{categoryId}";
+
+ICollection<Product> cached = await _products.FindAsync(
+    cacheKey:   key,
+    expression: p => p.CategoryId == categoryId,
+    token:      cancellationToken);
+```
+
+Paged query with caching:
+
+```csharp
+string pageKey = $"products:page:{pageNumber}:{pageSize}";
+
+IPaginatedList<Product> page = await _products.FindAsync(
+    cacheKey:          pageKey,
+    expression:        p => p.IsActive,
+    orderByExpression: p => p.Name,
+    orderByAscending:  true,
+    pageNumber:        pageNumber,
+    pageSize:          pageSize,
+    token:             cancellationToken);
+```
+
+Using a specification:
+
+```csharp
+var spec   = new ActiveProductSpec();
+string key = "products:active";
+
+ICollection<Product> active = await _products.FindAsync(
+    cacheKey:      key,
+    specification: spec,
+    token:         cancellationToken);
+```
+
+Paged query from a paged specification:
+
+```csharp
+var spec = new PagedSpecification<Product>(
+    p => p.IsActive,
+    p => p.Name,
+    orderByAscending: true,
+    pageNumber: 1,
+    pageSize: 10);
+
+IPaginatedList<Product> page = await _products.FindAsync(
+    cacheKey:      "products:active:p1",
+    specification: spec,
+    token:         cancellationToken);
+```
+
+### Non-cached operations
+
+All write operations and non-keyed reads delegate directly to the inner repository without interacting with the cache:
+
+```csharp
+// These bypass the cache entirely
+await _products.AddAsync(product, cancellationToken);
+await _products.UpdateAsync(product, cancellationToken);
+await _products.DeleteAsync(product, cancellationToken);
+
+// Non-cached read (no cacheKey overload)
+Product? p = await _products.FindAsync(productId, cancellationToken);
+```
+
+### ICachingLinqRepository and ICachingSqlMapperRepository
+
+The same caching pattern applies to `ICachingLinqRepository<TEntity>` (for Linq2Db or EF Core through the LINQ interface) and `ICachingSqlMapperRepository<TEntity>` (for Dapper):
+
+```csharp
+// Linq2Db
+private readonly ICachingLinqRepository<Product> _products;
+
+ICollection<Product> cached = await _products.FindAsync(
+    "products:all", p => true, cancellationToken);
+```
+
+```csharp
+// Dapper
+private readonly ICachingSqlMapperRepository<Product> _products;
+
+ICollection<Product> cached = await _products.FindAsync(
+    "products:featured", p => p.IsFeatured, cancellationToken);
+```
+
+## Cache key design
+
+Cache keys are arbitrary `object` values. Using structured, namespaced string keys (e.g., `entity:qualifier:value`) makes it straightforward to reason about cache invalidation:
+
+```csharp
+// Good: namespaced and parameterised
+string key = $"products:category:{categoryId}:page:{page}";
+
+// Avoid: generic keys that may collide across entity types
+string key = $"{categoryId}:{page}";
+```
+
+Cache invalidation is the responsibility of the caller. After a write operation, remove or refresh the relevant cache entries using the underlying `ICacheService` if your scenario requires it.
+
+## API Summary
+
+| Type | Purpose |
+|------|---------|
+| `ICachingGraphRepository<TEntity>` | Decorator over `IGraphRepository<TEntity>`; adds `cacheKey` overloads to `FindAsync` |
+| `ICachingLinqRepository<TEntity>` | Decorator over `ILinqRepository<TEntity>`; adds `cacheKey` overloads to `FindAsync` |
+| `ICachingSqlMapperRepository<TEntity>` | Decorator over `ISqlMapperRepository<TEntity>`; adds `cacheKey` overloads to `FindAsync` |
+| `AddInMemoryPersistenceCaching()` | Extension on `IPersistenceBuilder` that registers `InMemoryCacheService` and caching repositories |
+| `AddDistributedMemoryPersistenceCaching()` | Extension that registers `DistributedMemoryCacheService` and caching repositories |
+| `PersistenceCachingStrategy` | Enum used internally to select the `ICacheService` implementation |

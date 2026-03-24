@@ -1,0 +1,28 @@
+{
+  "id": "core-concepts/execution-results",
+  "title": "Execution Results & Models",
+  "description": "Overview",
+  "source": "@site/versioned_docs/version-2.4.1/core-concepts/execution-results.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/execution-results",
+  "permalink": "/docs/core-concepts/execution-results",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/core-concepts/execution-results.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Execution Results & Models",
+    "sidebar_position": 5
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "System Time Abstraction",
+    "permalink": "/docs/core-concepts/system-time"
+  },
+  "next": {
+    "title": "Domain-Driven Design",
+    "permalink": "/docs/category/domain-driven-design"
+  }
+}

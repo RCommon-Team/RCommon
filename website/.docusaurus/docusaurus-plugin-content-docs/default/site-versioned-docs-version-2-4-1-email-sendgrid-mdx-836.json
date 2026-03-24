@@ -1,0 +1,28 @@
+{
+  "id": "email/sendgrid",
+  "title": "SendGrid",
+  "description": "Overview",
+  "source": "@site/versioned_docs/version-2.4.1/email/sendgrid.mdx",
+  "sourceDirName": "email",
+  "slug": "/email/sendgrid",
+  "permalink": "/docs/email/sendgrid",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/email/sendgrid.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "SendGrid",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/email/overview"
+  },
+  "next": {
+    "title": "Multi-Tenancy",
+    "permalink": "/docs/category/multi-tenancy"
+  }
+}

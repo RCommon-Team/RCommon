@@ -1,0 +1,28 @@
+{
+  "id": "getting-started/installation",
+  "title": "Installation",
+  "description": "RCommon is distributed as a family of focused NuGet packages. Install only the ones relevant to your application — you are not forced to take every dependency.",
+  "source": "@site/docs/getting-started/installation.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/installation",
+  "permalink": "/docs/next/getting-started/installation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/getting-started/installation.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Installation",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview & Philosophy",
+    "permalink": "/docs/next/getting-started/overview"
+  },
+  "next": {
+    "title": "Quick Start Guide",
+    "permalink": "/docs/next/getting-started/quick-start"
+  }
+}

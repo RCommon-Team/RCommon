@@ -1,0 +1,188 @@
+---
+title: Amazon S3
+sidebar_position: 3
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Amazon S3
+
+## Overview
+
+The `RCommon.Amazon.S3Objects` package wraps the AWS SDK for .NET (`AWSSDK.S3`) behind the `IBlobStorageService` interface. All standard blob operations — upload, download, list, copy, move, presigned URLs — work identically to any other RCommon blob provider; only the startup configuration differs.
+
+The package also supports S3-compatible stores such as MinIO and LocalStack by accepting a custom `ServiceUrl` and enabling path-style addressing.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Amazon.S3Objects" />
+
+This package depends on `RCommon.Blobs` and will bring it in automatically.
+
+## Configuration
+
+Call `WithBlobStorage<AmazonS3ObjectsBuilder>` inside your `AddRCommon()` block. Use `AddBlobStore` to register each named store.
+
+### Using explicit credentials
+
+```csharp
+using RCommon;
+using RCommon.Amazon.S3Objects;
+
+builder.Services.AddRCommon()
+    .WithBlobStorage<AmazonS3ObjectsBuilder>(s3 =>
+    {
+        s3.AddBlobStore("primary", opts =>
+        {
+            opts.Region = "us-east-1";
+            opts.AccessKeyId = builder.Configuration["Aws:AccessKeyId"];
+            opts.SecretAccessKey = builder.Configuration["Aws:SecretAccessKey"];
+        });
+    });
+```
+
+Store credentials in environment variables or a secrets manager rather than in `appsettings.json`. A typical pattern with environment variables:
+
+```json
+{
+  "Aws": {
+    "AccessKeyId": "",
+    "SecretAccessKey": ""
+  }
+}
+```
+
+Set actual values via `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` environment variables or through `dotnet user-secrets` during development.
+
+### Using a named AWS profile
+
+Named profiles in `~/.aws/credentials` or the Windows credential store are resolved via `CredentialProfileStoreChain`.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithBlobStorage<AmazonS3ObjectsBuilder>(s3 =>
+    {
+        s3.AddBlobStore("primary", opts =>
+        {
+            opts.Region = "eu-west-1";
+            opts.Profile = "my-app-profile";
+        });
+    });
+```
+
+### Using the default credential chain
+
+When neither `AccessKeyId`/`SecretAccessKey` nor `Profile` is provided, the AWS SDK falls back to its standard credential chain: environment variables, container task role, EC2 instance profile, and so on. This is the recommended approach for applications deployed to AWS infrastructure.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithBlobStorage<AmazonS3ObjectsBuilder>(s3 =>
+    {
+        s3.AddBlobStore("primary", opts =>
+        {
+            opts.Region = "us-east-1";
+            // No credentials — instance profile is used automatically.
+        });
+    });
+```
+
+### Using MinIO or LocalStack (S3-compatible stores)
+
+Point the service URL at your local endpoint and enable path-style addressing, which most S3-compatible stores require.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithBlobStorage<AmazonS3ObjectsBuilder>(s3 =>
+    {
+        s3.AddBlobStore("local", opts =>
+        {
+            opts.ServiceUrl = "http://localhost:9000";
+            opts.ForcePathStyle = true;
+            opts.AccessKeyId = "minioadmin";
+            opts.SecretAccessKey = "minioadmin";
+        });
+    });
+```
+
+### Registering multiple stores
+
+```csharp
+builder.Services.AddRCommon()
+    .WithBlobStorage<AmazonS3ObjectsBuilder>(s3 =>
+    {
+        s3.AddBlobStore("uploads", opts =>
+        {
+            opts.Region = "us-east-1";
+            opts.Profile = "app-uploads";
+        });
+
+        s3.AddBlobStore("archive", opts =>
+        {
+            opts.Region = "us-west-2";
+            opts.Profile = "app-archive";
+        });
+    });
+```
+
+## Usage
+
+Inject `IBlobStoreFactory` and resolve the store by name:
+
+```csharp
+public class ReportStorageService
+{
+    private readonly IBlobStorageService _storage;
+
+    public ReportStorageService(IBlobStoreFactory factory)
+    {
+        _storage = factory.Resolve("primary");
+    }
+
+    public async Task StoreReportAsync(string key, Stream pdf,
+        CancellationToken ct = default)
+    {
+        await _storage.UploadAsync(
+            containerName: "reports",
+            blobName: key,
+            content: pdf,
+            options: new BlobUploadOptions { ContentType = "application/pdf" },
+            token: ct);
+    }
+
+    public async Task<Uri> GetDownloadLinkAsync(string key,
+        CancellationToken ct = default)
+    {
+        return await _storage.GetPresignedDownloadUrlAsync(
+            containerName: "reports",
+            blobName: key,
+            expiry: TimeSpan.FromMinutes(15),
+            token: ct);
+    }
+}
+```
+
+## API Summary
+
+### `AmazonS3ObjectsBuilder`
+
+Implements `IBlobStorageBuilder` and `IAmazonS3ObjectsBuilder`. Registered automatically by `WithBlobStorage<AmazonS3ObjectsBuilder>`.
+
+| Method | Description |
+|--------|-------------|
+| `AddBlobStore(name, configure)` | Registers a named S3 store. The `configure` action receives an `AmazonS3StoreOptions` instance. |
+
+### `AmazonS3StoreOptions`
+
+| Property | Description |
+|----------|-------------|
+| `Region` | AWS region name (e.g., `"us-east-1"`). Used to set `RegionEndpoint`. |
+| `AccessKeyId` | AWS access key ID. Use together with `SecretAccessKey`. |
+| `SecretAccessKey` | AWS secret access key. Use together with `AccessKeyId`. |
+| `Profile` | Named profile in the local AWS credential store. |
+| `ServiceUrl` | Custom endpoint URL for S3-compatible stores (MinIO, LocalStack). |
+| `ForcePathStyle` | When `true`, uses path-style addressing required by most S3-compatible stores. |
+
+Credential resolution priority:
+1. `AccessKeyId` + `SecretAccessKey` — used when both are non-null.
+2. `Profile` — used when a profile name is provided.
+3. Default AWS credential chain — used when neither of the above is set.

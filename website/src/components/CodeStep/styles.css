@@ -1,0 +1,73 @@
+.step_container {
+  margin-top: 100px;
+  margin-bottom: 50px;
+}
+
+.step_container details {
+  padding: 16px;
+  background: var(--ifm-code-background);
+  border-radius: 6px;
+}
+
+.heading {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.heading:before {
+  content: attr(data-step);
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  background: var(--secondary-blue-400);
+  margin-right: 8px;
+}
+
+.heading h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-gap: 100px;
+}
+
+@media (max-width: 600px) {
+  .content {
+    grid-template-columns: 1fr;
+    grid-gap: 50px; 
+  }
+}
+
+.description {
+
+}
+
+.description p {
+  font-size: 1rem;
+  margin-top: 8px;
+  line-height: 1.8;
+}
+
+.description p pre {
+  display: inline-block;
+}
+
+.description li {
+  margin-bottom: 8px;
+}
+
+.code {
+
+}
+
+.main-block pre {
+  margin-top: 0; /* Removed the 62px top margin */
+}

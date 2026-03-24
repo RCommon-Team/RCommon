@@ -1,0 +1,28 @@
+{
+  "id": "messaging/wolverine",
+  "title": "Wolverine",
+  "description": "RCommon integrates with Wolverine to deliver events both in-process and across service boundaries. The integration registers WolverineEventHandler as a Wolverine IWolverineHandler that delegates to the application's ISubscriber. Handler code has no dependency on Wolverine types.",
+  "source": "@site/versioned_docs/version-2.4.1/messaging/wolverine.mdx",
+  "sourceDirName": "messaging",
+  "slug": "/messaging/wolverine",
+  "permalink": "/docs/messaging/wolverine",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/messaging/wolverine.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Wolverine",
+    "sidebar_position": 5
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "MassTransit",
+    "permalink": "/docs/messaging/masstransit"
+  },
+  "next": {
+    "title": "State Machines",
+    "permalink": "/docs/category/state-machines"
+  }
+}

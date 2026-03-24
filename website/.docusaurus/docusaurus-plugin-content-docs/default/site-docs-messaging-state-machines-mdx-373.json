@@ -1,0 +1,28 @@
+{
+  "id": "messaging/state-machines",
+  "title": "State Machines",
+  "description": "RCommon provides a lightweight state machine abstraction that can be backed by either the Stateless library or a MassTransit-compatible dictionary-based implementation. The MassTransit adapter (RCommon.MassTransit.StateMachines) integrates with the RCommon builder pipeline and is appropriate for orchestrating multi-step workflows in messaging scenarios.",
+  "source": "@site/docs/messaging/state-machines.mdx",
+  "sourceDirName": "messaging",
+  "slug": "/messaging/state-machines",
+  "permalink": "/docs/next/messaging/state-machines",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/messaging/state-machines.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "State Machines",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Transactional Outbox",
+    "permalink": "/docs/next/messaging/transactional-outbox"
+  },
+  "next": {
+    "title": "MassTransit",
+    "permalink": "/docs/next/messaging/masstransit"
+  }
+}

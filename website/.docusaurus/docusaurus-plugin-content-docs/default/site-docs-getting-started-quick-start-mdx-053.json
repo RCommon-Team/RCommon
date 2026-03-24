@@ -1,0 +1,28 @@
+{
+  "id": "getting-started/quick-start",
+  "title": "Quick Start Guide",
+  "description": "This guide walks through the minimum steps to create a new .NET web API, add RCommon, and run a repository query against a SQL Server database using Entity Framework Core.",
+  "source": "@site/docs/getting-started/quick-start.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/quick-start",
+  "permalink": "/docs/next/getting-started/quick-start",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/getting-started/quick-start.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Quick Start Guide",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Installation",
+    "permalink": "/docs/next/getting-started/installation"
+  },
+  "next": {
+    "title": "Configuration & Bootstrapping",
+    "permalink": "/docs/next/getting-started/configuration"
+  }
+}

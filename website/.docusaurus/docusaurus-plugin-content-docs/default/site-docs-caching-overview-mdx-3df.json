@@ -1,0 +1,28 @@
+{
+  "id": "caching/overview",
+  "title": "Overview",
+  "description": "RCommon provides a provider-agnostic caching abstraction built around a single interface: ICacheService. The same interface is implemented by in-process memory caching, distributed memory caching, and Redis. Application code that depends only on ICacheService can switch caching backends without any handler or service changes.",
+  "source": "@site/docs/caching/overview.mdx",
+  "sourceDirName": "caching",
+  "slug": "/caching/overview",
+  "permalink": "/docs/next/caching/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/caching/overview.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Caching",
+    "permalink": "/docs/next/category/caching"
+  },
+  "next": {
+    "title": "Memory Cache",
+    "permalink": "/docs/next/caching/memory"
+  }
+}

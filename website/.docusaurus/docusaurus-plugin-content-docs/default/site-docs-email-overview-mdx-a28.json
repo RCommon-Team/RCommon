@@ -1,0 +1,28 @@
+{
+  "id": "email/overview",
+  "title": "Overview",
+  "description": "Overview",
+  "source": "@site/docs/email/overview.mdx",
+  "sourceDirName": "email",
+  "slug": "/email/overview",
+  "permalink": "/docs/next/email/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/email/overview.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Email",
+    "permalink": "/docs/next/category/email"
+  },
+  "next": {
+    "title": "SendGrid",
+    "permalink": "/docs/next/email/sendgrid"
+  }
+}

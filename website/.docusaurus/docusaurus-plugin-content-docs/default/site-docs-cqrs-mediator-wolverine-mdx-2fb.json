@@ -1,0 +1,28 @@
+{
+  "id": "cqrs-mediator/wolverine",
+  "title": "Wolverine",
+  "description": "Overview",
+  "source": "@site/docs/cqrs-mediator/wolverine.mdx",
+  "sourceDirName": "cqrs-mediator",
+  "slug": "/cqrs-mediator/wolverine",
+  "permalink": "/docs/next/cqrs-mediator/wolverine",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/cqrs-mediator/wolverine.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Wolverine",
+    "sidebar_position": 5
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "MediatR",
+    "permalink": "/docs/next/cqrs-mediator/mediatr"
+  },
+  "next": {
+    "title": "Event Handling",
+    "permalink": "/docs/next/category/event-handling"
+  }
+}

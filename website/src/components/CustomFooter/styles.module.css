@@ -1,0 +1,71 @@
+.custom-footer-wrapper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--next-prev-border-color);
+}
+
+@media (max-width: 767px) {
+  .custom-footer-wrapper {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.custom-footer-wrapper .logo-wrapper {
+  height: 32px;
+}
+
+.custom-footer-wrapper .logo-wrapper img {
+  height: 100%;
+  width: auto;
+  border-radius: 0;
+}
+
+/* Light/dark logo switching */
+.custom-footer-wrapper .dark-theme-logo {
+  display: none;
+}
+
+:global(html[data-theme='dark']) .custom-footer-wrapper .light-theme-logo {
+  display: none;
+}
+
+:global(html[data-theme='dark']) .custom-footer-wrapper .dark-theme-logo {
+  display: initial;
+}
+
+.custom-footer-wrapper .copyright {
+  color: var(--neutral-mid-500);
+  font-size: 0.8125rem;
+}
+
+.custom-footer-wrapper .footerSocialIconsWrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.custom-footer-wrapper .footerSocialIconsWrapper .socialBrands {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.custom-footer-wrapper .footerSocialIconsWrapper .socialBrands:hover {
+  opacity: 1;
+}
+
+.custom-footer-wrapper .footerSocialIconsWrapper .socialBrands a {
+  color: var(--primary-neutral-800);
+  display: flex;
+  align-items: center;
+}
+
+.custom-footer-wrapper .footerSocialIconsWrapper .socialBrands a:hover {
+  color: var(--primary-blue-600);
+  text-decoration: none;
+}

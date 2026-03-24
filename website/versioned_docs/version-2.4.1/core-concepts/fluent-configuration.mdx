@@ -1,0 +1,119 @@
+---
+title: Fluent Configuration
+sidebar_position: 1
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Fluent Configuration Builder
+
+## Overview
+
+RCommon uses a fluent builder pattern to configure framework services during application startup. The entry point is the `AddRCommon()` extension method on `IServiceCollection`, which returns an `IRCommonBuilder` instance. You then chain `With*` methods on that builder to activate features such as GUID generation, system time, and common factories.
+
+This approach keeps all RCommon configuration in one place, makes dependencies explicit, and prevents double-registration of the same service.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Core" />
+
+## Configuration
+
+Call `AddRCommon()` inside `Program.cs` (or `Startup.ConfigureServices` for older host models) and chain the features you need:
+
+```csharp
+using RCommon;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddRCommon()
+    .WithSequentialGuidGenerator(options =>
+    {
+        options.DefaultSequentialGuidType = SequentialGuidType.SequentialAtEnd;
+    })
+    .WithDateTimeSystem(options =>
+    {
+        options.Kind = DateTimeKind.Utc;
+    });
+```
+
+`AddRCommon()` registers core infrastructure immediately (caching options, event bus, event router). Each subsequent `With*` call registers the corresponding service into `IServiceCollection` and returns the same builder so calls can be chained.
+
+### What AddRCommon registers automatically
+
+Calling `AddRCommon()` with no additional configuration registers:
+
+- `CachingOptions` (caching disabled by default)
+- `EventSubscriptionManager` (singleton)
+- `IEventBus` backed by `InMemoryEventBus` (singleton)
+- `IEventRouter` backed by `InMemoryTransactionalEventRouter` (scoped)
+
+## Usage
+
+### Basic setup — minimal configuration
+
+```csharp
+builder.Services.AddRCommon();
+```
+
+This is sufficient when you only need the built-in event infrastructure and do not require GUID generation or system time abstractions.
+
+### Full configuration chain
+
+```csharp
+builder.Services.AddRCommon()
+    .WithSimpleGuidGenerator()
+    .WithDateTimeSystem(options => options.Kind = DateTimeKind.Utc)
+    .WithCommonFactory<IMyService, MyService>();
+```
+
+### Creating a custom builder extension
+
+If you are writing an RCommon add-on package you can extend `IRCommonBuilder` with your own `With*` method. Follow the same pattern used by the built-in methods:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using RCommon;
+
+public static class MyFeatureBuilderExtensions
+{
+    public static IRCommonBuilder WithMyFeature(
+        this IRCommonBuilder builder,
+        Action<MyFeatureOptions> configure)
+    {
+        builder.Services.Configure<MyFeatureOptions>(configure);
+        builder.Services.AddTransient<IMyFeature, MyFeature>();
+        return builder;
+    }
+}
+```
+
+Consumers then call it like any other built-in method:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithMyFeature(options => { options.Timeout = TimeSpan.FromSeconds(30); });
+```
+
+## API Summary
+
+### `IServiceCollection` extension
+
+| Method | Description |
+|---|---|
+| `AddRCommon()` | Creates an `RCommonBuilder`, registers core services, and returns `IRCommonBuilder`. |
+
+### `IRCommonBuilder` interface
+
+| Member | Description |
+|---|---|
+| `Services` | The underlying `IServiceCollection`. Useful inside extension methods to register additional services. |
+| `WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions>)` | Registers `SequentialGuidGenerator` as `IGuidGenerator`. |
+| `WithSimpleGuidGenerator()` | Registers `SimpleGuidGenerator` as `IGuidGenerator`. |
+| `WithDateTimeSystem(Action<SystemTimeOptions>)` | Registers `SystemTime` as `ISystemTime`. |
+| `WithCommonFactory<TService, TImplementation>()` | Registers a service/implementation pair together with an `ICommonFactory<TService>`. |
+| `Configure()` | Finalizes configuration and returns the `IServiceCollection`. Called internally by `AddRCommon()`. |
+
+### Guard against double registration
+
+The builder tracks whether a GUID generator or date/time system has already been configured. Calling the same `With*` method twice throws an `RCommonBuilderException`, preventing accidental duplicate registrations.

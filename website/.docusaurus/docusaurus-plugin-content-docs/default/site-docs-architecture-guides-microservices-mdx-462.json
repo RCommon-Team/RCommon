@@ -1,0 +1,28 @@
+{
+  "id": "architecture-guides/microservices",
+  "title": "Microservices",
+  "description": "Microservices decompose a system into independently deployable services that communicate over a network. RCommon provides the abstractions and integrations that make this communication consistent, testable, and swappable across a distributed system.",
+  "source": "@site/docs/architecture-guides/microservices.mdx",
+  "sourceDirName": "architecture-guides",
+  "slug": "/architecture-guides/microservices",
+  "permalink": "/docs/next/architecture-guides/microservices",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/architecture-guides/microservices.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Microservices",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Clean Architecture",
+    "permalink": "/docs/next/architecture-guides/clean-architecture"
+  },
+  "next": {
+    "title": "Event-Driven Architecture",
+    "permalink": "/docs/next/architecture-guides/event-driven"
+  }
+}

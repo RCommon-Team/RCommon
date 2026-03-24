@@ -1,0 +1,28 @@
+{
+  "id": "examples-recipes/messaging",
+  "title": "Messaging Examples",
+  "description": "This page walks through the messaging examples included with RCommon. These examples show how to use MassTransit and Wolverine as the event transport, and how to isolate event subscriptions between multiple publishers.",
+  "source": "@site/docs/examples-recipes/messaging.mdx",
+  "sourceDirName": "examples-recipes",
+  "slug": "/examples-recipes/messaging",
+  "permalink": "/docs/next/examples-recipes/messaging",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/examples-recipes/messaging.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Messaging Examples",
+    "sidebar_position": 4
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Caching Examples",
+    "permalink": "/docs/next/examples-recipes/caching"
+  },
+  "next": {
+    "title": "Testing",
+    "permalink": "/docs/next/category/testing"
+  }
+}

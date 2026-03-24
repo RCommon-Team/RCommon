@@ -1,0 +1,28 @@
+{
+  "id": "core-concepts/guards",
+  "title": "Guards & Validation",
+  "description": "Overview",
+  "source": "@site/docs/core-concepts/guards.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/guards",
+  "permalink": "/docs/next/core-concepts/guards",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/core-concepts/guards.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Guards & Validation",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Fluent Configuration",
+    "permalink": "/docs/next/core-concepts/fluent-configuration"
+  },
+  "next": {
+    "title": "GUID Generation",
+    "permalink": "/docs/next/core-concepts/guid-generation"
+  }
+}

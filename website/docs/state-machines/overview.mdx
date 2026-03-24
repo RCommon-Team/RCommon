@@ -1,0 +1,101 @@
+---
+title: Overview
+sidebar_position: 1
+---
+
+# State Machines Overview
+
+RCommon provides a provider-agnostic state machine abstraction that lets you define finite state machines (FSMs) using plain C# enums for states and triggers. The abstraction is backed by pluggable adapters, currently the `Stateless` library and a lightweight dictionary-based implementation included in `RCommon.MassTransit.StateMachines`.
+
+## The state machine pattern
+
+A finite state machine models a process that is always in exactly one of a finite number of states. Transitions between states are driven by triggers (also called events or signals). Each transition can be unconditional or guarded by a condition. States can have entry and exit actions that fire async side effects when the machine moves in or out of them.
+
+Common use cases include:
+
+- Order lifecycle management (Pending → Approved → Shipped → Delivered)
+- Workflow approval processes (Draft → Submitted → Under Review → Approved / Rejected)
+- Connection state tracking (Connecting → Connected → Disconnecting → Disconnected)
+- Document publishing pipelines (Draft → Review → Published / Archived)
+
+## Core abstractions
+
+### IStateMachineConfigurator&lt;TState, TTrigger&gt;
+
+The entry point for defining a state machine. Call `ForState` once per state to configure its transitions, then call `Build` to create a running machine instance:
+
+```csharp
+public interface IStateMachineConfigurator<TState, TTrigger>
+    where TState : struct, Enum
+    where TTrigger : struct, Enum
+{
+    IStateConfigurator<TState, TTrigger> ForState(TState state);
+    IStateMachine<TState, TTrigger> Build(TState initialState);
+}
+```
+
+A single configurator instance can be used to build multiple independent machine instances with different initial states, all sharing the same transition configuration.
+
+### IStateConfigurator&lt;TState, TTrigger&gt;
+
+Returned by `ForState`, used to define transitions and actions for a specific state:
+
+```csharp
+public interface IStateConfigurator<TState, TTrigger>
+    where TState : struct, Enum
+    where TTrigger : struct, Enum
+{
+    IStateConfigurator<TState, TTrigger> Permit(TTrigger trigger, TState destinationState);
+    IStateConfigurator<TState, TTrigger> PermitIf(TTrigger trigger, TState destinationState, Func<bool> guard);
+    IStateConfigurator<TState, TTrigger> OnEntry(Func<CancellationToken, Task> action);
+    IStateConfigurator<TState, TTrigger> OnExit(Func<CancellationToken, Task> action);
+}
+```
+
+### IStateMachine&lt;TState, TTrigger&gt;
+
+The running state machine instance. Inspect current state, check permitted triggers, and fire them:
+
+```csharp
+public interface IStateMachine<TState, TTrigger>
+    where TState : struct, Enum
+    where TTrigger : struct, Enum
+{
+    TState CurrentState { get; }
+    bool CanFire(TTrigger trigger);
+    IEnumerable<TTrigger> PermittedTriggers { get; }
+    Task FireAsync(TTrigger trigger, CancellationToken cancellationToken = default);
+    Task FireAsync<TData>(TTrigger trigger, TData data, CancellationToken cancellationToken = default);
+}
+```
+
+## Stateless vs MassTransit adapter
+
+RCommon ships two adapters for the state machine abstraction. Both register as `IStateMachineConfigurator<TState, TTrigger>` and produce `IStateMachine<TState, TTrigger>` instances:
+
+| Aspect | `RCommon.Stateless` | `RCommon.MassTransit.StateMachines` |
+|--------|---------------------|-------------------------------------|
+| Backing library | `Stateless` NuGet package | Custom dictionary-based FSM (no extra dependency) |
+| Parameterized triggers | Fully supported via Stateless `SetTriggerParameters` | Accepted but data parameter is ignored |
+| Configuration model | Deferred: actions recorded and replayed on each `Build` call | Shared dictionary cloned per `Build` call |
+| Registration | `WithStatelessStateMachine()` | `WithMassTransitStateMachine()` |
+| Suitable for | Most applications; rich guard and parameterized trigger support | Simple state tracking in messaging-heavy contexts |
+
+Use `RCommon.Stateless` unless you have a specific reason to prefer the dictionary-based adapter.
+
+## Choosing an adapter
+
+Choose `RCommon.Stateless` when:
+
+- Your state machine needs parameterized triggers with data passed to entry actions.
+- You want the full feature set of the Stateless library (sub-states, trigger parameters, dot-graph export).
+- You prefer a well-established open-source library as the engine.
+
+Choose `RCommon.MassTransit.StateMachines` when:
+
+- You are already using `RCommon.MassTransit` and want to avoid an additional dependency.
+- Your state machine only uses simple unconditional transitions and guarded transitions with no trigger data.
+
+## Section contents
+
+- [Stateless](./stateless.mdx) — Stateless library integration, defining states/triggers, full configuration reference

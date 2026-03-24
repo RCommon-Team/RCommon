@@ -1,0 +1,154 @@
+---
+title: Quick Start Guide
+sidebar_position: 3
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Quick Start Guide
+
+This guide walks through the minimum steps to create a new .NET web API, add RCommon, and run a repository query against a SQL Server database using Entity Framework Core.
+
+## 1. Create a new project
+
+```bash
+dotnet new webapi -n MyApp
+cd MyApp
+```
+
+## 2. Install packages
+
+<NuGetInstall packageName="RCommon.Core" />
+<NuGetInstall packageName="RCommon.Entities" />
+<NuGetInstall packageName="RCommon.Persistence" />
+<NuGetInstall packageName="RCommon.EFCore" />
+
+## 3. Define your entity
+
+Entities in RCommon inherit from a base class provided by `RCommon.Entities`. The base classes handle common concerns like auditing and domain events automatically.
+
+```csharp
+using RCommon.Entities;
+
+public class Product : BusinessEntity<Guid>
+{
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+}
+```
+
+## 4. Create a DbContext
+
+The `RCommonDbContext` base class integrates with RCommon's change tracking and domain event dispatch.
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using RCommon.Persistence.EFCore;
+
+public class AppDbContext : RCommonDbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options,
+        IEntityEventTracker eventTracker)
+        : base(options, eventTracker)
+    {
+    }
+
+    public DbSet<Product> Products => Set<Product>();
+}
+```
+
+## 5. Configure RCommon in Program.cs
+
+```csharp
+using RCommon;
+using RCommon.Persistence.EFCore;
+using RCommon.Persistence.Transactions;
+using Microsoft.EntityFrameworkCore;
+using System.Transactions;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddRCommon()
+    .WithSequentialGuidGenerator(guid =>
+        guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
+    .WithDateTimeSystem(dt => dt.Kind = DateTimeKind.Utc)
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>("AppDb", options =>
+        {
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("DefaultConnection"));
+        });
+        ef.SetDefaultDataStore(ds =>
+        {
+            ds.DefaultDataStoreName = "AppDb";
+        });
+    })
+    .WithUnitOfWork<DefaultUnitOfWorkBuilder>(uow =>
+    {
+        uow.SetOptions(options =>
+        {
+            options.AutoCompleteScope = true;
+            options.DefaultIsolation = IsolationLevel.ReadCommitted;
+        });
+    });
+
+builder.Services.AddControllers();
+
+var app = builder.Build();
+app.MapControllers();
+app.Run();
+```
+
+## 6. Inject and use the repository
+
+RCommon automatically registers `ILinqRepository<T>` for every entity once `EFCorePerisistenceBuilder` is configured. Inject it directly into your controllers, application services, or handlers.
+
+```csharp
+using RCommon.Persistence.Crud;
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    private readonly ILinqRepository<Product> _products;
+
+    public ProductsController(ILinqRepository<Product> products)
+    {
+        _products = products;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var products = await _products.FindAsync(p => p.Price > 0);
+        return Ok(products);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var product = await _products.FindAsync(id);
+        if (product is null) return NotFound();
+        return Ok(product);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(Product product)
+    {
+        await _products.AddAsync(product);
+        return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+    }
+}
+```
+
+## What happens under the hood
+
+- `AddRCommon()` creates an `RCommonBuilder` and registers the core services: the in-memory event bus, the `EventSubscriptionManager`, and the `InMemoryTransactionalEventRouter`.
+- `WithSequentialGuidGenerator` registers `IGuidGenerator` as a transient `SequentialGuidGenerator`, useful for database-friendly ordered GUIDs.
+- `WithDateTimeSystem` registers `ISystemTime` so that auditing and time-dependent logic is testable.
+- `WithPersistence<EFCorePerisistenceBuilder>` registers the open-generic repository types (`ILinqRepository<>`, `IReadOnlyRepository<>`, `IWriteOnlyRepository<>`) backed by EF Core, and maps the named DbContext to the data store factory.
+- `WithUnitOfWork<DefaultUnitOfWorkBuilder>` registers `IUnitOfWork` and `IUnitOfWorkFactory` for transactional coordination.
+
+From here you can add CQRS mediation, event handling, validation, or any other RCommon feature by chaining additional `With*` calls on the builder.

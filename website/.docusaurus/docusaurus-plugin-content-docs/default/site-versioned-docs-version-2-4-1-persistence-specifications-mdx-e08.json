@@ -1,0 +1,28 @@
+{
+  "id": "persistence/specifications",
+  "title": "Specifications",
+  "description": "Overview",
+  "source": "@site/versioned_docs/version-2.4.1/persistence/specifications.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/specifications",
+  "permalink": "/docs/persistence/specifications",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/persistence/specifications.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Specifications",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Repository Pattern",
+    "permalink": "/docs/persistence/repository-pattern"
+  },
+  "next": {
+    "title": "Unit of Work",
+    "permalink": "/docs/persistence/unit-of-work"
+  }
+}

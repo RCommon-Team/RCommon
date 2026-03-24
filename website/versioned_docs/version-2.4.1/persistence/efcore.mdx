@@ -1,0 +1,224 @@
+---
+title: Entity Framework Core
+sidebar_position: 4
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Entity Framework Core
+
+## Overview
+
+The EF Core provider wires `EFCoreRepository<TEntity>` into the repository abstraction layer. It implements `IReadOnlyRepository<TEntity>`, `IWriteOnlyRepository<TEntity>`, `ILinqRepository<TEntity>`, and `IGraphRepository<TEntity>`, giving you full LINQ query support, eager loading, automatic soft-delete handling, and opt-in change-tracking control.
+
+The provider resolves a `RCommonDbContext`-derived `DbContext` from the `IDataStoreFactory` at runtime, which makes it possible to register multiple named DbContext instances and route repositories to the right one.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.EfCore" />
+
+## DbContext setup
+
+Your `DbContext` must derive from `RCommonDbContext` rather than `DbContext` directly. `RCommonDbContext` implements `IDataStore`, which is the mechanism the `IDataStoreFactory` uses to resolve the correct context at runtime.
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using RCommon.Persistence.EFCore;
+
+public class LeaveManagementDbContext : RCommonDbContext
+{
+    public LeaveManagementDbContext(DbContextOptions<LeaveManagementDbContext> options)
+        : base(options)
+    {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(LeaveManagementDbContext).Assembly);
+    }
+
+    public DbSet<LeaveRequest>    LeaveRequests    { get; set; }
+    public DbSet<LeaveType>       LeaveTypes       { get; set; }
+    public DbSet<LeaveAllocation> LeaveAllocations { get; set; }
+}
+```
+
+If you need audit stamping or other cross-cutting concerns, introduce an intermediate abstract class that still inherits from `RCommonDbContext`:
+
+```csharp
+public abstract class AuditableDbContext : RCommonDbContext
+{
+    private readonly ICurrentUser _currentUser;
+    private readonly ISystemTime  _systemTime;
+
+    public AuditableDbContext(DbContextOptions options,
+        ICurrentUser currentUser, ISystemTime systemTime)
+        : base(options)
+    {
+        _currentUser = currentUser;
+        _systemTime  = systemTime;
+    }
+
+    public override Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<BaseDomainEntity>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+        {
+            string userId = _currentUser?.Id?.ToString() ?? "System";
+            entry.Entity.DateLastModified = _systemTime.Now;
+            entry.Entity.LastModifiedBy   = userId;
+
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.DateCreated = _systemTime.Now;
+                entry.Entity.CreatedBy   = userId;
+            }
+        }
+
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+}
+```
+
+## Configuration
+
+Register the EF Core persistence provider in your application startup:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<LeaveManagementDbContext>(
+            "LeaveManagement",
+            options => options.UseSqlServer(
+                builder.Configuration.GetConnectionString("LeaveManagement")));
+
+        ef.SetDefaultDataStore(ds =>
+            ds.DefaultDataStoreName = "LeaveManagement");
+    });
+```
+
+Multiple DbContexts can be registered by calling `AddDbContext` multiple times with different names:
+
+```csharp
+ef.AddDbContext<InventoryDbContext>("Inventory",
+    options => options.UseNpgsql(inventoryConnectionString));
+
+ef.AddDbContext<OrderingDbContext>("Ordering",
+    options => options.UseSqlServer(orderingConnectionString));
+
+ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Ordering");
+```
+
+## Usage
+
+### Injecting and targeting a data store
+
+Inject `IGraphRepository<TEntity>` (or any narrower interface) and set `DataStoreName` to match the name given to `AddDbContext`:
+
+```csharp
+public class CreateLeaveTypeCommandHandler
+{
+    private readonly IGraphRepository<LeaveType> _leaveTypeRepository;
+
+    public CreateLeaveTypeCommandHandler(IGraphRepository<LeaveType> leaveTypeRepository)
+    {
+        _leaveTypeRepository = leaveTypeRepository;
+        _leaveTypeRepository.DataStoreName = "LeaveManagement";
+    }
+
+    public async Task HandleAsync(CreateLeaveTypeCommand request, CancellationToken cancellationToken)
+    {
+        var leaveType = new LeaveType { Name = request.Name, DefaultDays = request.DefaultDays };
+        await _leaveTypeRepository.AddAsync(leaveType, cancellationToken);
+    }
+}
+```
+
+### CRUD operations
+
+```csharp
+// Create
+await _repo.AddAsync(entity, cancellationToken);
+await _repo.AddRangeAsync(entities, cancellationToken);
+
+// Read
+LeaveType? lt     = await _repo.FindAsync(id, cancellationToken);
+var        all    = await _repo.FindAsync(lt => lt.DefaultDays > 0, cancellationToken);
+var        single = await _repo.FindSingleOrDefaultAsync(lt => lt.Name == "Annual", cancellationToken);
+bool       any    = await _repo.AnyAsync(lt => lt.DefaultDays > 20, cancellationToken);
+long       count  = await _repo.GetCountAsync(lt => lt.DefaultDays > 0, cancellationToken);
+
+// Update
+await _repo.UpdateAsync(entity, cancellationToken);
+
+// Delete (auto-detects ISoftDelete)
+await _repo.DeleteAsync(entity, cancellationToken);
+
+// Bulk delete
+int affected = await _repo.DeleteManyAsync(lt => lt.DefaultDays == 0, cancellationToken);
+```
+
+### LINQ queries
+
+Because `IGraphRepository<TEntity>` extends `IQueryable<TEntity>` you can use it directly in LINQ expressions:
+
+```csharp
+IQueryable<LeaveType> query = _repo.FindQuery(lt => lt.DefaultDays > 5);
+```
+
+### Eager loading
+
+```csharp
+var requests = await _leaveRequestRepo
+    .Include(r => r.LeaveType)
+    .FindAsync(r => r.EmployeeId == employeeId, cancellationToken);
+```
+
+Chain additional navigation properties with `ThenInclude`:
+
+```csharp
+var allocations = await _allocationRepo
+    .Include(a => a.LeaveType)
+    .FindAsync(a => a.EmployeeId == userId, cancellationToken);
+```
+
+### Disabling change tracking
+
+Set `Tracking = false` for read-only queries that do not need to participate in the change tracker:
+
+```csharp
+_repo.Tracking = false;
+var list = await _repo.FindAsync(lt => lt.DefaultDays > 0, cancellationToken);
+```
+
+### Paged queries
+
+```csharp
+IPaginatedList<LeaveType> page = await _repo.FindAsync(
+    expression:        lt => lt.DefaultDays > 0,
+    orderByExpression: lt => lt.Name,
+    orderByAscending:  true,
+    pageNumber:        1,
+    pageSize:          10,
+    token:             cancellationToken);
+```
+
+### Using specifications
+
+```csharp
+var spec = new AllocationExistsSpec(userId, leaveTypeId, year);
+long count = await _allocationRepo.GetCountAsync(spec, cancellationToken);
+```
+
+## API Summary
+
+| Type | Purpose |
+|------|---------|
+| `IEFCorePersistenceBuilder` | Fluent startup builder with `AddDbContext<TDbContext>` and `SetDefaultDataStore` |
+| `EFCorePerisistenceBuilder` | Concrete implementation that registers EF Core repositories in the DI container |
+| `RCommonDbContext` | Abstract base class for all EF Core contexts; implements `IDataStore` |
+| `EFCoreRepository<TEntity>` | Concrete repository; implements `IGraphRepository<TEntity>` and lower interfaces |
+| `IGraphRepository<TEntity>` | Full CRUD + LINQ + paging + eager loading + `Tracking` property |

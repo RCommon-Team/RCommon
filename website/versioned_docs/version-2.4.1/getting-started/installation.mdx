@@ -1,0 +1,147 @@
+---
+title: Installation
+sidebar_position: 2
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Installation
+
+RCommon is distributed as a family of focused NuGet packages. Install only the ones relevant to your application — you are not forced to take every dependency.
+
+## Target framework requirements
+
+All RCommon packages target .NET 8, .NET 9, and .NET 10. There is no support for .NET Framework or .NET Standard.
+
+## Core package
+
+Every RCommon application starts with the core package. It provides the fluent builder entry point, the in-memory event bus, guard clauses, GUID generation, system time abstraction, and the extension method library.
+
+<NuGetInstall packageName="RCommon.Core" />
+
+## Models and entities
+
+Shared CQRS models (commands, queries, execution results, pagination) and domain entity base classes live in two separate packages so you can reference only what each project layer needs.
+
+<NuGetInstall packageName="RCommon.Models" />
+
+<NuGetInstall packageName="RCommon.Entities" />
+
+## Persistence
+
+Choose one or more persistence providers. Each package registers repository implementations behind the shared `ILinqRepository<T>`, `IReadOnlyRepository<T>`, and `IWriteOnlyRepository<T>` abstractions.
+
+**Entity Framework Core**
+
+<NuGetInstall packageName="RCommon.Persistence" />
+<NuGetInstall packageName="RCommon.EFCore" />
+
+**Dapper**
+
+<NuGetInstall packageName="RCommon.Persistence" />
+<NuGetInstall packageName="RCommon.Dapper" />
+
+**Linq2Db**
+
+<NuGetInstall packageName="RCommon.Persistence" />
+<NuGetInstall packageName="RCommon.Linq2Db" />
+
+## CQRS / Mediator
+
+<NuGetInstall packageName="RCommon.Mediator" />
+
+Choose a backing implementation:
+
+<NuGetInstall packageName="RCommon.MediatR" />
+
+<NuGetInstall packageName="RCommon.Wolverine" />
+
+## Event handling
+
+The in-memory event bus is part of `RCommon.Core`. For distributed messaging, add one of:
+
+<NuGetInstall packageName="RCommon.MassTransit" />
+
+<NuGetInstall packageName="RCommon.Wolverine" />
+
+For the transactional outbox pattern:
+
+<NuGetInstall packageName="RCommon.MassTransit.Outbox" />
+
+<NuGetInstall packageName="RCommon.Wolverine.Outbox" />
+
+## Caching
+
+<NuGetInstall packageName="RCommon.Caching" />
+
+<NuGetInstall packageName="RCommon.MemoryCache" />
+
+<NuGetInstall packageName="RCommon.RedisCache" />
+
+## Validation
+
+<NuGetInstall packageName="RCommon.FluentValidation" />
+
+## Email
+
+<NuGetInstall packageName="RCommon.Emailing" />
+
+<NuGetInstall packageName="RCommon.SendGrid" />
+
+## Blob storage
+
+<NuGetInstall packageName="RCommon.Blobs" />
+
+<NuGetInstall packageName="RCommon.Azure.Blobs" />
+
+<NuGetInstall packageName="RCommon.Amazon.S3Objects" />
+
+## Serialization
+
+<NuGetInstall packageName="RCommon.Json" />
+
+<NuGetInstall packageName="RCommon.SystemTextJson" />
+
+<NuGetInstall packageName="RCommon.JsonNet" />
+
+## Multi-tenancy
+
+<NuGetInstall packageName="RCommon.MultiTenancy" />
+
+<NuGetInstall packageName="RCommon.Finbuckle" />
+
+## Security and web
+
+<NuGetInstall packageName="RCommon.Security" />
+
+<NuGetInstall packageName="RCommon.Web" />
+
+<NuGetInstall packageName="RCommon.Authorization.Web" />
+
+## State machines
+
+<NuGetInstall packageName="RCommon.Stateless" />
+
+<NuGetInstall packageName="RCommon.MassTransit.StateMachines" />
+
+## Application services
+
+<NuGetInstall packageName="RCommon.ApplicationServices" />
+
+## Picking what you need
+
+A typical web API that uses EF Core, MediatR, FluentValidation, and in-process events needs only:
+
+```
+RCommon.Core
+RCommon.Models
+RCommon.Entities
+RCommon.Persistence
+RCommon.EFCore
+RCommon.Mediator
+RCommon.MediatR
+RCommon.FluentValidation
+RCommon.ApplicationServices
+```
+
+Add further packages incrementally as requirements grow. Packages that share abstractions (for example `RCommon.Persistence` and `RCommon.EFCore`) must be compatible versions; use the same version number for all RCommon packages in a single project.

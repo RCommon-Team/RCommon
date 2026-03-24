@@ -1,0 +1,157 @@
+---
+title: Specifications
+sidebar_position: 2
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Specifications
+
+## Overview
+
+The Specification pattern encapsulates a query predicate as a named, reusable object. Instead of scattering raw lambda expressions throughout your handlers and services, you define a specification class once and reference it by name. This keeps query logic close to the domain, makes intent explicit, and allows query logic to be tested independently of any database.
+
+RCommon ships two interfaces and two concrete implementations:
+
+- `ISpecification<T>` — a single filter predicate
+- `IPagedSpecification<T>` — adds ordering and paging on top of a filter
+- `Specification<T>` — default implementation, supports `&` and `|` operator composition
+- `PagedSpecification<T>` — default implementation of `IPagedSpecification<T>`
+
+All repository interfaces accept specifications alongside their equivalent lambda-based overloads, so you can switch between the two styles freely.
+
+## Installation
+
+Specifications are part of the core package:
+
+<NuGetInstall packageName="RCommon.Persistence" />
+
+## Defining a Specification
+
+Inherit from `Specification<T>` and pass the filter predicate to the base constructor:
+
+```csharp
+using RCommon;
+
+public class AllocationExistsSpec : Specification<LeaveAllocation>
+{
+    public AllocationExistsSpec(string userId, int leaveTypeId, int period)
+        : base(q => q.EmployeeId == userId
+                  && q.LeaveTypeId == leaveTypeId
+                  && q.Period == period)
+    {
+    }
+}
+```
+
+This is a real specification from the CleanWithCQRS example. It encapsulates a three-part uniqueness check for a leave allocation.
+
+## Using a Specification with a Repository
+
+Pass the specification to any repository method that accepts `ISpecification<TEntity>`:
+
+```csharp
+var spec = new AllocationExistsSpec(employeeId, leaveTypeId, currentYear);
+
+long count = await _allocationRepository.GetCountAsync(spec, cancellationToken);
+
+if (count == 0)
+{
+    await _allocationRepository.AddAsync(newAllocation, cancellationToken);
+}
+```
+
+Find a collection:
+
+```csharp
+ICollection<LeaveAllocation> matches = await _allocationRepository
+    .FindAsync(spec, cancellationToken);
+```
+
+Find single or default:
+
+```csharp
+LeaveAllocation? existing = await _allocationRepository
+    .FindSingleOrDefaultAsync(spec, cancellationToken);
+```
+
+Check existence:
+
+```csharp
+bool exists = await _allocationRepository.AnyAsync(spec, cancellationToken);
+```
+
+## Combining Specifications
+
+`Specification<T>` overloads the `&` and `|` operators to compose predicates without additional subclassing:
+
+```csharp
+var activeSpec  = new Specification<Order>(o => o.IsActive);
+var pendingSpec = new Specification<Order>(o => o.Status == OrderStatus.Pending);
+var largeSpec   = new Specification<Order>(o => o.Total > 1000m);
+
+// Both conditions must be true
+var activePending = activeSpec & pendingSpec;
+
+// Either condition is sufficient
+var activeOrLarge = activeSpec | largeSpec;
+```
+
+The same composition is available through extension methods on `ISpecification<T>` when you hold an interface reference:
+
+```csharp
+ISpecification<Order> combined = activeSpec
+    .And(pendingSpec)
+    .And(largeSpec);
+```
+
+Negate a specification:
+
+```csharp
+ISpecification<Order> notActive = activeSpec.Not();
+```
+
+## Paged Specifications
+
+When you need filtering, ordering, and paging in a single object, use `PagedSpecification<T>`:
+
+```csharp
+var pagedSpec = new PagedSpecification<Order>(
+    predicate:         o => o.CustomerId == customerId,
+    orderByExpression: o => o.DateCreated,
+    orderByAscending:  false,
+    pageNumber:        1,
+    pageSize:          25);
+
+IPaginatedList<Order> page = await _orderRepository
+    .FindAsync(pagedSpec, cancellationToken);
+```
+
+`IPagedSpecification<T>` exposes:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Predicate` | `Expression<Func<T, bool>>` | The filter expression |
+| `OrderByExpression` | `Expression<Func<T, object>>` | The ordering expression |
+| `OrderByAscending` | `bool` | Sort direction |
+| `PageNumber` | `int` | 1-based page number |
+| `PageSize` | `int` | Number of items per page |
+
+## Direct Predicate Evaluation
+
+Specifications can be evaluated in memory against a single entity, which is useful in unit tests or domain validation:
+
+```csharp
+var spec = new AllocationExistsSpec(userId, leaveTypeId, year);
+bool satisfied = spec.IsSatisfiedBy(allocation);
+```
+
+## API Summary
+
+| Type | Purpose |
+|------|---------|
+| `ISpecification<T>` | Contract: `Expression<Func<T, bool>> Predicate` and `bool IsSatisfiedBy(T entity)` |
+| `IPagedSpecification<T>` | Extends `ISpecification<T>` with `PageNumber`, `PageSize`, `OrderByExpression`, `OrderByAscending` |
+| `Specification<T>` | Concrete implementation; supports `&` and `|` operator composition |
+| `PagedSpecification<T>` | Concrete implementation of `IPagedSpecification<T>` |
+| `SpecificationExtensions` | Extension methods: `.And()`, `.Or()`, `.Not()` on `ISpecification<T>` |

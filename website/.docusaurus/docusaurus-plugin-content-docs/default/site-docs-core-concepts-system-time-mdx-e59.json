@@ -1,0 +1,28 @@
+{
+  "id": "core-concepts/system-time",
+  "title": "System Time Abstraction",
+  "description": "Overview",
+  "source": "@site/docs/core-concepts/system-time.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/system-time",
+  "permalink": "/docs/next/core-concepts/system-time",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/core-concepts/system-time.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "System Time Abstraction",
+    "sidebar_position": 4
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "GUID Generation",
+    "permalink": "/docs/next/core-concepts/guid-generation"
+  },
+  "next": {
+    "title": "Execution Results & Models",
+    "permalink": "/docs/next/core-concepts/execution-results"
+  }
+}

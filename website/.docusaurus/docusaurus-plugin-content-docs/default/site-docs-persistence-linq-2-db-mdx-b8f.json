@@ -1,0 +1,28 @@
+{
+  "id": "persistence/linq2db",
+  "title": "Linq2Db",
+  "description": "Overview",
+  "source": "@site/docs/persistence/linq2db.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/linq2db",
+  "permalink": "/docs/next/persistence/linq2db",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/persistence/linq2db.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "title": "Linq2Db",
+    "sidebar_position": 6
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Dapper",
+    "permalink": "/docs/next/persistence/dapper"
+  },
+  "next": {
+    "title": "Sagas",
+    "permalink": "/docs/next/persistence/sagas"
+  }
+}

@@ -1,0 +1,263 @@
+---
+title: Overview
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Testing with RCommon
+
+RCommon is designed with testability as a first-class concern. Because RCommon wraps infrastructure concerns — persistence, messaging, caching, emailing — behind clean abstractions, you can substitute real implementations with mocks or in-memory alternatives in your test suite without changing your application code.
+
+## Testing Philosophy
+
+RCommon separates infrastructure concerns from domain logic through interfaces. A service that writes to a repository via `IGraphRepository<T>` does not know whether it is talking to SQL Server, an in-memory database, or a mock. The same is true for `IEmailService`, `ICacheService`, `IMediatorService`, and all other infrastructure services.
+
+This makes three testing strategies practical:
+
+- **Unit tests** — mock infrastructure interfaces with Moq; test business logic in isolation with no external dependencies.
+- **Integration tests** — use in-memory providers (EF Core InMemory, `IDistributedCache` in-memory) to test the full stack cheaply.
+- **End-to-end tests** — wire real providers against a test database or container; RCommon's base classes handle bootstrapping.
+
+## When to Use Each Strategy
+
+| Strategy | When to Use | Tools |
+|---|---|---|
+| Unit tests | Testing a single class in isolation | Moq, FluentAssertions, xUnit |
+| Integration tests | Testing a stack of components including DI and the persistence layer | RCommon.TestBase, EF Core InMemory, xUnit |
+| End-to-end tests | Testing against real infrastructure in CI | RCommon.TestBase, SQL Server, Docker |
+
+## Mocking RCommon Abstractions
+
+Because all RCommon services are registered as interfaces in the DI container, they are straightforward to mock with Moq.
+
+### Mocking a Repository
+
+```csharp
+using Moq;
+using RCommon.Persistence.Crud;
+using FluentAssertions;
+
+public class OrderServiceTests
+{
+    private readonly Mock<IGraphRepository<Order>> _mockOrderRepo;
+    private readonly Mock<IUnitOfWorkFactory> _mockUoWFactory;
+    private readonly OrderService _sut;
+
+    public OrderServiceTests()
+    {
+        _mockOrderRepo = new Mock<IGraphRepository<Order>>();
+        _mockUoWFactory = new Mock<IUnitOfWorkFactory>();
+        _sut = new OrderService(_mockOrderRepo.Object, _mockUoWFactory.Object);
+    }
+
+    [Fact]
+    public async Task GetOrderAsync_WhenOrderExists_ReturnsOrder()
+    {
+        // Arrange
+        var expected = new Order { Id = 1, ProductName = "Widget" };
+        _mockOrderRepo
+            .Setup(r => r.FindAsync(1, default))
+            .ReturnsAsync(expected);
+
+        // Act
+        var result = await _sut.GetOrderAsync(1);
+
+        // Assert
+        result.Should().BeEquivalentTo(expected);
+    }
+}
+```
+
+### Mocking an HTTP Client
+
+The `TestBootstrapper` base class provides a `CreateMockHttpClient` helper for testing services that depend on `IHttpClientFactory`:
+
+```csharp
+using System.Net;
+using System.Net.Http;
+using RCommon.TestBase;
+using Moq;
+
+public class ExternalApiServiceTests : TestBootstrapper
+{
+    [Test]
+    public async Task FetchData_WhenServerReturns500_ReturnsNull()
+    {
+        // Arrange
+        var mockResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.InternalServerError
+        };
+        var mockFactory = CreateMockHttpClient(mockResponse);
+
+        var service = new ExternalApiService(mockFactory.Object);
+
+        // Act
+        var result = await service.FetchDataAsync();
+
+        // Assert
+        Assert.That(result, Is.Null);
+    }
+}
+```
+
+### Mocking Time-Dependent Code
+
+`ISystemTime` abstracts the system clock, making any code that uses it testable:
+
+```csharp
+using Moq;
+using RCommon;
+
+var mockTime = new Mock<ISystemTime>();
+mockTime.Setup(t => t.Now).Returns(new DateTime(2024, 6, 15, 12, 0, 0));
+
+var service = new SubscriptionRenewalService(mockTime.Object, /* ... */);
+```
+
+## Integration Testing with In-Memory Providers
+
+For integration tests, use EF Core's InMemory database to test the full persistence stack without a real database:
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using RCommon.Persistence.EFCore;
+using Xunit;
+
+public class OrderRepositoryIntegrationTests : IDisposable
+{
+    private readonly ServiceProvider _serviceProvider;
+
+    public OrderRepositoryIntegrationTests()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IEntityEventTracker, InMemoryEntityEventTracker>();
+
+        var builder = new EFCorePerisistenceBuilder(services);
+        builder.AddDbContext<AppDbContext>("AppDb", options =>
+            options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+        builder.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+
+        _serviceProvider = services.BuildServiceProvider();
+    }
+
+    public void Dispose() => _serviceProvider?.Dispose();
+
+    [Fact]
+    public async Task AddAsync_PersistsEntity()
+    {
+        // Arrange
+        var repo = _serviceProvider.GetRequiredService<IGraphRepository<Order>>();
+        var order = new Order { ProductName = "Widget", Quantity = 5 };
+
+        // Act
+        await repo.AddAsync(order);
+
+        // Assert
+        var retrieved = await repo.FindAsync(order.Id);
+        retrieved.Should().NotBeNull();
+        retrieved!.ProductName.Should().Be("Widget");
+    }
+}
+```
+
+## Using the xUnit TestFixture Base Class
+
+For xUnit projects, `TestFixture` (from `RCommon.TestBase.XUnit`) provides DI bootstrapping, configuration loading, and service resolution in a single base class:
+
+```csharp
+using RCommon.TestBase.XUnit;
+using Microsoft.Extensions.DependencyInjection;
+
+public class ProductServiceTests : TestFixture
+{
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        base.ConfigureServices(services);
+
+        // Add your services and mocks
+        services.AddSingleton<Mock<IProductRepository>>();
+        services.AddTransient<ProductService>();
+    }
+
+    [Fact]
+    public void ProductService_CanBeResolved()
+    {
+        var service = GetService<ProductService>();
+        service.Should().NotBeNull();
+    }
+}
+```
+
+## Event Handling in Tests
+
+Test event handling by subscribing to the in-memory event bus:
+
+```csharp
+using RCommon.EventHandling;
+using Microsoft.Extensions.DependencyInjection;
+
+var services = new ServiceCollection();
+services.AddRCommon(builder =>
+{
+    builder.WithEventHandling<InMemoryEventBusBuilder>(events =>
+    {
+        events.AddSubscriber<OrderCreatedEvent, OrderCreatedEventHandler>();
+    });
+});
+
+var provider = services.BuildServiceProvider();
+var eventBus = provider.GetRequiredService<IEventBus>();
+
+// Publish and verify the handler was called
+await eventBus.Publish(new OrderCreatedEvent { OrderId = Guid.NewGuid() });
+```
+
+## Testing CQRS Handlers
+
+Test command and query handlers directly by instantiating them with mock dependencies, bypassing the bus:
+
+```csharp
+public class CreateOrderHandlerTests
+{
+    private readonly Mock<IGraphRepository<Order>> _mockRepo;
+    private readonly CreateOrderHandler _sut;
+
+    public CreateOrderHandlerTests()
+    {
+        _mockRepo = new Mock<IGraphRepository<Order>>();
+        _sut = new CreateOrderHandler(_mockRepo.Object);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ValidCommand_AddsOrder()
+    {
+        // Arrange
+        var command = new CreateOrderCommand { ProductName = "Widget", Quantity = 3 };
+
+        // Act
+        var result = await _sut.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _mockRepo.Verify(r => r.AddAsync(It.IsAny<Order>(), default), Times.Once);
+    }
+}
+```
+
+## Summary
+
+RCommon's abstraction boundaries make all major infrastructure concerns testable:
+
+- Repository operations via `IReadOnlyRepository<T>`, `IWriteOnlyRepository<T>`, `ILinqRepository<T>`, `IGraphRepository<T>`, and `ISqlMapperRepository<T>`
+- Unit of work and transactions via `IUnitOfWork` and `IUnitOfWorkFactory`
+- Event handling via `IEventBus`, `ISubscriber<T>`, and `IEventProducer`
+- Mediator operations via `IMediatorService`
+- Email sending via `IEmailService`
+- Caching via `ICacheService`
+- Time-dependent logic via `ISystemTime`
+- HTTP clients via `IHttpClientFactory` (with the built-in mock helper on `TestBootstrapper`)

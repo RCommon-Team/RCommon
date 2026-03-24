@@ -1,0 +1,28 @@
+{
+  "id": "domain-driven-design/auditing",
+  "title": "Auditing",
+  "description": "Audit tracking records who created an entity, when it was created, who last modified it, and when. RCommon provides IAuditedEntity and AuditedEntity to standardize these fields across your domain model, making it straightforward to capture audit information in any persistence layer.",
+  "source": "@site/docs/domain-driven-design/auditing.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/auditing",
+  "permalink": "/docs/next/domain-driven-design/auditing",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/domain-driven-design/auditing.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Auditing",
+    "sidebar_position": 4
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Value Objects",
+    "permalink": "/docs/next/domain-driven-design/value-objects"
+  },
+  "next": {
+    "title": "Soft Delete",
+    "permalink": "/docs/next/domain-driven-design/soft-delete"
+  }
+}

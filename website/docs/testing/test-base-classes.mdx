@@ -1,0 +1,406 @@
+---
+title: Test Base Classes
+sidebar_position: 2
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Test Base Classes
+
+RCommon provides three test support packages that reduce boilerplate across unit and integration tests: `RCommon.TestBase`, `RCommon.TestBase.XUnit`, and `RCommon.TestBase.Data`. These packages are internal test utilities — they are not published as NuGet packages — but their patterns are representative of how to structure your own test helpers.
+
+## RCommon.TestBase
+
+The `RCommon.TestBase` package is the foundational test support library. It provides:
+
+- `TestBootstrapper` — an abstract base class with DI bootstrapping, configuration loading, logging via Serilog, and HTTP client mocking helpers
+- `TestDataActions` — a static factory using [Bogus](https://github.com/bchavez/Bogus) to generate realistic test entity stubs
+- Test entity types (`Customer`, `Order`, `OrderItem`, `Product`, `SalesPerson`) used across integration test suites
+- `CustomerSearchSpec` — a `PagedSpecification<Customer>` example that demonstrates the specification pattern
+
+### TestBootstrapper
+
+`TestBootstrapper` is the base for NUnit integration test classes. It sets up DI, loads `appsettings.json`, and wires Serilog for structured log output during test runs.
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using RCommon.TestBase;
+
+[TestFixture]
+public class MyServiceTests : TestBootstrapper
+{
+    private ServiceProvider _provider;
+
+    [SetUp]
+    public void Setup()
+    {
+        var services = new ServiceCollection();
+        InitializeBootstrapper(services);
+
+        // Register application services
+        services.AddTransient<MyService>();
+
+        _provider = services.BuildServiceProvider();
+    }
+
+    [Test]
+    public void MyService_CanBeResolved()
+    {
+        var service = _provider.GetRequiredService<MyService>();
+        Assert.That(service, Is.Not.Null);
+    }
+}
+```
+
+`InitializeBootstrapper` does the following:
+
+1. Builds an `IConfigurationRoot` from `appsettings.json` (optional, reload on change)
+2. Registers `IConfiguration` as a singleton
+3. Adds Serilog logging, configured from the app settings file
+
+After calling it you can add your own services and build the `ServiceProvider`.
+
+### Mocking HTTP Clients
+
+`TestBootstrapper` exposes `CreateMockHttpClient(HttpResponseMessage)` which wraps Moq to return a pre-configured `IHttpClientFactory`. This avoids the need for real network calls in tests:
+
+```csharp
+using System.Net;
+using System.Net.Http;
+using RCommon.TestBase;
+using Moq;
+
+[TestFixture]
+public class PaymentGatewayTests : TestBootstrapper
+{
+    [Test]
+    public async Task PostPayment_WhenServerReturns200_ReturnsSuccess()
+    {
+        // Arrange
+        var mockResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent("{\"status\":\"approved\"}")
+        };
+        var mockFactory = CreateMockHttpClient(mockResponse);
+
+        var gateway = new PaymentGateway(mockFactory.Object);
+
+        // Act
+        var result = await gateway.PostPaymentAsync(new PaymentRequest());
+
+        // Assert
+        Assert.That(result.IsApproved, Is.True);
+    }
+
+    [Test]
+    public async Task PostPayment_WhenServerReturns500_ReturnsFailure()
+    {
+        // Arrange
+        var mockResponse = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.InternalServerError
+        };
+        var mockFactory = CreateMockHttpClient(mockResponse);
+
+        var gateway = new PaymentGateway(mockFactory.Object);
+
+        // Act
+        var result = await gateway.PostPaymentAsync(new PaymentRequest());
+
+        // Assert
+        Assert.That(result.IsApproved, Is.False);
+    }
+}
+```
+
+The returned `Mock<IHttpClientFactory>` is configured so that calls to `CreateClient(string)` return an `HttpClient` backed by the mocked `HttpMessageHandler`.
+
+### TestDataActions
+
+`TestDataActions` is a static class that generates realistic fake data using the Bogus library. It is used across the test suite to seed test entities without hand-coding property values.
+
+```csharp
+using RCommon.TestBase;
+
+// Generate a customer with randomized fields
+var customer = TestDataActions.CreateCustomerStub();
+
+// Generate a customer and customize specific fields
+var knownCustomer = TestDataActions.CreateCustomerStub(c =>
+{
+    c.FirstName = "Albus";
+    c.City = "Hogsmeade";
+});
+
+// Generate an order
+var order = TestDataActions.CreateOrderStub();
+
+// Generate an order with a customization
+var futureOrder = TestDataActions.CreateOrderStub(o =>
+{
+    o.OrderDate = DateTime.UtcNow;
+    o.ShipDate = DateTime.UtcNow.AddDays(3);
+});
+
+// Generate other entity types
+var product = TestDataActions.CreateProductStub();
+var salesPerson = TestDataActions.CreateSalesPersonStub();
+var orderItem = TestDataActions.CreateOrderItemStub(i => i.Quantity = 10);
+```
+
+The methods use `Faker<T>` rules to populate realistic values for addresses, names, prices, and dates. The optional `Action<T>` overload lets you override specific fields after the fake data is generated.
+
+## RCommon.TestBase.XUnit
+
+`RCommon.TestBase.XUnit` provides an abstract `TestFixture` class for xUnit test projects. It encapsulates the DI container setup, configuration loading, and service resolution lifecycle for xUnit's constructor-based test initialization.
+
+### TestFixture
+
+```csharp
+using RCommon.TestBase.XUnit;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MyApp.Tests;
+
+public class OrderServiceTests : TestFixture
+{
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        // Always call base first — it registers IConfiguration and logging
+        base.ConfigureServices(services);
+
+        // Register your application and test services
+        services.AddSingleton(new Mock<IOrderRepository>().Object);
+        services.AddTransient<OrderService>();
+    }
+
+    [Fact]
+    public void OrderService_CanBeResolved()
+    {
+        var service = GetService<OrderService>();
+        service.Should().NotBeNull();
+    }
+
+    [Fact]
+    public T? TryGetOptional<T>() where T : class
+    {
+        // GetOptionalService returns null rather than throwing if not registered
+        return GetOptionalService<T>();
+    }
+}
+```
+
+`TestFixture` implements `IDisposable` and tears down the `ServiceProvider` after each test class. The lifecycle is:
+
+1. Constructor runs `BuildConfiguration()` — reads `appsettings.json` from the current directory if present
+2. Constructor calls `ConfigureServices(services)` — your override adds services here
+3. Constructor builds the `ServiceProvider`
+4. Tests call `GetService<T>()` or `GetOptionalService<T>()` to resolve services
+5. `Dispose()` disposes the provider when the test class is torn down by xUnit
+
+### Integration Test Example
+
+The following example shows how to use `TestFixture` to set up an integration test against an EF Core InMemory database:
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using RCommon.TestBase.XUnit;
+using RCommon.Persistence.EFCore;
+using Xunit;
+
+public class CustomerRepositoryIntegrationTests : TestFixture, IDisposable
+{
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        base.ConfigureServices(services);
+
+        services.AddSingleton<IEntityEventTracker, InMemoryEntityEventTracker>();
+
+        var builder = new EFCorePerisistenceBuilder(services);
+        builder.AddDbContext<AppDbContext>("AppDb", options =>
+            options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+        builder.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+    }
+
+    [Fact]
+    public async Task AddAsync_ThenFind_ReturnsSameCustomer()
+    {
+        // Arrange
+        var repo = GetService<IGraphRepository<Customer>>();
+        var customer = new Customer { FirstName = "Hermione", LastName = "Granger" };
+
+        // Act
+        await repo.AddAsync(customer);
+        var found = await repo.FindAsync(customer.Id);
+
+        // Assert
+        found.Should().NotBeNull();
+        found!.FirstName.Should().Be("Hermione");
+    }
+}
+```
+
+## RCommon.TestBase.Data
+
+`RCommon.TestBase.Data` provides `TestRepository`, a utility class for seeding and cleaning up entity state in integration tests backed by EF Core. It wraps `DbContext` directly and coordinates entity lifecycle for test setup and teardown.
+
+### TestRepository
+
+```csharp
+using RCommon.TestBase.Data;
+using RCommon.TestBase;
+
+[TestFixture]
+public class CustomerRepositoryTests
+{
+    private TestRepository _testRepo;
+
+    [SetUp]
+    public void SetUp()
+    {
+        // Initialize with a real or in-memory DbContext
+        var context = /* resolve AppDbContext */;
+        _testRepo = new TestRepository(context);
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        // Remove only the entities created during this test
+        _testRepo.CleanUpSeedData();
+    }
+
+    [Test]
+    public async Task FindAsync_ByPrimaryKey_ReturnsMatchingCustomer()
+    {
+        // Arrange — seed a known customer
+        var seeded = _testRepo.Prepare_Can_Find_Async_By_Primary_Key();
+
+        // Act
+        var found = await _customerRepository.FindAsync(seeded.Id);
+
+        // Assert
+        Assert.That(found, Is.Not.Null);
+        Assert.That(found.FirstName, Is.EqualTo("Albus"));
+    }
+}
+```
+
+`TestRepository` provides named `Prepare_*` methods that seed specific test scenarios using `TestDataActions` under the hood:
+
+| Method | Seeds |
+|---|---|
+| `Prepare_Can_Find_Async_By_Primary_Key()` | One customer with `FirstName = "Albus"` |
+| `Prepare_Can_Find_Single_Async_With_Expression()` | One customer with `ZipCode = "30062"` |
+| `Prepare_Can_Find_Async_With_Expression()` | Ten customers with `LastName = "Potter"` |
+| `Prepare_Can_Get_Count_Async_With_Expression()` | Ten customers with `LastName = "Dumbledore"` |
+| `Prepare_Can_Get_Any_Async_With_Expression()` | Ten customers with `City = "Hollywood"` |
+| `Prepare_Can_query_using_paging_with_specific_params()` | 100 customers with `FirstName = "Lisa"` |
+| `Prepare_Can_query_using_paging_with_specification()` | 100 customers with `FirstName = "Bart"` |
+| `Prepare_Can_query_using_predicate_builder()` | 100 customers with `FirstName = "Homer"` |
+| `Prepare_Can_Add_Async()` | Returns an unsaved customer (call AddAsync yourself) |
+| `Prepare_Can_Add_Graph_Async()` | Returns an unsaved customer with a nested Order collection |
+| `Prepare_Can_Update_Async()` | One persisted customer ready for update |
+| `Prepare_Can_Delete_Async()` | One persisted customer ready for deletion |
+| `Prepare_UnitOfWork_Can_Rollback()` | One persisted customer with `City = "Terabithia"` |
+
+### Bulk Seed and Cleanup
+
+For scenarios that require seeding outside the named methods, call `PersistSeedData` directly:
+
+```csharp
+var customers = Enumerable.Range(1, 50)
+    .Select(_ => TestDataActions.CreateCustomerStub(c => c.State = "GA"))
+    .ToList();
+
+_testRepo.PersistSeedData(customers);
+
+// Later, in TearDown:
+_testRepo.CleanUpSeedData();
+```
+
+`PersistSeedData` saves each entity immediately via `DbContext.SaveChanges()` and registers a delete action for each item. `CleanUpSeedData` runs those delete actions and calls `SaveChanges()` again, leaving the database in the state it was in before the test ran.
+
+To reset the database entirely, use `ResetDatabase()`:
+
+```csharp
+_testRepo.ResetDatabase();
+// Executes DELETE statements on OrderItems, Products, Orders, and Customers
+```
+
+## Specification Pattern in Tests
+
+The `CustomerSearchSpec` in `RCommon.TestBase.Specifications` shows how to apply paged specifications in integration tests:
+
+```csharp
+using RCommon.TestBase.Specifications;
+using RCommon.TestBase.Entities;
+
+// Search for customers whose first name starts with "Bart", ordered by first name ascending
+var spec = new CustomerSearchSpec(
+    customerName: "Bart",
+    orderByExpression: c => c.FirstName,
+    orderByAscending: true,
+    pageIndex: 1,
+    pageSize: 25);
+
+var results = await _repository.FindAsync(spec);
+
+Assert.That(results.TotalCount, Is.EqualTo(100));
+Assert.That(results.PageSize, Is.EqualTo(25));
+Assert.That(results.Items.All(c => c.FirstName.StartsWith("Bart")), Is.True);
+```
+
+## API Summary
+
+### TestBootstrapper (RCommon.TestBase)
+
+| Member | Description |
+|---|---|
+| `InitializeBootstrapper(IServiceCollection)` | Loads `appsettings.json`, registers `IConfiguration` and Serilog logging |
+| `CreateMockHttpClient(HttpResponseMessage)` | Returns a `Mock<IHttpClientFactory>` configured to return the given response |
+| `Configuration` | The `IConfigurationRoot` built from `appsettings.json` |
+| `ServiceProvider` | The built `ServiceProvider` (set by the subclass after calling `BuildServiceProvider()`) |
+| `Logger` | An `ILogger` instance available after DI is configured |
+
+### TestFixture (RCommon.TestBase.XUnit)
+
+| Member | Description |
+|---|---|
+| `BuildConfiguration()` | Reads `appsettings.json` from the current directory; override to add other sources |
+| `ConfigureServices(IServiceCollection)` | Override to register services; always call `base.ConfigureServices` first |
+| `GetService<T>()` | Resolves a required service; throws if not registered |
+| `GetOptionalService<T>()` | Resolves an optional service; returns `null` if not registered |
+| `ServiceProvider` | The built `IServiceProvider` |
+| `Configuration` | The `IConfiguration` instance |
+| `Dispose()` | Disposes the `ServiceProvider`; called by xUnit after the test class |
+
+### TestRepository (RCommon.TestBase.Data)
+
+| Member | Description |
+|---|---|
+| `PersistSeedData<T>(IList<T>)` | Saves a list of entities and registers delete actions for cleanup |
+| `CleanUpSeedData()` | Runs registered delete actions and calls `SaveChanges()` |
+| `ResetDatabase()` | Deletes all rows from `OrderItems`, `Products`, `Orders`, and `Customers` |
+| `Context` | The underlying `DbContext` |
+| `EntityDeleteActions` | The list of registered delete actions for cleanup |
+| `Prepare_Can_Find_Async_By_Primary_Key()` | Seeds a known customer and returns it |
+| `Prepare_Can_Add_Async()` | Returns an unsaved customer for add tests |
+| `Prepare_Can_Update_Async()` | Seeds a customer and returns it for update tests |
+| `Prepare_Can_Delete_Async()` | Seeds a customer and returns it for delete tests |
+
+### TestDataActions (RCommon.TestBase)
+
+| Method | Description |
+|---|---|
+| `CreateCustomerStub()` | Generates a `Customer` with randomized fields |
+| `CreateCustomerStub(Action<Customer>)` | Generates a `Customer` with post-generation customization |
+| `CreateOrderStub()` | Generates an `Order` with randomized dates |
+| `CreateOrderStub(Action<Order>)` | Generates an `Order` with post-generation customization |
+| `CreateOrderItemStub(Action<OrderItem>)` | Generates an `OrderItem` with a customization |
+| `CreateProductStub()` | Generates a `Product` with randomized name and description |
+| `CreateSalesPersonStub()` | Generates a `SalesPerson` with randomized fields |
+| `CreateSalesPersonStub(Action<SalesPerson>)` | Generates a `SalesPerson` with post-generation customization |

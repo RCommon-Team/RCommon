@@ -1,0 +1,28 @@
+{
+  "id": "architecture-guides/event-driven",
+  "title": "Event-Driven Architecture",
+  "description": "Event-driven architecture decouples components by having them communicate through events rather than direct calls. Producers emit events without knowing which consumers exist. Consumers react to events without knowing which producer emitted them. RCommon provides a consistent IEventProducer / ISubscriber abstraction over in-process buses (InMemoryEventBus, MediatR) and distributed brokers (MassTransit, Wolverine).",
+  "source": "@site/docs/architecture-guides/event-driven.mdx",
+  "sourceDirName": "architecture-guides",
+  "slug": "/architecture-guides/event-driven",
+  "permalink": "/docs/next/architecture-guides/event-driven",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/architecture-guides/event-driven.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Event-Driven Architecture",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Microservices",
+    "permalink": "/docs/next/architecture-guides/microservices"
+  },
+  "next": {
+    "title": "Examples & Recipes",
+    "permalink": "/docs/next/category/examples--recipes"
+  }
+}

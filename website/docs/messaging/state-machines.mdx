@@ -1,0 +1,175 @@
+---
+title: State Machines
+sidebar_position: 3
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# State Machines (MassTransit Sagas)
+
+RCommon provides a lightweight state machine abstraction that can be backed by either the `Stateless` library or a MassTransit-compatible dictionary-based implementation. The MassTransit adapter (`RCommon.MassTransit.StateMachines`) integrates with the RCommon builder pipeline and is appropriate for orchestrating multi-step workflows in messaging scenarios.
+
+## Overview
+
+A state machine tracks the lifecycle of a long-running process. It defines:
+
+- **States** — discrete conditions the process can be in (e.g. `Pending`, `Processing`, `Completed`)
+- **Triggers** — events that cause transitions between states (e.g. `Submit`, `Approve`, `Reject`)
+- **Transitions** — rules that map a (state, trigger) pair to a destination state, optionally guarded by a condition
+- **Entry/exit actions** — async callbacks invoked when the machine enters or leaves a state
+
+The MassTransit state machine adapter is independent of MassTransit Automatonymous sagas. It uses the same `IStateMachineConfigurator<TState, TTrigger>` abstraction as the Stateless adapter, so you can swap implementations without changing business logic.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.MassTransit.StateMachines" />
+
+## Configuration
+
+Register the MassTransit state machine adapter with `WithMassTransitStateMachine`:
+
+```csharp
+using RCommon;
+
+builder.Services.AddRCommon()
+    .WithMassTransitStateMachine();
+```
+
+This registers `MassTransitStateMachineConfigurator<TState, TTrigger>` as the `IStateMachineConfigurator<TState, TTrigger>` implementation. The registration is open-generic, so any combination of state and trigger enum types is supported without further configuration.
+
+## Defining states and triggers
+
+States and triggers are plain enums:
+
+```csharp
+public enum OrderState
+{
+    Pending,
+    Approved,
+    Shipped,
+    Cancelled
+}
+
+public enum OrderTrigger
+{
+    Approve,
+    Ship,
+    Cancel
+}
+```
+
+## Configuring transitions
+
+Inject `IStateMachineConfigurator<TState, TTrigger>`, call `ForState` for each state, then call `Build` to produce a running machine instance:
+
+```csharp
+public class OrderWorkflow
+{
+    private readonly IStateMachineConfigurator<OrderState, OrderTrigger> _configurator;
+
+    public OrderWorkflow(IStateMachineConfigurator<OrderState, OrderTrigger> configurator)
+    {
+        _configurator = configurator;
+
+        _configurator.ForState(OrderState.Pending)
+            .Permit(OrderTrigger.Approve, OrderState.Approved)
+            .Permit(OrderTrigger.Cancel, OrderState.Cancelled);
+
+        _configurator.ForState(OrderState.Approved)
+            .Permit(OrderTrigger.Ship, OrderState.Shipped)
+            .Permit(OrderTrigger.Cancel, OrderState.Cancelled)
+            .OnEntry(async ct =>
+            {
+                // side-effect when order is approved
+                await NotifyWarehouseAsync(ct);
+            });
+
+        _configurator.ForState(OrderState.Shipped)
+            .OnEntry(async ct =>
+            {
+                await SendShippingConfirmationAsync(ct);
+            });
+    }
+
+    public IStateMachine<OrderState, OrderTrigger> CreateFor(OrderState currentState)
+        => _configurator.Build(currentState);
+}
+```
+
+## Guarded transitions
+
+Use `PermitIf` to add a condition to a transition:
+
+```csharp
+_configurator.ForState(OrderState.Approved)
+    .PermitIf(OrderTrigger.Ship, OrderState.Shipped, () => inventoryAvailable)
+    .Permit(OrderTrigger.Cancel, OrderState.Cancelled);
+```
+
+The guard is a synchronous `Func<bool>`. If the guard returns `false` the trigger cannot fire from that state.
+
+## Firing triggers
+
+Once a machine instance is built, fire triggers asynchronously:
+
+```csharp
+var machine = _orderWorkflow.CreateFor(order.State);
+
+if (machine.CanFire(OrderTrigger.Approve))
+{
+    await machine.FireAsync(OrderTrigger.Approve, cancellationToken);
+    order.State = machine.CurrentState; // persist new state
+}
+```
+
+You can also pass data with a trigger:
+
+```csharp
+await machine.FireAsync(OrderTrigger.Ship, shipmentDetails, cancellationToken);
+```
+
+Note that the MassTransit dictionary-based adapter accepts parameterized trigger calls but does not use the data parameter — the transition executes identically to a parameterless fire. Use this overload for interface compatibility.
+
+## IStateMachine members
+
+| Member | Description |
+|--------|-------------|
+| `CurrentState` | The current state of the machine |
+| `CanFire(trigger)` | Returns `true` if the trigger is permitted from the current state |
+| `PermittedTriggers` | All triggers that can currently be fired |
+| `FireAsync(trigger, ct)` | Fires a trigger, executing exit/entry actions and transitioning state |
+| `FireAsync(trigger, data, ct)` | Fires a trigger with associated data |
+
+## IStateConfigurator members
+
+| Method | Description |
+|--------|-------------|
+| `Permit(trigger, dest)` | Adds an unconditional transition |
+| `PermitIf(trigger, dest, guard)` | Adds a guarded transition that fires only when `guard()` returns `true` |
+| `OnEntry(action)` | Registers an async action invoked when this state is entered |
+| `OnExit(action)` | Registers an async action invoked when this state is exited |
+
+## Comparison with Stateless
+
+Both adapters implement the same `IStateMachineConfigurator<TState, TTrigger>` and `IStateMachine<TState, TTrigger>` interfaces. The choice affects the underlying engine:
+
+| Aspect | `RCommon.MassTransit.StateMachines` | `RCommon.Stateless` |
+|--------|-------------------------------------|---------------------|
+| Backing library | Custom dictionary-based FSM | `Stateless` NuGet |
+| Parameterized triggers | Accepted but data is ignored | Fully supported via `SetTriggerParameters` |
+| Configuration reuse | Single configurator produces independent machine instances | Single configurator produces independent machine instances |
+| Registration method | `WithMassTransitStateMachine()` | `WithStatelessStateMachine()` |
+
+For full parameterized trigger support, prefer the Stateless adapter. See [Stateless](../state-machines/stateless.mdx).
+
+## API summary
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `MassTransitStateMachineConfigurator<TState, TTrigger>` | `RCommon.MassTransit.StateMachines` | Implements `IStateMachineConfigurator`; builds `MassTransitStateMachine` instances |
+| `MassTransitStateMachine<TState, TTrigger>` | `RCommon.MassTransit.StateMachines` | Dictionary-based `IStateMachine` implementation |
+| `MassTransitStateConfigurator<TState, TTrigger>` | `RCommon.MassTransit.StateMachines` | Per-state configuration storing transitions and actions |
+| `IStateMachineConfigurator<TState, TTrigger>` | `RCommon.Core` | Abstraction for building state machines |
+| `IStateMachine<TState, TTrigger>` | `RCommon.Core` | Running state machine abstraction |
+| `IStateConfigurator<TState, TTrigger>` | `RCommon.Core` | Per-state transition and action configuration |
+| `WithMassTransitStateMachine()` | `RCommon.MassTransit.StateMachines` | Extension method on `IRCommonBuilder` |

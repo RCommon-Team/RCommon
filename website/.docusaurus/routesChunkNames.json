@@ -1,0 +1,806 @@
+{
+  "/__docusaurus/debug-5ff": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/config-5ba": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/content-a2b": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    },
+    "__props": "__props---docusaurus-debug-content-3-c-0-be2"
+  },
+  "/__docusaurus/debug/globalData-c3c": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/metadata-156": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/registry-88c": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/routes-000": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/search-822": {
+    "__comp": "__comp---theme-search-page-1-a-4-d6f",
+    "__context": {
+      "plugin": "plugin---search-138-688"
+    }
+  },
+  "/docs-62c": {
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
+    "__context": {
+      "plugin": "plugin---docsaba-d7c"
+    }
+  },
+  "/docs/next-f3e": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---docs-nextbf-1-ba7"
+  },
+  "/docs/next-a23": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
+  },
+  "/docs/next-c40": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-4-ed-afc"
+  },
+  "/docs/next/api-reference/changelog-b56": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-api-reference-changelog-06-c-30e"
+  },
+  "/docs/next/api-reference/migration-guide-142": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-api-reference-migration-guide-1-d-7-0e5"
+  },
+  "/docs/next/api-reference/nuget-packages-537": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-api-reference-nuget-packages-811-162"
+  },
+  "/docs/next/architecture-guides/clean-architecture-b73": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-architecture-guides-clean-architecture-51-d-9dd"
+  },
+  "/docs/next/architecture-guides/event-driven-d41": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-architecture-guides-event-driven-8-b-2-a59"
+  },
+  "/docs/next/architecture-guides/microservices-317": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-architecture-guides-microservices-462-9eb"
+  },
+  "/docs/next/blob-storage/azure-6c3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-blob-storage-azurec-8-b-3f9"
+  },
+  "/docs/next/blob-storage/overview-4db": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-blob-storage-overview-8-a-1-098"
+  },
+  "/docs/next/blob-storage/s3-b75": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-blob-storage-s-3277-c18"
+  },
+  "/docs/next/caching/memory-a65": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-caching-memory-0-e-1-e80"
+  },
+  "/docs/next/caching/overview-43e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-caching-overview-3-df-67c"
+  },
+  "/docs/next/caching/redis-a6d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-caching-redis-5-f-2-5cf"
+  },
+  "/docs/next/category/api-reference-824": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-api-reference-676-106"
+  },
+  "/docs/next/category/architecture-guides-53e": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-architecture-guides-684-172"
+  },
+  "/docs/next/category/blob-storage-a18": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-blob-storaged-71-64f"
+  },
+  "/docs/next/category/caching-45f": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-caching-127-f46"
+  },
+  "/docs/next/category/core-concepts-206": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-core-concepts-730-0dc"
+  },
+  "/docs/next/category/cqrs--mediator-8f5": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-cqrs-mediatorb-3-e-218"
+  },
+  "/docs/next/category/domain-driven-design-91e": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-domain-driven-design-659-50e"
+  },
+  "/docs/next/category/email-b81": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-email-372-ab0"
+  },
+  "/docs/next/category/event-handling-6ae": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-event-handlingcea-4b7"
+  },
+  "/docs/next/category/examples--recipes-571": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-examples-recipes-295-3e9"
+  },
+  "/docs/next/category/getting-started-fac": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-getting-started-206-f45"
+  },
+  "/docs/next/category/messaging-ca4": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-messaginge-74-d88"
+  },
+  "/docs/next/category/multi-tenancy-302": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-multi-tenancy-3-c-9-796"
+  },
+  "/docs/next/category/persistence-b01": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-persistence-072-400"
+  },
+  "/docs/next/category/security--web-ef7": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-security-webfa-7-47c"
+  },
+  "/docs/next/category/serialization-0fd": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-serializationbe-9-06f"
+  },
+  "/docs/next/category/state-machines-87b": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-state-machines-51-d-6e2"
+  },
+  "/docs/next/category/testing-49c": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-testing-63-a-d71"
+  },
+  "/docs/next/category/validation-2c1": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-next-category-validation-455-681"
+  },
+  "/docs/next/core-concepts/execution-results-78c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-core-concepts-execution-resultsc-6-c-0f1"
+  },
+  "/docs/next/core-concepts/fluent-configuration-f58": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-core-concepts-fluent-configurationb-19-91d"
+  },
+  "/docs/next/core-concepts/guards-153": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-core-concepts-guardsd-7-b-772"
+  },
+  "/docs/next/core-concepts/guid-generation-df6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-core-concepts-guid-generation-217-e2b"
+  },
+  "/docs/next/core-concepts/system-time-1a0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-core-concepts-system-timee-59-ef2"
+  },
+  "/docs/next/cqrs-mediator/command-query-bus-4f6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-cqrs-mediator-command-query-bus-216-c28"
+  },
+  "/docs/next/cqrs-mediator/commands-handlers-f87": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-cqrs-mediator-commands-handlersb-0-a-83b"
+  },
+  "/docs/next/cqrs-mediator/mediatr-6d6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-cqrs-mediator-mediatr-101-64c"
+  },
+  "/docs/next/cqrs-mediator/queries-handlers-4a0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-cqrs-mediator-queries-handlersaac-2d4"
+  },
+  "/docs/next/cqrs-mediator/wolverine-131": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-cqrs-mediator-wolverine-2-fb-353"
+  },
+  "/docs/next/domain-driven-design/auditing-c52": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-domain-driven-design-auditinged-1-ab5"
+  },
+  "/docs/next/domain-driven-design/domain-events-bd4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-domain-driven-design-domain-eventse-59-eda"
+  },
+  "/docs/next/domain-driven-design/entities-aggregates-b9f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-domain-driven-design-entities-aggregatesef-4-4eb"
+  },
+  "/docs/next/domain-driven-design/soft-delete-526": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-domain-driven-design-soft-delete-9-e-0-cdb"
+  },
+  "/docs/next/domain-driven-design/value-objects-9f9": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-domain-driven-design-value-objects-36-d-927"
+  },
+  "/docs/next/email/overview-4ba": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-email-overviewa-28-223"
+  },
+  "/docs/next/email/sendgrid-25e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-email-sendgridf-08-062"
+  },
+  "/docs/next/event-handling/distributed-30d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-event-handling-distributed-616-f47"
+  },
+  "/docs/next/event-handling/in-memory-c7a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-event-handling-in-memory-587-0b7"
+  },
+  "/docs/next/event-handling/masstransit-bd2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-event-handling-masstransit-019-c35"
+  },
+  "/docs/next/event-handling/mediatr-ebf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-event-handling-mediatr-2-b-9-661"
+  },
+  "/docs/next/event-handling/overview-4d3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-event-handling-overview-9-ec-ae2"
+  },
+  "/docs/next/event-handling/transactional-outbox-232": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-event-handling-transactional-outbox-533-496"
+  },
+  "/docs/next/event-handling/wolverine-f43": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-event-handling-wolverinee-01-8fe"
+  },
+  "/docs/next/examples-recipes/caching-a2e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-examples-recipes-cachinge-62-802"
+  },
+  "/docs/next/examples-recipes/event-handling-aaa": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-examples-recipes-event-handlingde-3-52b"
+  },
+  "/docs/next/examples-recipes/hr-leave-management-e54": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-examples-recipes-hr-leave-management-364-2b9"
+  },
+  "/docs/next/examples-recipes/messaging-27f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-examples-recipes-messaging-3-cd-93f"
+  },
+  "/docs/next/getting-started/configuration-890": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-getting-started-configuration-30-d-023"
+  },
+  "/docs/next/getting-started/dependency-injection-495": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-getting-started-dependency-injectionf-66-6f7"
+  },
+  "/docs/next/getting-started/installation-b7a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-getting-started-installation-645-156"
+  },
+  "/docs/next/getting-started/overview-14c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-getting-started-overview-190-ad4"
+  },
+  "/docs/next/getting-started/quick-start-c8c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-getting-started-quick-start-053-345"
+  },
+  "/docs/next/messaging/masstransit-149": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-messaging-masstransitafa-a0b"
+  },
+  "/docs/next/messaging/overview-e5d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-messaging-overviewea-1-fb5"
+  },
+  "/docs/next/messaging/state-machines-15c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-messaging-state-machines-373-5e5"
+  },
+  "/docs/next/messaging/transactional-outbox-1e6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-messaging-transactional-outbox-786-8f7"
+  },
+  "/docs/next/messaging/wolverine-78a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-messaging-wolverinea-00-de3"
+  },
+  "/docs/next/multi-tenancy/finbuckle-f1f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-multi-tenancy-finbucklef-6-b-d84"
+  },
+  "/docs/next/multi-tenancy/overview-2b4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-multi-tenancy-overview-523-ac4"
+  },
+  "/docs/next/persistence/caching-memory-51c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-caching-memory-6-d-2-17f"
+  },
+  "/docs/next/persistence/caching-redis-1ea": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-caching-redis-66-e-b00"
+  },
+  "/docs/next/persistence/dapper-d63": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-dapperc-48-d66"
+  },
+  "/docs/next/persistence/efcore-744": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-efcore-5-e-6-9d0"
+  },
+  "/docs/next/persistence/linq2db-642": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-linq-2-dbb-8-f-135"
+  },
+  "/docs/next/persistence/repository-pattern-fae": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-repository-pattern-59-a-0e2"
+  },
+  "/docs/next/persistence/sagas-ec2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-sagas-843-b42"
+  },
+  "/docs/next/persistence/specifications-92b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-specifications-8-f-4-256"
+  },
+  "/docs/next/persistence/unit-of-work-6e0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-persistence-unit-of-work-6-d-1-d4b"
+  },
+  "/docs/next/security-web/authorization-7ca": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-security-web-authorization-6-cf-146"
+  },
+  "/docs/next/security-web/web-utilities-3d7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-security-web-web-utilities-2-c-2-7c5"
+  },
+  "/docs/next/serialization/newtonsoft-b66": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-serialization-newtonsoftaf-3-be8"
+  },
+  "/docs/next/serialization/overview-820": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-serialization-overview-61-c-4ff"
+  },
+  "/docs/next/serialization/system-text-json-16a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-serialization-system-text-json-7-d-8-8ea"
+  },
+  "/docs/next/state-machines/overview-6b6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-state-machines-overview-114-f52"
+  },
+  "/docs/next/state-machines/stateless-34e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-state-machines-stateless-5-a-4-2d1"
+  },
+  "/docs/next/testing/overview-75c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-testing-overviewc-4-c-9b8"
+  },
+  "/docs/next/testing/test-base-classes-947": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-testing-test-base-classesed-2-188"
+  },
+  "/docs/next/validation/fluent-validation-195": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-next-validation-fluent-validation-195-a27"
+  },
+  "/docs-06f": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---docs-005-788"
+  },
+  "/docs-b2c": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
+  },
+  "/docs-71c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-367-83b"
+  },
+  "/docs/api-reference/changelog-f90": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-reference-changelog-210-a47"
+  },
+  "/docs/api-reference/migration-guide-e22": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-reference-migration-guide-053-3ea"
+  },
+  "/docs/api-reference/nuget-packages-922": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-reference-nuget-packages-8-ad-d3c"
+  },
+  "/docs/architecture-guides/clean-architecture-393": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-architecture-guides-clean-architecture-05-a-c09"
+  },
+  "/docs/architecture-guides/event-driven-4d7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-architecture-guides-event-driven-4-aa-1a4"
+  },
+  "/docs/architecture-guides/microservices-f82": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-architecture-guides-microservicese-3-b-f2a"
+  },
+  "/docs/blob-storage/azure-371": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-blob-storage-azureb-1-d-31e"
+  },
+  "/docs/blob-storage/overview-c52": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-blob-storage-overview-1-d-6-bfb"
+  },
+  "/docs/blob-storage/s3-2a4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-blob-storage-s-380-e-075"
+  },
+  "/docs/caching/memory-04d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-caching-memorya-25-e0e"
+  },
+  "/docs/caching/overview-06f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-caching-overview-829-c44"
+  },
+  "/docs/caching/redis-f95": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-caching-redis-984-c00"
+  },
+  "/docs/category/api-reference-789": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-api-reference-1-db-fbd"
+  },
+  "/docs/category/architecture-guides-aa9": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-architecture-guides-4-ad-23f"
+  },
+  "/docs/category/blob-storage-7bc": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-blob-storage-067-1d8"
+  },
+  "/docs/category/caching-fc8": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-cachinge-3-d-0b9"
+  },
+  "/docs/category/core-concepts-270": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-core-concepts-9-d-1-fe4"
+  },
+  "/docs/category/cqrs--mediator-7b5": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-cqrs-mediatorea-8-e30"
+  },
+  "/docs/category/domain-driven-design-553": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-domain-driven-designff-1-a9b"
+  },
+  "/docs/category/email-497": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-email-2-d-7-cd9"
+  },
+  "/docs/category/event-handling-beb": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-event-handlinge-14-f06"
+  },
+  "/docs/category/examples--recipes-246": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-examples-recipes-90-b-6c3"
+  },
+  "/docs/category/getting-started-d48": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-getting-startedc-26-887"
+  },
+  "/docs/category/messaging-d87": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-messaging-559-335"
+  },
+  "/docs/category/multi-tenancy-4aa": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-multi-tenancy-8-bb-6a3"
+  },
+  "/docs/category/persistence-d6c": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-persistencebc-9-c7f"
+  },
+  "/docs/category/security--web-392": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-security-web-324-3e5"
+  },
+  "/docs/category/serialization-baf": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-serializationda-9-f9c"
+  },
+  "/docs/category/state-machines-4e4": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-state-machines-5-bf-fe8"
+  },
+  "/docs/category/testing-528": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-testing-6-e-4-9ee"
+  },
+  "/docs/category/validation-a2e": {
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "__props": "__props---docs-category-validation-92-e-1fd"
+  },
+  "/docs/core-concepts/execution-results-762": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-core-concepts-execution-resultsef-3-588"
+  },
+  "/docs/core-concepts/fluent-configuration-c31": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-core-concepts-fluent-configuration-14-c-533"
+  },
+  "/docs/core-concepts/guards-75e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-core-concepts-guards-3-ae-f06"
+  },
+  "/docs/core-concepts/guid-generation-1f1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-core-concepts-guid-generation-955-7cc"
+  },
+  "/docs/core-concepts/system-time-4cf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-core-concepts-system-timea-0-b-4cf"
+  },
+  "/docs/cqrs-mediator/command-query-bus-bc1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cqrs-mediator-command-query-buse-1-d-8ba"
+  },
+  "/docs/cqrs-mediator/commands-handlers-083": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cqrs-mediator-commands-handlers-080-c32"
+  },
+  "/docs/cqrs-mediator/mediatr-e5f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cqrs-mediator-mediatr-383-e01"
+  },
+  "/docs/cqrs-mediator/queries-handlers-af8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cqrs-mediator-queries-handlers-3-a-3-eed"
+  },
+  "/docs/cqrs-mediator/wolverine-cad": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-cqrs-mediator-wolverineac-5-f80"
+  },
+  "/docs/domain-driven-design/auditing-07c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-domain-driven-design-auditingb-39-dfb"
+  },
+  "/docs/domain-driven-design/domain-events-083": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-domain-driven-design-domain-events-51-c-e7a"
+  },
+  "/docs/domain-driven-design/entities-aggregates-1b5": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-domain-driven-design-entities-aggregatesec-2-da8"
+  },
+  "/docs/domain-driven-design/soft-delete-3d7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-domain-driven-design-soft-deleteb-12-bad"
+  },
+  "/docs/domain-driven-design/value-objects-2a9": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-domain-driven-design-value-objects-3-f-8-806"
+  },
+  "/docs/email/overview-1da": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-email-overviewfbd-39f"
+  },
+  "/docs/email/sendgrid-c9e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-email-sendgrid-836-eca"
+  },
+  "/docs/event-handling/distributed-077": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-event-handling-distributed-5-de-5f0"
+  },
+  "/docs/event-handling/in-memory-2d2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-event-handling-in-memory-774-5e7"
+  },
+  "/docs/event-handling/masstransit-f04": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-event-handling-masstransite-8-b-678"
+  },
+  "/docs/event-handling/mediatr-ff9": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-event-handling-mediatrdba-71c"
+  },
+  "/docs/event-handling/overview-79d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-event-handling-overview-271-8c7"
+  },
+  "/docs/event-handling/transactional-outbox-dde": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-event-handling-transactional-outboxd-41-d9c"
+  },
+  "/docs/event-handling/wolverine-94e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-event-handling-wolverineeed-a35"
+  },
+  "/docs/examples-recipes/caching-ea3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-examples-recipes-cachingf-6-f-d8f"
+  },
+  "/docs/examples-recipes/event-handling-5b6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-examples-recipes-event-handlinga-64-945"
+  },
+  "/docs/examples-recipes/hr-leave-management-3bd": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-examples-recipes-hr-leave-managementbc-9-f15"
+  },
+  "/docs/examples-recipes/messaging-63c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-examples-recipes-messaging-26-c-0e3"
+  },
+  "/docs/getting-started/configuration-91a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-configuration-290-968"
+  },
+  "/docs/getting-started/dependency-injection-e67": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-dependency-injectionf-8-d-8e0"
+  },
+  "/docs/getting-started/installation-c31": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-installation-6-c-7-112"
+  },
+  "/docs/getting-started/overview-4a5": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-overview-706-aad"
+  },
+  "/docs/getting-started/quick-start-099": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-quick-start-9-fb-ca2"
+  },
+  "/docs/messaging/masstransit-39e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-messaging-masstransit-700-87a"
+  },
+  "/docs/messaging/overview-a4d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-messaging-overview-0-ee-94b"
+  },
+  "/docs/messaging/state-machines-7fb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-messaging-state-machines-759-b81"
+  },
+  "/docs/messaging/transactional-outbox-4ed": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-messaging-transactional-outboxb-78-cbe"
+  },
+  "/docs/messaging/wolverine-02a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-messaging-wolverine-5-dd-708"
+  },
+  "/docs/multi-tenancy/finbuckle-00b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-multi-tenancy-finbucklef-98-e98"
+  },
+  "/docs/multi-tenancy/overview-f0d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-multi-tenancy-overview-3-a-9-0e3"
+  },
+  "/docs/persistence/caching-memory-50a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-caching-memory-398-51e"
+  },
+  "/docs/persistence/caching-redis-3fb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-caching-redis-031-c86"
+  },
+  "/docs/persistence/dapper-502": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-dapperc-2-e-ed3"
+  },
+  "/docs/persistence/efcore-24d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-efcoref-57-3e5"
+  },
+  "/docs/persistence/linq2db-70e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-linq-2-db-28-a-83d"
+  },
+  "/docs/persistence/repository-pattern-47e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-repository-pattern-3-ba-e96"
+  },
+  "/docs/persistence/sagas-194": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-sagasedf-69c"
+  },
+  "/docs/persistence/specifications-e4c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-specificationse-08-526"
+  },
+  "/docs/persistence/unit-of-work-11a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-persistence-unit-of-workb-40-fed"
+  },
+  "/docs/security-web/authorization-8d4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-security-web-authorization-72-c-317"
+  },
+  "/docs/security-web/web-utilities-ea2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-security-web-web-utilitiesda-5-e0e"
+  },
+  "/docs/serialization/newtonsoft-8ec": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-serialization-newtonsoft-456-478"
+  },
+  "/docs/serialization/overview-740": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-serialization-overviewed-7-ce0"
+  },
+  "/docs/serialization/system-text-json-9c2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-serialization-system-text-jsoneed-594"
+  },
+  "/docs/state-machines/overview-f5e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-state-machines-overviewdcb-fd5"
+  },
+  "/docs/state-machines/stateless-1cc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-state-machines-statelessaa-6-5e7"
+  },
+  "/docs/testing/overview-522": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-testing-overview-3-be-439"
+  },
+  "/docs/testing/test-base-classes-1cd": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-testing-test-base-classese-82-d45"
+  },
+  "/docs/validation/fluent-validation-1bf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-validation-fluent-validation-98-e-1bc"
+  },
+  "/-e5f": {
+    "__comp": "__comp---site-src-pages-index-tsx-1-df-d3e",
+    "__context": {
+      "plugin": "plugin---a-74-9d6"
+    },
+    "config": "config---5-e-9-4f3"
+  }
+}

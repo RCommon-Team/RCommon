@@ -1,0 +1,154 @@
+---
+title: Unit of Work
+sidebar_position: 3
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Unit of Work
+
+## Overview
+
+The Unit of Work pattern coordinates writes to one or more repositories within a single transaction boundary. In RCommon the unit of work wraps a `System.Transactions.TransactionScope`, which means it can span multiple data stores without requiring distributed transaction infrastructure in most scenarios.
+
+The typical workflow is:
+
+1. Create a unit of work via `IUnitOfWorkFactory`.
+2. Execute repository operations (add, update, delete) as normal.
+3. Call `CommitAsync` to commit; or dispose without committing to roll back.
+
+RCommon also integrates with MediatR and Wolverine pipelines so that units of work can be opened and committed automatically around command handlers — see [MediatR integration](../cqrs-mediator/mediatr).
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Persistence" />
+
+## Configuration
+
+Configure the unit of work in your application startup using `WithUnitOfWork<TBuilder>`:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithUnitOfWork<DefaultUnitOfWorkBuilder>(unitOfWork =>
+    {
+        unitOfWork.SetOptions(options =>
+        {
+            options.AutoCompleteScope = true;               // commit on dispose if not already committed
+            options.DefaultIsolation  = IsolationLevel.ReadCommitted;
+        });
+    });
+```
+
+`UnitOfWorkSettings` defaults:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `DefaultIsolation` | `ReadCommitted` | The isolation level for new `TransactionScope` instances |
+| `AutoCompleteScope` | `false` | When `true`, the scope is completed on disposal if no explicit commit or rollback occurred |
+
+## Usage
+
+### Manual transaction management
+
+Inject `IUnitOfWorkFactory` and create a unit of work around your operations:
+
+```csharp
+public class TransferService
+{
+    private readonly IUnitOfWorkFactory _uowFactory;
+    private readonly IGraphRepository<Account> _accounts;
+
+    public TransferService(IUnitOfWorkFactory uowFactory, IGraphRepository<Account> accounts)
+    {
+        _uowFactory = uowFactory;
+        _accounts   = accounts;
+    }
+
+    public async Task TransferAsync(Guid fromId, Guid toId, decimal amount,
+        CancellationToken cancellationToken)
+    {
+        using IUnitOfWork uow = _uowFactory.Create();
+
+        Account from = await _accounts.FindAsync(fromId, cancellationToken);
+        Account to   = await _accounts.FindAsync(toId,   cancellationToken);
+
+        from.Debit(amount);
+        to.Credit(amount);
+
+        await _accounts.UpdateAsync(from, cancellationToken);
+        await _accounts.UpdateAsync(to,   cancellationToken);
+
+        await uow.CommitAsync(cancellationToken);
+    }
+}
+```
+
+Disposing the `IUnitOfWork` without calling `CommitAsync` rolls back the transaction.
+
+### Specifying transaction mode and isolation level
+
+`IUnitOfWorkFactory.Create` has overloads for controlling how the unit of work participates in ambient transactions:
+
+```csharp
+// Default settings from configuration
+IUnitOfWork uow = _uowFactory.Create();
+
+// Explicit transaction mode
+IUnitOfWork uow = _uowFactory.Create(TransactionMode.New);
+
+// Explicit mode and isolation level
+IUnitOfWork uow = _uowFactory.Create(TransactionMode.New, IsolationLevel.Serializable);
+```
+
+`TransactionMode` maps to the `TransactionScopeOption` used when creating the `TransactionScope`:
+
+| Mode | Behaviour |
+|------|-----------|
+| `Default` | Uses `TransactionScopeOption.Required` — joins an ambient transaction if one exists |
+| `New` | Uses `TransactionScopeOption.RequiresNew` — always creates a new transaction |
+| `Suppress` | Uses `TransactionScopeOption.Suppress` — executes outside any ambient transaction |
+
+### Unit of work lifecycle states
+
+`IUnitOfWork.State` reports the current lifecycle stage:
+
+| State | Meaning |
+|-------|---------|
+| `Created` | Newly created; no commit or rollback has been attempted |
+| `CommitAttempted` | `CommitAsync` has been called |
+| `Completed` | Successfully committed |
+| `RolledBack` | The transaction was rolled back |
+| `Disposed` | The unit of work has been disposed and cannot be reused |
+
+### Pipeline-based unit of work (MediatR)
+
+In the CleanWithCQRS example the unit of work is applied to every command handler automatically through the MediatR pipeline:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddUnitOfWorkToRequestPipeline(); // wraps each handler in a unit of work
+    })
+    .WithUnitOfWork<DefaultUnitOfWorkBuilder>(unitOfWork =>
+    {
+        unitOfWork.SetOptions(options =>
+        {
+            options.AutoCompleteScope = true;
+            options.DefaultIsolation  = IsolationLevel.ReadCommitted;
+        });
+    });
+```
+
+With `AutoCompleteScope = true` the unit of work commits automatically when the pipeline behavior disposes it after a successful handler execution.
+
+## API Summary
+
+| Type | Purpose |
+|------|---------|
+| `IUnitOfWorkFactory` | Creates `IUnitOfWork` instances with default or explicit transaction settings |
+| `IUnitOfWork` | Manages the transaction: exposes `CommitAsync()`, `State`, `AutoComplete`, `IsolationLevel`, `TransactionMode`, `TransactionId` |
+| `IUnitOfWorkBuilder` | Fluent startup builder — call `SetOptions(Action<UnitOfWorkSettings>)` to configure defaults |
+| `UnitOfWorkSettings` | Holds `DefaultIsolation` and `AutoCompleteScope` defaults |
+| `UnitOfWorkState` | Enum: `Created`, `CommitAttempted`, `Completed`, `RolledBack`, `Disposed` |
+| `TransactionMode` | Enum: `Default`, `New`, `Suppress` |

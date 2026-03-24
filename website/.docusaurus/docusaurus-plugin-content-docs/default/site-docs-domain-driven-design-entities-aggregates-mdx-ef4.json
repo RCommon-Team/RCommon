@@ -1,0 +1,28 @@
+{
+  "id": "domain-driven-design/entities-aggregates",
+  "title": "Entities & Aggregate Roots",
+  "description": "In Domain-Driven Design, entities are objects with a distinct identity that persists over time. Aggregate roots are the primary entities that serve as the entry point for a cluster of related objects, enforcing consistency boundaries. RCommon provides a hierarchy of base classes that give you identity, equality, domain event tracking, and optimistic concurrency out of the box.",
+  "source": "@site/docs/domain-driven-design/entities-aggregates.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/entities-aggregates",
+  "permalink": "/docs/next/domain-driven-design/entities-aggregates",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/domain-driven-design/entities-aggregates.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Entities & Aggregate Roots",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Domain-Driven Design",
+    "permalink": "/docs/next/category/domain-driven-design"
+  },
+  "next": {
+    "title": "Domain Events",
+    "permalink": "/docs/next/domain-driven-design/domain-events"
+  }
+}

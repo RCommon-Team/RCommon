@@ -1,0 +1,28 @@
+{
+  "id": "state-machines/stateless",
+  "title": "Stateless",
+  "description": "RCommon.Stateless wraps the popular Stateless library behind the RCommon IStateMachineConfigurator abstraction. Application code works only with the RCommon interfaces; the Stateless library is an implementation detail.",
+  "source": "@site/docs/state-machines/stateless.mdx",
+  "sourceDirName": "state-machines",
+  "slug": "/state-machines/stateless",
+  "permalink": "/docs/next/state-machines/stateless",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/state-machines/stateless.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Stateless",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/next/state-machines/overview"
+  },
+  "next": {
+    "title": "Caching",
+    "permalink": "/docs/next/category/caching"
+  }
+}

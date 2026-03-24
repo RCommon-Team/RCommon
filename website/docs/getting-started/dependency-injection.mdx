@@ -1,0 +1,218 @@
+---
+title: Dependency Injection
+sidebar_position: 5
+---
+
+# Dependency Injection
+
+RCommon is built entirely on `Microsoft.Extensions.DependencyInjection`. It does not introduce its own container or wrap the standard one. Every service RCommon registers follows the same lifetime conventions you already know from ASP.NET Core.
+
+## How RCommon registers services
+
+When you call `AddRCommon()`, the `RCommonBuilder` receives the application's `IServiceCollection` and calls `AddSingleton`, `AddScoped`, and `AddTransient` on it directly. By the time `builder.Build()` is called, all RCommon services are in the same container as your application services — no separate container, no child scope complications.
+
+```csharp
+// All of this is standard Microsoft DI
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef => { ... })
+    .WithMediator<MediatRBuilder>(m => { ... });
+
+var app = builder.Build();
+```
+
+## Service lifetimes used by RCommon
+
+Understanding which lifetime each service uses helps you reason about when instances are created and shared.
+
+| Service | Lifetime | Reason |
+|---|---|---|
+| `EventSubscriptionManager` | Singleton | Subscription metadata is static; built once at startup |
+| `IEventBus` (`InMemoryEventBus`) | Singleton | Stateless dispatcher; safe to share across requests |
+| `IEventRouter` (`InMemoryTransactionalEventRouter`) | Scoped | Tied to the unit of work scope; one per HTTP request |
+| `IEntityEventTracker` (`InMemoryEntityEventTracker`) | Scoped | Accumulates domain events during a single unit of work |
+| `ISubscriber<TEvent>` handler | Scoped | Event handlers may depend on scoped services like repositories |
+| `ILinqRepository<T>` / `IReadOnlyRepository<T>` / `IWriteOnlyRepository<T>` | Transient | Stateless wrappers around the scoped DbContext |
+| `IAggregateRepository<T, TId>` | Transient | Same as above |
+| `IUnitOfWork` | Transient | New scope created each time a unit of work is opened |
+| `IUnitOfWorkFactory` | Transient | Lightweight factory; safe as transient |
+| `IDataStoreFactory` | Transient | Resolves the correct DbContext by name; delegates to the scoped DbContext |
+| `IGuidGenerator` (sequential) | Transient | Stateless; new instance per call |
+| `IGuidGenerator` (simple) | Scoped | Registered as scoped by `WithSimpleGuidGenerator` |
+| `ISystemTime` | Transient | Stateless clock wrapper |
+| `ICommonFactory<T>` | Scoped | Delegates to scoped service resolution |
+
+## Injecting RCommon services
+
+### Repositories
+
+After calling `WithPersistence<EFCorePerisistenceBuilder>`, the open-generic repository interfaces are available for injection anywhere:
+
+```csharp
+public class OrderService
+{
+    private readonly ILinqRepository<Order> _orders;
+
+    public OrderService(ILinqRepository<Order> orders)
+    {
+        _orders = orders;
+    }
+
+    public async Task<ICollection<Order>> GetPendingOrdersAsync()
+    {
+        return await _orders.FindAsync(o => o.Status == OrderStatus.Pending);
+    }
+}
+```
+
+The DI container resolves `ILinqRepository<Order>` to `EFCoreRepository<Order>` which in turn receives the scoped `AppDbContext` through constructor injection.
+
+### IEventBus
+
+Inject `IEventBus` wherever you need to publish events in-process. It is a singleton, so it can be injected into any lifetime.
+
+```csharp
+public class OrderApplicationService
+{
+    private readonly ILinqRepository<Order> _orders;
+    private readonly IEventBus _eventBus;
+
+    public OrderApplicationService(
+        ILinqRepository<Order> orders,
+        IEventBus eventBus)
+    {
+        _orders = orders;
+        _eventBus = eventBus;
+    }
+
+    public async Task PlaceOrderAsync(PlaceOrderRequest request)
+    {
+        var order = new Order(request.CustomerId, request.Items);
+        await _orders.AddAsync(order);
+        await _eventBus.PublishAsync(new OrderPlacedEvent(order.Id));
+    }
+}
+```
+
+### ISystemTime
+
+Inject `ISystemTime` instead of calling `DateTime.UtcNow` directly so that tests can control the clock:
+
+```csharp
+public class AuditService
+{
+    private readonly ISystemTime _clock;
+
+    public AuditService(ISystemTime clock)
+    {
+        _clock = clock;
+    }
+
+    public DateTime GetCurrentTime() => _clock.Now;
+}
+```
+
+### IGuidGenerator
+
+Inject `IGuidGenerator` to generate identifiers that are safe to use as primary keys:
+
+```csharp
+public class ProductFactory
+{
+    private readonly IGuidGenerator _guidGenerator;
+
+    public ProductFactory(IGuidGenerator guidGenerator)
+    {
+        _guidGenerator = guidGenerator;
+    }
+
+    public Product Create(string name, decimal price)
+    {
+        return new Product
+        {
+            Id = _guidGenerator.Create(),
+            Name = name,
+            Price = price
+        };
+    }
+}
+```
+
+### ICommonFactory&lt;T&gt;
+
+`ICommonFactory<T>` is a DI-aware factory that resolves instances of `T` from the container on demand. Register it with `WithCommonFactory` and then inject it where deferred or conditional resolution is needed:
+
+```csharp
+// Registration
+builder.Services.AddRCommon()
+    .WithCommonFactory<IEmailSender, SmtpEmailSender>();
+
+// Usage
+public class NotificationService
+{
+    private readonly ICommonFactory<IEmailSender> _emailFactory;
+
+    public NotificationService(ICommonFactory<IEmailSender> emailFactory)
+    {
+        _emailFactory = emailFactory;
+    }
+
+    public async Task SendAsync(string to, string subject, string body)
+    {
+        var sender = _emailFactory.Create();
+        await sender.SendAsync(to, subject, body);
+    }
+}
+```
+
+## Service registration patterns
+
+### Registering your own services alongside RCommon
+
+RCommon does not prevent you from registering services before or after `AddRCommon()`. Standard registrations work exactly as expected:
+
+```csharp
+builder.Services.AddScoped<IOrderValidator, OrderValidator>();
+
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef => { ... });
+
+builder.Services.AddScoped<INotificationService, EmailNotificationService>();
+```
+
+### Named data stores
+
+When you register multiple DbContexts (for example a write model and a read model), each gets a name:
+
+```csharp
+.WithPersistence<EFCorePerisistenceBuilder>(ef =>
+{
+    ef.AddDbContext<WriteDbContext>("WriteDb", options =>
+        options.UseSqlServer(writeConnectionString));
+
+    ef.AddDbContext<ReadDbContext>("ReadDb", options =>
+        options.UseSqlServer(readConnectionString));
+
+    ef.SetDefaultDataStore(ds =>
+        ds.DefaultDataStoreName = "WriteDb");
+})
+```
+
+A repository can be directed to use a specific data store by setting `DataStoreName` on the repository instance before use. The `IDataStoreFactory` resolves the correct DbContext by name at runtime.
+
+## Verifying registrations
+
+During development you can dump the full service registration list to the console:
+
+```csharp
+Console.WriteLine(builder.Services.GenerateServiceDescriptorsString());
+```
+
+To check for duplicate registrations — which can cause subtle bugs — use:
+
+```csharp
+Console.WriteLine(builder.Services.GeneratePossibleDuplicatesServiceDescriptorsString());
+```
+
+Both methods are extension methods on `IServiceCollection` provided by `RCommon.Core`.

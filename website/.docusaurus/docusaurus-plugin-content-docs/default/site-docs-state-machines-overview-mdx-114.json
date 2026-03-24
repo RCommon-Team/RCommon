@@ -1,0 +1,28 @@
+{
+  "id": "state-machines/overview",
+  "title": "Overview",
+  "description": "RCommon provides a provider-agnostic state machine abstraction that lets you define finite state machines (FSMs) using plain C# enums for states and triggers. The abstraction is backed by pluggable adapters, currently the Stateless library and a lightweight dictionary-based implementation included in RCommon.MassTransit.StateMachines.",
+  "source": "@site/docs/state-machines/overview.mdx",
+  "sourceDirName": "state-machines",
+  "slug": "/state-machines/overview",
+  "permalink": "/docs/next/state-machines/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/state-machines/overview.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "State Machines",
+    "permalink": "/docs/next/category/state-machines"
+  },
+  "next": {
+    "title": "Stateless",
+    "permalink": "/docs/next/state-machines/stateless"
+  }
+}

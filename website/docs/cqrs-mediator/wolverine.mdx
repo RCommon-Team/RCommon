@@ -1,0 +1,174 @@
+---
+title: Wolverine
+sidebar_position: 5
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Wolverine
+
+## Overview
+
+`RCommon.Wolverine` integrates [WolverineFx](https://wolverinefx.net) as a distributed event handler for the RCommon event handling pipeline. It is focused on event production and subscription rather than the request-response mediator pattern.
+
+The package provides:
+
+- `WolverineEventHandlingBuilder` / `IWolverineEventHandlingBuilder` — registers Wolverine-based subscribers through the RCommon fluent builder.
+- `PublishWithWolverineEventProducer` — publishes events to all Wolverine handlers using `IMessageBus.PublishAsync` (fan-out).
+- `SendWithWolverineEventProducer` — sends events to a single Wolverine handler using `IMessageBus.SendAsync` (point-to-point).
+- `WolverineEventHandler<TEvent>` — bridges Wolverine's message dispatch to RCommon's `ISubscriber<TEvent>` abstraction.
+
+Events must implement `ISerializableEvent` (from `RCommon.Models`) to flow through the Wolverine producers.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Wolverine" />
+
+This package depends on `RCommon.Core` and `WolverineFx`. Wolverine itself requires host-level setup via `UseWolverine()` on the application host builder — see the Wolverine documentation for transport and endpoint configuration.
+
+## Configuration
+
+Wolverine is configured at the host level and within the RCommon builder. Register the Wolverine host extension on the application host builder, then wire up RCommon subscribers.
+
+```csharp
+using RCommon;
+using RCommon.Wolverine;
+using Wolverine;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Configure Wolverine at the host level
+builder.Host.UseWolverine(opts =>
+{
+    // Configure transports, endpoints, and discovery here
+    opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
+});
+
+// Configure RCommon with Wolverine event handling
+builder.Services.AddRCommon()
+    .WithEventHandling<WolverineEventHandlingBuilder>(wolverine =>
+    {
+        wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
+        wolverine.AddSubscriber<OrderShippedEvent, OrderShippedEventHandler>();
+    });
+```
+
+## Usage
+
+### Defining an event
+
+Events dispatched through Wolverine must implement `ISerializableEvent`:
+
+```csharp
+using RCommon.Models.Events;
+
+public class OrderPlacedEvent : ISerializableEvent
+{
+    public OrderPlacedEvent(Guid orderId, Guid customerId, DateTime placedAt)
+    {
+        OrderId = orderId;
+        CustomerId = customerId;
+        PlacedAt = placedAt;
+    }
+
+    public Guid OrderId { get; }
+    public Guid CustomerId { get; }
+    public DateTime PlacedAt { get; }
+}
+```
+
+### Creating a subscriber
+
+Implement `ISubscriber<TEvent>` from `RCommon.EventHandling.Subscribers`. This is the same interface used by MediatR subscribers — the Wolverine adapter bridges message dispatch to it automatically through `WolverineEventHandler<TEvent>`.
+
+```csharp
+using RCommon.EventHandling.Subscribers;
+
+public class OrderPlacedEventHandler : ISubscriber<OrderPlacedEvent>
+{
+    private readonly IEmailService _emailService;
+
+    public OrderPlacedEventHandler(IEmailService emailService)
+    {
+        _emailService = emailService;
+    }
+
+    public async Task HandleAsync(OrderPlacedEvent @event, CancellationToken cancellationToken = default)
+    {
+        await _emailService.SendOrderConfirmationAsync(@event.CustomerId, @event.OrderId, cancellationToken);
+    }
+}
+```
+
+### Registration
+
+Register subscribers using the `IWolverineEventHandlingBuilder` extension method. Each call records the event-to-producer subscription in the `EventSubscriptionManager` so the router only delivers the event to the producers registered for it.
+
+```csharp
+builder.Services.AddRCommon()
+    .WithEventHandling<WolverineEventHandlingBuilder>(wolverine =>
+    {
+        wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
+    });
+```
+
+If you need to construct the subscriber with a factory delegate:
+
+```csharp
+wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>(
+    sp => new OrderPlacedEventHandler(sp.GetRequiredService<IEmailService>()));
+```
+
+### Producing events
+
+Use `PublishWithWolverineEventProducer` for fan-out delivery (all subscribers receive the event) or `SendWithWolverineEventProducer` for point-to-point delivery (one handler). Register the appropriate producer when setting up your event bus:
+
+```csharp
+using RCommon.EventHandling.Producers;
+using RCommon.Wolverine.Producers;
+
+// Fan-out: all subscribed handlers receive the event
+builder.Services.AddScoped<IEventProducer, PublishWithWolverineEventProducer>();
+
+// Point-to-point: only one handler receives the event
+builder.Services.AddScoped<IEventProducer, SendWithWolverineEventProducer>();
+```
+
+Produce events through RCommon's `IEventBus` or by raising domain events that flow through the event router — the producers are invoked by the routing infrastructure automatically.
+
+## API Summary
+
+### `IWolverineEventHandlingBuilder` extension methods
+
+| Method | Description |
+|---|---|
+| `AddSubscriber<TEvent, TEventHandler>()` | Registers `TEventHandler` as a scoped `ISubscriber<TEvent>` and records the subscription in the `EventSubscriptionManager`. |
+| `AddSubscriber<TEvent, TEventHandler>(Func<IServiceProvider, TEventHandler>)` | Same as above, but uses a factory delegate to construct the subscriber. |
+
+### `PublishWithWolverineEventProducer`
+
+| Member | Description |
+|---|---|
+| `ProduceEventAsync<T>(T, CancellationToken)` | Calls `IMessageBus.PublishAsync<T>` to deliver the event to all Wolverine handlers subscribed to `T`. Skips delivery if the event type is not subscribed to this producer. |
+
+### `SendWithWolverineEventProducer`
+
+| Member | Description |
+|---|---|
+| `ProduceEventAsync<T>(T, CancellationToken)` | Calls `IMessageBus.SendAsync<T>` to deliver the event to a single Wolverine handler. Skips delivery if the event type is not subscribed to this producer. |
+
+### `WolverineEventHandler<TEvent>`
+
+| Member | Description |
+|---|---|
+| `HandleAsync(TEvent, CancellationToken)` | Called by Wolverine's message dispatch infrastructure. Delegates to the injected `ISubscriber<TEvent>`. |
+
+### Key interfaces and base types
+
+| Type | Package | Description |
+|---|---|---|
+| `IWolverineEventHandlingBuilder` | `RCommon.Wolverine` | Builder interface for configuring Wolverine event handling. Extends `IEventHandlingBuilder`. |
+| `WolverineEventHandlingBuilder` | `RCommon.Wolverine` | Default implementation. Constructed by `WithEventHandling<WolverineEventHandlingBuilder>`. |
+| `ISerializableEvent` | `RCommon.Models` | Marker interface required on all events dispatched through Wolverine producers. |
+| `ISubscriber<TEvent>` | `RCommon.EventHandling` | Application-level handler interface. Implement this for your event handling logic. |
+| `IWolverineEventHandler<TEvent>` | `RCommon.Wolverine` | Wolverine-facing handler interface implemented by `WolverineEventHandler<TEvent>`. |

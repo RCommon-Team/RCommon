@@ -1,0 +1,390 @@
+---
+title: Messaging Examples
+sidebar_position: 4
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Messaging Examples
+
+This page walks through the messaging examples included with RCommon. These examples show how to use MassTransit and Wolverine as the event transport, and how to isolate event subscriptions between multiple publishers.
+
+## Example Projects
+
+```
+Examples/Messaging/
+    Examples.Messaging.MassTransit/              — MassTransit with in-memory transport
+    Examples.Messaging.Wolverine/                — Wolverine with local queue
+    Examples.Messaging.SubscriptionIsolation/    — Two builders with isolated subscriptions
+```
+
+## Step 1: Define an Event
+
+Events are plain classes that implement `ISyncEvent`. They must have a default constructor so MassTransit or Wolverine can deserialize them off the wire:
+
+```csharp
+using RCommon.Models.Events;
+
+public class TestEvent : ISyncEvent
+{
+    public TestEvent() { }
+
+    public TestEvent(DateTime dateTime, Guid guid)
+    {
+        DateTime = dateTime;
+        Guid = guid;
+    }
+
+    public DateTime DateTime { get; }
+    public Guid Guid { get; }
+}
+```
+
+## Step 2: Define a Subscriber
+
+```csharp
+using RCommon.EventHandling.Subscribers;
+
+public class TestEventHandler : ISubscriber<TestEvent>
+{
+    public async Task HandleAsync(TestEvent notification,
+        CancellationToken cancellationToken = default)
+    {
+        Console.WriteLine("I just handled this event {0}", notification.ToString());
+        Console.WriteLine("Example Complete");
+        await Task.CompletedTask;
+    }
+}
+```
+
+## Example 1: MassTransit
+
+### Installation
+
+<NuGetInstall packageName="RCommon.MassTransit" />
+
+### Configuration
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+    {
+        // Use the in-memory transport for local development and testing
+        eventHandling.UsingInMemory((context, cfg) =>
+        {
+            cfg.ConfigureEndpoints(context);
+        });
+
+        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+        eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+    });
+```
+
+For production, replace `UsingInMemory` with `UsingRabbitMq`, `UsingAzureServiceBus`, or another MassTransit transport:
+
+```csharp
+eventHandling.UsingRabbitMq((context, cfg) =>
+{
+    cfg.Host("rabbitmq://localhost");
+    cfg.ConfigureEndpoints(context);
+});
+```
+
+### Publishing via a Background Worker
+
+```csharp
+public class Worker : BackgroundService
+{
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IHostApplicationLifetime _lifetime;
+
+    public Worker(IServiceProvider serviceProvider, IHostApplicationLifetime lifetime)
+    {
+        _serviceProvider = serviceProvider;
+        _lifetime = lifetime;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        Console.WriteLine("Example Starting");
+
+        var eventProducers = _serviceProvider.GetServices<IEventProducer>();
+        var testEvent = new TestEvent(DateTime.Now, Guid.NewGuid());
+
+        foreach (var producer in eventProducers)
+        {
+            Console.WriteLine($"Producer: {producer}");
+            await producer.ProduceEventAsync(testEvent);
+        }
+
+        Console.WriteLine("Example Complete");
+        _lifetime.StopApplication();
+    }
+}
+```
+
+### Full Program.cs
+
+```csharp
+using MassTransit;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using RCommon;
+using RCommon.EventHandling.Producers;
+using RCommon.MassTransit;
+using RCommon.MassTransit.Producers;
+
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        services.AddRCommon()
+            .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+            {
+                eventHandling.UsingInMemory((context, cfg) =>
+                {
+                    cfg.ConfigureEndpoints(context);
+                });
+
+                eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+                eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+            });
+
+        services.AddHostedService<Worker>();
+    }).Build();
+
+await host.RunAsync();
+```
+
+## Example 2: Wolverine
+
+### Installation
+
+<NuGetInstall packageName="RCommon.Wolverine" />
+
+Wolverine requires calling `UseWolverine` on the host builder before configuring services:
+
+### Configuration
+
+```csharp
+using Wolverine;
+using RCommon;
+using RCommon.Wolverine;
+using RCommon.Wolverine.Producers;
+
+var host = Host.CreateDefaultBuilder(args)
+    .UseWolverine(options =>
+    {
+        // Define a local queue for event processing
+        options.LocalQueue("test");
+    })
+    .ConfigureServices(services =>
+    {
+        services.AddRCommon()
+            .WithEventHandling<WolverineEventHandlingBuilder>(eventHandling =>
+            {
+                eventHandling.AddProducer<PublishWithWolverineEventProducer>();
+                eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+            });
+    }).Build();
+```
+
+### Publishing
+
+```csharp
+await host.StartAsync();
+
+var eventProducers = host.Services.GetServices<IEventProducer>();
+var testEvent = new TestEvent(DateTime.Now, Guid.NewGuid());
+
+foreach (var producer in eventProducers)
+{
+    await producer.ProduceEventAsync(testEvent);
+}
+```
+
+The pattern is identical to MassTransit. Only the builder type and the registered producer change.
+
+## Example 3: Subscription Isolation
+
+The subscription isolation example demonstrates that events are only routed to the producer/handler pair that subscribed them. This is critical in services with mixed internal and external messaging.
+
+### Scenario
+
+- `InMemoryOnlyEvent` — subscribed only in `InMemoryEventBusBuilder`
+- `MassTransitOnlyEvent` — subscribed only in `MassTransitEventHandlingBuilder`
+- `SharedEvent` — subscribed in both builders, handled by both producer types
+
+### Event Definitions
+
+```csharp
+public class InMemoryOnlyEvent : ISyncEvent
+{
+    public InMemoryOnlyEvent() { }
+    public InMemoryOnlyEvent(DateTime dateTime, Guid guid)
+    {
+        DateTime = dateTime;
+        Guid = guid;
+    }
+    public DateTime DateTime { get; }
+    public Guid Guid { get; }
+}
+
+public class MassTransitOnlyEvent : ISyncEvent
+{
+    public MassTransitOnlyEvent() { }
+    public MassTransitOnlyEvent(DateTime dateTime, Guid guid)
+    {
+        DateTime = dateTime;
+        Guid = guid;
+    }
+    public DateTime DateTime { get; }
+    public Guid Guid { get; }
+}
+
+public class SharedEvent : ISyncEvent
+{
+    public SharedEvent() { }
+    public SharedEvent(DateTime dateTime, Guid guid)
+    {
+        DateTime = dateTime;
+        Guid = guid;
+    }
+    public DateTime DateTime { get; }
+    public Guid Guid { get; }
+}
+```
+
+### Configuration
+
+```csharp
+services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<InMemoryOnlyEvent, InMemoryOnlyEventHandler>();
+        eventHandling.AddSubscriber<SharedEvent, SharedEventHandler>();
+    })
+    .WithEventHandling<MassTransitEventHandlingBuilder>(eventHandling =>
+    {
+        eventHandling.UsingInMemory((context, cfg) =>
+        {
+            cfg.ConfigureEndpoints(context);
+        });
+
+        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+        eventHandling.AddSubscriber<MassTransitOnlyEvent, MassTransitOnlyEventHandler>();
+        eventHandling.AddSubscriber<SharedEvent, SharedEventHandler>();
+    });
+```
+
+### Publishing All Three Event Types
+
+```csharp
+protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    var eventProducers = _serviceProvider.GetServices<IEventProducer>();
+
+    // Only InMemoryEventBus handles this — MassTransit producers ignore it
+    var inMemoryEvent = new InMemoryOnlyEvent(DateTime.Now, Guid.NewGuid());
+    Console.WriteLine("Publishing InMemoryOnlyEvent to all producers...");
+    foreach (var producer in eventProducers)
+    {
+        Console.WriteLine($"  -> Producer: {producer.GetType().Name}");
+        await producer.ProduceEventAsync(inMemoryEvent);
+    }
+
+    // Only MassTransit handles this — in-memory producer ignores it
+    var massTransitEvent = new MassTransitOnlyEvent(DateTime.Now, Guid.NewGuid());
+    Console.WriteLine("Publishing MassTransitOnlyEvent to all producers...");
+    foreach (var producer in eventProducers)
+    {
+        Console.WriteLine($"  -> Producer: {producer.GetType().Name}");
+        await producer.ProduceEventAsync(massTransitEvent);
+    }
+
+    // Both builders subscribed this — both producers handle it
+    var sharedEvent = new SharedEvent(DateTime.Now, Guid.NewGuid());
+    Console.WriteLine("Publishing SharedEvent to all producers (subscribed to both)...");
+    foreach (var producer in eventProducers)
+    {
+        Console.WriteLine($"  -> Producer: {producer.GetType().Name}");
+        await producer.ProduceEventAsync(sharedEvent);
+    }
+
+    _lifetime.StopApplication();
+}
+```
+
+### SharedEventHandler
+
+```csharp
+public class SharedEventHandler : ISubscriber<SharedEvent>
+{
+    public async Task HandleAsync(SharedEvent notification,
+        CancellationToken cancellationToken = default)
+    {
+        Console.WriteLine("[SharedHandler] Handled SharedEvent: {0} | {1}",
+            notification.DateTime, notification.Guid);
+        await Task.CompletedTask;
+    }
+}
+```
+
+### Expected Behavior
+
+When `InMemoryOnlyEvent` is published through all producers:
+- `PublishWithEventBusEventProducer` routes it to `InMemoryOnlyEventHandler` (subscribed)
+- `PublishWithMassTransitEventProducer` ignores it (not subscribed in that builder)
+
+When `SharedEvent` is published through all producers:
+- `PublishWithEventBusEventProducer` routes it to `SharedEventHandler`
+- `PublishWithMassTransitEventProducer` also routes it to `SharedEventHandler`
+
+Both handlers fire independently.
+
+## Comparing MassTransit and Wolverine
+
+| Aspect | MassTransit | Wolverine |
+|--------|------------|-----------|
+| Installation | `RCommon.MassTransit` | `RCommon.Wolverine` |
+| Host setup | Standard `ConfigureServices` | Requires `Host.UseWolverine(...)` |
+| Transport options | RabbitMQ, Azure Service Bus, SQS, in-memory, and more | RabbitMQ, Azure Service Bus, in-memory local queues |
+| Saga / workflow support | Yes (via MassTransit state machines) | Yes (via Wolverine's saga support) |
+| Outbox support | Yes (via MassTransit Outbox) | Yes (built-in) |
+| Local queue config | Automatic endpoint configuration | Named local queues via `options.LocalQueue(...)` |
+| RCommon builder | `MassTransitEventHandlingBuilder` | `WolverineEventHandlingBuilder` |
+| RCommon producer | `PublishWithMassTransitEventProducer` | `PublishWithWolverineEventProducer` |
+
+## Testing Messaging Code
+
+Event handlers are plain classes and do not require a running broker to test:
+
+```csharp
+[Test]
+public async Task TestEventHandler_Completes_Without_Error()
+{
+    var handler = new TestEventHandler();
+    var @event = new TestEvent(DateTime.UtcNow, Guid.NewGuid());
+
+    await handler.HandleAsync(@event, CancellationToken.None);
+    // No exception = pass
+}
+```
+
+For integration tests, use the MassTransit in-memory transport or Wolverine's test harness, which both run entirely in process.
+
+## API Reference
+
+| Type | Package | Purpose |
+|------|---------|---------|
+| `ISyncEvent` | `RCommon.Models` | Base interface for all events |
+| `IEventProducer` | `RCommon.EventHandling` | Publishes events |
+| `ISubscriber<TEvent>` | `RCommon.EventHandling` | Handles events |
+| `MassTransitEventHandlingBuilder` | `RCommon.MassTransit` | MassTransit event handling configuration |
+| `PublishWithMassTransitEventProducer` | `RCommon.MassTransit` | MassTransit-backed producer |
+| `WolverineEventHandlingBuilder` | `RCommon.Wolverine` | Wolverine event handling configuration |
+| `PublishWithWolverineEventProducer` | `RCommon.Wolverine` | Wolverine-backed producer |
+| `InMemoryEventBusBuilder` | `RCommon.EventHandling` | In-process event bus for isolation scenarios |
+| `PublishWithEventBusEventProducer` | `RCommon.EventHandling` | In-memory producer |

@@ -1,0 +1,131 @@
+---
+title: Transactional Outbox
+sidebar_position: 4
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Transactional Outbox
+
+The transactional outbox pattern guarantees that events are published to a message broker if and only if the database transaction that triggered them commits. RCommon provides outbox integration for both MassTransit and Wolverine.
+
+## The problem the outbox solves
+
+Without an outbox, there is a window between committing a database change and publishing an event where a crash can cause the event to be lost. Conversely, publishing an event before committing risks publishing for a transaction that is later rolled back. The outbox eliminates both failure modes by writing the event to the same database transaction as the business data, then relaying it to the broker after the transaction commits.
+
+## MassTransit outbox
+
+### Installation
+
+<NuGetInstall packageName="RCommon.MassTransit.Outbox" />
+
+MassTransit's Entity Framework Core outbox stores pending messages in the same `DbContext` as your application data. The outbox tables are added to any `DbContext` that you supply.
+
+### Configuration
+
+Call `AddOutbox<TDbContext>` on the `IMassTransitEventHandlingBuilder` returned by `WithEventHandling`:
+
+```csharp
+using RCommon;
+using RCommon.MassTransit;
+
+builder.Services.AddRCommon()
+    .WithEventHandling<MassTransitEventHandlingBuilder>(mt =>
+    {
+        mt.AddProducer<PublishWithMassTransitEventProducer>();
+        mt.AddSubscriber<OrderShipped, OrderShippedHandler>();
+
+        // Configure the transactional outbox backed by AppDbContext
+        mt.AddOutbox<AppDbContext>(outbox =>
+        {
+            outbox.UseSqlServer();   // or outbox.UsePostgres()
+            outbox.UseBusOutbox();
+        });
+
+        mt.UsingRabbitMq((ctx, cfg) =>
+        {
+            cfg.Host("rabbitmq://localhost");
+            cfg.ConfigureEndpoints(ctx);
+        });
+    });
+```
+
+### IMassTransitOutboxBuilder members
+
+| Method | Description |
+|--------|-------------|
+| `UseSqlServer()` | Configures the outbox to use SQL Server dialect |
+| `UsePostgres()` | Configures the outbox to use PostgreSQL dialect |
+| `UseBusOutbox(configure?)` | Enables the bus outbox relay; accepts an optional `IBusOutboxConfigurator` action |
+
+### Applying outbox migrations
+
+The MassTransit outbox adds its own tables to the `DbContext`. Add a migration after configuring the outbox:
+
+```bash
+dotnet ef migrations add AddMassTransitOutbox
+dotnet ef database update
+```
+
+## Wolverine outbox
+
+### Installation
+
+<NuGetInstall packageName="RCommon.Wolverine.Outbox" />
+
+Wolverine's outbox integrates with Entity Framework Core transactions, persisting messages alongside application data in the same transaction scope.
+
+### Configuration
+
+Call `AddOutbox` on the `IWolverineEventHandlingBuilder`:
+
+```csharp
+using RCommon;
+using RCommon.Wolverine;
+
+builder.Host.UseWolverine();
+
+builder.Services.AddRCommon()
+    .WithEventHandling<WolverineEventHandlingBuilder>(wlv =>
+    {
+        wlv.AddProducer<PublishWithWolverineEventProducer>();
+        wlv.AddSubscriber<OrderShipped, OrderShippedHandler>();
+
+        wlv.AddOutbox(outbox =>
+        {
+            outbox.UseEntityFrameworkCoreTransactions();
+        });
+    });
+```
+
+### IWolverineOutboxBuilder members
+
+| Method | Description |
+|--------|-------------|
+| `UseEntityFrameworkCoreTransactions()` | Integrates Wolverine's outbox with EF Core transaction management |
+
+## How delivery works
+
+Once the outbox is configured:
+
+1. When `IEventRouter.RouteEventsAsync` is called, the producer writes the message to the outbox table inside the current database transaction rather than sending it directly to the broker.
+2. After the transaction commits, a background relay process (managed by MassTransit or Wolverine) reads pending messages from the outbox table and forwards them to the broker.
+3. Each message is deleted from the outbox only after the broker acknowledges receipt.
+
+This gives at-least-once delivery semantics. Consumers must be idempotent to handle the rare case of duplicate delivery after a relay failure.
+
+## API summary
+
+### MassTransit outbox
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `MassTransitOutboxBuilderExtensions.AddOutbox<TDbContext>` | `RCommon.MassTransit.Outbox` | Registers the EF Core outbox for the given `DbContext` |
+| `IMassTransitOutboxBuilder` | `RCommon.MassTransit.Outbox` | Builder for outbox dialect and bus relay options |
+
+### Wolverine outbox
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `WolverineOutboxBuilderExtensions.AddOutbox` | `RCommon.Wolverine.Outbox` | Registers Wolverine's outbox via `ConfigureWolverine` |
+| `IWolverineOutboxBuilder` | `RCommon.Wolverine.Outbox` | Builder for EF Core transaction integration |

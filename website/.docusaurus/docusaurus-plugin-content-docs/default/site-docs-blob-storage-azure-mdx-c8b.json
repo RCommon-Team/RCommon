@@ -1,0 +1,28 @@
+{
+  "id": "blob-storage/azure",
+  "title": "Azure Blob Storage",
+  "description": "Overview",
+  "source": "@site/docs/blob-storage/azure.mdx",
+  "sourceDirName": "blob-storage",
+  "slug": "/blob-storage/azure",
+  "permalink": "/docs/next/blob-storage/azure",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/blob-storage/azure.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Azure Blob Storage",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/next/blob-storage/overview"
+  },
+  "next": {
+    "title": "Amazon S3",
+    "permalink": "/docs/next/blob-storage/s3"
+  }
+}

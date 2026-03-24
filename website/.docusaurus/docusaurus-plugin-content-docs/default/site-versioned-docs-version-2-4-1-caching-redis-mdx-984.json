@@ -1,0 +1,28 @@
+{
+  "id": "caching/redis",
+  "title": "Redis Cache",
+  "description": "RCommon.RedisCache implements ICacheService using StackExchange.Redis through the Microsoft.Extensions.Caching.StackExchangeRedis provider. It is the recommended caching backend for applications deployed across multiple instances or hosts.",
+  "source": "@site/versioned_docs/version-2.4.1/caching/redis.mdx",
+  "sourceDirName": "caching",
+  "slug": "/caching/redis",
+  "permalink": "/docs/caching/redis",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/caching/redis.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Redis Cache",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Memory Cache",
+    "permalink": "/docs/caching/memory"
+  },
+  "next": {
+    "title": "Blob Storage",
+    "permalink": "/docs/category/blob-storage"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "getting-started/dependency-injection",
+  "title": "Dependency Injection",
+  "description": "RCommon is built entirely on Microsoft.Extensions.DependencyInjection. It does not introduce its own container or wrap the standard one. Every service RCommon registers follows the same lifetime conventions you already know from ASP.NET Core.",
+  "source": "@site/versioned_docs/version-2.4.1/getting-started/dependency-injection.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/dependency-injection",
+  "permalink": "/docs/getting-started/dependency-injection",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/getting-started/dependency-injection.mdx",
+  "tags": [],
+  "version": "2.4.1",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Dependency Injection",
+    "sidebar_position": 5
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Configuration & Bootstrapping",
+    "permalink": "/docs/getting-started/configuration"
+  },
+  "next": {
+    "title": "Core Concepts",
+    "permalink": "/docs/category/core-concepts"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "persistence/efcore",
+  "title": "Entity Framework Core",
+  "description": "Overview",
+  "source": "@site/docs/persistence/efcore.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/efcore",
+  "permalink": "/docs/next/persistence/efcore",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/persistence/efcore.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Entity Framework Core",
+    "sidebar_position": 4
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Unit of Work",
+    "permalink": "/docs/next/persistence/unit-of-work"
+  },
+  "next": {
+    "title": "Dapper",
+    "permalink": "/docs/next/persistence/dapper"
+  }
+}

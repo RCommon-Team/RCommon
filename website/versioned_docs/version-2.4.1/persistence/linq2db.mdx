@@ -1,0 +1,199 @@
+---
+title: Linq2Db
+sidebar_position: 6
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Linq2Db
+
+## Overview
+
+The Linq2Db provider wires `Linq2DbRepository<TEntity>` into the repository abstraction layer. It implements `IReadOnlyRepository<TEntity>`, `IWriteOnlyRepository<TEntity>`, and `ILinqRepository<TEntity>`, giving you LINQ query support and paging without requiring a full ORM like EF Core.
+
+Linq2Db operates through a `RCommonDataConnection`, which wraps Linq2Db's `DataConnection` and implements `IDataStore` so the `IDataStoreFactory` can resolve named connections at runtime. Unlike EF Core, Linq2Db has no server-side change tracking, so `IGraphRepository<TEntity>` (with its `Tracking` property) is not supported.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Linq2Db" />
+
+## Data connection setup
+
+Your connection class must derive from `RCommonDataConnection`:
+
+```csharp
+using RCommon.Persistence.Linq2Db;
+
+public class AppDataConnection : RCommonDataConnection
+{
+    public AppDataConnection(DataOptions options)
+        : base(options)
+    {
+    }
+}
+```
+
+`RCommonDataConnection` inherits from Linq2Db's `DataConnection`, so you can configure entity mappings on it using Linq2Db's fluent mapping API.
+
+## Configuration
+
+Register the Linq2Db persistence provider in your application startup:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithPersistence<Linq2DbPersistenceBuilder>(linq2db =>
+    {
+        linq2db.AddDataConnection<AppDataConnection>(
+            "AppDb",
+            (serviceProvider, dataOptions) =>
+                dataOptions.UseSqlServer(
+                    builder.Configuration.GetConnectionString("AppDb")));
+
+        linq2db.SetDefaultDataStore(ds =>
+            ds.DefaultDataStoreName = "AppDb");
+    });
+```
+
+Multiple connections can be registered by calling `AddDataConnection` more than once with different names.
+
+### Database provider options
+
+The `options` factory receives the current `DataOptions` and returns a configured instance. Linq2Db supports all major databases:
+
+```csharp
+// SQL Server
+dataOptions.UseSqlServer(connectionString)
+
+// PostgreSQL
+dataOptions.UsePostgreSQL(connectionString)
+
+// SQLite
+dataOptions.UseSQLite(connectionString)
+
+// MySQL
+dataOptions.UseMySQL(connectionString)
+```
+
+## Usage
+
+### Injecting and targeting a data store
+
+Inject `ILinqRepository<TEntity>` (or a narrower interface) and set `DataStoreName`:
+
+```csharp
+public class ProductQueryHandler
+{
+    private readonly ILinqRepository<Product> _products;
+
+    public ProductQueryHandler(ILinqRepository<Product> products)
+    {
+        _products = products;
+        _products.DataStoreName = "AppDb";
+    }
+}
+```
+
+### CRUD operations
+
+```csharp
+// Create
+await _repo.AddAsync(product, cancellationToken);
+await _repo.AddRangeAsync(products, cancellationToken);
+
+// Read by primary key
+Product? p = await _repo.FindAsync(productId, cancellationToken);
+
+// Read by expression
+ICollection<Product> available =
+    await _repo.FindAsync(p => p.StockQuantity > 0, cancellationToken);
+
+// Single or default
+Product? featured =
+    await _repo.FindSingleOrDefaultAsync(p => p.IsFeatured, cancellationToken);
+
+// Existence
+bool exists = await _repo.AnyAsync(p => p.Sku == sku, cancellationToken);
+
+// Count
+long count = await _repo.GetCountAsync(p => p.CategoryId == categoryId, cancellationToken);
+
+// Update
+await _repo.UpdateAsync(product, cancellationToken);
+
+// Delete (auto-detects ISoftDelete)
+await _repo.DeleteAsync(product, cancellationToken);
+
+// Bulk delete
+int affected = await _repo.DeleteManyAsync(p => p.StockQuantity == 0, cancellationToken);
+```
+
+### LINQ queries
+
+`ILinqRepository<TEntity>` exposes `IQueryable<TEntity>` directly and provides `FindQuery` overloads that return `IQueryable`:
+
+```csharp
+IQueryable<Product> query = _repo.FindQuery(p => p.CategoryId == categoryId);
+
+// Further compose with LINQ operators
+var names = await query.Select(p => p.Name).ToListAsync();
+```
+
+### Paged queries
+
+```csharp
+IPaginatedList<Product> page = await _repo.FindAsync(
+    expression:        p => p.CategoryId == categoryId,
+    orderByExpression: p => p.Name,
+    orderByAscending:  true,
+    pageNumber:        1,
+    pageSize:          20,
+    token:             cancellationToken);
+```
+
+Or use a `PagedSpecification<TEntity>`:
+
+```csharp
+var spec = new PagedSpecification<Product>(
+    p => p.CategoryId == categoryId,
+    p => p.Name,
+    orderByAscending: true,
+    pageNumber: 1,
+    pageSize: 20);
+
+IPaginatedList<Product> page = await _repo.FindAsync(spec, cancellationToken);
+```
+
+### Eager loading
+
+```csharp
+var orders = await _orderRepo
+    .Include(o => o.Customer)
+    .FindAsync(o => o.Status == OrderStatus.Pending, cancellationToken);
+```
+
+Linq2Db implements eager loading using `LoadWith` / `ThenLoad` internally, which translates to SQL `JOIN` statements.
+
+### Using specifications
+
+```csharp
+var spec = new ActiveProductSpec();
+ICollection<Product> active = await _repo.FindAsync(spec, cancellationToken);
+```
+
+### Soft delete
+
+If the entity implements `ISoftDelete`, delete operations mark `IsDeleted = true` and issue an UPDATE rather than a physical DELETE. To bypass:
+
+```csharp
+await _repo.DeleteAsync(product, isSoftDelete: false, cancellationToken);
+```
+
+## API Summary
+
+| Type | Purpose |
+|------|---------|
+| `ILinq2DbPersistenceBuilder` | Fluent startup builder with `AddDataConnection<TDataConnection>` and `SetDefaultDataStore` |
+| `Linq2DbPersistenceBuilder` | Concrete implementation that registers Linq2Db repositories in the DI container |
+| `RCommonDataConnection` | Abstract base class for all Linq2Db connections; derives from `DataConnection`, implements `IDataStore` |
+| `Linq2DbRepository<TEntity>` | Concrete repository; implements `ILinqRepository<TEntity>`, `IReadOnlyRepository<TEntity>`, `IWriteOnlyRepository<TEntity>` |
+| `ILinqRepository<TEntity>` | Full CRUD + `IQueryable<TEntity>` + paging + eager loading |

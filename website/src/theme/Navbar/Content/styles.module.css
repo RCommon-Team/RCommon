@@ -1,0 +1,53 @@
+/*
+Hide color mode toggle in small viewports
+ */
+ .colorModeToggle {
+  width: 36px;
+  height: 36px;
+  background-color: var(--base-neutral-0);
+  border-radius: 50%;
+  /* shadow/default */
+  box-shadow: 0px 1px 2px 0px rgba(28, 38, 63, 0.06), 0px 1px 3px 0px rgba(28, 38, 63, 0.10);
+  margin-left: 1rem;
+ }
+ .colorModeToggle svg {
+  width: 20px;
+  height: 20px;
+ }
+ .dividerLine {
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 36px; /* 150% */
+  letter-spacing: -0.48px;
+  color: #D2D6DB;
+  padding-right: 1.5rem;
+  margin-top: -4px;
+ }
+ .navBarBtn {
+  padding: 8px 12px 8px 18px;
+  padding-right: 12px !important;
+  transition: all .3s ease-in-out;
+  display: flex;
+  align-items: center;
+ }
+ .navBarBtn svg {
+  transition: all .3s ease-in-out;
+ }
+ .navBarBtn:hover svg {
+  transform: translateX(4px);
+ }
+@media (max-width: 996px) {
+  .colorModeToggle {
+    display: none;
+  }
+  .navBarBtn, .dividerLine {
+    display: none;
+  }
+}
+[data-theme='dark'] .colorModeToggle {
+  background-color: var(--neutral-mid-700);
+}
+[data-theme='dark'] .dividerLine {
+  color: #384250;
+}

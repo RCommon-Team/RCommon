@@ -1,0 +1,28 @@
+{
+  "id": "api-reference/nuget-packages",
+  "title": "NuGet Packages",
+  "description": "All RCommon packages target .NET 8, .NET 9, and .NET 10 and are published to NuGet.org. The packages follow a layered design: a small set of foundation packages define abstractions and extension points, and provider-specific packages supply concrete implementations.",
+  "source": "@site/docs/api-reference/nuget-packages.mdx",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/nuget-packages",
+  "permalink": "/docs/next/api-reference/nuget-packages",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/api-reference/nuget-packages.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "NuGet Packages",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "API Reference",
+    "permalink": "/docs/next/category/api-reference"
+  },
+  "next": {
+    "title": "Changelog",
+    "permalink": "/docs/next/api-reference/changelog"
+  }
+}

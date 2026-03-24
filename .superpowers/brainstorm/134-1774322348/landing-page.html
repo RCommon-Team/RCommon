@@ -1,0 +1,182 @@
+<h2>RCommon Landing Page Layout</h2>
+<p class="subtitle">Marketing home page at rcommon.com — Docusaurus custom page</p>
+
+<div class="mockup">
+  <div class="mockup-header">rcommon.com — Landing Page</div>
+  <div class="mockup-body" style="padding: 0;">
+
+    <!-- Navbar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <div style="display: flex; align-items: center; gap: 24px;">
+        <strong style="font-size: 16px;">🔷 RCommon</strong>
+        <span style="color: #aaa; font-size: 13px;">Docs</span>
+        <span style="color: #aaa; font-size: 13px;">API Reference</span>
+        <span style="color: #aaa; font-size: 13px;">Examples</span>
+        <span style="color: #aaa; font-size: 13px;">Blog</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span style="color: #888; font-size: 12px;">🔍 Search</span>
+        <span style="color: #888; font-size: 12px;">v2.x ▾</span>
+        <span style="color: #888; font-size: 12px;">🌙</span>
+        <span style="background: #444; padding: 4px 12px; border-radius: 4px; font-size: 12px;">GitHub ⭐</span>
+      </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div style="text-align: center; padding: 60px 24px 40px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #6ea8fe; margin-bottom: 12px;">Open Source .NET Infrastructure</div>
+      <h1 style="font-size: 32px; margin: 0 0 16px; line-height: 1.2;">Build Enterprise Applications<br/>Without Reinventing the Wheel</h1>
+      <p style="color: #aaa; max-width: 600px; margin: 0 auto 24px; font-size: 14px; line-height: 1.6;">
+        RCommon provides battle-tested abstractions for persistence, CQRS, event handling, messaging, caching, and more — so you can focus on your domain, not your plumbing.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <div style="background: #4a9eff; color: white; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">Get Started →</div>
+        <div style="background: rgba(255,255,255,0.1); padding: 10px 24px; border-radius: 6px; font-size: 14px;">View on GitHub</div>
+      </div>
+      <div style="margin-top: 16px; color: #888; font-size: 12px;">
+        <code style="background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 4px;">dotnet add package RCommon.Core</code>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div style="display: flex; justify-content: center; gap: 48px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.15);">
+      <div style="text-align: center;">
+        <div style="font-size: 22px; font-weight: bold; color: #6ea8fe;">37+</div>
+        <div style="font-size: 11px; color: #888;">NuGet Packages</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 22px; font-weight: bold; color: #6ea8fe;">3</div>
+        <div style="font-size: 11px; color: #888;">Target Frameworks</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 22px; font-weight: bold; color: #6ea8fe;">20+</div>
+        <div style="font-size: 11px; color: #888;">Working Examples</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 22px; font-weight: bold; color: #6ea8fe;">Apache 2.0</div>
+        <div style="font-size: 11px; color: #888;">License</div>
+      </div>
+    </div>
+
+    <!-- Feature Cards Section -->
+    <div style="padding: 40px 24px;">
+      <h2 style="text-align: center; font-size: 22px; margin-bottom: 8px;">Everything You Need</h2>
+      <p style="text-align: center; color: #888; font-size: 13px; margin-bottom: 32px;">Pluggable abstractions with multiple provider implementations</p>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">🗄️</div>
+          <strong style="font-size: 14px;">Persistence</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Repository, Unit of Work, Specifications — with EF Core, Dapper, and Linq2Db providers</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">⚡</div>
+          <strong style="font-size: 14px;">CQRS & Mediator</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Command/Query Bus with MediatR and Wolverine implementations</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">📡</div>
+          <strong style="font-size: 14px;">Event Handling</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">In-memory and distributed events with transactional outbox support</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">📬</div>
+          <strong style="font-size: 14px;">Messaging</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Message bus with MassTransit and Wolverine, including state machines</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">💾</div>
+          <strong style="font-size: 14px;">Caching</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Unified caching abstraction with Memory and Redis providers</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">🏗️</div>
+          <strong style="font-size: 14px;">Domain-Driven Design</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Entities, Aggregates, Domain Events, Auditing, and Soft Delete</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">☁️</div>
+          <strong style="font-size: 14px;">Blob Storage</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Azure Blob Storage and Amazon S3 behind a unified abstraction</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">🏢</div>
+          <strong style="font-size: 14px;">Multi-Tenancy</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Tenant resolution and isolation with Finbuckle integration</p>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px;">
+          <div style="font-size: 20px; margin-bottom: 8px;">✅</div>
+          <strong style="font-size: 14px;">Validation & More</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">FluentValidation, Email (SMTP/SendGrid), JSON serialization, Security</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code Example Section -->
+    <div style="padding: 40px 24px; background: rgba(0,0,0,0.15);">
+      <h2 style="text-align: center; font-size: 22px; margin-bottom: 8px;">Simple, Fluent Configuration</h2>
+      <p style="text-align: center; color: #888; font-size: 13px; margin-bottom: 24px;">Configure everything through a single fluent builder in Program.cs</p>
+
+      <div style="max-width: 680px; margin: 0 auto; background: #1e1e2e; border-radius: 8px; padding: 20px; font-family: monospace; font-size: 12px; line-height: 1.8; overflow-x: auto;">
+        <div style="color: #6ea8fe;">builder</div>
+        <div style="padding-left: 16px; color: #aaa;">.AddRCommon()</div>
+        <div style="padding-left: 16px; color: #aaa;">.WithPersistence&lt;<span style="color: #ce9178;">EfCorePeristenceBuilder</span>&gt;(ef =&gt;</div>
+        <div style="padding-left: 32px; color: #aaa;">ef.AddDbContext&lt;<span style="color: #ce9178;">AppDbContext</span>&gt;(...))</div>
+        <div style="padding-left: 16px; color: #aaa;">.WithMediator&lt;<span style="color: #ce9178;">MediatRBuilder</span>&gt;(mediator =&gt;</div>
+        <div style="padding-left: 32px; color: #aaa;">mediator.AddRequest&lt;<span style="color: #ce9178;">CreateOrderCommand</span>&gt;())</div>
+        <div style="padding-left: 16px; color: #aaa;">.WithEventHandling&lt;<span style="color: #ce9178;">MassTransitBuilder</span>&gt;(events =&gt;</div>
+        <div style="padding-left: 32px; color: #aaa;">events.AddProducer&lt;<span style="color: #ce9178;">OrderCreatedEvent</span>&gt;())</div>
+        <div style="padding-left: 16px; color: #aaa;">.WithCaching&lt;<span style="color: #ce9178;">MemoryCacheBuilder</span>&gt;()</div>
+        <div style="padding-left: 16px; color: #aaa;">.WithValidation&lt;<span style="color: #ce9178;">FluentValidationBuilder</span>&gt;();</div>
+      </div>
+    </div>
+
+    <!-- Architecture Section -->
+    <div style="padding: 40px 24px;">
+      <h2 style="text-align: center; font-size: 22px; margin-bottom: 8px;">Built for Any Architecture</h2>
+      <p style="text-align: center; color: #888; font-size: 13px; margin-bottom: 32px;">RCommon fits into the architecture you choose</p>
+
+      <div style="display: flex; justify-content: center; gap: 24px;">
+        <div style="text-align: center; padding: 24px; background: rgba(255,255,255,0.04); border-radius: 8px; flex: 1; max-width: 220px;">
+          <div style="font-size: 28px; margin-bottom: 8px;">🏛️</div>
+          <strong>Clean Architecture</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Layer your application with clear boundaries</p>
+        </div>
+        <div style="text-align: center; padding: 24px; background: rgba(255,255,255,0.04); border-radius: 8px; flex: 1; max-width: 220px;">
+          <div style="font-size: 28px; margin-bottom: 8px;">🔀</div>
+          <strong>Microservices</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">Distributed systems with messaging and events</p>
+        </div>
+        <div style="text-align: center; padding: 24px; background: rgba(255,255,255,0.04); border-radius: 8px; flex: 1; max-width: 220px;">
+          <div style="font-size: 28px; margin-bottom: 8px;">📡</div>
+          <strong>Event-Driven</strong>
+          <p style="color: #888; font-size: 12px; margin-top: 6px;">React to domain events across bounded contexts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding: 24px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; color: #888; font-size: 12px;">
+      <div>© 2026 RCommon Team · Apache 2.0 License</div>
+      <div style="display: flex; gap: 16px;">
+        <span>GitHub</span>
+        <span>NuGet</span>
+        <span>Twitter</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <h3 style="margin-top: 0;">Landing Page Sections</h3>
+  <ol style="line-height: 2; font-size: 14px;">
+    <li><strong>Navbar</strong> — Logo, Docs, API Reference, Examples, Blog, Search, Version, Theme toggle, GitHub star</li>
+    <li><strong>Hero</strong> — Tagline, description, CTA buttons, dotnet install command</li>
+    <li><strong>Stats bar</strong> — 37+ packages, 3 frameworks, 20+ examples, Apache 2.0</li>
+    <li><strong>Feature cards</strong> — 3×3 grid of major capabilities with icons</li>
+    <li><strong>Code example</strong> — Fluent builder configuration showing how easy setup is</li>
+    <li><strong>Architecture section</strong> — Clean, Microservices, Event-Driven</li>
+    <li><strong>Footer</strong> — Copyright, links, social</li>
+  </ol>
+</div>

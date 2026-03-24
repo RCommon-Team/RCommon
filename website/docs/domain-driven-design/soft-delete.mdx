@@ -1,0 +1,177 @@
+---
+title: Soft Delete
+sidebar_position: 5
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Soft Delete
+
+Soft delete is the practice of marking a record as deleted rather than physically removing it from the database. The record remains in the data store with `IsDeleted = true`, allowing you to audit what was deleted, restore records if needed, and avoid referential integrity problems caused by physical deletes.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Entities" />
+
+## The ISoftDelete Interface
+
+Implement `ISoftDelete` on any entity that should support soft deletion:
+
+```csharp
+public interface ISoftDelete
+{
+    bool IsDeleted { get; set; }
+}
+```
+
+This is an opt-in interface. Entities that do not implement it continue to be physically deleted. If you call a soft-delete operation on an entity that does not implement `ISoftDelete`, an `InvalidOperationException` is thrown at runtime with a descriptive message.
+
+## Marking an Entity as Soft-Deletable
+
+Add `ISoftDelete` to your entity class and add an `IsDeleted` property. The property should be backed by a column in your database:
+
+```csharp
+public class Customer : BusinessEntity<Guid>, ISoftDelete
+{
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public bool IsDeleted { get; set; }
+}
+```
+
+You can combine `ISoftDelete` with any base class in the RCommon entity hierarchy:
+
+```csharp
+// With an aggregate root
+public class Order : AggregateRoot<Guid>, ISoftDelete
+{
+    public string CustomerId { get; private set; }
+    public OrderStatus Status { get; private set; }
+    public bool IsDeleted { get; set; }
+
+    // ... domain logic
+}
+
+// With auditing
+public class Document : AuditedEntity<Guid, string, string>, ISoftDelete
+{
+    public string Title { get; set; }
+    public string Content { get; set; }
+    public bool IsDeleted { get; set; }
+}
+```
+
+## Deleting with Auto-Detection
+
+The repository's `DeleteAsync` method automatically detects whether an entity implements `ISoftDelete`. If it does, an UPDATE is issued to set `IsDeleted = true` instead of a physical DELETE:
+
+```csharp
+// Automatically uses soft delete if Customer implements ISoftDelete
+await repository.DeleteAsync(customer);
+
+// Automatically uses soft delete for all matching entities
+await repository.DeleteManyAsync(c => c.Name == "Acme Corp");
+```
+
+## Explicit Delete Mode
+
+Use the overloads that accept a `bool isSoftDelete` parameter when you need explicit control over the delete mode:
+
+```csharp
+// Force soft delete (throws InvalidOperationException if entity does not implement ISoftDelete)
+await repository.DeleteAsync(customer, isSoftDelete: true);
+
+// Force physical delete even if the entity implements ISoftDelete
+await repository.DeleteAsync(customer, isSoftDelete: false);
+
+// Soft delete multiple entities matching a specification
+await repository.DeleteManyAsync(activeCustomersSpec, isSoftDelete: true);
+
+// Physical delete multiple entities matching an expression
+await repository.DeleteManyAsync(
+    c => c.CreatedDate < cutoff,
+    isSoftDelete: false);
+```
+
+## Query Filtering
+
+RCommon repository implementations automatically exclude soft-deleted records from queries. When the entity type implements `ISoftDelete`, all standard find and query operations apply a `WHERE IsDeleted = false` filter:
+
+```csharp
+// These queries automatically exclude soft-deleted records
+var customer = await repository.GetByIdAsync(customerId);     // returns null if soft-deleted
+var all = await repository.FindAsync(c => c.Name == "Acme"); // excludes soft-deleted
+
+// The filter is applied at the IQueryable level, so it composes with your own predicates
+var recent = await repository.FindAsync(
+    c => c.DateCreated > DateTime.UtcNow.AddDays(-30)); // only non-deleted, recent customers
+```
+
+The filter is built using `SoftDeleteHelper.GetNotDeletedFilter<TEntity>()`, which produces an expression equivalent to `e => !e.IsDeleted`. This filter is combined with any user-supplied predicate using a logical AND.
+
+## EF Core: Global Query Filter
+
+For teams using Entity Framework Core directly, you can optionally configure a global query filter on the `DbContext` to ensure soft-deleted records are never returned by any query against that entity — including those executed outside the RCommon repository:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    // Global query filter: automatically excludes soft-deleted customers from all queries
+    modelBuilder.Entity<Customer>()
+        .HasQueryFilter(c => !c.IsDeleted);
+
+    modelBuilder.Entity<Order>()
+        .HasQueryFilter(o => !o.IsDeleted);
+}
+```
+
+With a global query filter in place, you can use `IgnoreQueryFilters()` when you explicitly need to include soft-deleted records:
+
+```csharp
+// Include soft-deleted records for an admin audit report
+var allIncludingDeleted = await dbContext.Customers
+    .IgnoreQueryFilters()
+    .ToListAsync();
+```
+
+Note: If you configure a global query filter in EF Core and also use the RCommon repository, the filter is applied at two layers. This is safe but redundant. Choose the approach that best fits your architecture.
+
+## Restoring a Soft-Deleted Record
+
+To restore a soft-deleted record, set `IsDeleted = false` and call `UpdateAsync`:
+
+```csharp
+// First, retrieve the soft-deleted record by including it manually
+// (standard repository queries exclude soft-deleted records automatically)
+var deletedCustomer = await dbContext.Customers
+    .IgnoreQueryFilters()
+    .FirstOrDefaultAsync(c => c.Id == customerId);
+
+if (deletedCustomer is not null)
+{
+    deletedCustomer.IsDeleted = false;
+    await repository.UpdateAsync(deletedCustomer);
+}
+```
+
+## Implementation Notes
+
+The soft delete logic is encapsulated in `SoftDeleteHelper` in the `RCommon.Persistence` package:
+
+| Method | Purpose |
+|--------|---------|
+| `IsSoftDeletable<TEntity>()` | Returns `true` if `TEntity` implements `ISoftDelete` |
+| `EnsureSoftDeletable<TEntity>()` | Throws `InvalidOperationException` if `TEntity` does not implement `ISoftDelete` |
+| `MarkAsDeleted(entity)` | Sets `IsDeleted = true` on the entity (cast to `ISoftDelete`) |
+| `GetNotDeletedFilter<TEntity>()` | Returns an expression `e => !e.IsDeleted` for use in LINQ queries |
+| `CombineWithNotDeletedFilter<TEntity>(expression)` | ANDs the user expression with `!IsDeleted`; returns the original expression unchanged if the entity does not implement `ISoftDelete` |
+
+## API Summary
+
+| Type | Description |
+|------|-------------|
+| `ISoftDelete` | Interface marking an entity as capable of soft deletion; exposes `IsDeleted` |
+| `IWriteOnlyRepository<TEntity>.DeleteAsync(entity)` | Soft deletes automatically if entity implements `ISoftDelete`; otherwise physically deletes |
+| `IWriteOnlyRepository<TEntity>.DeleteAsync(entity, isSoftDelete)` | Explicit delete mode, bypassing auto-detection |
+| `IWriteOnlyRepository<TEntity>.DeleteManyAsync(...)` | Bulk delete with the same auto-detection and explicit override overloads |
+| `SoftDeleteHelper` | Static utility class encapsulating soft delete detection, validation, and expression filtering |

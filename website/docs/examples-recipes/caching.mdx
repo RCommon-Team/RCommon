@@ -1,0 +1,312 @@
+---
+title: Caching Examples
+sidebar_position: 3
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import NuGetInstall from '@site/src/components/NuGetInstall';
+import ProviderComparison from '@site/src/components/ProviderComparison';
+
+# Caching Examples
+
+This page walks through the three caching examples included with RCommon: in-process memory cache, distributed memory cache, Redis distributed cache, and the persistence caching layer that caches repository query results.
+
+## Example Projects
+
+```
+Examples/Caching/
+    Examples.Caching.MemoryCaching/        — IMemoryCache + IDistributedCache (in-memory)
+    Examples.Caching.RedisCaching/         — IDistributedCache backed by Redis
+    Examples.Caching.PersistenceCaching/   — ICachingGraphRepository<T> with EF Core
+```
+
+## Example 1: In-Memory and Distributed Memory Caching
+
+### Installation
+
+<NuGetInstall packageName="RCommon.MemoryCache" />
+<NuGetInstall packageName="RCommon.Json.JsonNet" />
+
+### Configuration
+
+```csharp
+services.AddRCommon()
+    // Serialization is required for distributed cache (values are serialized to bytes)
+    .WithJsonSerialization<JsonNetBuilder>()
+    .WithMemoryCaching<InMemoryCachingBuilder>(cache =>
+    {
+        cache.Configure(x =>
+        {
+            x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
+        });
+        // Optionally cache dynamically compiled LINQ expression trees
+        cache.CacheDynamicallyCompiledExpressions();
+    })
+    .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
+    {
+        cache.Configure(x =>
+        {
+            x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
+        });
+    });
+```
+
+`WithMemoryCaching<InMemoryCachingBuilder>` registers `IMemoryCache` backed by `Microsoft.Extensions.Caching.Memory`.
+
+`WithDistributedCaching<DistributedMemoryCacheBuilder>` registers `IDistributedCache` backed by an in-process distributed cache (useful for development and single-node deployments).
+
+### Application Service
+
+Inject `IMemoryCache` and `IDistributedCache` as you would in any .NET application. RCommon's `IJsonSerializer` handles serialization for the distributed cache:
+
+```csharp
+public class TestApplicationService : ITestApplicationService
+{
+    private readonly IMemoryCache _memoryCache;
+    private readonly IDistributedCache _distributedCache;
+    private readonly IJsonSerializer _serializer;
+
+    public TestApplicationService(
+        IMemoryCache memoryCache,
+        IDistributedCache distributedCache,
+        IJsonSerializer serializer)
+    {
+        _memoryCache = memoryCache;
+        _distributedCache = distributedCache;
+        _serializer = serializer;
+    }
+
+    // IMemoryCache — objects stored by reference, in-process only
+    public void SetMemoryCache(string key, TestDto data)
+        => _memoryCache.Set<TestDto>(key, data);
+
+    public TestDto GetMemoryCache(string key)
+        => _memoryCache.Get<TestDto>(key);
+
+    // IDistributedCache — objects serialized to bytes, transport-agnostic
+    public void SetDistributedMemoryCache(string key, Type type, object data)
+        => _distributedCache.Set(key,
+            Encoding.UTF8.GetBytes(_serializer.Serialize(data, type)));
+
+    public TestDto GetDistributedMemoryCache(string key)
+    {
+        var cache = _distributedCache.Get(key);
+        return _serializer.Deserialize<TestDto>(Encoding.UTF8.GetString(cache));
+    }
+}
+```
+
+### Usage
+
+```csharp
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        services.AddRCommon()
+            .WithJsonSerialization<JsonNetBuilder>()
+            .WithMemoryCaching<InMemoryCachingBuilder>(cache =>
+            {
+                cache.Configure(x =>
+                {
+                    x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
+                });
+            })
+            .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
+            {
+                cache.Configure(x =>
+                {
+                    x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
+                });
+            });
+
+        services.AddTransient<ITestApplicationService, TestApplicationService>();
+    }).Build();
+
+var appService = host.Services.GetRequiredService<ITestApplicationService>();
+
+// Store and retrieve from IMemoryCache
+appService.SetMemoryCache("test-key", new TestDto("test data 1"));
+var testData1 = appService.GetMemoryCache("test-key");
+
+// Store and retrieve from IDistributedCache
+appService.SetDistributedMemoryCache("test-key", typeof(TestDto), new TestDto("test data 2"));
+var testData2 = appService.GetDistributedMemoryCache("test-key");
+
+Console.WriteLine(testData1.Message); // test data 1
+Console.WriteLine(testData2.Message); // test data 2
+```
+
+## Example 2: Redis Distributed Caching
+
+### Installation
+
+<NuGetInstall packageName="RCommon.RedisCache" />
+<NuGetInstall packageName="RCommon.Json.JsonNet" />
+
+### Configuration
+
+Swap `DistributedMemoryCacheBuilder` for `RedisCachingBuilder`. The application service code does not change:
+
+```csharp
+services.AddRCommon()
+    .WithJsonSerialization<JsonNetBuilder>()
+    .WithDistributedCaching<RedisCachingBuilder>(cache =>
+    {
+        cache.Configure(redis =>
+        {
+            // StackExchange.Redis ConfigurationOptions
+            redis.ConfigurationOptions = new ConfigurationOptions
+            {
+                EndPoints = { "localhost:6379" },
+                AbortOnConnectFail = false
+            };
+        });
+    });
+```
+
+### Application Service (unchanged)
+
+The application service injects `IDistributedCache` and `IJsonSerializer`. The same code that worked against the in-memory distributed cache works against Redis:
+
+```csharp
+public class TestApplicationService : ITestApplicationService
+{
+    private readonly IDistributedCache _distributedCache;
+    private readonly IJsonSerializer _serializer;
+
+    public TestApplicationService(
+        IDistributedCache distributedCache,
+        IJsonSerializer serializer)
+    {
+        _distributedCache = distributedCache;
+        _serializer = serializer;
+    }
+
+    public void SetDistributedMemoryCache(string key, Type type, object data)
+        => _distributedCache.Set(key,
+            Encoding.UTF8.GetBytes(_serializer.Serialize(data, type)));
+
+    public TestDto GetDistributedMemoryCache(string key)
+    {
+        var cache = _distributedCache.Get(key);
+        return _serializer.Deserialize<TestDto>(Encoding.UTF8.GetString(cache));
+    }
+}
+```
+
+### Usage
+
+```csharp
+var appService = host.Services.GetRequiredService<ITestApplicationService>();
+
+appService.SetDistributedMemoryCache("test-key", typeof(TestDto), new TestDto("test data 1"));
+var testData1 = appService.GetDistributedMemoryCache("test-key");
+
+Console.WriteLine(testData1.Message); // test data 1
+```
+
+## Example 3: Persistence Caching
+
+Persistence caching wraps `IGraphRepository<T>` with a caching layer so that repeated queries return cached results instead of hitting the database.
+
+### Installation
+
+<NuGetInstall packageName="RCommon.Persistence.EFCore" />
+<NuGetInstall packageName="RCommon.MemoryCache" />
+
+### Configuration
+
+Add `AddInMemoryPersistenceCaching()` to the EF Core persistence builder. This registers `ICachingGraphRepository<T>` implementations backed by `IMemoryCache`:
+
+```csharp
+services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<TestDbContext>("TestDbContext", options =>
+        {
+            options.UseSqlServer(config.GetConnectionString("TestDbContext"));
+        });
+        ef.SetDefaultDataStore(dataStore =>
+            dataStore.DefaultDataStoreName = "TestDbContext");
+
+        // Registers ICachingGraphRepository<T>
+        ef.AddInMemoryPersistenceCaching();
+    })
+    .WithMemoryCaching<InMemoryCachingBuilder>(cache =>
+    {
+        cache.Configure(x =>
+        {
+            x.ExpirationScanFrequency = TimeSpan.FromMinutes(1);
+        });
+    });
+```
+
+### Application Service
+
+Instead of `IGraphRepository<T>`, inject `ICachingGraphRepository<T>`. The `FindAsync` overload accepts a cache key as the first argument:
+
+```csharp
+public class TestApplicationService : ITestApplicationService
+{
+    private readonly ICachingGraphRepository<Customer> _customerRepository;
+
+    public TestApplicationService(ICachingGraphRepository<Customer> customerRepository)
+    {
+        _customerRepository = customerRepository;
+        _customerRepository.DataStoreName = "TestDbContext";
+    }
+
+    public async Task<ICollection<Customer>> GetCustomers(object cacheKey)
+    {
+        // First call: hits the database and stores result under cacheKey
+        // Subsequent calls with the same cacheKey: returns cached result
+        return await _customerRepository.FindAsync(cacheKey, x => x.LastName == "Potter");
+    }
+}
+```
+
+### Usage
+
+```csharp
+var appService = host.Services.GetRequiredService<ITestApplicationService>();
+
+Console.WriteLine("Hitting the database w/ a query");
+var customers = await appService.GetCustomers("my-test-key");
+Console.WriteLine(customers);
+
+Console.WriteLine("Hitting the cache");
+customers = await appService.GetCustomers("my-test-key");
+Console.WriteLine(customers);
+// Second call returns from cache, no database roundtrip
+```
+
+## Provider Comparison
+
+| Provider | Package | Scope | Serialization Required | Best For |
+|---------|---------|-------|----------------------|---------|
+| `InMemoryCachingBuilder` | `RCommon.MemoryCache` | Single process | No | Fast in-process caching |
+| `DistributedMemoryCacheBuilder` | `RCommon.MemoryCache` | Single process | Yes | Development, single-node |
+| `RedisCachingBuilder` | `RCommon.RedisCache` | Multi-process / distributed | Yes | Production distributed cache |
+| `AddInMemoryPersistenceCaching()` | `RCommon.Persistence.EFCore` | Single process | No | Caching repository query results |
+
+## Key Design Points
+
+**Serialization for distributed caches.** `IDistributedCache` stores `byte[]`. RCommon uses `IJsonSerializer` to serialize and deserialize objects. Register a serializer with `WithJsonSerialization<>` before calling `WithDistributedCaching<>`.
+
+**Cache keys for persistence caching.** The cache key is a plain `object`. Use a meaningful, deterministic key that encodes the query parameters — for example, `"customers:potter"` rather than a GUID. The same key must be passed on subsequent calls to receive the cached result.
+
+**`CacheDynamicallyCompiledExpressions()`** caches compiled LINQ expression trees, which avoids recompilation overhead for frequently evaluated predicates.
+
+**Swapping providers.** The application service code depends only on `IMemoryCache`, `IDistributedCache`, `IJsonSerializer`, or `ICachingGraphRepository<T>`. Switching from in-memory to Redis requires a one-line change in `Program.cs`.
+
+## API Reference
+
+| Type | Package | Purpose |
+|------|---------|---------|
+| `InMemoryCachingBuilder` | `RCommon.MemoryCache` | Registers `IMemoryCache` |
+| `DistributedMemoryCacheBuilder` | `RCommon.MemoryCache` | Registers in-process `IDistributedCache` |
+| `RedisCachingBuilder` | `RCommon.RedisCache` | Registers Redis-backed `IDistributedCache` |
+| `ICachingGraphRepository<T>` | `RCommon.Persistence` | Caching repository interface |
+| `IJsonSerializer` | `RCommon.Json` | Serialization abstraction |
+| `JsonNetBuilder` | `RCommon.Json.JsonNet` | Json.NET serializer registration |

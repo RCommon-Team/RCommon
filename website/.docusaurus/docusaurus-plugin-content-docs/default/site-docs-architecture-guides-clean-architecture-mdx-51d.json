@@ -1,0 +1,28 @@
+{
+  "id": "architecture-guides/clean-architecture",
+  "title": "Clean Architecture",
+  "description": "Clean Architecture organizes code into concentric layers where the dependency rule states that source code dependencies can only point inward. The domain and application layers have no knowledge of databases, frameworks, or external systems. RCommon supports this structure by providing infrastructure abstractions that your application layer depends on via interfaces, with concrete implementations registered at the composition root.",
+  "source": "@site/docs/architecture-guides/clean-architecture.mdx",
+  "sourceDirName": "architecture-guides",
+  "slug": "/architecture-guides/clean-architecture",
+  "permalink": "/docs/next/architecture-guides/clean-architecture",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/architecture-guides/clean-architecture.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Clean Architecture",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Architecture Guides",
+    "permalink": "/docs/next/category/architecture-guides"
+  },
+  "next": {
+    "title": "Microservices",
+    "permalink": "/docs/next/architecture-guides/microservices"
+  }
+}

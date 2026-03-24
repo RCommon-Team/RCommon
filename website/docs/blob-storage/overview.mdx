@@ -1,0 +1,236 @@
+---
+title: Overview
+sidebar_position: 1
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Blob Storage Overview
+
+## Overview
+
+RCommon provides a provider-agnostic abstraction for blob and object storage. The abstraction covers the full lifecycle of binary content: container management, blob upload and download, metadata, copy/move, and presigned URL generation. Your application code depends only on `IBlobStorageService` — switching from Azure Blob Storage to Amazon S3 (or a local substitute for testing) is a configuration-only change.
+
+### Multiple named stores
+
+Applications that need more than one storage backend register each store under a unique name. The `IBlobStoreFactory` resolves the correct `IBlobStorageService` at runtime based on that name. This is useful when, for example, user uploads go to one bucket while generated reports go to another.
+
+### Core abstractions
+
+`IBlobStorageService` is the primary interface. It groups operations into four categories:
+
+- **Container operations** — create, delete, check existence, list containers.
+- **Blob CRUD** — upload, download, delete, check existence, list blobs (with optional prefix filter).
+- **Metadata** — read detailed blob properties, set arbitrary key/value metadata.
+- **Transfer** — copy or move a blob between containers without downloading it locally.
+- **Presigned URLs** — generate time-limited download or upload URLs that can be shared with external clients.
+
+`IBlobStoreFactory` resolves a named `IBlobStorageService` that was registered during startup.
+
+`BlobUploadOptions` controls how a blob is stored during upload.
+
+`BlobItem` represents a single entry returned from listing operations.
+
+`BlobProperties` carries the full metadata of an existing blob.
+
+## Installation
+
+Install the core abstractions package:
+
+<NuGetInstall packageName="RCommon.Blobs" />
+
+Then install the provider package that matches your storage backend:
+
+<NuGetInstall packageName="RCommon.Azure.Blobs" />
+
+or
+
+<NuGetInstall packageName="RCommon.Amazon.S3Objects" />
+
+## Configuration
+
+Register one or more blob stores inside `AddRCommon()`. Each call to `WithBlobStorage<T>` registers a builder of type `T` and makes the named stores it configures available through `IBlobStoreFactory`.
+
+```csharp
+using RCommon;
+using RCommon.Azure.Blobs;
+
+builder.Services.AddRCommon()
+    .WithBlobStorage<AzureBlobStorageBuilder>(azure =>
+    {
+        azure.AddBlobStore("uploads", opts =>
+        {
+            opts.ConnectionString = builder.Configuration
+                .GetConnectionString("AzureStorage");
+        });
+    });
+```
+
+Multiple providers can be registered in a single application by chaining additional `WithBlobStorage<T>` calls:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithBlobStorage<AzureBlobStorageBuilder>(azure =>
+    {
+        azure.AddBlobStore("hot", opts =>
+            opts.ConnectionString = azureConnectionString);
+    })
+    .WithBlobStorage<AmazonS3ObjectsBuilder>(s3 =>
+    {
+        s3.AddBlobStore("archive", opts =>
+        {
+            opts.Region = "us-east-1";
+            opts.AccessKeyId = awsKey;
+            opts.SecretAccessKey = awsSecret;
+        });
+    });
+```
+
+## Usage
+
+### Resolving a store
+
+Inject `IBlobStoreFactory` and call `Resolve` with the name you used at registration:
+
+```csharp
+public class DocumentService
+{
+    private readonly IBlobStorageService _storage;
+
+    public DocumentService(IBlobStoreFactory factory)
+    {
+        _storage = factory.Resolve("uploads");
+    }
+}
+```
+
+### Uploading a blob
+
+```csharp
+await using var stream = File.OpenRead("/tmp/report.pdf");
+
+await _storage.UploadAsync(
+    containerName: "documents",
+    blobName: "reports/q1-2025.pdf",
+    content: stream,
+    options: new BlobUploadOptions
+    {
+        ContentType = "application/pdf",
+        Overwrite = true,
+        Metadata = new Dictionary<string, string>
+        {
+            ["author"] = "finance-bot"
+        }
+    });
+```
+
+### Downloading a blob
+
+```csharp
+Stream content = await _storage.DownloadAsync("documents", "reports/q1-2025.pdf");
+```
+
+### Listing blobs
+
+```csharp
+IEnumerable<BlobItem> items = await _storage.ListBlobsAsync(
+    containerName: "documents",
+    prefix: "reports/");
+
+foreach (BlobItem item in items)
+{
+    Console.WriteLine($"{item.Name}  {item.Size} bytes  {item.LastModified}");
+}
+```
+
+### Reading and updating metadata
+
+```csharp
+BlobProperties props = await _storage.GetPropertiesAsync("documents", "reports/q1-2025.pdf");
+Console.WriteLine(props.ContentType);
+Console.WriteLine(props.ContentLength);
+
+await _storage.SetMetadataAsync(
+    "documents",
+    "reports/q1-2025.pdf",
+    new Dictionary<string, string> { ["reviewed"] = "true" });
+```
+
+### Generating a presigned download URL
+
+```csharp
+Uri url = await _storage.GetPresignedDownloadUrlAsync(
+    containerName: "documents",
+    blobName: "reports/q1-2025.pdf",
+    expiry: TimeSpan.FromHours(1));
+
+// Share `url` with a client — it expires after one hour.
+```
+
+### Copying and moving blobs
+
+```csharp
+// Copy without removing the source.
+await _storage.CopyAsync("documents", "reports/q1-2025.pdf",
+    "archive", "2025/q1-final.pdf");
+
+// Move (copy then delete source).
+await _storage.MoveAsync("staging", "upload-001.pdf",
+    "documents", "final-001.pdf");
+```
+
+## API Summary
+
+### `IBlobStorageService`
+
+| Method | Description |
+|--------|-------------|
+| `CreateContainerAsync(name)` | Creates a new container or bucket. |
+| `DeleteContainerAsync(name)` | Deletes a container and all its contents. |
+| `ContainerExistsAsync(name)` | Returns `true` if the named container exists. |
+| `ListContainersAsync()` | Returns the names of all containers in the store. |
+| `UploadAsync(container, blob, stream, options?)` | Uploads content to a blob. |
+| `DownloadAsync(container, blob)` | Returns a readable stream for the blob content. |
+| `DeleteAsync(container, blob)` | Permanently removes a blob. |
+| `ExistsAsync(container, blob)` | Returns `true` if the blob exists. |
+| `ListBlobsAsync(container, prefix?)` | Lists blobs, optionally filtered by prefix. |
+| `GetPropertiesAsync(container, blob)` | Returns content type, size, ETag, and metadata. |
+| `SetMetadataAsync(container, blob, metadata)` | Replaces the blob's custom metadata. |
+| `CopyAsync(srcContainer, srcBlob, dstContainer, dstBlob)` | Copies a blob without downloading it. |
+| `MoveAsync(srcContainer, srcBlob, dstContainer, dstBlob)` | Copies then deletes the source blob. |
+| `GetPresignedDownloadUrlAsync(container, blob, expiry)` | Generates a time-limited download URL. |
+| `GetPresignedUploadUrlAsync(container, blob, expiry)` | Generates a time-limited upload URL. |
+
+### `IBlobStoreFactory`
+
+| Method | Description |
+|--------|-------------|
+| `Resolve(name)` | Returns the `IBlobStorageService` registered under the given name. Throws `BlobStoreNotFoundException` if the name is not registered. |
+
+### `BlobUploadOptions`
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `ContentType` | `null` | MIME type stored with the blob. |
+| `Metadata` | `null` | Key/value pairs attached to the blob. |
+| `Overwrite` | `true` | Whether to replace an existing blob with the same name. |
+
+### `BlobItem`
+
+| Property | Description |
+|----------|-------------|
+| `Name` | Blob name as returned by the provider. |
+| `Size` | Size in bytes, if available. |
+| `ContentType` | MIME type, if available. |
+| `LastModified` | Timestamp of last modification, if available. |
+| `Metadata` | Custom key/value metadata attached to the blob. |
+
+### `BlobProperties`
+
+| Property | Description |
+|----------|-------------|
+| `ContentType` | MIME type of the blob. |
+| `ContentLength` | Size in bytes. |
+| `LastModified` | Timestamp of last modification. |
+| `ETag` | Entity tag for optimistic concurrency. |
+| `Metadata` | Custom key/value metadata attached to the blob. |
