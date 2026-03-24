@@ -58,8 +58,8 @@ const config: Config = {
       title: 'RCommon',
       logo: {
         alt: 'RCommon Logo',
-        src: 'img/rcommon-logo.png',
-        srcDark: 'img/rcommon-logo.png',
+        src: 'img/rcommon-logo-light-bg.png',
+        srcDark: 'img/rcommon-logo-dark-bg.png',
       },
       items: [
         {

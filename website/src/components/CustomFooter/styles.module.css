@@ -18,10 +18,23 @@
   height: 32px;
 }
 
-.custom-footer-wrapper .logo-wrapper .footer-logo {
+.custom-footer-wrapper .logo-wrapper img {
   height: 100%;
   width: auto;
   border-radius: 0;
+}
+
+/* Light/dark logo switching */
+.custom-footer-wrapper .dark-theme-logo {
+  display: none;
+}
+
+:global(html[data-theme='dark']) .custom-footer-wrapper .light-theme-logo {
+  display: none;
+}
+
+:global(html[data-theme='dark']) .custom-footer-wrapper .dark-theme-logo {
+  display: initial;
 }
 
 .custom-footer-wrapper .copyright {

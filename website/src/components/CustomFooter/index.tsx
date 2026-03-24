@@ -7,7 +7,8 @@ const CustomFooter = () => {
   return (
     <footer className={styles['custom-footer-wrapper']}>
       <div className={styles['logo-wrapper']}>
-        <img src={useBaseUrl('/img/rcommon-logo.png')} className={styles['footer-logo']} alt="RCommon" />
+        <img src={useBaseUrl('/img/rcommon-logo-light-bg.png')} className={styles['light-theme-logo']} alt="RCommon" />
+        <img src={useBaseUrl('/img/rcommon-logo-dark-bg.png')} className={styles['dark-theme-logo']} alt="RCommon" />
       </div>
       <div className={styles['copyright']}>{`\u00A9 ${new Date().getFullYear()} RCommon Team. All rights reserved`}</div>
       <div className={styles['footerSocialIconsWrapper']}>
