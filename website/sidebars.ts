@@ -46,25 +46,11 @@ const sidebars: SidebarsConfig = {
         'persistence/repository-pattern',
         'persistence/specifications',
         'persistence/unit-of-work',
-        {
-          type: 'category',
-          label: 'Providers',
-          link: { type: 'generated-index' },
-          items: [
-            'persistence/efcore',
-            'persistence/dapper',
-            'persistence/linq2db',
-          ],
-        },
-        {
-          type: 'category',
-          label: 'Persistence Caching',
-          link: { type: 'generated-index' },
-          items: [
-            'persistence/caching-memory',
-            'persistence/caching-redis',
-          ],
-        },
+        'persistence/efcore',
+        'persistence/dapper',
+        'persistence/linq2db',
+        'persistence/caching-memory',
+        'persistence/caching-redis',
       ],
     },
     {
@@ -75,15 +61,8 @@ const sidebars: SidebarsConfig = {
         'cqrs-mediator/command-query-bus',
         'cqrs-mediator/commands-handlers',
         'cqrs-mediator/queries-handlers',
-        {
-          type: 'category',
-          label: 'Providers',
-          link: { type: 'generated-index' },
-          items: [
-            'cqrs-mediator/mediatr',
-            'cqrs-mediator/wolverine',
-          ],
-        },
+        'cqrs-mediator/mediatr',
+        'cqrs-mediator/wolverine',
       ],
     },
     {
@@ -95,16 +74,9 @@ const sidebars: SidebarsConfig = {
         'event-handling/in-memory',
         'event-handling/distributed',
         'event-handling/transactional-outbox',
-        {
-          type: 'category',
-          label: 'Providers',
-          link: { type: 'generated-index' },
-          items: [
-            'event-handling/mediatr',
-            'event-handling/masstransit',
-            'event-handling/wolverine',
-          ],
-        },
+        'event-handling/mediatr',
+        'event-handling/masstransit',
+        'event-handling/wolverine',
       ],
     },
     {
@@ -115,15 +87,8 @@ const sidebars: SidebarsConfig = {
         'messaging/overview',
         'messaging/transactional-outbox',
         'messaging/state-machines',
-        {
-          type: 'category',
-          label: 'Providers',
-          link: { type: 'generated-index' },
-          items: [
-            'messaging/masstransit',
-            'messaging/wolverine',
-          ],
-        },
+        'messaging/masstransit',
+        'messaging/wolverine',
       ],
     },
     {
