@@ -64,11 +64,11 @@
   --ifm-background-surface-color: #1e293b;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 
-  --ifm-navbar-background-color: #1e293b;
+  --ifm-navbar-background-color: #0f172a;
   --ifm-footer-background-color: #0f172a;
 
   --main-bg-color: #0f172a;
-  --sidebar-bg-color: #1e293b;
+  --sidebar-bg-color: #131c2e;
   --primary-neutral-800: #94a3b8;
   --secondary-blue-900: #bfdbfe;
   --next-prev-bg-color: #1e293b;
@@ -228,9 +228,10 @@ img {
 /* ── Navbar ──────────────────────────────────────────────── */
 
 .navbar {
-  background-color: var(--sidebar-bg-color);
+  background-color: var(--ifm-navbar-background-color);
   padding: 24px 48px;
   height: auto;
+  border-bottom: 1px solid var(--header-border-bottom);
 }
 .navbar__brand {
   margin-right: 0;
