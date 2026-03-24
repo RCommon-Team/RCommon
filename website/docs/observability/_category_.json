@@ -1,8 +1,0 @@
-{
-  "label": "Observability",
-  "position": 11,
-  "className": "observability-icon",
-  "customProps": {
-    "sidebar_pathname": "observability"
-  }
-}

@@ -1,8 +1,0 @@
-{
-  "label": "AI with PromptQL",
-  "position": 13,
-  "className": "prompt-ql-icon",
-  "customProps": {
-    "sidebar_pathname": "ai"
-  }
-}

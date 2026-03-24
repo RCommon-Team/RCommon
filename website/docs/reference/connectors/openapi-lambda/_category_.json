@@ -1,7 +1,0 @@
-{
-  "label": "OpenAPI Lambda",
-  "position": 9,
-  "customProps": {
-    "connector-ids": ["openapi"]
-  }
-}

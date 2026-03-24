@@ -1,7 +1,0 @@
-{
-  "label": "Redshift",
-  "position": 13.5,
-  "customProps": {
-    "connector-ids": ["redshift"]
-  }
-}

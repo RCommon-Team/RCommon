@@ -1,7 +1,0 @@
-{
-  "label": "Prometheus",
-  "position": 12,
-  "customProps": {
-    "connector-ids": ["prometheus"]
-  }
-}

@@ -1,7 +1,0 @@
-{
-  "label": "MySQL",
-  "position": 8,
-  "customProps": {
-    "connector-ids": ["mysql"]
-  }
-}

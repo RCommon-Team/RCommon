@@ -1,7 +1,0 @@
-{
-  "label": "HTTP",
-  "position": 6,
-  "customProps": {
-    "connector-ids": ["http"]
-  }
-}

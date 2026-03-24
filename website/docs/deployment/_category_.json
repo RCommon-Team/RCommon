@@ -1,8 +1,0 @@
-{
-  "label": "Deployment",
-  "position": 12,
-  "className": "deployment",
-  "customProps": {
-    "sidebar_pathname": "deployment"
-  }
-}

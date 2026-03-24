@@ -1,7 +1,0 @@
-{
-  "label": "Elasticsearch",
-  "position": 4,
-  "customProps": {
-    "connector-ids": ["elasticsearch"]
-  }
-}
