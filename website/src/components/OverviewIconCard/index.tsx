@@ -2,11 +2,16 @@ import React from 'react';
 import styles from './styles.module.css';
 
 export const OverviewIconCard = (props: {
-  iconName: React.JSX.Element;
+  icon?: React.JSX.Element;
+  title?: string;
+  description?: string;
+  link?: string;
+  // Legacy prop name kept for backward compatibility
+  iconName?: React.JSX.Element;
 }) => {
   return (
     <div className={styles.overviewIconCard}>
-      {props.iconName}
+      {props.icon ?? props.iconName}
     </div>
-  )
-}
+  );
+};

@@ -1,7 +1,8 @@
 import Link from '@docusaurus/Link';
 import React from 'react';
+
 export const OverviewTopSection = (props: {
-  youtubeVideoId: string;
+  youtubeVideoId?: string;
   links: { title: string; href: string }[];
   intro: React.JSX.Element;
 }) => {
@@ -20,15 +21,17 @@ export const OverviewTopSection = (props: {
           ))}
         </ul>
       </div>
-      <div className={'video-wrapper'}>
-        <div className={'video-aspect-ratio'}>
-        <iframe
-            src={`https://www.youtube.com/embed/${props.youtubeVideoId}`}
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+      {props.youtubeVideoId && (
+        <div className={'video-wrapper'}>
+          <div className={'video-aspect-ratio'}>
+            <iframe
+              src={`https://www.youtube.com/embed/${props.youtubeVideoId}`}
+              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
-  )
-}
+  );
+};

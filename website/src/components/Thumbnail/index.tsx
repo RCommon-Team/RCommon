@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import BrowserOnly from '@docusaurus/BrowserOnly';
-import { CSSTransition } from 'react-transition-group';
 import './styles.css';
 
-// Modal Implementation Ref: https://medium.com/tinyso/how-to-create-a-modal-component-in-react-from-basic-to-advanced-a3357a2a716a
+// Modal Implementation
 const Modal = props => {
   const closeOnEscapeKeyDown = e => {
     if (e.key === 'Escape') {
@@ -19,19 +18,21 @@ const Modal = props => {
     };
   }, []);
 
+  if (!props.show) {
+    return null;
+  }
+
   return ReactDOM.createPortal(
-    <CSSTransition in={props.show} unmountOnExit timeout={{ enter: 0, exit: 300 }}>
-      <div className={'modal'} onClick={props.onClose}>
-        <div className={'modal-content'} onClick={e => e.stopPropagation()}>
-          <div className={'modal-body'}>{props.children}</div>
-          <div className={'modal-footer'}>
-            <button onClick={props.onClose} className={'button'}>
-              x
-            </button>
-          </div>
+    <div className={'modal'} onClick={props.onClose}>
+      <div className={'modal-content'} onClick={e => e.stopPropagation()}>
+        <div className={'modal-body'}>{props.children}</div>
+        <div className={'modal-footer'}>
+          <button onClick={props.onClose} className={'button'}>
+            x
+          </button>
         </div>
       </div>
-    </CSSTransition>,
+    </div>,
     document.getElementsByTagName('body')[0]
   );
 };

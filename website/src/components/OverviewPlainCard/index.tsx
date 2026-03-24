@@ -1,6 +1,6 @@
-import ChevronRight from '@site/static/icons/chevron-right.svg';
 import Link from '@docusaurus/Link';
 import React from 'react';
+
 export const OverviewPlainCard = (props: { title: string; body: string | React.JSX.Element; link: string; linkText: string }) => {
   return (
     <div className={'card'}>
@@ -12,7 +12,7 @@ export const OverviewPlainCard = (props: { title: string; body: string | React.J
           <p>{props.body}</p>
         </div>
       </div>
-      <Link href={props.link}>{props.linkText}<ChevronRight /></Link>
+      <Link href={props.link}>{props.linkText} &rsaquo;</Link>
     </div>
-  )
-}
+  );
+};
