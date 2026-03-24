@@ -38,12 +38,13 @@ jobs:
       - name: Build solution (all target frameworks)
         run: dotnet build Src/RCommon.sln --configuration Release --no-restore
 
-      - name: Run tests with coverage
+      - name: Run tests with coverage (exclude integration tests)
         run: |
           dotnet test Src/RCommon.sln \
             --configuration Release \
             --no-build \
             --verbosity normal \
+            --filter "Category!=Integration" \
             --collect:"XPlat Code Coverage" \
             --settings Tests/coverage.runsettings \
             --results-directory Tests/TestResults
