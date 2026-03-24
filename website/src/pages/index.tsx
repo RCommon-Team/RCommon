@@ -6,15 +6,15 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import styles from './index.module.css';
 
 const features = [
-  { icon: '🗄️', title: 'Persistence', description: 'Repository, Unit of Work, Specifications — with EF Core, Dapper, and Linq2Db providers', link: '/docs/persistence' },
-  { icon: '⚡', title: 'CQRS & Mediator', description: 'Command/Query Bus with MediatR and Wolverine implementations', link: '/docs/cqrs-mediator' },
-  { icon: '📡', title: 'Event Handling', description: 'In-memory and distributed events with transactional outbox support', link: '/docs/event-handling' },
-  { icon: '📬', title: 'Messaging', description: 'Message bus with MassTransit and Wolverine, including state machines', link: '/docs/messaging' },
-  { icon: '💾', title: 'Caching', description: 'Unified caching abstraction with Memory and Redis providers', link: '/docs/caching' },
-  { icon: '🏗️', title: 'Domain-Driven Design', description: 'Entities, Aggregates, Domain Events, Auditing, and Soft Delete', link: '/docs/domain-driven-design' },
-  { icon: '☁️', title: 'Blob Storage', description: 'Azure Blob Storage and Amazon S3 behind a unified abstraction', link: '/docs/blob-storage' },
-  { icon: '🏢', title: 'Multi-Tenancy', description: 'Tenant resolution and isolation with Finbuckle integration', link: '/docs/multi-tenancy' },
-  { icon: '✅', title: 'Validation & More', description: 'FluentValidation, Email (SMTP/SendGrid), JSON serialization, Security', link: '/docs/validation' },
+  { icon: '🗄️', title: 'Persistence', description: 'Repository, Unit of Work, Specifications — with EF Core, Dapper, and Linq2Db providers', link: '/docs/category/persistence' },
+  { icon: '⚡', title: 'CQRS & Mediator', description: 'Command/Query Bus with MediatR and Wolverine implementations', link: '/docs/category/cqrs--mediator' },
+  { icon: '📡', title: 'Event Handling', description: 'In-memory and distributed events with transactional outbox support', link: '/docs/category/event-handling' },
+  { icon: '📬', title: 'Messaging', description: 'Message bus with MassTransit and Wolverine, including state machines', link: '/docs/category/messaging' },
+  { icon: '💾', title: 'Caching', description: 'Unified caching abstraction with Memory and Redis providers', link: '/docs/category/caching' },
+  { icon: '🏗️', title: 'Domain-Driven Design', description: 'Entities, Aggregates, Domain Events, Auditing, and Soft Delete', link: '/docs/category/domain-driven-design' },
+  { icon: '☁️', title: 'Blob Storage', description: 'Azure Blob Storage and Amazon S3 behind a unified abstraction', link: '/docs/category/blob-storage' },
+  { icon: '🏢', title: 'Multi-Tenancy', description: 'Tenant resolution and isolation with Finbuckle integration', link: '/docs/category/multi-tenancy' },
+  { icon: '✅', title: 'Validation & More', description: 'FluentValidation, Email (SMTP/SendGrid), JSON serialization, Security', link: '/docs/category/validation' },
 ];
 
 const stats = [
@@ -42,7 +42,7 @@ function HeroSection() {
         messaging, caching, and more — so you can focus on your domain, not your plumbing.
       </p>
       <div className={styles.heroCta}>
-        <Link className={clsx('button button--primary button--lg', styles.ctaPrimary)} to="/docs/getting-started">
+        <Link className={clsx('button button--primary button--lg', styles.ctaPrimary)} to="/docs/getting-started/overview">
           Get Started →
         </Link>
         <Link className={clsx('button button--outline button--lg', styles.ctaSecondary)} to="https://github.com/RCommon-Team/RCommon">

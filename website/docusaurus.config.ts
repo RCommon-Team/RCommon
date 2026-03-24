@@ -90,9 +90,9 @@ const config: Config = {
         {
           title: 'Docs',
           items: [
-            { label: 'Getting Started', to: '/docs/getting-started' },
-            { label: 'Persistence', to: '/docs/persistence' },
-            { label: 'CQRS & Mediator', to: '/docs/cqrs-mediator' },
+            { label: 'Getting Started', to: '/docs/getting-started/overview' },
+            { label: 'Persistence', to: '/docs/category/persistence' },
+            { label: 'CQRS & Mediator', to: '/docs/category/cqrs--mediator' },
           ],
         },
         {
@@ -114,7 +114,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['csharp', 'json', 'bash', 'xml'],
+      additionalLanguages: ['csharp', 'json', 'bash', 'markup'],
     },
     colorMode: {
       defaultMode: 'dark',

@@ -49,6 +49,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Providers',
+          link: { type: 'generated-index' },
           items: [
             'persistence/efcore',
             'persistence/dapper',
@@ -58,6 +59,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Persistence Caching',
+          link: { type: 'generated-index' },
           items: [
             'persistence/caching-memory',
             'persistence/caching-redis',
@@ -76,6 +78,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Providers',
+          link: { type: 'generated-index' },
           items: [
             'cqrs-mediator/mediatr',
             'cqrs-mediator/wolverine',
@@ -95,6 +98,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Providers',
+          link: { type: 'generated-index' },
           items: [
             'event-handling/mediatr',
             'event-handling/masstransit',
@@ -114,6 +118,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Providers',
+          link: { type: 'generated-index' },
           items: [
             'messaging/masstransit',
             'messaging/wolverine',
