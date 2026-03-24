@@ -5,4 +5,46 @@ sidebar_position: 1
 
 # Overview & Philosophy
 
-*Documentation coming soon.*
+RCommon is a .NET infrastructure library that provides battle-tested abstractions for the concerns common to every production application: persistence, CQRS/mediator, event handling, caching, validation, emailing, and more.
+
+The goal is not to invent new patterns but to give you clean, consistent interfaces over the implementations you already use — Entity Framework Core, MediatR, MassTransit, Wolverine, Redis, and others — so that swapping providers never touches your domain or application code.
+
+## What RCommon provides
+
+- **Fluent, DI-first configuration** — a single `AddRCommon()` call bootstraps everything through a composable builder chain.
+- **Pluggable providers** — every feature area exposes a generic slot (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, etc.) that accepts whichever implementation package you install.
+- **Repository and unit-of-work abstractions** — `ILinqRepository<T>`, `IReadOnlyRepository<T>`, `IWriteOnlyRepository<T>`, and `IAggregateRepository<T, TId>` sit in front of EF Core, Dapper, or Linq2Db.
+- **Domain-driven design primitives** — base entity classes with auditing, soft delete, and transactional domain events built in.
+- **In-process event bus** — `IEventBus` with subscriber registration and a transactional `IEventRouter` that coordinates domain events with the unit of work.
+- **CQRS mediation** — a thin `IMediator` abstraction backed by MediatR or Wolverine.
+- **Utility types** — `Guard`, `ISystemTime`, `IGuidGenerator`, `ICommonFactory<T>`, specification pattern support, and a rich set of extension methods.
+
+## What RCommon is not
+
+RCommon does not dictate your architecture. It does not generate controllers, scaffold screens, impose a folder structure, or require you to inherit from framework base classes in your domain layer. You choose Clean Architecture, Vertical Slice, Modular Monolith, or anything else — RCommon works alongside whatever structure you adopt.
+
+## Supported frameworks
+
+RCommon targets:
+
+- .NET 8 (LTS)
+- .NET 9
+- .NET 10
+
+## License
+
+RCommon is released under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0). It is free for commercial and open-source use.
+
+## Source code
+
+The full source is available on GitHub: [https://github.com/jfrog/RCommon](https://github.com/RCommon-Framework/RCommon)
+
+## Design principles
+
+**Abstractions over implementations.** Your application code depends on `ILinqRepository<Order>`, not `EFCoreRepository<Order>`. The concrete type is registered at the composition root and can be swapped without touching business logic.
+
+**Fluent composition over convention magic.** Every feature is opt-in. If you do not call `WithPersistence<T>()`, no persistence services are registered. There is no scanning, no implicit wiring, and no surprises.
+
+**Single entry point.** `services.AddRCommon()` returns an `IRCommonBuilder`. From there, every subsystem is a method call on that builder. The chain is self-documenting and IDE-discoverable.
+
+**Testability.** Abstractions like `ISystemTime` and `IGuidGenerator` exist specifically so that deterministic unit tests are straightforward without mocking static members or `DateTime.Now`.
