@@ -3,6 +3,104 @@ title: Overview
 sidebar_position: 1
 ---
 
-# Overview
+# Messaging Overview
 
-*Documentation coming soon.*
+RCommon's messaging layer sits on top of the event handling infrastructure and provides transport-backed, cross-service message delivery. It reuses the same `ISubscriber<TEvent>` interface as in-process event handling, so handler code is portable across transports.
+
+## Message bus vs event bus
+
+| Concern | In-process event bus | Messaging (MassTransit / Wolverine) |
+|---------|---------------------|-------------------------------------|
+| Scope | Single process | Cross-service, cross-host |
+| Delivery | Synchronous in-process dispatch | Asynchronous via a broker |
+| Durability | None (lost on process exit) | At-least-once via outbox or broker retry |
+| Handler interface | `ISubscriber<TEvent>` | `ISubscriber<TEvent>` (identical) |
+| Transport | None | RabbitMQ, Azure Service Bus, SQS, etc. |
+
+Use the in-process event bus when side effects are local to the same service. Switch to messaging when an event must cross a service boundary, survive a restart, or fan out to multiple independent services.
+
+## IEventBus for messaging
+
+`IEventBus` is the in-process bus that dispatches events to registered `ISubscriber<TEvent>` implementations within the current process. When you integrate with MassTransit or Wolverine, the same `IEventBus` pipeline is still available; the difference is that each `IEventProducer` registered with the builder routes events to the external broker instead of dispatching them directly in memory.
+
+```csharp
+// IEventBus dispatches in-process; producers dispatch to the broker
+public interface IEventBus
+{
+    Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default);
+}
+```
+
+For broker-bound events the preferred path is through `IEventRouter`, which batches transactional events and dispatches them after the current database transaction commits:
+
+```csharp
+public interface IEventRouter
+{
+    void AddTransactionalEvent(ISerializableEvent serializableEvent);
+    Task RouteEventsAsync(CancellationToken cancellationToken = default);
+}
+```
+
+## When to use messaging
+
+- An event must be consumed by a handler in a different service or process.
+- You need guaranteed delivery even if a service is temporarily unavailable (use with the transactional outbox).
+- You want to fan out a single event to multiple independent downstream services without coupling them at the code level.
+- You need durable, retryable processing with dead-letter queues and retry policies provided by a broker.
+
+## Choosing a transport
+
+RCommon supports two messaging transports:
+
+| Transport | Package | Best for |
+|-----------|---------|---------|
+| MassTransit | `RCommon.MassTransit` | Teams already using MassTransit; broad broker support (RabbitMQ, Azure Service Bus, SQS, in-memory) |
+| Wolverine | `RCommon.Wolverine` | Applications that need Wolverine's built-in durable messaging, saga support, and tight EF Core integration |
+
+Both transports expose the same RCommon interfaces. You can switch transports by changing the builder type passed to `WithEventHandling<T>` without changing any handler code.
+
+## How the pipeline works
+
+1. Application code calls `IEventRouter.AddTransactionalEvent` to queue an event.
+2. After a database transaction commits, `IEventRouter.RouteEventsAsync` is called.
+3. The router inspects each event and forwards it only to the `IEventProducer` instances subscribed to that event type.
+4. The producer (e.g. `PublishWithMassTransitEventProducer`) sends the serialized message to the broker.
+5. The broker delivers the message to the appropriate consumer endpoint.
+6. The consumer (`MassTransitEventHandler<TEvent>` or `WolverineEventHandler<TEvent>`) resolves the `ISubscriber<TEvent>` from the DI container and calls `HandleAsync`.
+
+## Event type requirements
+
+Events that flow through a broker must implement `ISerializableEvent` and must include a parameterless constructor for deserialization:
+
+```csharp
+using RCommon.Models.Events;
+
+public class OrderShipped : ISyncEvent
+{
+    public OrderShipped(Guid orderId, string trackingNumber)
+    {
+        OrderId = orderId;
+        TrackingNumber = trackingNumber;
+    }
+
+    // Required for broker deserialization
+    public OrderShipped() { }
+
+    public Guid OrderId { get; }
+    public string TrackingNumber { get; } = string.Empty;
+}
+```
+
+Two sub-markers control how the router dispatches multiple events at once:
+
+| Interface | Behaviour |
+|-----------|-----------|
+| `ISyncEvent` | Events are produced sequentially |
+| `IAsyncEvent` | Events are produced concurrently via `Task.WhenAll` |
+
+## Section contents
+
+- [MassTransit](./masstransit.mdx) — Setup, consumers, producers, transport configuration
+- [Wolverine](./wolverine.mdx) — Setup, message handlers, durable messaging
+- [Transactional Outbox](./transactional-outbox.mdx) — Guaranteed at-least-once delivery with MassTransit and Wolverine
+- [State Machines](./state-machines.mdx) — MassTransit saga/state machine integration
