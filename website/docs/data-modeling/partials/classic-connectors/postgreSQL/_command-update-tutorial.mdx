@@ -1,0 +1,13 @@
+For an automatically detected command, you can update the command metadata.
+
+```bash title="Use the DDN CLI to introspect your PostgreSQL database:"
+ddn connector introspect my_pg
+```
+
+```sh title="Show the resources discovered from your PostgreSQL database:"
+ddn connector show-resources my_pg
+```
+
+```sh title="Then, update your commands:"
+ddn command update my_pg "*"
+```

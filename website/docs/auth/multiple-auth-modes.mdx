@@ -1,0 +1,169 @@
+---
+sidebar_position: 6
+description: "Learn how to configure and use multiple authentication modes in Hasura DDN."
+keywords:
+  - hasura authentication
+  - multiple auth modes
+  - jwt authentication
+  - webhook authentication
+  - noauth mode
+  - auth switching
+  - X-Hasura-Auth-Mode
+sidebar_label: Multiple Auth Modes
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Multiple Authentication Modes
+
+## Introduction
+
+Hasura DDN supports configuring multiple authentication modes simultaneously, allowing you to use different
+authentication methods for different scenarios or clients. This feature enables you to have both JWT and webhook
+authentication enabled, or multiple configurations of the same authentication type with different settings.
+
+:::info AuthConfig v4
+
+Multiple authentication modes are available in `AuthConfig` **v4** and above.
+
+:::
+
+## How It Works
+
+When multiple authentication modes are configured:
+
+1. The primary mode specified in the `mode` field of the `AuthConfig` is used by default
+2. Alternative modes can be accessed by passing the `X-Hasura-Auth-Mode` header with the identifier of the desired
+   authentication mode
+3. Each alternative mode has its own complete authentication configuration
+
+The default mode is used when:
+
+- The `X-Hasura-Auth-Mode` header is not provided
+- The provided `X-Hasura-Auth-Mode` header does not match any of the alternative mode identifiers
+
+## Configuring Multiple Auth Modes
+
+To configure multiple authentication modes, you need to use `AuthConfig` v4, which introduces the `alternativeModes`
+field.
+
+### Example Configuration
+
+Here's an example of an `AuthConfig` with multiple authentication modes:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      key:
+        fixed:
+          algorithm: HS256
+          key:
+            valueFromEnv: JWT_KEY
+      tokenLocation:
+        type: BearerAuthorization
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: "/https:~1~1hasura.io~1jwt~1claims"
+  alternativeModes:
+    - identifier: "user2"
+      config:
+        webhook:
+          url:
+            valueFromEnv: USER2_URL
+          method: "POST"
+    - identifier: "webhook"
+      config:
+        webhook:
+          url:
+            value: "https://my-auth-service.example.com/validate"
+          method: "POST"
+    - identifier: "jwt"
+      config:
+        jwt:
+          key:
+            jwkFromUrl: "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
+          audience: ["my-firebase-app"]
+          issuer: "https://securetoken.google.com/my-firebase-app"
+          claimsConfig:
+            namespace:
+              claimsFormat: Json
+              location: "/https:~1~1hasura.io~1jwt~1claims"
+          tokenLocation: 
+            type: Header
+            name: "Authorization"
+```
+
+In this example:
+
+- The default authentication mode is `jwt` with a fixed key
+- Three alternative modes are configured:
+  - `user2`: A webhook authentication configuration for a different user
+  - `webhook`: A webhook authentication configuration
+  - `jwt`: A JWT authentication configuration for Firebase
+
+## Using Multiple Auth Modes
+
+To use a specific authentication mode when making a request to your Hasura DDN API, include the `X-Hasura-Auth-Mode`
+header with the identifier of the desired mode.
+
+### Example Requests
+
+Default mode (JWT with fixed key):
+
+```bash
+curl https://your-hasura-endpoint.hasura-ddn.com/v1/graphql \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-fixed-key-jwt-token" \
+  -d '{"query": "{ users { id name } }"}'
+```
+
+Using the webhook mode:
+
+```bash
+curl https://your-hasura-endpoint.hasura-ddn.com/v1/graphql \
+  -H "Content-Type: application/json" \
+  -H "X-Hasura-Auth-Mode: webhook" \
+  -H "Authorization: Bearer your-auth-token" \
+  -d '{"query": "{ users { id name } }"}'
+```
+
+Using the JWT mode:
+
+```bash
+curl https://your-hasura-endpoint.hasura-ddn.com/v1/graphql \
+  -H "Content-Type: application/json" \
+  -H "X-Hasura-Auth-Mode: jwt" \
+  -H "Authorization: Bearer your-jwt-token" \
+  -d '{"query": "{ users { id name } }"}'
+```
+
+## Use Cases
+
+Multiple authentication modes can be useful in various scenarios:
+
+1. **Development and Testing**: Use fixed key JWT for development and webhook for testing, and switch to production
+   custom claims JWT mode when ready
+2. **Multiple Client Types**: Support different authentication methods for different client applications
+3. **Migration**: Gradually migrate from one authentication provider to another (or from one permission model to
+   another)
+4. **Admin Access**: Provide a separate authentication mode for administrative access
+
+## Security Considerations
+
+When using multiple authentication modes:
+
+- Set up role-based permissions for each authentication mode to control data access appropriately
+- Keep in mind that the `X-Hasura-Auth-Mode` header may be included in standard HTTP request monitoring tools, just like
+  other headers
+- Consider using network controls (like IP allowlists) or the [Allowlist Plugin](/plugins/allowlist/index.mdx) to manage
+  which clients can use specific authentication modes
+
+## Next Steps
+
+- Learn more about [JWT authentication](/auth/jwt/index.mdx)
+- Explore [webhook authentication](/auth/webhook/index.mdx)
+- Understand [NoAuth mode](/auth/noauth-mode.mdx)

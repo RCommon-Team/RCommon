@@ -1,0 +1,52 @@
+---
+sidebar_position: 2
+sidebar_label: Create a subgraph
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Create a Subgraph
+
+## What's about to happen?
+
+You're about to create a subgraph on Hasura DDN.
+
+Subgraphs can be rebuilt at any point to reflect changes made in connectors or other metadata related to models,
+commands, relationships, or permissions.
+
+:::tip Required
+
+- [DDN CLI](/quickstart.mdx)
+- A new or existing [project](/deployment/hasura-ddn/tutorial/01-create-a-project.mdx)
+
+:::
+
+For each subgraph you're deploying, run the following to create it on Hasura DDN, replacing `my_subgraph` with your
+desired name. The name should match the subgraph name from your `supergraph.yaml` file in your local metadata.
+
+<Thumbnail src="/img/get-started/ERD/create-subgraph2.png" alt="Create a subgraph on Hasura DDN" width="1000px" />
+
+## Steps
+
+### Step 1. Create a subgraph
+
+```bash title="From any project directory, run:"
+ddn project subgraph create my_subgraph
+```
+
+## What did this do?
+
+Seemingly, this was an unimpressive step. However, subgraphs in your local metadata will map to resources on Hasura DDN.
+Thus, for each subgraph you have in local metadata, you'll create the companion on Hasura DDN.
+
+## Next steps
+
+With a subgraph provisioned on Hasura DDN, you can now begin
+[building and deploying your connectors](/deployment/hasura-ddn/tutorial/deploy-a-connector) that service this subgraph.

@@ -1,0 +1,60 @@
+---
+sidebar_label: ddn completion bash
+sidebar_position: 99
+description: Generate autocompletion scripts for the DDN CLI for the bash shell.
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn completion bash
+---
+
+# DDN CLI: ddn completion
+
+Generate autocompletion scripts for the DDN CLI for the bash shell.
+
+## Synopsis
+
+Generate the autocompletion script for DDN for the bash shell.
+
+To load completions in your current shell session:
+
+```sass
+        source <(ddn completion bash)
+```
+
+To load completions for every new session, execute once:
+
+#### Linux:
+
+```sass
+        ddn completion bash > /etc/bash_completion.d/ddn
+```
+
+#### macOS:
+
+```sass
+        ddn completion bash > $(brew --prefix)/etc/bash_completion.d/ddn
+```
+
+You will need to start a new shell for this setup to take effect.
+
+## Options
+
+```sass
+-h, --help   help for bash completion
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn completion](/reference/cli/commands/ddn_completion) - Generate autocompletion scripts for the DDN CLI

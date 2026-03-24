@@ -1,0 +1,156 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura BigQuery connector, including connection URI details,
+  and native queries."
+keywords:
+  - bigquery
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration is a metadata object that lists all the database entities — such as tables — that the data connector
+has to know about in order to serve queries. It never changes during the lifetime of the data connector service
+instance. When your database schema changes you will have to update the configuration accordingly.
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "connection_uri": {
+    "value": "...",
+    "variable": "..."
+  },
+  "connection_pool_settings": {
+    "max_connections": 10,
+    "min_idle": 1,
+    "connection_timeout": 30000,
+    "initialization_fail_timeout": 30000
+  },
+  "schemas": ["public"],
+  "tables": [...],
+  "functions": [],
+  "native_operations": {}
+}
+```
+
+### Property: connection_uri
+
+The connection URI for the BigQuery database. This is a required field that can be specified either as a direct string
+value or as a reference to an environment variable:
+
+```json
+{
+  "connection_uri": {
+    "value": "jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=your-project-id;OAuthType=0;OAuthServiceAcctEmail=your-service-account-email;OAuthPvtKeyPath=/path/to/key.json;"
+  }
+}
+```
+
+Or using an environment variable:
+
+```json
+{
+  "connection_uri": {
+    "variable": "BIGQUERY_JDBC_URL"
+  }
+}
+```
+
+### Property: schemas
+
+This is an optional array of schema names to include in the introspection process. If not provided, all schemas will be
+included. **Any schema passed in the JDBC URL will take precedence.**
+
+Example:
+
+```json
+{
+  "schemas": ["schema1", "schema2"]
+}
+```
+
+### Property: tables
+
+An array of table definitions generated automatically during introspection. Each table definition includes metadata
+about the table structure, columns, primary keys, and foreign keys.
+
+Example:
+
+```json
+{
+  "tables": [
+    {
+      "name": "mydataset.customers",
+      "description": "Customer information table",
+      "category": "TABLE",
+      "columns": [
+        {
+          "name": "customer_id",
+          "description": "Unique customer identifier",
+          "type": {
+            "scalar_type": "INT64"
+          },
+          "nullable": false,
+          "auto_increment": false,
+          "is_primarykey": true
+        },
+        {
+          "name": "name",
+          "description": "Customer name",
+          "type": {
+            "scalar_type": "STRING"
+          },
+          "nullable": false,
+          "auto_increment": false
+        },
+        {
+          "name": "location",
+          "description": "Geographic location",
+          "type": {
+            "scalar_type": "GEOGRAPHY"
+          },
+          "nullable": true,
+          "auto_increment": false
+        },
+        {
+          "name": "tags",
+          "description": "Customer tags",
+          "type": {
+            "array_type": {
+              "scalar_type": "STRING"
+            }
+          },
+          "nullable": true,
+          "auto_increment": false
+        }
+      ],
+      "primary_keys": ["customer_id"],
+      "foreign_keys": {
+        "fk_customer_order": {
+          "column_mapping": {
+            "customer_id": "customer_id"
+          },
+          "foreign_collection": "mydataset.orders"
+        }
+      }
+    }
+  ]
+}
+```
+
+:::note BigQuery specific characteristics
+
+- BigQuery uses datasets as schema equivalents
+- Primary keys are not enforced by BigQuery but can be defined in the configuration
+- Foreign key relationships are not enforced by BigQuery but can be defined in the configuration
+- Certain BigQuery-specific types like GEOGRAPHY, STRUCT, and ARRAY are represented in a way that maintains
+  compatibility with the NDC protocol
+
+:::

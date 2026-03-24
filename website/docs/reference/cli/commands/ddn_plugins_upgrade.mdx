@@ -1,0 +1,53 @@
+---
+sidebar_label: ddn plugins upgrade
+sidebar_position: 76
+description: Upgrade a plugin to a newer version using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_plugins_upgrade"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn plugins upgrade
+---
+
+# DDN CLI: ddn plugins upgrade
+
+Upgrade a plugin to a newer version.
+
+## Synopsis
+
+To upgrade a plugin, run the upgrade command with the name of the plugin as an argument. If unsure of the plugin's name, you can run the `ddn plugins list` command to see a list of all the available plugins.
+
+```bash
+ddn plugins upgrade <plugin-name> [flags]
+```
+
+**Alias:** update
+
+## Examples
+
+```bash
+# Upgrade a plugin "ndc-postgres" to a newer version
+ ddn plugins upgrade ndc-postgres
+```
+
+## Options
+
+```sass
+-h, --help             help for upgrade
+    --version string   Version to be upgraded
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn plugins](/reference/cli/commands/ddn_plugins) - Manage plugins for the CLI

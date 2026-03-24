@@ -1,0 +1,29 @@
+In MongoDB, you can create a [native operation](/reference/connectors/mongodb/native-operations/index.mdx) by using an
+[aggregation pipeline](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/) in a JSON file by adding it to
+your connector's directory.
+
+See the syntax for MongoDB native operations [here](/reference/connectors/mongodb/native-operations/syntax.mdx).
+
+Store your native operation in an appropriate directory, possibly named for the operation type, in your connector's
+directory.
+
+```sh title="Introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Show the found resources:"
+ddn connector show-resources <connector_name>
+```
+
+```sh title="Then, add your model:"
+ddn command add <connector_name> <operation_name>
+```
+
+```title="Build and serve your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now in your console you can run the operation with GraphQL.
+
+See the tutorial for creating a native operation in MongoDB [here](#via-native-operation-tutorials).

@@ -1,0 +1,36 @@
+---
+title: Storage
+sidebar_position: 1
+description: "Learn how to configure the Storage connector for use with an S3-compatible cloud storage provider."
+sidebar_label: Storage
+keywords:
+  - storage
+  - s3
+  - configuration
+  - connector
+seoFrontMatterUpdated: false
+---
+
+# Storage
+
+## Introduction
+
+Hasura DDN includes a Native Data Connector for cloud storage providers, allowing you to interact with any S3-compatible
+file system via your GraphQL API. This connector works with the following sources:
+
+| Service                  | Type     | List Buckets | Create Bucket | Update Bucket | Delete Bucket | List Objects | Upload | Download | Delete Object | Soft-Delete | Presigned-URL |
+| ------------------------ | -------- | ------------ | ------------- | ------------- | ------------- | ------------ | ------ | -------- | ------------- | ----------- | ------------- |
+| AWS S3 (\*)              | `s3`     | ✅           | ✅            | ✅            | ✅            | ✅           | ✅     | ✅       | ✅            | ❌          | ✅            |
+| Google Cloud Storage     | `gcs`    | ✅           | ✅            | ✅            | ✅            | ✅           | ✅     | ✅       | ✅            | ✅          | ✅            |
+| Azure Blob Storage       | `azblob` | ✅           | ✅            | ✅            | ✅            | ✅           | ✅     | ✅       | ✅            | ✅          | ✅            |
+| File System              | `fs`     | ✅           | ✅            | ✅            | ✅            | ✅           | ✅     | ✅       | ✅            | ❌          | ❌            |
+| MinIO (\*)               | `s3`     | ✅           | ✅            | ✅            | ✅            | ✅           | ✅     | ✅       | ✅            | ❌          | ✅            |
+| Cloudflare R2 (\*)       | `s3`     | ✅           | ✅            | ✅            | ✅            | ✅           | ✅     | ✅       | ✅            | ❌          | ✅            |
+| DigitalOcean Spaces (\*) | `s3`     | ✅           | ✅            | ✅            | ✅            | ✅           | ✅     | ✅       | ✅            | ❌          | ✅            |
+
+(\*): Support Amazon S3 Compatible Cloud Storage providers. The connector uses
+[MinIO Go Client SDK](https://github.com/minio/minio-go) behind the scenes.
+
+## Storage Connector docs
+
+- [Connector configuration](/reference/connectors/storage/configuration.mdx)

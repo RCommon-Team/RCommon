@@ -1,0 +1,188 @@
+---
+sidebar_position: 2
+sidebar_label: Work with multiple subgraphs
+description: "Learn how to use contexts to switch between subgraphs for easy CLI management."
+keywords:
+  - hasura
+  - hasura ddn
+  - subgraphs
+  - multiple subgraphs
+  - subgraph relationship
+  - CLI
+  - context
+---
+
+# How to Work with Multiple Subgraphs
+
+## Introduction
+
+In your daily development, you'll often encounter scenarios where your project requires multiple subgraphs to represent
+distinct domains. Whether you're working in a single repository or planning to split subgraphs across multiple
+repositories for team independence, understanding how to manage multiple subgraphs is crucial.
+
+We'll walk you through the best practices for working with multiple subgraphs, setting their context, managing
+namespacing, and establishing relationships across them to create a unified supergraph.
+
+## Subgraph Namespacing
+
+Each subgraph in your project operates in its own namespace, which means internal metadata objects (like models,
+relationships, and permissions) cannot conflict with other subgraphs. However, the GraphQL API is where all subgraphs
+come together, and conflicts can occur with root field and type names.
+
+To prevent naming conflicts, you can:
+
+1. Use subgraph prefixing (recommended for multi-team setups)
+2. Manually ensure unique names across subgraphs
+3. Use explicit type names in your schema
+
+For more information about prefixing, see the
+[subgraph prefixing guide](/project-configuration/subgraphs/subgraph-prefixing.mdx).
+
+## Set subgraph context
+
+If you're working in a project with multiple subgraphs, there will be the need to switch between subgraphs when
+executing commands with the DDN CLI. While the CLI supports a `--subgraph` flag, it is much more convenient to set your
+subgraph in context.
+
+```sh title="Switch between context using the path to the subgraph's configuration file:"
+ddn context set subgraph ./<subgraph-name>/subgraph.yaml
+```
+
+```sh title="You can verify this by checking the current context:"
+ddn context get subgraph
+```
+
+Which should return the path you entered. This will ensure any commands you run — such as adding a new data connector —
+are run in the appropriate subgraph.
+
+## Relationships across subgraphs
+
+Relationships across subgraphs work in nearly the exact same way as relationships within a single subgraph; the only
+caveat is to add the `subgraph` name of the target type.
+
+```yaml title="In the example below, we're creating a simple relationship between models, with the target model belonging to the billing subgraph:" {8}
+kind: Relationship
+version: v1
+definition:
+  name: orders
+  sourceType: Users
+  target:
+    model:
+      subgraph: billing
+      name: Orders
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: userId
+```
+
+### Single-repo relationships
+
+In a single-repo setup, relationships are straightforward to manage. All subgraphs are in the same repository and the
+[Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) can be used to assist
+with authoring relationships, providing auto-complete and validation.
+
+### Cross-repo relationships {#cross-repo-relationships}
+
+:::info Advanced plan
+
+You will need a project on the [DDN Advanced plan](https://hasura.io/pricing) to use multi-repo federation and
+cross-repo relationships.
+
+:::
+
+In a [multi-repo setup](/project-configuration/subgraphs/working-with-multiple-repositories.mdx), while working with an
+independent subgraph in its own repository, you may want to relate objects that reside in different repositories, some
+of which you may not have access to.
+
+In these cases the Hasura VS Code extension cannot validate the entirety of the `Relationship` object and you will
+manually author cross-repo relationships and ensure that the field mappings are correct. However, upon creating a
+supergraph build, all cross-subgraph metadata is validated to prevent mistakes from being deployed to the final API.
+
+You can still easily use the Hasura DDN console to explore the supergraph and test relationships across subgraphs once
+you have created a build.
+
+If you perform a _local_ supergraph build using the CLI (ie. `ddn supergraph build local`), cross-repo relationships
+will be ignored and will not be validated. If you run the build locally you will only see the subgraphs in that
+repository, and any relationships to subgraphs from other repositories will be missing.
+
+### Example
+
+Let's say you have a supergraph with two subgraphs, each managed in different repositories: `users` and `products`.
+
+The `users` subgraph in repo 'A' has a `User` type with a field called `user_favorite_product_id`.
+
+The `products` subgraph in repo 'B' has a `Product` type with a field called `id`.
+
+To create a relationship between these two types in different repositories, you would create a `Relationship` object in
+the `users` subgraph metadata as normal.
+
+The LSP is able to understand that the `Product` type is in a different subgraph to which it does not have access and
+will not give a warning on the foreign type.
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: favorite_product
+  sourceType: User
+  target:
+    model:
+      name: Product
+      subgraph: products
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: user_favorite_product_id
+      target:
+        modelField:
+          - fieldName: id
+```
+
+This `Relationship` object defines a relationship called `favorite_product` from the `User` type to the `Product` type.
+The `mapping` field specifies how the `user_favorite_product_id` field in the `User` type maps to the `id` field in the
+`Product` type.
+
+After defining the cross-repo relationship, it's important to note that you won't be able to test this locally. To see
+the relationship in action, you'll need to follow these steps:
+
+1. Create a new supergraph build on DDN using the `ddn supergraph build create` command. (Subgraph builds do not get an
+   API, so supergraph builds are required to test.)
+2. You can then use the Hasura DDN console to explore and test the relationship across subgraphs.
+3. If you have admin permissions, you can apply the subgraph to the supergraph with the `ddn subgraph apply` command.
+
+Remember, cross-repo relationships only come into effect when the subgraphs are combined in the DDN environment. Local
+development and testing are limited to the scope of your current repository.
+
+With this relationship defined, you can now query the `favorite_product` field on the `User` type to retrieve the
+related `Product`.
+
+```graphql
+query {
+  users {
+    id
+    name
+    favorite_product {
+      id
+      name
+    }
+  }
+}
+```
+
+## Next steps
+
+- [Learn how to split subgraphs across repositories](/project-configuration/subgraphs/working-with-multiple-repositories.mdx)
+
+:::info Multi-Repository Development
+
+For larger teams, you can split subgraphs across multiple repositories to enable independent development lifecycles.
+This advanced feature requires the DDN Advanced plan. Learn more in our guide about
+[splitting subgraphs across repositories](/project-configuration/subgraphs/working-with-multiple-repositories.mdx).
+
+:::

@@ -1,0 +1,61 @@
+---
+sidebar_label: ddn changelog list
+sidebar_position: 11
+description: Show all changelog entries for supergraph builds using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_changelog_list"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn changelog list
+---
+
+# DDN CLI: ddn changelog list
+
+Show all changelog entries for supergraph builds.
+
+## Synopsis
+
+List all changelog entries for applied supergraph builds. This command retrieves changelog information from the ddn_applied_build_changelog table.
+
+```bash
+ddn changelog list [flags]
+```
+
+## Examples
+
+```bash
+# List all changelog entries for the current project
+ ddn changelog list
+
+# List all changelog entries for a specific project
+ ddn changelog list --project my-project
+
+# List changelog entries with pagination
+ ddn changelog list --limit 10 --offset 20
+```
+
+## Options
+
+```sass
+    --ci               Disables the use of context
+-c, --context string   Name of the context to use. (default <current_context>)
+-h, --help             help for list
+    --limit int        Limit the number of changelog entries returned
+    --offset int       Offset for pagination
+    --project string   Project name to list changelogs for
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn changelog](/reference/cli/commands/ddn_changelog) - Manage changelogs for applied supergraph builds

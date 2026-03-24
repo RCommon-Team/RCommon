@@ -1,0 +1,53 @@
+---
+sidebar_label: ddn context get-context
+sidebar_position: 56
+description: List contexts or get details of a specific context using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_context_get-context"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn context get-context
+---
+
+# DDN CLI: ddn context get-context
+
+List contexts or get details of a specific context.
+
+## Synopsis
+
+List contexts or get details of a specific context
+
+```bash
+ddn context get-context [name] [flags]
+```
+
+## Examples
+
+```bash
+# Get list of contexts
+ ddn context get-context
+
+# Get details of context 'default'
+ ddn context get-context default
+```
+
+## Options
+
+```sass
+-h, --help   help for get-context
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn context](/reference/cli/commands/ddn_context) - Perform context operations

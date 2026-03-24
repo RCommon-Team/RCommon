@@ -1,0 +1,37 @@
+The process for adding a native query for PostgreSQL is:
+
+- Create a new SQL file in your connector directory.
+- Name the file with how you want to reference it in your supergraph API.
+- Add the SQL for your native query to the file.
+- Use the DDN CLI plugin for the PostgreSQL connector to add the native query to the connector's configuration eg:
+
+```bash title="Add the native query to the connector's configuration:"
+ddn connector plugin \
+  --connector subgraph_name/connector/connector_name/connector.yaml \
+  -- native-operation create \
+  --operation-path path/to/sql_file_name.sql \
+  --kind query
+```
+
+- Introspect your PostgreSQL data connector to fetch the latest resources.
+
+```bash
+ddn connector introspect <connector_name>
+```
+
+- Show the found resources to see the new native query.
+
+```bash
+ddn connector show-resources <connector_name>
+```
+
+- Add the model for the native query.
+
+```bash
+ddn model add <connector_link_name> <model_name>
+```
+
+- Rebuild and serve your supergraph API.
+
+Find out more about
+[native queries for PostgreSQL here](/reference/connectors/postgresql/native-operations/native-queries.mdx).

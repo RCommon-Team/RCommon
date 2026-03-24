@@ -1,0 +1,310 @@
+---
+sidebar_position: 10
+sidebar_label: Orderby Expressions
+description:
+  "Explore OrderBy Expressions in Hasura, designed for sorting data. Discover how to configure sorting rules for various
+  data types and expose them through your API."
+keywords:
+  - hasura documentation
+  - graphql data structure
+  - data domain mapping
+  - hasura ddn
+  - hasura data specification
+  - graphql schema
+  - orderby expressions
+toc_max_heading_level: 4
+seoFrontMatterUpdated: false
+canonicalUrl: "https://promptql.io/docs/reference/metadata-reference/orderby-expressions/"
+---
+
+# OrderBy Expressions
+
+## Introduction
+
+Hasura provides powerful tools to control sorting and ordering data. OrderByExpression types let you define customizable
+sorting rules for a [type](/reference/metadata-reference/types.mdx).
+
+## How OrderByExpressions work
+
+There are two types of OrderByExpressions:
+
+| Type              | Description                                                |
+| ----------------- | ---------------------------------------------------------- |
+| [Scalar](#scalar) | This specifies how a user is able to order a scalar field. |
+| [Object](#object) | This specifies how fields of a type can be ordered.        |
+
+### Examples
+
+#### Scalar
+
+This specifies how a user is able to order a scalar field. For instance, you might want to say that a user can only sort
+a `String` type in ascending order instead of both ascending and descending order. You can do that with the following
+metadata:
+
+```yaml
+kind: OrderByExpression
+version: v1
+definition:
+  name: String_orderby_exp_asc
+  operand:
+    scalar:
+      orderedType: String
+      enableOrderByDirections:
+        enableSpecific:
+          - Asc
+  graphql:
+    expressionTypeName: StringOrderByExp
+```
+
+#### Object
+
+An object `OrderByExpression` is used to define how fields of a type can be ordered. You can specify which
+`OrderByExpression` is used to order each field or relationship, and then defer the mappings of individual scalar types
+to those `OrderByExpression`s.
+
+```yaml
+kind: OrderByExpression
+version: v1
+definition:
+  name: Album_orderby_exp
+  operand:
+    object:
+      orderedType: Album
+      orderableFields:
+        - fieldName: AlbumId
+          orderByExpression: Int_orderby_exp
+        - fieldName: ArtistId
+          orderByExpression: Int_orderby_exp_asc
+        - fieldName: Address
+          orderByExpression: Address_orderby_exp
+      orderableRelationships:
+        - relationshipName: artist
+          orderByExpression: Artist_orderby_exp
+        - relationshipName: genre
+  graphql:
+    expressionTypeName: Album_orderby_Exp
+```
+
+Note here that we can specify different orderBy operators for `AlbumId` and `ArtistId` by using different
+`OrderByExpression`s for them. We are also able to define ordering on nested objects such as `Address`.
+
+---
+
+## Metadata structure
+
+
+### OrderByExpression {#orderbyexpression-orderbyexpression}
+
+Definition of an order by expression on an OpenDD type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `OrderByExpression` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [OrderByExpressionV1](#orderbyexpression-orderbyexpressionv1) | true | Definition of a type representing an order by expression on an OpenDD type. |
+
+ **Examples:**
+
+```yaml
+kind: OrderByExpression
+version: v1
+definition:
+  name: Album_order_by_exp
+  operand:
+    object:
+      orderedType: Album
+      orderableFields:
+        - fieldName: AlbumId
+          orderByExpression: Int_order_by_exp
+        - fieldName: ArtistId
+          orderByExpression: Int_order_by_exp
+        - fieldName: Address
+          orderByExpression: Address_order_by_default_exp
+      orderableRelationships:
+        - relationshipName: artist
+          orderByExpression: Artist_order_by_default_exp
+  graphql:
+    expressionTypeName: App_Album_order_by_exp
+  description: Order by expression for Albums
+```
+
+
+
+```yaml
+kind: OrderByExpression
+version: v1
+definition:
+  name: Int_order_by_exp
+  operand:
+    scalar:
+      orderedType: Int
+      enableOrderByDirections:
+        enableAll: true
+  graphql:
+    expressionTypeName: App_Int_order_by_exp
+  description: Order by expression for Int
+```
+
+
+#### OrderByExpressionV1 {#orderbyexpression-orderbyexpressionv1}
+
+Definition of a type representing an order by expression on an OpenDD type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [OrderByExpressionName](#orderbyexpression-orderbyexpressionname) | true | The name used to refer to this expression. This name is unique only in the context of the `orderedType` |
+| `operand` | [OrderByExpressionOperand](#orderbyexpression-orderbyexpressionoperand) | true | The type that this expression applies to. |
+| `graphql` | [OrderByExpressionGraphQlConfiguration](#orderbyexpression-orderbyexpressiongraphqlconfiguration) / null | false | Configuration for how this order by expression should appear in the GraphQL schema. |
+| `description` | string / null | false | The description of the order by expression. |
+
+
+
+#### OrderByExpressionGraphQlConfiguration {#orderbyexpression-orderbyexpressiongraphqlconfiguration}
+
+GraphQL configuration settings for a type representing an order by expression on an OpenDD type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `expressionTypeName` | [GraphQlTypeName](#orderbyexpression-graphqltypename) | true | The name of a GraphQL type. |
+
+
+
+#### GraphQlTypeName {#orderbyexpression-graphqltypename}
+
+The name of a GraphQL type.
+
+
+**Value:** string
+
+
+#### OrderByExpressionOperand {#orderbyexpression-orderbyexpressionoperand}
+
+Configuration for object or scalar order by expression
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `object` | [OrderByExpressionObjectOperand](#orderbyexpression-orderbyexpressionobjectoperand) | false | Definition of an type representing an order by expression on an OpenDD object type. |
+| `scalar` | [OrderByExpressionScalarOperand](#orderbyexpression-orderbyexpressionscalaroperand) | false | Definition of a type representing an order by expression on an OpenDD scalar type. |
+
+
+
+#### OrderByExpressionScalarOperand {#orderbyexpression-orderbyexpressionscalaroperand}
+
+Definition of a type representing an order by expression on an OpenDD scalar type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `orderedType` | [TypeName](#orderbyexpression-typename) | true | The type that this expression applies to. |
+| `enableOrderByDirections` | [EnableAllOrSpecific](#orderbyexpression-enableallorspecific) | true | Order by directions supported by this scalar type. |
+
+
+
+#### EnableAllOrSpecific {#orderbyexpression-enableallorspecific}
+
+Enable all or specific values.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `enableAll` | boolean | false |  |
+| `enableSpecific` | [[OrderByDirection](#orderbyexpression-orderbydirection)] | false |  |
+
+
+
+#### OrderByDirection {#orderbyexpression-orderbydirection}
+
+
+**Value:** `Asc` / `Desc`
+
+
+#### TypeName {#orderbyexpression-typename}
+
+The type that this expression applies to.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [InbuiltType](#orderbyexpression-inbuilttype) | An inbuilt primitive OpenDD type. |
+| [CustomTypeName](#orderbyexpression-customtypename) |  |
+
+
+
+#### InbuiltType {#orderbyexpression-inbuilttype}
+
+An inbuilt primitive OpenDD type.
+
+
+**Value:** `ID` / `Int` / `Float` / `Boolean` / `String`
+
+
+#### OrderByExpressionObjectOperand {#orderbyexpression-orderbyexpressionobjectoperand}
+
+Definition of an type representing an order by expression on an OpenDD object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `orderedType` | [CustomTypeName](#orderbyexpression-customtypename) | true | The type that this expression applies to. |
+| `orderableFields` | [[OrderByExpressionOrderableField](#orderbyexpression-orderbyexpressionorderablefield)] | true | Orderable fields of the `orderedType` |
+| `orderableRelationships` | [[OrderByExpressionOrderableRelationship](#orderbyexpression-orderbyexpressionorderablerelationship)] | true | Orderable relationships |
+
+
+
+#### OrderByExpressionOrderableRelationship {#orderbyexpression-orderbyexpressionorderablerelationship}
+
+Definition of a relationship in a type representing an order by expression on an OpenDD type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `relationshipName` | [RelationshipName](#orderbyexpression-relationshipname) | true | The name of the relationship. |
+| `orderByExpression` | [OrderByExpressionName](#orderbyexpression-orderbyexpressionname) / null | false | The OrderByExpression to use for this relationship. This is optional for model relationships. If not specified we use the model's OrderByExpression configuration. For local command relationships this is required. |
+
+
+
+#### RelationshipName {#orderbyexpression-relationshipname}
+
+The name of the GraphQL relationship field.
+
+
+**Value:** string
+
+
+#### OrderByExpressionOrderableField {#orderbyexpression-orderbyexpressionorderablefield}
+
+Definition of a field in a type representing an order by expression on an OpenDD type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | [FieldName](#orderbyexpression-fieldname) | true |  |
+| `orderByExpression` | [OrderByExpressionName](#orderbyexpression-orderbyexpressionname) | true | OrderByExpression to use for this field. |
+
+
+
+#### FieldName {#orderbyexpression-fieldname}
+
+The name of a field in a user-defined object type.
+
+
+**Value:** string
+
+
+#### CustomTypeName {#orderbyexpression-customtypename}
+
+The name of a user-defined type.
+
+
+**Value:** string
+
+
+#### OrderByExpressionName {#orderbyexpression-orderbyexpressionname}
+
+The name of an order by expression.
+
+
+**Value:** string

@@ -1,0 +1,243 @@
+---
+sidebar_position: 6
+sidebar_label: With Existing GraphQL
+description: "Learn the basics of Hasura DDN and how to get started with an existing GraphQL API."
+custom_props:
+  connector-ids:
+    - graphql
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - graphql connector
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and an existing GraphQL API
+
+## Overview
+
+This tutorial takes about twenty minutes to complete. You'll learn how to:
+
+- Set up a new Hasura DDN project
+- Connect it to an existing GraphQL API
+- Generate Hasura metadata
+- Create a build
+- Run your first query
+
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+
+This tutorial assumes you're starting with an existing GraphQL API to and connecting it to Hasura; for ease, we'll use
+the [SpaceX API](https://studio.apollographql.com/public/SpaceX-pxxbxen/variant/current/home). Hasura will never modify
+your source schema.
+
+<Prereqs />
+
+## Tutorial
+
+### Step 1. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
+acknowledge your login, giving you access to Hasura Cloud resources.
+
+### Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
+
+### Step 3. Initialize your GraphQL connector
+
+```sh title="In your project directory, run:"
+ddn connector init my_graphql -i
+```
+
+From the dropdown, select `hasura/graphql` (you can type to filter the list), then hit enter to accept the default of
+all the options.
+
+You'll be prompted for the API's endpoint:
+
+| Variable           | Description                                | Example                                     |
+| ------------------ | ------------------------------------------ | ------------------------------------------- |
+| `GRAPHQL_ENDPOINT` | The GraphQL endpoint for the existing API. | `https://spacex-production.up.railway.app/` |
+
+Enter the example endpoint above.
+
+:::info You can use different configurations for introspection and query execution
+
+This environment variable will be written to the connector's `configuration.json` file. If you'd like to use a different
+configuration for introspection vs. executing requests, see the configuration docs
+[here](/reference/connectors/graphql/configuration.mdx).
+
+:::
+
+### Step 4. Introspect your GraphQL endpoint
+
+```sh title="Next, use the CLI to introspect your GraphQL endpoint:"
+ddn connector introspect my_graphql
+```
+
+After running this, you should see a representation of your GraphQL API's schema in the
+`app/connector/my_graphql/schema.graphql` file; you can view this using `cat` or open the file in your editor.
+
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources my_graphql
+```
+
+### Step 5. Add your first command
+
+The GraphQL connector exposes various top-level fields in an existing GraphQL API as
+[commands](/reference/metadata-reference/commands.mdx).
+
+```sh title="Let's track single command from the existing API:"
+ddn command add my_graphql launches
+```
+
+Open the `app/metadata` directory and you'll find a newly-generated file: `Launches.hml`. The DDN CLI will use this
+Hasura Metadata Language file to represent the `launches` type from your GraphQL API in your supergraph as a command.
+
+### Step 6. Create a new build
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+### Step 7. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and GraphQL connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+### Step 8. Run your first query
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query GET_LAUNCH_DATA {
+  launches {
+    id
+    missionName
+  }
+}
+```
+
+```json title="You'll get the following response:"
+{
+  "data": {
+    "launches": [
+      {
+        "id": "5eb87cd9ffd86e000604b32a",
+        "missionName": "FalconSat"
+      },
+      {
+        "id": "5eb87cdaffd86e000604b32b",
+        "missionName": "DemoSat"
+      },
+      {
+        "id": "5eb87cdbffd86e000604b32c",
+        "missionName": "Trailblazer"
+      },
+      ...
+    ]
+  }
+}
+```
+
+### Step 9. Add another command
+
+```sh title="Let's add the command to query for rockets:"
+ddn command add my_graphql rockets
+```
+
+In `app/connector/my_graphql/configuration.json`, you'll see schema updated to include operations for the `rockets`
+GraphQL endpoint. In `app/metadata/my_graphql.hml`, you'll see `rockets` present in the metadata as well.
+
+### Step 10. Rebuild your project
+
+```sh title="Next, create a new build:"
+ddn supergraph build local
+```
+
+```sh title="Bring down the services by pressing CTRL+C and start them back up:"
+ddn run docker-start
+```
+
+### Step 11. Query your new build
+
+```graphql title="Head back to your console and query the rockets:"
+query GET_ROCKETS_DATA {
+  rockets {
+    name
+    costPerLaunch
+    description
+  }
+}
+```
+
+```json title="You'll get a response like this:"
+{
+  "data": {
+    "rockets": [
+      {
+        "name": "Falcon 1",
+        "costPerLaunch": 6700000,
+        "description": "The Falcon 1 was an expendable launch system privately developed and manufactured by SpaceX during 2006-2009. On 28 September 2008, Falcon 1 became the first privately-developed liquid-fuel launch vehicle to go into orbit around the Earth."
+      },
+      {
+        "name": "Falcon 9",
+        "costPerLaunch": 50000000,
+        "description": "Falcon 9 is a two-stage rocket designed and manufactured by SpaceX for the reliable and safe transport of satellites and the Dragon spacecraft into orbit."
+      }
+      ...
+    ]
+  }
+}
+```
+
+:::info create relationships to your own data
+
+You can create relationships between resources in your connected GraphQL endpoint and data living in other data sources.
+
+As an example, you may have a PostgreSQL database with a `booster` [model](/reference/metadata-reference/models.mdx)
+exposed and which contains a unique `id` field. This field can be used to create a
+[relationship](/reference/metadata-reference/relationships.mdx) between the `rockets` command and a `booster` in your
+database (or any other resource that utilizes a unique `id`) to return information across your sources in a single
+query.
+
+:::
+
+## Next steps
+
+Congratulations on completing your first Hasura DDN project with an external GraphQL API! 🎉
+
+Here's what you just accomplished:
+
+- You started with a fresh project and connected it to an existing GraphQL API.
+- You set up metadata to represent your existing GraphQL schema and how it integrates with your local Hasura project,
+  which acts as the blueprint for your API.
+- Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
+  GraphQL queries to fetch data.
+- Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
+
+Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
+
+The GraphQL connector also supports mutations; you can create, update, or delete resources using your API.
+
+Take a look at our [GraphQL connector docs](/reference/connectors/graphql/index.mdx) to learn more about how to use
+Hasura DDN with existing GraphQL APIs. Or, if you're ready, get started with adding
+[permissions](/auth/permissions/index.mdx) to control access to your API.

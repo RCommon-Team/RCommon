@@ -1,0 +1,175 @@
+---
+description: "Learn how to filter query results using Hasura's JSON:API implementation"
+title: Filtering
+sidebar_label: Filtering
+keywords:
+  - hasura
+  - json:api
+  - filters
+  - query parameters
+sidebar_position: 2
+---
+
+# Filtering
+
+## Introduction
+
+Filtering allows you to retrieve specific resources that match certain criteria. The JSON:API implementation in Hasura
+provides a flexible filtering system using the `filter` query parameter.
+
+## Request format
+
+```http title="Request models matching a certain expression:"
+GET /v1/jsonapi/<subgraph-name>/<model-name>?filter=<expression>
+```
+
+| Parameter       | Description                       | Example                           |
+| --------------- | --------------------------------- | --------------------------------- |
+| `subgraph-name` | Name of your subgraph.            | `"default"`                       |
+| `model-name`    | Name of your model.               | `"Articles"`                      |
+| `expression`    | Filter expression in JSON format. | `{"author": {"$eq": "John Doe"}}` |
+
+### Filter syntax
+
+The filter expression must be a valid JSON object containing field comparisons using supported operators.
+
+#### Field comparison
+
+Field comparisons are expressed as JSON objects where:
+
+- The outer key is the field name
+- The inner object contains an operator-value pair
+- Operators are prefixed with `$` (e.g., `$eq`, `$gt`)
+
+```json title="For example:"
+{
+  "field_name": {
+    "$operator": value
+  }
+}
+```
+
+The comparison operators available for each field are determined by the field's `BooleanExpressionType` configuration.
+This configuration is defined in your metadata and specifies which operators can be used when filtering on that field.
+Check your
+[`BooleanExpressionType` configuration](reference/metadata-reference/boolean-expressions.mdx#booleanexpressiontype-booleanexpressiontype)
+to see which operators are enabled for each field type.
+
+#### Logical operators
+
+To combine multiple conditions, use logical operators:
+
+| Operator | Description                  | Example                                                          |
+| -------- | ---------------------------- | ---------------------------------------------------------------- |
+| `$and`   | All conditions must be true. | `{"$and": [filter_expression_object, filter_expression_object]}` |
+| `$or`    | Any condition must be true.  | `{"$or": [filter_expression_object, filter_expression_object]}`  |
+
+```json title="The logical operators accept an array of conditions:"
+{
+  "$and | $or": [
+    filter_expression_object,
+    filter_expression_object
+  ]
+}
+```
+
+## Examples
+
+### Field comparison
+
+```http title="Request:"
+GET /v1/jsonapi/default/Articles?filter={"rating":{"$eq":5}}
+```
+
+```json title="Response:"
+{
+  "data": [
+    {
+      "type": "Article",
+      "id": "1",
+      "attributes": {
+        "title": "Getting Started with JSON:API",
+        "rating": 5,
+        "published": true
+      }
+    },
+    {
+      "type": "Article",
+      "id": "3",
+      "attributes": {
+        "title": "Advanced Filtering",
+        "rating": 5,
+        "published": true
+      }
+    }
+  ]
+}
+```
+
+### Logical AND operator
+
+```http title="Request:"
+GET /v1/jsonapi/default/Articles?filter={"$and":[{"rating":{"$gte":4}},{"published":{"$eq":true}}]}
+```
+
+```json title="Response:"
+{
+  "data": [
+    {
+      "type": "Article",
+      "id": "1",
+      "attributes": {
+        "title": "Featured Article",
+        "rating": 4.5,
+        "published": true
+      }
+    }
+  ]
+}
+```
+
+### Logical OR operator
+
+```http tite="Request:"
+GET /v1/jsonapi/default/Articles?filter={"$or":[{"rating":{"$eq":5}},{"featured":{"$eq":true}}]}
+```
+
+```json title="Response:"
+{
+  "data": [
+    {
+      "type": "Article",
+      "id": "1",
+      "attributes": {
+        "title": "Top Article",
+        "rating": 5,
+        "featured": false
+      }
+    },
+    {
+      "type": "Article",
+      "id": "2",
+      "attributes": {
+        "title": "Featured Content",
+        "rating": 4,
+        "featured": true
+      }
+    }
+  ]
+}
+```
+
+## Error cases
+
+To troubleshoot errors, consider the following debugging steps:
+
+- **Check JSON syntax**: Ensure that the filter expression is a valid JSON object. Use a JSON validator to confirm
+  correctness.
+- **Verify operator prefixes**: All operators must be prefixed with `$` (e.g., `$eq`, `$gte`).
+- **Confirm field existence**: Ensure that the field being filtered exists in the model and matches the expected data
+  type.
+- **Validate boolean expression type**: Review the
+  [`BooleanExpressionType` configuration](reference/metadata-reference/boolean-expressions.mdx#booleanexpressiontype-booleanexpressiontype)
+  to confirm that the used operators are allowed.
+- **Use logs and debugging tools**: Check Hasura's logs or enable request debugging to inspect how filters are being
+  processed.

@@ -1,0 +1,96 @@
+---
+sidebar_label: ddn
+sidebar_position: 1
+description: DDN Command Line Interface using the DDN CLI
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn
+---
+
+# DDN CLI: Commands
+
+## Overview
+
+The DDN CLI utilizes a typical command / flag syntax enabling you to quickly manage your supergraph. A typical command
+structure will follow this pattern:
+
+```bash
+ddn <command> <subcommand> <argument> --<flag> "<flag_value>"
+```
+
+:::info Note
+
+A complete list of all CLI commands, including details and examples, can be found in the side navigation to the left
+under the Commands heading.
+
+:::
+
+## Environment variables
+
+You can configure additional behavior for the CLI using environment variables.
+
+### `HASURA_DDN_PROJECT_DIRECTORY`
+
+Set the `HASURA_DDN_PROJECT_DIRECTORY` environment variable to the path of your project directory, which contains the `hasura.yaml` file. This is helpful when scripting automations and ensures that any scripts or commands run from different locations will automatically reference the correct project configuration.
+
+## Getting help
+
+You can use the `--help` flag to get information on any command.
+
+For example, running `ddn --help` will return information on all available operations and flags:
+
+```
+
+DDDDDDD\   DDDDDDD\   NN\   NN\
+DD  __DD\  DD  __DD\  NNN\  NN |
+DD |  DD | DD |  DD | NNNN\ NN |
+DD |  DD | DD |  DD | NN NN\NN |
+DD |  DD | DD |  DD | NN \NNNN |
+DD |  DD | DD |  DD | NN |\NNN |
+DDDDDDD  | DDDDDDD  | NN | \NN |
+\_______/  \_______/  \__|  \__|
+
+Usage:
+  ddn [flags]
+  ddn [command]
+
+DDN operations
+  project        Manage Hasura DDN Project
+
+Metadata operations
+  command        Perform Command related operations
+  connector      Perform Connector related operations
+  connector-link Perform DataConnectorLink related operations
+  model          Perform Model related operations
+  relationship   Perform Relationship related operations
+  subgraph       Perform Subgraph related operations
+  supergraph     Perform Supergraph related operations
+
+Authentication operations
+  auth           Manage Hasura DDN CLI Auth
+
+Other operations
+  codemod        Perform transformations on your Hasura project directory
+  completion     Generate the autocompletion script for the specified shell
+  console        Open the DDN console
+  context        Perform context operations
+  help           Help about any command
+  plugins        Manage plugins for the CLI
+  run            Run specific script from project's context config
+  update-cli     Update this CLI to the latest version or to a specific version
+  version        Prints the CLI version
+
+Flags:
+  -h, --help               help for ddn
+      --log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+      --no-prompt          Do not prompt for required but missing flags
+      --out string         Output format. Can be table, json or yaml. (default "table")
+      --timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+  -v, --version            Prints the CLI version
+
+Use "ddn [command] --help" for more information about a command.
+
+```

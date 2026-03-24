@@ -1,0 +1,52 @@
+---
+sidebar_label: ddn completion fish
+sidebar_position: 100
+description: Generate autocompletion scripts for the DDN CLI for the fish shell.
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn completion fish
+---
+
+# DDN CLI: ddn completion
+
+Generate autocompletion scripts for the DDN CLI for the fish shell.
+
+## Synopsis
+
+Generate the autocompletion script for DDN for the fish shell.
+
+To load completions in your current shell session:
+
+```sass
+        ddn completion fish | source
+```
+
+To load completions for every new session, execute once:
+
+```sass
+        ddn completion fish > ~/.config/fish/completions/ddn.fish
+```
+
+You will need to start a new shell for this setup to take effect.
+
+## Options
+
+```sass
+-h, --help   help for fish completion
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn completion](/reference/cli/commands/ddn_completion) - Generate autocompletion scripts for the DDN CLI

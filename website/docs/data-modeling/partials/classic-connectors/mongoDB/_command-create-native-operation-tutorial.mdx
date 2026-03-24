@@ -1,0 +1,106 @@
+Let's create a [native mutation](/reference/connectors/mongodb/native-operations/native-mutations.mdx) that adds a new
+user to the database with a name and age using an
+[aggregation pipeline](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/) in a JSON file.
+
+See the syntax for MongoDB native operations [here](/reference/connectors/mongodb/native-operations/syntax.mdx).
+
+```sh title="Create a new directory to store your native mutations:"
+mkdir -p app/connector/my_mongo/native_operations/mutations/
+```
+
+```json title="Create a new native mutation file in your connector's directory:"
+// native_mutations/create_user.json
+{
+  "name": "createUser",
+  "description": "Create a new user with name and age",
+  "resultType": {
+    "object": "CreateUserResult"
+  },
+  "arguments": {
+    "name": {
+      "type": {
+        "scalar": "string"
+      }
+    },
+    "age": {
+      "type": {
+        "scalar": "int"
+      }
+    }
+  },
+  "objectTypes": {
+    "CreateUserResult": {
+      "fields": {
+        "ok": {
+          "type": {
+            "scalar": "int"
+          }
+        },
+        "n": {
+          "type": {
+            "scalar": "int"
+          }
+        }
+      }
+    }
+  },
+  "command": {
+    "insert": "users",
+    "documents": [
+      {
+        "name": "{{ name }}",
+        "age": "{{ age }}",
+        "user_id": {
+          "$size": {
+            "$ifNull": [
+              {
+                "$objectToArray": "$$ROOT"
+              },
+              []
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+```sh title="Introspect your MongoDB instance:"
+ddn connector introspect my_mongo
+```
+
+```sh title="Show the found resources:"
+ddn connector show-resources my_mongo
+```
+
+```sh title="Then, add your model:"
+ddn command add my_mongo createUser
+```
+
+```title="Build and serve your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now in your console you can run the following query to see the results:
+
+```graphql title="Run the following mutation:"
+mutation CreateUser {
+  createUser(age: 25, name: "Peter") {
+    n
+    ok
+  }
+}
+```
+
+```json title="The response will be:"
+{
+  "data": {
+    "createUser": {
+      "n": 1,
+      "ok": 1
+    }
+  }
+}
+```

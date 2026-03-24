@@ -1,0 +1,69 @@
+---
+sidebar_label: ddn
+sidebar_position: 1
+description: DDN Command Line Interface using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+---
+
+# DDN CLI: ddn
+
+DDN Command Line Interface.
+
+## Synopsis
+
+```
+
+       
+
+DDDDDDD\   DDDDDDD\   NN\   NN\ 
+DD  __DD\  DD  __DD\  NNN\  NN |
+DD |  DD | DD |  DD | NNNN\ NN |
+DD |  DD | DD |  DD | NN NN\NN |
+DD |  DD | DD |  DD | NN \NNNN |
+DD |  DD | DD |  DD | NN |\NNN |
+DDDDDDD  | DDDDDDD  | NN | \NN |
+\_______/  \_______/  \__|  \__|
+
+
+
+```
+
+```bash
+ddn [flags]
+```
+
+## Available operations
+
+- [ddn auth](/reference/cli/commands/ddn_auth) - Manage Hasura DDN CLI Auth
+- [ddn changelog](/reference/cli/commands/ddn_changelog) - Manage changelogs for applied supergraph builds
+- [ddn codemod](/reference/cli/commands/ddn_codemod) - Perform transformations on your Hasura project directory
+- [ddn command](/reference/cli/commands/ddn_command) - Perform Command-related operations
+- [ddn connector](/reference/cli/commands/ddn_connector) - Perform Connector related operations
+- [ddn connector-link](/reference/cli/commands/ddn_connector-link) - Perform DataConnectorLink related operations
+- [ddn console](/reference/cli/commands/ddn_console) - Open the DDN console
+- [ddn context](/reference/cli/commands/ddn_context) - Perform context operations
+- [ddn doctor](/reference/cli/commands/ddn_doctor) - Check if the dependencies of DDN CLI are present
+- [ddn model](/reference/cli/commands/ddn_model) - Perform Model-related operations
+- [ddn plugins](/reference/cli/commands/ddn_plugins) - Manage plugins for the CLI
+- [ddn project](/reference/cli/commands/ddn_project) - Manage Hasura DDN Project
+- [ddn promptql-program](/reference/cli/commands/ddn_promptql-program) - Perform PromptQL program (Automations) related operations
+- [ddn relationship](/reference/cli/commands/ddn_relationship) - Perform Relationship related operations
+- [ddn run](/reference/cli/commands/ddn_run) - Run specific script from project's context config
+- [ddn subgraph](/reference/cli/commands/ddn_subgraph) - Perform Subgraph-related operations
+- [ddn supergraph](/reference/cli/commands/ddn_supergraph) - Perform Supergraph-related operations
+
+## Options
+
+```sass
+-h, --help               help for ddn
+    --log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+    --no-prompt          Do not prompt for required but missing flags
+    --out string         Output format. Can be table, json or yaml. (default "table")
+    --timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+

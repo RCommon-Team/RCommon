@@ -1,0 +1,69 @@
+---
+description: "Guide on setting up model permissions in your supergraph"
+keywords:
+  - model permissions
+  - supergraph
+  - data access control
+sidebar_position: 1
+sidebar_label: Model Permissions
+---
+
+# Model Permissions
+
+To limit what **data** in a model is available to a role in your supergraph, you define a `ModelPermissions` object with
+a `filter` expression.
+
+By default, whenever a new model is created in your supergraph, all records are only accessible to the `admin` role. You
+can think of these as permissions on rows in a typical relational database table.
+
+You can restrict access to certain data by adding a new item to the `permissions` array in the `ModelPermissions`
+object. Each item in the array should have a `role` field and a `select` field. The `select` field should contain a
+`filter` expression that determines which rows are accessible to the role when selecting from the model.
+
+Most commonly, you'll use session variables — accessed by Hasura Engine via your configured
+[authentication mechanism](/auth/overview.mdx) in a JWT or body of a webhook response — to restrict access to rows based
+on the user's role, identity or other criteria.
+
+This filter expression can reference
+
+- The fields in your Model
+- Logical operators: `and`, `or` and `not`
+- `fieldIsNull` predicate
+- `fieldComparison` predicate
+- Relationship predicates
+- `null`
+
+:::info Remote Relationships in Permissions
+Remote relationships (relationships between different data connectors) across subgraphs are not supported in permission filters.
+:::
+
+To make a new `ModelPermission` or role available in your supergraph, after updating your metadata, you'll need to
+[create a new build](/reference/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
+```yaml title="Allow admin to access all rows in the Articles model but allow user to access rows where the author_id field matches the user id session variable. Basically, their own articles."
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Articles
+  # highlight-start
+  permissions:
+    - role: admin
+      select:
+        filter: null
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: author_id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+  # highlight-end
+```
+
+## Reference
+
+See the [ModelPermissions](/reference/metadata-reference/permissions.mdx) reference for more information.

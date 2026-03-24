@@ -1,0 +1,61 @@
+---
+sidebar_label: ddn connector env add
+sidebar_position: 37
+description: Add environment variables and its corresponding mapping to a Connector using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector_env_add"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector env add
+---
+
+# DDN CLI: ddn connector env add
+
+Add environment variables and its corresponding mapping to a Connector.
+
+## Synopsis
+
+This convenience command makes it easy to add environment variables (such as to the NodeJS Lambda connector) which can then be referenced in the connector's code.
+
+```bash
+ddn connector env add [flags]
+```
+
+## Examples
+
+```bash
+# Add new environment variable to Connector mydb
+ ddn connector env add mydb --env NEW_VAR=value
+
+# Add new environment variables to a specific env file
+ ddn connector env add mydb --subgraph ./subgraph/subgraph.yaml --env VAR1=VAL1 --env VAR2=VAL2 --target-env-file .env.local
+
+# Add new environment variable to Connector located at ./foo/my_db/connector.yaml
+ ddn connector env add --connector ./foo/my_db/connector.yaml --env NEW_VAR=value
+```
+
+## Options
+
+```sass
+    --ci                            Disables the use of context
+    --connector string              Path to Connector YAML config file
+-c, --context string                Name of the context to use. (default <current_context>)
+-e, --env stringArray               Environment variable, e.g. key=val. Can be repeated to provide multiple env vars
+-h, --help                          help for add
+    --target-env-file stringArray   Path to the specific environment file to update (optional)
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector env](/reference/cli/commands/ddn_connector_env) - Manage environment variables for Connectors

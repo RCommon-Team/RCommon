@@ -1,0 +1,72 @@
+---
+title: HTTP
+sidebar_position: 1
+description:
+  "Learn how to configure the HTTP connector and instantly integrate any existing endpoints in your supergraph."
+sidebar_label: HTTP
+keywords:
+  - http
+  - configuration
+  - connector
+seoFrontMatterUpdated: false
+---
+
+# HTTP
+
+## Introduction
+
+The HTTP connector enables you to connect any existing HTTP API into your Hasura DDN supergraph. Here we'll provide an
+overview of the features offered by the connector and guide you through the configuration process within a Hasura DDN
+project.
+
+## Features
+
+Below, you'll find feature matrices for the connector.
+
+### Supported request types
+
+| Request Type | Query | Path | Body | Headers |
+| ------------ | ----- | ---- | ---- | ------- |
+| GET          | ✅    | ✅   | NA   | ✅      |
+| POST         | ✅    | ✅   | ✅   | ✅      |
+| DELETE       | ✅    | ✅   | ✅   | ✅      |
+| PUT          | ✅    | ✅   | ✅   | ✅      |
+| PATCH        | ✅    | ✅   | ✅   | ✅      |
+
+### Supported content types
+
+| Content Type                      | Supported |
+| --------------------------------- | --------- |
+| application/json                  | ✅        |
+| application/xml                   | ✅        |
+| application/x-www-form-urlencoded | ✅        |
+| multipart/form-data               | ✅        |
+| application/octet-stream          | ✅ (\*)   |
+| text/\*                           | ✅        |
+| application/x-ndjson              | ✅        |
+| image/\*                          | ✅ (\*)   |
+
+\* Upload file content types are converted to `base64` encoding.
+
+### Supported authentication
+
+| Security scheme | Supported | Comment                                                                                                                                   |
+| --------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| API Key         | ✅        |                                                                                                                                           |
+| Basic Auth      | ✅        |                                                                                                                                           |
+| Bearer Auth     | ✅        |                                                                                                                                           |
+| Cookies         | ✅        | Require forwarding the `Cookie` header from the Hasura engine.                                                                            |
+| OAuth 2.0       | ✅        | Built-in support for the `client_credentials` grant. Other grant types require forwarding access tokens from headers by the Hasura engine |
+| mTLS            | ✅        |                                                                                                                                           |
+
+:::tip Looking to get started?
+
+If you've ended up here and aren't concerned about tweaking your configuration, and rather are looking to get started
+with the HTTP connector and Hasura DDN as quickly as possible, check out our
+[HTTP connector tutorial](/how-to-build-with-ddn/with-http.mdx).
+
+:::
+
+## HTTP docs
+
+- [Connector configuration](/reference/connectors/http/configuration.mdx)

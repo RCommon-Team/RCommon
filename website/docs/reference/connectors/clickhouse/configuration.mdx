@@ -1,0 +1,39 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura ClickHouse connector, including connection URI details,
+  and native queries."
+keywords:
+  - clickhouse
+  - configuration
+---
+
+# Configuration
+
+## Introduction
+
+When you integrate the ClickHouse connector into a subgraph using the CLI, it first creates a new subdirectory in that
+subgraph containing a templated configuration file. After you input the connection string and execute the update
+command, the CLI will introspect your ClickHouse instance and automatically finalize the configuration for you.
+
+## Manually editing the connector configuration
+
+It is possible to manually modify the configuration, and valid changes will be preserved when the configuration is
+updated.
+
+The configuration file is accompanied by a json schema file which will help validate any manually written changes.
+
+### Table alias
+
+The keys in the tables object in the configuration file can be changed to modify the alias a table will be exposed
+under.
+
+This alias must remain unique.
+
+### Table Return Type
+
+Tables can return the same type as another table. This is useful for views that return rows from another table.
+
+This will allow both tables to share an object type, which in turn allows both tables to share relationships and object
+type permissions.

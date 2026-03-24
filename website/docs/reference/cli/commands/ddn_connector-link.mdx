@@ -1,0 +1,49 @@
+---
+sidebar_label: ddn connector-link
+sidebar_position: 46
+description: Perform DataConnectorLink related operations using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector-link"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector-link
+---
+
+# DDN CLI: ddn connector-link
+
+Perform DataConnectorLink related operations.
+
+## Synopsis
+
+DataConnectorLinks are the bridge between your data source(s) — wired into your API via a Native Data Connector — and your API. To learn more, check out the docs: https://hasura.io/docs/3.0/reference/metadata-reference/data-connector-links/
+
+**Alias:** connector-links
+
+## Available operations
+
+- [ddn connector-link add](/reference/cli/commands/ddn_connector-link_add) - Add a new DataConnectorLink to a Subgraph
+- [ddn connector-link add-resources](/reference/cli/commands/ddn_connector-link_add-resources) - Add all models, commands and relationships from a DataConnectorLink's schema
+- [ddn connector-link remove](/reference/cli/commands/ddn_connector-link_remove) - Remove a DataConnectorLink from a Subgraph
+- [ddn connector-link show](/reference/cli/commands/ddn_connector-link_show) - Show DataConnectorLink details
+- [ddn connector-link update](/reference/cli/commands/ddn_connector-link_update) - Fetch NDC details from the Connector and update the DataConnectorLink
+
+## Options
+
+```sass
+-h, --help   help for connector-link
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

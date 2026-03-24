@@ -1,0 +1,70 @@
+---
+sidebar_label: ddn changelog edit
+sidebar_position: 10
+description: Edit an existing changelog entry by version number using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_changelog_edit"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn changelog edit
+---
+
+# DDN CLI: ddn changelog edit
+
+Edit an existing changelog entry by version number.
+
+## Synopsis
+
+Edit the changelog entry for a specific version. This command allows you to modify the changelog_body, publication status, and version_number in the ddn_applied_build_changelog table.
+
+```bash
+ddn changelog edit <version-number> [flags]
+```
+
+## Examples
+
+```bash
+# Edit changelog body in editor
+ ddn changelog edit v2025.02.23.1
+
+# Set published status directly
+ ddn changelog edit v2025.02.23.1 --published true
+
+# Update multiple fields at once
+ ddn changelog edit v2025.02.23.1 --changelog-body "New content" --published true
+
+# Change version number
+ ddn changelog edit v2025.02.23.1 --version-number v2025.02.23.2
+
+# Force editor even with other flags
+ ddn changelog edit v2025.02.23.1 --published true --editor
+```
+
+## Options
+
+```sass
+    --changelog-body string   Set changelog body content directly
+    --ci                      Disables the use of context
+-c, --context string          Name of the context to use. (default <current_context>)
+    --editor                  Open editor for changelog body (even if other flags are provided)
+    --editor-cmd string       Specific editor command to use (defaults to $EDITOR environment variable)
+-h, --help                    help for edit
+    --project string          Project name for the changelog entry
+    --published string        Set publication status (true/false)
+    --version-number string   Update the version number
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn changelog](/reference/cli/commands/ddn_changelog) - Manage changelogs for applied supergraph builds

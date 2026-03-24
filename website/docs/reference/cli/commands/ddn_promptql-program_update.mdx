@@ -1,0 +1,56 @@
+---
+sidebar_label: ddn promptql-program update
+sidebar_position: 90
+description: Update a PromptQL program using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_promptql-program_update"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn promptql-program update
+---
+
+# DDN CLI: ddn promptql-program update
+
+Update a PromptQL program.
+
+## Synopsis
+
+Update a PromptQL program
+
+```bash
+ddn promptql-program update <title> --from-artifact=/path/to/json/file [flags]
+```
+
+## Examples
+
+```bash
+# Update a program with the title "sum_numbers"
+ ddn promptql-programs update sum_numbers --from-artifact <path-to-updated-program-json-file>
+```
+
+## Options
+
+```sass
+    --ci                     Disables the use of context
+    --connector string       Path to Connector YAML config file
+-c, --context string         Name of the context to use. (default <current_context>)
+    --from-artifact string   Path to a JSON artifact used to update the program (required)
+-h, --help                   help for update
+    --subgraph string        Path to Subgraph config file
+    --supergraph string      Path to Supergraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn promptql-program](/reference/cli/commands/ddn_promptql-program) - Perform PromptQL program (Automations) related operations

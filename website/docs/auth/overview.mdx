@@ -1,0 +1,62 @@
+---
+title: Authentication and Authorization Overview
+sidebar_position: 1
+description:
+  "Learn about Hasura's powerful authentication process. Understand its flexibility to use JWT, webhook, role emulation
+  and your existing solutions. Control user access to data."
+sidebar_label: Basics
+keywords:
+  - hasura authentication
+  - jwt authentication
+  - webhook authentication
+  - role emulation
+  - hasura authorization
+  - user access control
+  - secure hasura
+  - data security
+  - jwt mode
+  - hasura integration
+seoFrontMatterUpdated: true
+---
+
+import { OverviewPlainCard } from "../../src/components/OverviewPlainCard";
+import { OverviewTopSectionIconNoVideo } from "@site/src/components/OverviewTopSectionIconNoVideo";
+import Icon from "@site/static/icons/shield-tick.svg";
+
+# Auth
+
+## Introduction
+
+Hasura is agnostic about how you authenticate users. You can integrate many popular auth services or use your own custom
+solution.
+
+After authentication, session variables are passed via either a valid JWT or webhook to the engine to be checked against
+your access control rules or "permissions" to determine what data the user can access.
+
+## Private vs Public
+
+You can choose to make your Hasura DDN API public or private. [Read more](/auth/private-vs-public.mdx).
+
+## AuthConfig options
+
+Authentication in Hasura DDN can be set up in one of three modes or multiple modes. These modes and their configuration
+options are specified in the `AuthConfig` object within your metadata.
+
+You can configure a single authentication mode or multiple authentication modes using the `alternativeModes` field in
+AuthConfig v4. When using multiple authentication modes, you can specify which mode to use for a particular request by
+including the `X-Hasura-Auth-Mode` header with the identifier of the desired authentication mode. [Read more about
+multiple auth modes](/auth/multiple-auth-modes.mdx).
+
+### JWT mode
+
+Your authentication service must issue JWTs which contain session variables that are passed to the Hasura Engine by the
+client on each request. [Read more](/auth/jwt/index.mdx).
+
+### Webhook mode
+
+Hasura Engine will call a webhook on each request with the client headers forwarded. On successful authentication, the
+webhook must return a valid `http` response with session variables in the body. [Read more](/auth/webhook/index.mdx).
+
+### NoAuth mode
+
+No authentication is required for a specific role to access the data. [Read more](/auth/noauth-mode.mdx).

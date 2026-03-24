@@ -1,0 +1,46 @@
+The process for adding a native query for ClickHouse is:
+
+- Create a new SQL file in your connector directory.
+- Use ClickHouse parameter syntax in the SQL file to define arguments.
+- Create a JSON configuration file in your connector directory specifying the SQL file path and the return type.
+
+```json
+{
+  "tables": {},
+  "queries": {
+    "Name": {
+      "exposed_as": "collection",
+      "file": "path/to/sql_file_name.sql",
+      "return_type": {
+        "kind": "definition",
+        "columns": {
+          "column_name": "column_type"
+        }
+      }
+    }
+  }
+}
+```
+
+- Introspect your ClickHouse data connector to fetch the latest resources.
+
+```bash
+ddn connector introspect <connector_name>
+```
+
+- Show the found resources to see the new native query.
+
+```bash
+ddn connector show-resources <connector_name>
+```
+
+- Add the model for the native query.
+
+```bash
+ddn model add <connector_link_name> <model_name>
+```
+
+- Rebuild and serve your supergraph API.
+
+Find out more about
+[native queries for ClickHouse here](/reference/connectors/clickhouse/native-operations/native-queries.mdx).

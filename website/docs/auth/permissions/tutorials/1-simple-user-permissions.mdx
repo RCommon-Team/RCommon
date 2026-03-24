@@ -1,0 +1,147 @@
+---
+sidebar_position: 2
+sidebar_label: Limit data to users
+description: "Learn how to return only data belonging to a user."
+keywords:
+  - hasura
+  - hasura ddn
+  - authorization
+  - user access
+  - tutorial
+  - guide
+seoFrontMatterUpdated: false
+---
+
+# Limit Data to Users
+
+## Introduction
+
+In this tutorial, you'll learn how to configure [permissions](/reference/metadata-reference/permissions.mdx) to limit
+users to accessing only their data.
+
+This can be done by passing a value in the header of each request to your supergraph; Hasura will then use that value to
+return only the data which matches conditions you specify.
+
+:::info Prerequisites
+
+Before continuing, ensure you have:
+
+- A local Hasura DDN project.
+- Either JWT or Webhook mode enabled in your [AuthConfig](/reference/metadata-reference/auth-config.mdx).
+
+:::
+
+## Tutorial
+
+### Step 1. Create your ModelPermissions {#step-one}
+
+To create a new role, such as `user`, simply add the role to the list of `permissions` for the model to which you wish
+to limit access. Then, set up your access control rules.
+
+In the example below, we'll allow users with the role of `user` to access only their own rows from a `Users` model by
+checking for a header value matching their `id`:
+
+```yaml title="For example, in a Users.hml"
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Users
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        #highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+        #highlight-end
+```
+
+You can modify this to meet your own data modeling by ensuring that the `field` is a column or type that can be compared
+to the value of the session variable you send in the header of your request. In this example, we're using
+`x-hasura-user-id`, but you can use any `x-hasura-` value you wish.
+
+:::info Authentication tutorials
+
+We have tutorials for popular authentication providers available [here](/auth/jwt/tutorials/integrations/index.mdx)!
+
+:::
+
+### Step 2. Create your TypePermissions
+
+By adding ModelPermissions, we've made the model available to the new role. However, this role is not yet able to access
+any of the fields from the model. We can do that by adding the new role to the list of `permissions` and including which
+fields are accessible to it.
+
+```yaml title="For example, in a Users.hml"
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Users
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - createdAt
+          - email
+          - favoriteArtist
+          - id
+          - isEmailVerified
+          - lastSeen
+          - name
+          - password
+          - updatedAt
+    #highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - createdAt
+          - email
+          - favoriteArtist
+          - id
+          - isEmailVerified
+          - lastSeen
+          - name
+          - password
+          - updatedAt
+    #highlight-end
+```
+
+If you want to restrict which fields the new role can access, simply omit them from the list of `allowedFields`.
+
+### Step 3. Test your permissions
+
+Create a new build of your supergraph:
+
+```sh
+ddn supergraph build local
+```
+
+Then, in a request, pass a header with the [session variable](#step-one) you identified earlier according to your
+authentication configuration. You should see a schema limited to whatever ModelPermissions you defined for your new role
+and — when executing a query — only see data meeting the filtering rule you included in the first step.
+
+## Wrapping up
+
+In this guide, you learned how to limit a user to see only their own data from a single type. However, you can use this
+same tutorial and apply it to a variety of scenarios.
+
+As you continue building out your supergraph, keep in mind that authentication and authorization are crucial components.
+Always validate your configuration and regularly test your setup to ensure it functions as expected across different
+roles and environments.
+
+## Learn more about permissions and auth
+
+- [Permissions](/auth/permissions/index.mdx) with Hasura DDN
+- [Auth](/auth/overview.mdx) with Hasura DDN
+
+## Similar tutorials
+
+- [Authorization tutorials](/auth/permissions/tutorials/index.mdx)

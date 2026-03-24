@@ -1,0 +1,134 @@
+---
+description: "Learn how to query models using Hasura's JSON:API implementation"
+title: Querying Models
+sidebar_label: Queries
+keywords:
+  - hasura
+  - json:api
+  - queries
+  - models
+  - api
+sidebar_position: 1
+toc_max_heading_level: 4
+---
+
+# Querying Models
+
+## Introduction
+
+The JSON:API implementation in Hasura DDN allows you to read data from your
+[models](/reference/metadata-reference/models.mdx) using standard JSON:API conventions. This section covers the basics
+of querying models and includes examples of common query patterns.
+
+## Request format
+
+```http title="Fetch all resources from a model, including all fields:"
+GET /v1/jsonapi/<subgraph-name>/<model-name>
+```
+
+```http title="Fetch all resources from a model, but only include specific fields:"
+GET /v1/jsonapi/<subgraph-name>/<model-name>?fields[<model-object-type>]=<field1>,<field2>
+```
+
+| Parameter           | Description                                     | Example                 |
+| ------------------- | ----------------------------------------------- | ----------------------- |
+| `subgraph-name`     | Name of your subgraph.                          | `"default"`             |
+| `model-name`        | Name of your model.                             | `"Articles"`, `"Users"` |
+| `model-object-type` | Name of your model's object type.               | `"Article"`, `"User"`   |
+| `field1`, `field2`  | Comma-separated list of field names to include. | `"title, author"`       |
+
+### Examples
+
+#### Fetch all fields
+
+Fetch all articles from the "Articles" model in the "default" subgraph.
+
+```http title="Request:"
+GET /v1/jsonapi/default/Articles
+```
+
+```json title="Response:"
+{
+  "data": [
+    {
+      "type": "Article",
+      "id": "1",
+      "attributes": {
+        "title": "Introduction to JSON:API",
+        "content": "JSON:API is a specification for building APIs...",
+        "created_at": "2023-01-01T12:00:00Z",
+        "author_id": 1
+      }
+    },
+    {
+      "type": "Article",
+      "id": "2",
+      "attributes": {
+        "title": "Advanced JSON:API Concepts",
+        "content": "In this article, we'll explore...",
+        "created_at": "2023-01-02T12:00:00Z",
+        "author_id": 2
+      }
+    }
+  ]
+}
+```
+
+#### Fetch specific fields
+
+Select the `title` and `content` fields from all articles in the "Articles" model in the "default" subgraph.
+
+```http title="Request:"
+GET /v1/jsonapi/default/Articles?fields[Article]=title,content
+```
+
+```json title="Response:"
+{
+  "data": [
+    {
+      "type": "Article",
+      "id": "1",
+      "attributes": {
+        "title": "Introduction to JSON:API",
+        "content": "JSON:API is a specification for building APIs..."
+      }
+    },
+    {
+      "type": "Article",
+      "id": "2",
+      "attributes": {
+        "title": "Advanced JSON:API Concepts",
+        "content": "In this article, we'll explore..."
+      }
+    }
+  ]
+}
+```
+
+## Response format
+
+[Responses](https://jsonapi.org/format/#fetching-resources-responses) follow the JSON:API specification format.
+
+```json title="Example response:"
+{
+  "data": [
+    {
+      "type": "User",
+      "id": "1",
+      "attributes": {
+        "name": "John Doe",
+        "email": "john@example.com"
+      }
+    }
+  ]
+}
+```
+
+## Learn more
+
+Explore advanced querying capabilities:
+
+- [Filtering](/json-api/queries/filters.mdx) - Apply conditions to filter your results.
+- [Including Relationships](/json-api/queries/relationships.mdx) - Include related resources in a single request.
+- [Sorting](/json-api/queries/sorting.mdx) - Order your results by specific fields.
+- [Pagination](/json-api/queries/pagination.mdx) - Control the number of results returned.

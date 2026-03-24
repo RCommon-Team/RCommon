@@ -1,0 +1,53 @@
+---
+sidebar_label: ddn command list
+sidebar_position: 26
+description: Lists details about the functions/procedures of DataConnectorLink, and their corresponding Commands using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_command_list"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn command list
+---
+
+# DDN CLI: ddn command list
+
+Lists details about the functions/procedures of DataConnectorLink, and their corresponding Commands.
+
+## Synopsis
+
+Lists details about the functions/procedures of DataConnectorLink, and their corresponding Commands
+
+```bash
+ddn command list <connector-link-name> [flags]
+```
+
+## Examples
+
+```bash
+# List details about the functions/procedures of DataConnectorLink `mydb`, and their corresponding Commands
+ ddn command list mydb
+```
+
+## Options
+
+```sass
+    --ci                Disables the use of context
+-c, --context string    Name of the context to use. (default <current_context>)
+-h, --help              help for list
+    --subgraph string   Path to Subgraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn command](/reference/cli/commands/ddn_command) - Perform Command-related operations

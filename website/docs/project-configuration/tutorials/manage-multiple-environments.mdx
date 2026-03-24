@@ -1,0 +1,210 @@
+---
+sidebar_position: 2
+sidebar_label: Manage mulitple environments
+description: "Learn how to leverage contexts to manage multiple environments from a single source of metadata."
+keywords:
+  - hasura
+  - hasura ddn
+  - environments
+  - context
+  - tutorial
+---
+
+# Manage Multiple Environments
+
+## Introduction
+
+Managing multiple contexts in Hasura DDN allows you to replicate the functionality of traditional environments like
+`staging` and `production`, but with greater flexibility. Instead of rigidly-defined environments, Hasura DDN uses
+contexts to store key details such as project configurations, metadata, and environment variables. This approach lets
+you switch between different setups without disrupting your workflow or end users.
+
+In this tutorial, you'll learn how to:
+
+- Set up multiple contexts to test and collaborate on your project
+- Use the CLI to manage your project's contexts
+- Build and deploy projects with shared metadata across different contexts
+
+This tutorial should take less than twenty minutes.
+
+## Setup
+
+### Step 1. Initialize a new local project
+
+```sh title="Create a new local project:"
+ddn supergraph init environments-example && cd environments-example
+```
+
+This will scaffold out the necessary files for a Hasura DDN project in a new `environments-example` directory.
+
+### Step 2. Add a data source and seed data
+
+In this tutorial, we'll use the PostgreSQL connector and our sample PostgreSQL database:
+
+```plaintext
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
+```
+
+```sh title="In your project directory, run the following, choose hasura/postrges, and pass the connection URI above when prompted:"
+ddn connector init my_pg -i
+```
+
+### Step 3. Generate the Hasura metadata
+
+```sh title="Next, use the CLI to introspect the PostgreSQL database:"
+ddn connector introspect my_pg
+```
+
+After running this, you should see a representation of your database's schema in the
+`app/connector/my_pg/configuration.json` file; you can view this using `cat` or open the file in your editor.
+
+```sh title="Now, track the table from your PostgreSQL database as a model in your DDN metadata:"
+ddn models add my_pg users
+```
+
+Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
+Metadata Language file to represent the `users` table from PostgreSQL in your API as a
+[model](/reference/metadata-reference/models.mdx).
+
+### Step 4. Create a new local build and test the API
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+```sh title="Start your local Hasura DDN Engine and PostgreSQL connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query {
+  users {
+    id
+    name
+  }
+}
+```
+
+```json title="You'll get the following response:"
+{
+  "data": {
+    "users": [
+      {
+        "id": "7cf0a66c-65b7-11ed-b904-fb49f034fbbb",
+        "name": "Sean"
+      },
+      {
+        "id": "82001336-65b7-11ed-b905-7fa26a16d198",
+        "name": "Rob"
+      },
+      {
+        "id": "86d5fba0-65b7-11ed-b906-afb985970e2e",
+        "name": "Marion"
+      },
+      {
+        "id": "8dea1160-65b7-11ed-b907-e3c5123cb650",
+        "name": "Sandeep"
+      },
+      {
+        "id": "9bd9d300-65b7-11ed-b908-571fef22d2ba",
+        "name": "Abby"
+      }
+    ]
+  }
+}
+```
+
+## Create a new context
+
+### Step 5. Create a new project context and switch to it
+
+```sh title="From the project directory, run:"
+ddn context create-context staging
+```
+
+Verify this by opening the `.hasura/context.yaml` file. You'll see a `contexts` array with two entries: `default` and
+your newly-created `staging`.
+
+:::tip What can be stored in context?
+
+Contexts store a series of key-value pairs that make it easy to switch between different setups. You can learn more
+[here](/project-configuration/project-management/manage-contexts.mdx).
+
+:::
+
+### Step 6. Update the context values
+
+```sh title="First, set the supergraph configuration:"
+ddn context set supergraph "supergraph.yaml"
+```
+
+```sh title="Then, define which subgraphs to include:"
+ddn context set subgraph "app/subgraph.yaml"
+```
+
+```sh title="Finally, stub out a local .env.staging file and add it to your staging context:"
+touch .env.staging && ddn context set localEnvFile ".env.staging"
+```
+
+You'll see each of these key-value pairs added to your `staging` context.
+
+:::tip Customize these values
+
+The examples provided here are starting points and can be adapted to suit your project's requirements. Ideally, the
+values included in your `.env.staging` file will reference resources such as testing database instances. Keep the keys
+consistent with those in your production `.env` files, but assign different values tailored for staging or testing
+environments.
+
+:::
+
+### Step 7. Create a new staging cloud project
+
+```sh title="Using your new context, create a cloud project:"
+ddn project init --env-file-name ".env.staging.cloud"
+```
+
+The CLI will add the project's name and your `cloudEnvFile` to your `staging` context.
+
+### Step 8. Create a new build on your staging project
+
+```sh
+ddn supergraph build create
+```
+
+The CLI will output information about the build, including a console URL which you can open in your browser. Your local
+metadata was used to create this API build on your `staging` project.
+
+### Step 9. Create a new production cloud project
+
+```sh title="First, switch contexts:"
+ddn context set-current-context default
+```
+
+```sh title="Then, create a new project:"
+ddn project init
+```
+
+In your `context.yaml`, you'll now see a `project` and `cloudEnvFile` value for your `default` context. We're
+considering this our `production` instance.
+
+### Step 10. Create a new build on your production project
+
+```sh title="Since our current context is default, we can now use the same metadata to create a productioun build:"
+ddn supergraph build create
+```
+
+Just as with our `staging` project, you can navigate to the console URL output by the CLI and explore your `production`
+build, which should be identical to your `staging` build.
+
+## Next steps
+
+Now that you know how contexts can help you manage environments, see how easy it is to
+[set up CI/CD](/deployment/hasura-ddn/ci-cd.mdx) using the CLI and contexts.

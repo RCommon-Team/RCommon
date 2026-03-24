@@ -1,0 +1,183 @@
+---
+title: How to Configure the Rate Limit Plugin
+sidebar_position: 2
+description: "Learn how to configure the Rate Limit Plugin for Hasura DDN."
+keywords:
+  - hasura plugins
+  - rate limit plugin
+  - plugins architecture
+  - engine plugins
+  - how-to
+  - guide
+---
+
+# How to Configure the Rate Limit Plugin
+
+## Introduction
+
+The [Rate Limit Plugin](https://github.com/hasura/engine-plugin-rate-limit) adds the ability to limit the number of
+requests that can be made to DDN in a given time period.
+
+## Setting up for local development
+
+Add the following services to your root-level `compose.yaml` file (this is the one located at
+`<project-root>/compose.yaml`). Add these new services at the same level as your existing `services` entries:
+
+```yaml
+redis:
+  image: redis:latest
+  ports:
+    - 6379:6379
+
+rate-limit:
+  build:
+    context: https://github.com/hasura/engine-plugin-rate-limit.git
+  ports:
+    - "3001:3001"
+  environment:
+    - PORT=3001
+    - DEBUG=rate-limit*
+    - OTEL_EXPORTER_OTLP_ENDPOINT=https://gateway.otlp.hasura.io:443/v1/traces
+    - OTEL_EXPORTER_PAT=your-pat-here
+    - HASURA_DDN_PLUGIN_CONFIG_PATH=plugin_config
+  depends_on:
+    redis:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+  volumes:
+    - ./rate_limit_config:/app/plugin_config
+```
+
+Here, we've added a Redis instance to our Docker Compose project, as well as an instance of the Rate Limit Plugin. The
+Rate Limit Plugin expects a config directory (which we've said here is saved in `./rate_limit_config`, though the path
+is up to you). Here's an example config directory:
+
+```
+rate_limit_config/
+├── configuration.json
+└── rate-limit.json
+```
+
+The `configuration.json` file is used to configure the plugin, and the `rate-limit.json` file is used to configure the
+rate limit.
+
+The `configuration.json` file should look like this:
+
+```json
+{
+  "headers": {
+    "hasura-m-auth": "your-auth-token"
+  }
+}
+```
+
+Please replace `your-auth-token` with a strong, random string.
+
+The `rate-limit.json` file should look like this:
+
+```json
+{
+  "redis_url": "redis://redis:6379",
+  "rate_limit": {
+    "default_limit": 10,
+    "time_window": 60,
+    "excluded_roles": [],
+    "key_config": {
+      "from_headers": [],
+      "from_session_variables": [],
+      "from_role": true
+    },
+    "unavailable_behavior": {
+      "fallback_mode": "deny"
+    },
+    "role_based_limits": [
+      {
+        "role": "user",
+        "limit": 11
+      }
+    ]
+  }
+}
+```
+
+The rate limiting configuration includes:
+
+- `redis_url`: Redis connection URL
+- `rate_limit`: Rate limiting configuration. The rate limiting can be configured using the following parameters:
+  - `default_limit`: The default rate limit per window
+  - `time_window`: The time window in seconds
+  - `excluded_roles`: Roles that are excluded from rate limiting
+  - `key_config`: Configuration for generating rate limit keys:
+    - `from_headers`: Headers to include in the rate limit key (if header is not found in the request, it is skipped)
+    - `from_session_variables`: Session variables to include in the rate limit key (if variable is not found in the
+      request, it is skipped)
+    - `from_role`: Whether to include the role in the rate limit key
+  - `unavailable_behavior`: Behavior when Redis is unavailable
+  - `role_based_limits`: Role-based rate limits (this takes precedence over the default limit)
+
+## Adding the plugin to your project
+
+Once we've configured the plugin, running `ddn run docker-start` will start it and its necessary services along with our
+engine and any connectors. Now, we just need to configure Hasura to use the plugin. Add a new metadata file (say
+`rate-limit.hml`) to your `globals` subgraph's metadata directory:
+
+```yaml
+kind: LifecyclePluginHook
+version: v1
+definition:
+  pre: parse
+  name: rate-limit
+  url:
+    valueFromEnv: RATE_LIMIT_PLUGIN_URL
+  config:
+    request:
+      headers:
+        additional:
+          hasura-m-auth:
+            valueFromEnv: RATE_LIMIT_PLUGIN_AUTH_TOKEN
+      session: {}
+      rawRequest:
+        query: {}
+        variables: {}
+```
+
+:::info Using environment variables
+
+We've used `valueFromEnv` so that we can dynamically and securely add values from our environment variables. You can add
+these values to your root-level `.env` and then map them in the `globals` subgraph.yaml file. Alternatively, you can
+include raw strings here using `value` instead of `valueFromEnv` and passing the keys.
+
+For local development, `RATE_LIMIT_PLUGIN_URL` should be `http://local.hasura.dev:3001/rate-limit`, and
+`RATE_LIMIT_PLUGIN_AUTH_TOKEN` should be the value you set in the `configuration.json` file.
+
+:::
+
+## Running the project
+
+At this point, we can create a build of our project and start local development:
+
+```bash
+ddn supergraph build local
+ddn run docker-start
+```
+
+You can now test the plugin by making requests to your supergraph. You should see the plugin enforce the rate limit
+you've configured (10 requests per minute for all other roles and 11 requests per minute for the `user` role).
+
+## Deploying the plugin
+
+The plugin can be deployed as a regular HTTP service, anywhere an Express server can be deployed. When deployed, make
+sure to set the `RATE_LIMIT_PLUGIN_URL` and `RATE_LIMIT_PLUGIN_AUTH_TOKEN` to appropriate values in `.cloud.env`. Note
+that the plugin must be visible from your Hasura deployment: if you are hosting for the Hasura Cloud, the plugin must be
+publicly visible.
+
+:::info Your plugin must be reachable
+
+Since the rate limit plugin is a pre-parse plugin, it must be reachable from the Hasura deployment. If you are hosting
+for the Hasura Cloud, the plugin must be publicly visible.
+
+:::

@@ -1,0 +1,8 @@
+{
+  "label": "Data Modeling",
+  "position": 4,
+  "className": "data-modeling",
+  "customProps": {
+    "sidebar_pathname": "data-modeling"
+  }
+}

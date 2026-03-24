@@ -1,0 +1,56 @@
+---
+sidebar_label: ddn plugins list
+sidebar_position: 74
+description: List all available plugins with index, versions and installation status using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_plugins_list"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn plugins list
+---
+
+# DDN CLI: ddn plugins list
+
+List all available plugins with index, versions and installation status.
+
+## Synopsis
+
+Run the plugins list command to see a list of all the available plugins which extend the functionality of the CLI, their versions and installation status.
+
+```bash
+ddn plugins list [flags]
+```
+
+**Alias:** ls
+
+## Examples
+
+```bash
+# List all plugins
+ ddn plugins list
+
+# List all plugins without updating the plugin index local cache
+ ddn plugins list --dont-update-index
+```
+
+## Options
+
+```sass
+    --dont-update-index   Don't update the plugin index local cache, only show the list
+-h, --help                help for list
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn plugins](/reference/cli/commands/ddn_plugins) - Manage plugins for the CLI

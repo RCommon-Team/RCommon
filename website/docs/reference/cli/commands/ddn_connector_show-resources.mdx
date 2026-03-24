@@ -1,0 +1,53 @@
+---
+sidebar_label: ddn connector show-resources
+sidebar_position: 44
+description: Show resources of a Connector using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector_show-resources"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector show-resources
+---
+
+# DDN CLI: ddn connector show-resources
+
+Show resources of a Connector.
+
+## Synopsis
+
+A connector will typically have a number of resources associated with it. This convenience command will show you all available resources (such as models, commands, and relationships) along with their current state.
+
+```bash
+ddn connector show-resources <connector-name> [flags]
+```
+
+## Examples
+
+```bash
+# Show resources for Connector `mydb`
+ ddn connector show-resources mydb
+```
+
+## Options
+
+```sass
+    --ci                Disables the use of context
+-c, --context string    Name of the context to use. (default <current_context>)
+-h, --help              help for show-resources
+    --subgraph string   Path to Subgraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector](/reference/cli/commands/ddn_connector) - Perform Connector related operations

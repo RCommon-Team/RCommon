@@ -1,0 +1,49 @@
+---
+sidebar_label: ddn model
+sidebar_position: 66
+description: Perform Model-related operations using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_model"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn model
+---
+
+# DDN CLI: ddn model
+
+Perform Model-related operations.
+
+## Synopsis
+
+Models represent a collection of data objects within a data domain. To learn more, check out the docs: https://hasura.io/docs/3.0/reference/metadata-reference/models/
+
+**Alias:** models
+
+## Available operations
+
+- [ddn model add](/reference/cli/commands/ddn_model_add) - Add new Models to the local metadata
+- [ddn model list](/reference/cli/commands/ddn_model_list) - Lists details about the collections of DataConnectorLink, and their corresponding Models
+- [ddn model remove](/reference/cli/commands/ddn_model_remove) - Removes Models (and related metadata) in the local metadata
+- [ddn model show](/reference/cli/commands/ddn_model_show) - Show diff between the model and its corresponding ndc collection
+- [ddn model update](/reference/cli/commands/ddn_model_update) - Update Models in the local metadata
+
+## Options
+
+```sass
+-h, --help   help for model
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

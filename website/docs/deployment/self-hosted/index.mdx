@@ -1,0 +1,35 @@
+---
+sidebar_position: 1
+sidebar_label: Deploying to your own server
+description: "Learn how to deploy your DDN project to your own server."
+pagination_next: deployment/self-hosted/docker-compose-simple
+keywords:
+  - hasura ddn
+  - tutorial
+  - deploy
+  - deployment
+  - hosting
+  - self-hosted
+---
+
+# Deploying to your own infrastructure
+
+## Introduction
+
+Hasura DDN is designed as a distributed system where the engine and data connectors each operate as independent
+services. When deploying to your own infrastructure, you can choose to manage these services using Docker — either with
+Docker Compose for convenience or by running individual containers for more granular control.
+
+## Docker Compose
+
+Running Docker Compose on a cloud server as if it were a local development environment. This is a limited deployment
+strategy where the engine and all connectors are deployed on the same server.
+
+[Learn more](/deployment/self-hosted/docker-compose-simple.mdx)
+
+## Standalone containers with Docker
+
+Running individual Docker containers on a cloud server without using Docker Compose. This approach allows for more
+granular control over each container, but requires manual setup of networking, environment variables, and dependencies.
+
+[Learn more](/deployment/self-hosted/docker-containers.mdx)

@@ -1,0 +1,468 @@
+---
+sidebar_position: 18
+sidebar_label: With Trino
+description: "Learn the basics of Hasura DDN and how to get started with a Trino instance."
+custom_props:
+  connector-ids:
+    - trino
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - trino
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and Trino
+
+## Overview
+
+This tutorial takes about twenty minutes to complete. You'll learn how to:
+
+- Set up a new Hasura DDN project
+- Connect it to a Trino instance, backed by a locally-running PostgreSQL database
+- Generate Hasura metadata
+- Create a build
+- Run your first query
+- Create relationships
+
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+
+This tutorial assumes you're starting from scratch, but you can easily follow the steps if you already have data seeded;
+Hasura will never modify your source schema.
+
+<Prereqs />
+
+## Tutorial
+
+### Step 1. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
+acknowledge your login, giving you access to Hasura Cloud resources.
+
+### Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
+
+### Step 3. Initialize your Trino connector
+
+```sh title="In your project directory, run:"
+ddn connector init my_trino -i
+```
+
+From the dropdown, select `hasura/trino` (you can type to filter the list). Then, enter the following JDBC URL:
+
+```plaintext
+jdbc:trino://local.hasura.dev:8080/postgres/public?user=myuser
+```
+
+This will allow your connector to connect to the PostgreSQL instance integrated with the Trino server you'll run
+locally.
+
+### Step 4. Create the containers with Trino and PostgreSQL
+
+```sh title="Begin by creating a compose file for the Trino service:"
+touch app/connector/my_trino/compose.trino.yaml
+```
+
+```yaml title="Then, open the file and add the following:"
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  trino:
+    image: trinodb/trino:latest
+    container_name: trino
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    command: |
+      /bin/sh -c "
+      mkdir -p /etc/trino/catalog &&
+      echo 'connector.name=postgresql' > /etc/trino/catalog/postgres.properties &&
+      echo 'connection-url=jdbc:postgresql://postgres:5432/mydb' >> /etc/trino/catalog/postgres.properties &&
+      echo 'connection-user=myuser' >> /etc/trino/catalog/postgres.properties &&
+      echo 'connection-password=mypassword' >> /etc/trino/catalog/postgres.properties &&
+      /usr/lib/trino/bin/run-trino
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+```
+
+```sh title="Run the container:"
+docker compose -f app/connector/my_trino/compose.trino.yaml up -d
+```
+
+The Trino container will start; you can access the UI — which will give you general information about your clusters —
+here: [`http://localhost:8080/`](http://localhost:8080/).
+
+### Step 5. Create a table in your PostgreSQL database
+
+```sh title="Enter the PostgreSQL container:"
+docker exec -it postgres psql -U myuser -d mydb
+```
+
+```sql title="Then, create your first table and seed the database:"
+--- Create the table
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  age INT NOT NULL
+);
+
+--- Insert some data
+INSERT INTO users (name, age) VALUES ('Alice', 25);
+INSERT INTO users (name, age) VALUES ('Bob', 30);
+INSERT INTO users (name, age) VALUES ('Charlie', 35);
+```
+
+You can verify this worked by querying the users table directly in the psql session:
+
+```sql
+SELECT * FROM users;
+```
+
+### Step 6. Introspect your Trino instance
+
+```sh title="Next, in a new tab, use the CLI to introspect your Trino database:"
+ddn connector introspect my_trino
+```
+
+After running this, you should see a representation of your database's schema in the
+`app/connector/my_trino/configuration.json` file; you can view this using `cat` or open the file in your editor.
+
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources my_trino
+```
+
+### Step 7. Add your model
+
+```sh title="Now, track the table from Trino server as a model in your DDN metadata:"
+ddn model add my_trino users
+```
+
+Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
+Metadata Language file to represent the `users` table from Trino in your API as a
+[model](/reference/metadata-reference/models.mdx).
+
+### Step 8. Create a new build
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+### Step 9. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and Trino connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+### Step 10. Run your first query
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query {
+  users {
+    id
+    name
+    age
+  }
+}
+```
+
+```json title="You'll get the following response:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Alice",
+        "age": 25
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "age": 30
+      },
+      {
+        "id": 3,
+        "name": "Charlie",
+        "age": 35
+      }
+    ]
+  }
+}
+```
+
+### Step 11. Iterate on your Trino schema
+
+```sh title="Let's re-enter the PostgreSQL container:"
+docker exec -it postgres psql -U myuser -d mydb
+```
+
+```sql title="Then, add a new table for posts:"
+-- Create the posts table
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert some seed data
+INSERT INTO posts (user_id, title, content) VALUES
+  (1, 'My First Post', 'This is Alice''s first post.'),
+  (1, 'Another Post', 'Alice writes again!'),
+  (2, 'Bob''s Post', 'Bob shares his thoughts.'),
+  (3, 'Hello World', 'Charlie joins the conversation.');
+```
+
+```sql title="To verify this, query the joined data:"
+SELECT
+  posts.id AS post_id,
+  posts.title,
+  posts.content,
+  posts.created_at,
+  users.name AS author
+FROM
+  posts
+JOIN
+  users ON posts.user_id = users.id;
+```
+
+You should see a list of posts returned with the author's information joined from the `users` table
+
+### Step 12. Refresh your metadata and rebuild your project
+
+:::tip
+
+The following steps are necessary each time you make changes to your **source** schema. This includes, adding,
+modifying, or dropping tables.
+
+:::
+
+#### Step 12.1. Re-introspect your data source
+
+```sh title="Run the introspection command again:"
+ddn connector introspect my_trino
+```
+
+In `app/connector/my_trino/configuration.json`, you'll see schema updated to include operations for the `posts` table.
+In `app/metadata/my_trino.hml`, you'll see `DOCS.PUBLIC.POSTS` present in the metadata as well.
+
+#### Step 12.2. Update your metadata
+
+```sh title="Add the posts model:"
+ddn model add my_trino posts
+```
+
+#### Step 12.3. Create a new build
+
+```sh title="Next, create a new build:"
+ddn supergraph build local
+```
+
+#### Step 12.4. Restart your services
+
+```sh title="Bring down the services by pressing CTRL+C and start them back up:"
+ddn run docker-start
+```
+
+### Step 13. Query your new build
+
+```graphql title="Head back to your console and query the posts model:"
+query GetPosts {
+  posts {
+    id
+    title
+    content
+  }
+}
+```
+
+```json title="You'll get a response like this:"
+{
+  "data": {
+    "posts": [
+      {
+        "id": 1,
+        "title": "My First Post",
+        "content": "This is Alice's first post."
+      },
+      {
+        "id": 2,
+        "title": "Another Post",
+        "content": "Alice writes again!"
+      },
+      {
+        "id": 3,
+        "title": "Bob's Post",
+        "content": "Bob shares his thoughts."
+      },
+      {
+        "id": 4,
+        "title": "Hello World",
+        "content": "Charlie joins the conversation."
+      }
+    ]
+  }
+}
+```
+
+### Step 14. Create a relationship
+
+```yaml title="Find the Posts.hml file in your connector's metadata directory and add the following relationship object to the bottom:"
+---
+kind: Relationship
+version: v1
+definition:
+  name: user
+  sourceType: Posts
+  target:
+    model:
+      name: Users
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: userId
+      target:
+        modelField:
+          - fieldName: id
+```
+
+This will create a relationship that maps the `userId` for any post to the `id` of a user, allowing for nested queries.
+
+### Step 15. Rebuild your project
+
+```sh title="As your metadata has changed, create a new build:"
+ddn supergraph build local
+```
+
+```sh title="Bring down the services by pressing CTRL+C and start them back up:"
+ddn run docker-start
+```
+
+### Step 16. Query using your relationship
+
+```graphql title="Now, execute a nested query using your relationship:"
+query GetPosts {
+  posts {
+    id
+    title
+    content
+    user {
+      id
+      name
+      age
+    }
+  }
+}
+```
+
+```json title="Which should return a result like this:"
+{
+  "data": {
+    "posts": [
+      {
+        "id": 1,
+        "title": "My First Post",
+        "content": "This is Alice's first post.",
+        "user": {
+          "id": 1,
+          "name": "Alice",
+          "age": 25
+        }
+      },
+      {
+        "id": 2,
+        "title": "Another Post",
+        "content": "Alice writes again!",
+        "user": {
+          "id": 1,
+          "name": "Alice",
+          "age": 25
+        }
+      },
+      {
+        "id": 3,
+        "title": "Bob's Post",
+        "content": "Bob shares his thoughts.",
+        "user": {
+          "id": 2,
+          "name": "Bob",
+          "age": 30
+        }
+      },
+      {
+        "id": 4,
+        "title": "Hello World",
+        "content": "Charlie joins the conversation.",
+        "user": {
+          "id": 3,
+          "name": "Charlie",
+          "age": 35
+        }
+      }
+    ]
+  }
+}
+```
+
+## Next steps
+
+Congratulations on completing your first Hasura DDN project with Trino! 🎉
+
+Here's what you just accomplished:
+
+- You started with a fresh project and connected it to a local Trino instance.
+- You set up metadata to represent your tables, which acts as the blueprint for your API.
+- Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
+  GraphQL queries to fetch data.
+- Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
+
+Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
+
+Take a look at our Trino docs to learn more about how to use Hasura DDN with Trino. Or, if you're ready, get started
+with adding [permissions](/reference/metadata-reference/permissions.mdx) to control access to your API.

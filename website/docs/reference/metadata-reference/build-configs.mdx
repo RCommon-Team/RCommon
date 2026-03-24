@@ -1,0 +1,313 @@
+---
+sidebar_label: Build configs
+description:
+  "Add as many Supergraph objects as you need to define different configurations for building your supergraph and a
+  Connector object for each connector in your supergraph."
+seoFrontMatterUpdated: true
+toc_max_heading_level: 4
+sidebar_position: 3
+canonicalUrl: "https://promptql.io/docs/reference/metadata-reference/build-configs/"
+---
+
+# Build configs
+
+## Introduction
+
+Build configs are used to define the resources and other configurations required to build a **supergraph**, **subgraph**
+or a **connector**. They are written in YAML and are defined in individual files.
+
+It's helpful to think of build configs as a blueprint for building your supergraph. The following options are available
+to you:
+
+| Config type               | Description                                           |
+| ------------------------- | ----------------------------------------------------- |
+| [Supergraph](#supergraph) | Defines the configuration used to build a supergraph. |
+| [Subgraph](#subgraph)     | Defines the configuration used to build a subgraph.   |
+| [Connector](#connector)   | Defines the configuration used to build a connector.  |
+
+### How the Supergraph config works {#supergraph}
+
+#### Lifecycle
+
+The [Supergraph](#supergraph-supergraph) object defines the configuration used to build the supergraph. While projects
+are generated with default configs for building for local or Hasura DDN
+[when initializing a new supergraph](/reference/cli/commands/ddn_supergraph_init.mdx), you can add as many `Supergraph`
+objects as you need to define different configurations for building your supergraph.
+
+You can then use these files to build your supergraph — either locally or on Hasura DDN —
+[using the CLI](/reference/cli/commands/ddn_supergraph_build_local.mdx). These builds — when on Hasura DDN — can then be
+[applied to a project](/reference/cli/commands/ddn_supergraph_build_apply.mdx) which will then serve the API using the
+supergraph built from the configuration.
+
+#### Examples
+
+```yaml title="A supergraph.yaml config file:"
+kind: Supergraph
+version: v2
+definition:
+  subgraphs:
+    - globals/subgraph.yaml
+    - app/subgraph.yaml
+```
+
+| **Field**              | **Description**                                                                      | **Reference**                                                |
+| ---------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| `kind`                 | Specifies the type of configuration, in this case, `Supergraph`.                     | [Supergraph](#supergraph-supergraph)                         |
+| `version`              | The version of the `Supergraph` configuration, which is `v2`.                        | [Supergraph](#supergraph-supergraph)                         |
+| `definition.subgraphs` | Paths to the subgraph configuration files that are included in the supergraph build. | [SupergraphDefinitionV2](#supergraph-supergraphdefinitionv2) |
+
+### How the Subgraph config works {#subgraph}
+
+#### Lifecycle
+
+**Each** subgraph in your supergraph has its own config. The [Subgraph](#subgraph-subgraph) object defines the
+configuration used to build the subgraph. While subgraphs are generated with a default config
+[when initializing a new subgraph](/reference/cli/commands/ddn_subgraph_init.mdx), you can add as many `Subgraph`
+objects as you need to define different configurations for building a subgraph.
+
+You can then use these files to build a subgraph [using the CLI](/reference/cli/commands/ddn_subgraph_build_create.mdx).
+These subgraph builds can then be [applied to a project](/reference/cli/commands/ddn_subgraph_build_apply.mdx).
+
+#### Examples
+
+```yaml title="A supergraph.yaml config file:"
+kind: Subgraph
+version: v2
+definition:
+  name: app
+  generator:
+    rootPath: .
+  includePaths:
+    - metadata
+  envMapping:
+    APP_MY_CONNECTOR_AUTHORIZATION_HEADER:
+      fromEnv: APP_MY_CONNECTOR_AUTHORIZATION_HEADER
+    APP_MY_CONNECTOR_READ_URL:
+      fromEnv: APP_MY_CONNECTOR_READ_URL
+    APP_MY_CONNECTOR_WRITE_URL:
+      fromEnv: APP_MY_CONNECTOR_WRITE_URL
+  connectors:
+    - path: connector/my_connector/connector.yaml
+      connectorLinkName: my_connector
+```
+
+| **Field**                                 | **Description**                                                                                                                                                                                                                                                    | **Reference**                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| `kind`                                    | Specifies the type of configuration, in this case, `Subgraph`.                                                                                                                                                                                                     | [Subgraph](#subgraph-subgraph)                               |
+| `version`                                 | The version of the `Subgraph` configuration, which is `v2`.                                                                                                                                                                                                        | [Subgraph](#subgraph-subgraph)                               |
+| `definition.name`                         | The name of the subgraph.                                                                                                                                                                                                                                          | [SubgraphDefinitionV2](#subgraph-subgraphdefinitionv2)       |
+| `definition.generator.rootPath`           | Path to the directory containing all the subgraph metadata, in this case the current directory.                                                                                                                                                                    | [SubgraphGeneratorConfig](#subgraph-subgraphgeneratorconfig) |
+| `definition.includePaths`                 | Paths to be included to construct the subgraph metadata.                                                                                                                                                                                                           | [SubgraphDefinitionV2](#subgraph-subgraphdefinitionv2)       |
+| `definition.envMapping`                   | Environment variable mapping configuration. Typically, these will correspond to connector envs. Additionally, when you [initialize a connector](/reference/cli/commands/ddn_connector_init.mdx), the CLI will automatically add the required envs to the subgraph. | [EnvMapping](#subgraph-envmapping)                           |
+| `definition.connectors.path`              | Path to the connector configuration file used in the subgraph.                                                                                                                                                                                                     | [SubgraphConnector](#subgraph-subgraphconnector)             |
+| `definition.connectors.connectorLinkName` | Name of the connector link associated with the connector.                                                                                                                                                                                                          | [SubgraphConnector](#subgraph-subgraphconnector)             |
+
+### How the Connector config works {#connector}
+
+#### Lifecycle
+
+**Each** [data connector](/data-sources/overview.mdx) in your supergraph has its own config. The
+[Connector](#connector-connector) object defines the configuration used to build the connector. This allows you to
+configure the capabilities of the connector and tailor it to your needs. While connectors are initialized with default
+configs for building for local or Hasura DDN, you can add as many `Connector` objects as you need to define different
+configurations for building your connector.
+
+When you [initialize a connector](/reference/cli/commands/ddn_connector_init.mdx), the CLI will automatically create a
+connector config file for you. You can then use this file to build your connector
+[using the CLI](/reference/cli/commands/ddn_connector_build_create.mdx).
+
+#### Examples
+
+```yaml title="A connector.yaml config file:"
+kind: Connector
+version: v2
+definition:
+  name: MY_CONNECTOR
+  subgraph: app
+  source: hasura/postgres:v1.1.1
+  context: .
+  envMapping:
+    CONNECTION_URI:
+      fromEnv: APP_MY_CONNECTOR_CONNECTION_URI
+    HASURA_SERVICE_TOKEN_SECRET:
+      fromEnv: APP_MY_CONNECTOR_HASURA_SERVICE_TOKEN_SECRET
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
+      fromEnv: APP_MY_CONNECTOR_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+    OTEL_SERVICE_NAME:
+      fromEnv: APP_MY_CONNECTOR_OTEL_SERVICE_NAME
+```
+
+| **Field**               | **Description**                                                     | **Reference**                                             |
+| ----------------------- | ------------------------------------------------------------------- | --------------------------------------------------------- |
+| `kind`                  | Specifies the type of configuration, in this case, `Connector`.     | [Connector](#connector-connector)                         |
+| `version`               | The version of the `Connector` configuration, which is `v2`.        | [Connector](#connector-connector)                         |
+| `definition.name`       | The name of the connector.                                          | [ConnectorDefinitionV2](#connector-connectordefinitionv2) |
+| `definition.subgraph`   | The name of the DDN project subgraph associated with the connector. | [ConnectorDefinitionV2](#connector-connectordefinitionv2) |
+| `definition.source`     | The versioned source of the connector.                              | [ConnectorDefinitionV2](#connector-connectordefinitionv2) |
+| `definition.context`    | The path to the context directory used in the connector build.      | [ConnectorDefinitionV2](#connector-connectordefinitionv2) |
+| `definition.envMapping` | Environment variable mapping configuration for the connector.       | [EnvMapping](#connector-envmapping)                       |
+
+---
+
+## Metadata structure
+
+
+### Supergraph {#supergraph-supergraph}
+
+Defines the configuration used to build the Supergraph.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `Supergraph` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [SupergraphDefinitionV2](#supergraph-supergraphdefinitionv2) | true |  |
+
+
+
+#### SupergraphDefinitionV2 {#supergraph-supergraphdefinitionv2}
+
+Supergraph Definition V2.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `subgraphs` | [string] | true | Paths to subgraph configuration. |
+
+### Subgraph {#subgraph-subgraph}
+
+Defines the configuration used to build the Subgraph.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `Subgraph` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [SubgraphDefinitionV2](#subgraph-subgraphdefinitionv2) | true |  |
+
+
+
+#### SubgraphDefinitionV2 {#subgraph-subgraphdefinitionv2}
+
+Subgraph Definition V2.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | Subgraph Name. |
+| `generator` | [SubgraphGeneratorConfig](#subgraph-subgraphgeneratorconfig) | true | Subgraph generator Configuration. |
+| `envFile` | string | false | Path to the Subgraph .env file. |
+| `includePaths` | [string] | true | Paths to be included to construct Subgraph metadata. |
+| `envMapping` | [EnvMapping](#subgraph-envmapping) | false | Environment Variable mapping config. |
+| `connectors` | [[SubgraphConnector](#subgraph-subgraphconnector)] | false | Connectors used in subgraph. |
+
+
+
+#### SubgraphConnector {#subgraph-subgraphconnector}
+
+Subgraph Connector config.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `path` | string | true | Path to connector config file. |
+| `connectorLinkName` | string | false | Name of connector link associated with the connector. |
+
+
+
+#### EnvMapping {#subgraph-envmapping}
+
+Environment Variables mapping config.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [EnvSource](#subgraph-envsource) | false | Target Environment variable. |
+
+
+
+#### EnvSource {#subgraph-envsource}
+
+Environment Variable Source.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fromEnv` | string | true | Source Environment variable. |
+
+
+
+#### SubgraphGeneratorConfig {#subgraph-subgraphgeneratorconfig}
+
+Subgraph generator Configuration.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `rootPath` | string | true | Path to the directory which holds all the Subgraph metadata. |
+| `graphqlRootFieldPrefix` | string | false | Prefix to use while generating GraphQL root fields. |
+| `graphqlTypeNamePrefix` | string | false | Prefix to use while generating GraphQL type names. |
+| `namingConvention` | `none` / `graphql` / `snake_case` / `snake_case_v2` | false | Naming convention to use while generating GraphQL fields and types. Options: 'none' (no transformation), 'graphql' (camelCase for fields, PascalCase for types), 'snake_case' (lowercase with underscores), 'snake_case_v2' (enhanced snake case with improved handling for digits and metrics). |
+
+### Connector {#connector-connector}
+
+Defines the configuration used to build the connector.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `Connector` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [ConnectorDefinitionV2](#connector-connectordefinitionv2) | true |  |
+
+
+
+#### ConnectorDefinitionV2 {#connector-connectordefinitionv2}
+
+Connector deployment definition V2.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | Connector name. |
+| `subgraph` | string | false | DDN project subgraph name. |
+| `source` | string | true | Connector Hub ID. |
+| `context` | string | true | Path to the context directory. |
+| `envFile` | string | false | Path to the shared .env file. |
+| `envMapping` | [EnvMapping](#connector-envmapping) | false | Environment Variable mapping config. |
+| `regionConfiguration` | [[RegionConfigurationV2](#connector-regionconfigurationv2)] | false | Connector deployment Region configuration |
+| `resources` | [Resources](#connector-resources) | false | Connector deployment Resources. |
+
+
+
+#### RegionConfigurationV2 {#connector-regionconfigurationv2}
+
+Connector deployment Region Configuration V2.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `region` | string | true | Region to deploy the connector to. |
+| `mode` | `ReadOnly` / `ReadWrite` | true | Connector deployment mode. |
+| `envMapping` | [EnvMapping](#connector-envmapping) | false | Environment Variable mapping config. |
+| `resources` | [Resources](#connector-resources) | false | Connector deployment Resources. |
+
+
+
+#### Resources {#connector-resources}
+
+Connector deployment Resources.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `memory` | string | false | Connector deployment memory resource in bytes. Accepted units: k, M, G. Example: 128M, 1G |
+| `cpu` | string | false | Connector deployment cpu resource in cores. Example: 1, 1.5 |
+
+
+
+#### EnvMapping {#connector-envmapping}
+
+Environment Variables mapping config.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [EnvSource](#connector-envsource) | false | Target Environment variable. |
+
+
+
+#### EnvSource {#connector-envsource}
+
+Environment Variable Source.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fromEnv` | string | true | Source Environment variable. |

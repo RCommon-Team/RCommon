@@ -1,0 +1,55 @@
+---
+sidebar_label: ddn codemod enable-promptql
+sidebar_position: 10
+description: Enable PromptQL in an existing project using the DDN CLI
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn codemod enable-promptql
+---
+
+# DDN CLI: ddn codemod enable-promptql
+
+Enable PromptQL in an existing project.
+
+## Synopsis
+
+Enable PromptQL in an existing project
+
+```bash
+ddn codemod enable-promptql --dir <project-dir> [flags]
+```
+
+## Examples
+
+```bash
+# Enable PromptQL in an existing project
+ ddn codemod enable-promptql
+```
+
+## Options
+
+```sass
+    --ci                         Disables the use of context
+    --compose-file-path string   Path to the docker compose file used to run engine
+-c, --context string             Name of the context to use. (default <current_context>)
+    --dir string                 The Hasura project directory (default ".")
+-f, --force                      Run the command without asking for confirmation
+-h, --help                       help for enable-promptql
+    --subgraph string            Path to Subgraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn codemod](/reference/cli/commands/ddn_codemod) - Perform transformations on your Hasura project directory

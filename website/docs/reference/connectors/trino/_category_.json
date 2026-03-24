@@ -1,0 +1,7 @@
+{
+  "label": "Trino",
+  "position": 18,
+  "customProps": {
+    "connector-ids": ["trino"]
+  }
+}

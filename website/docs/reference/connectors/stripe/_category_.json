@@ -1,0 +1,7 @@
+{
+  "label": "Stripe",
+  "position": 17,
+  "customProps": {
+    "connector-ids": ["stripe"]
+  }
+}

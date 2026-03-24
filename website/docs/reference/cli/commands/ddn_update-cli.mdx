@@ -1,0 +1,57 @@
+---
+sidebar_label: ddn update-cli
+sidebar_position: 95
+description: Update this CLI to the latest version or to a specific version using the DDN CLI
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn update-cli
+---
+
+# DDN CLI: ddn update-cli
+
+Update this CLI to the latest version or to a specific version.
+
+## Synopsis
+
+You can use this command to update the CLI to the latest version or a specific version.
+
+```bash
+ddn update-cli [flags]
+```
+
+## Examples
+
+```bash
+# Update CLI to latest version:
+ ddn update-cli
+
+# Update CLI to a specific version (say v1.0.0):
+ ddn update-cli --version v1.0.0
+
+# To disable the auto-update check on the CLI, set
+# "show_update_notification": false
+# in ~/.ddn/config.yaml
+```
+
+## Options
+
+```sass
+-h, --help             help for update-cli
+    --version string   A specific version to install
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

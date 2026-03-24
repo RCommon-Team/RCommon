@@ -1,0 +1,59 @@
+You can run whatever arbitrary code you want in your Python connector and expose it as a GraphQL mutation or query in
+your supergraph API.
+
+```sh title="Initalize a new connector and select hasura/python from the list:"
+ddn connector init my_py -i
+```
+
+```py title="Replace the functions.py contents with your own custom code:"
+from hasura_ndc import start
+from hasura_ndc.function_connector import FunctionConnector
+
+connector = FunctionConnector()
+
+@connector.register_query
+def my_custom_code(my_input: str) -> str:
+  # Do something with the input
+  return "My output"
+
+if __name__ == "__main__":
+  start(connector)
+```
+
+By adding the `@connector.register_query` decorator, we are indicating that this function is to be exposed as an NDC
+function which will ultimately show up as a GraphQL query. If you use `@connector.register_mutation` instead, the
+function will be exposed as an NDC procedure which will be a GraphQL mutation.
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_py
+```
+
+```bash title="Track the function:"
+ddn command add my_py my_custom_code
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your native operation:"
+query MyCustomCode {
+  myCustomCode(myInput: "My input")
+}
+```
+
+```json title="You will see a response like this:"
+{
+  "data": {
+    "myCustomCode": "My output"
+  }
+}
+```

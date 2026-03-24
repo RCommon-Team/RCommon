@@ -1,0 +1,436 @@
+---
+sidebar_position: 9.5
+sidebar_label: With Oracle
+description: "Learn the basics of Hasura DDN and how to get started with an Oracle database."
+custom_props:
+  connector-ids:
+    - oracle
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - oracle
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and Oracle
+
+## Overview
+
+This tutorial takes about twenty minutes to complete. You'll learn how to:
+
+- Set up a new Hasura DDN project
+- Connect it to an Oracle database
+- Generate Hasura metadata
+- Create a build
+- Run your first query
+- Create relationships
+
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+
+This tutorial assumes you're starting from scratch. We'll use an Docker container of Oracle and connect it to Hasura,
+but you can easily follow the steps if you already have data seeded in an existing Oracle database; Hasura will never
+modify your source schema.
+
+<Prereqs />
+
+## Tutorial
+
+### Step 1. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
+acknowledge your login, giving you access to Hasura Cloud resources.
+
+### Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
+
+### Step 3. Initialize your Oracle connector
+
+```sh title="In your project directory, run:"
+ddn connector init my_oracle -i
+```
+
+From the dropdown, start typing `oracle` and hit enter to accept the default port. Then, provide the following values:
+
+**JDBC URL**
+
+```plaintext
+jdbc:oracle:thin:@local.hasura.dev:1521/XEPDB1?user=example&password=mypassword
+```
+
+For Schemas, hit enter to use the database provided in the JDBC URL.
+
+### Step 4. Start the local Oracle container
+
+Run the following command to start the Oracle container:
+
+```sh
+docker run -d \
+  --name oracle-server \
+  --restart always \
+  -p 1521:1521 \
+  -e ORACLE_PASSWORD=oraclepassword \
+  -e APP_USER=example \
+  -e APP_USER_PASSWORD=mypassword \
+  -e TARGET_PDB=XEPDB1 \
+  gvenzl/oracle-xe:21.3.0-slim
+```
+
+:::tip Startup time
+
+The Oracle container may take a minute or so to start up. You can check on its progress by running
+`docker logs oracle-server`. You should see something like the following:
+
+```plaintext
+DATABASE IS READY TO USE!
+```
+
+:::
+
+```sh title="Use the SQL*PLUS shell to start the SQL prompt:"
+docker exec -it oracle-server sqlplus example/mypassword@local.hasura.dev:1521/XEPDB1
+```
+
+```SQL title="Create a table in the database:"
+CREATE TABLE users (user_id Number NOT NULL, name Varchar2(45) NOT NULL, age Number NOT NULL);
+```
+
+```SQL title="Then, seed the table:"
+INSERT ALL
+   INTO users (user_id, name, age) VALUES (1, 'Alice', 25)
+   INTO users (user_id, name, age) VALUES (2, 'Bob', 30)
+   INTO users (user_id, name, age) VALUES (3, 'Charlie', 35)
+SELECT 1 FROM DUAL;
+```
+
+```SQL title="You can verify this by running:"
+SELECT * FROM users;
+```
+
+You should see a list of users returned.
+
+### Step 5. Introspect your Oracle database
+
+```sh title="Next, use the CLI to introspect your Oracle database:"
+ddn connector introspect my_oracle
+```
+
+After running this, you should see a representation of your database's schema in the
+`app/connector/my_oracle/configuration.json` file; you can view this using `cat` or open the file in your editor.
+
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources my_oracle
+```
+
+### Step 6. Add your model
+
+```sh title="Now, track the table from your Oracle database as a model in your DDN metadata:"
+ddn models add my_oracle "EXAMPLE.USERS"
+```
+
+Open the `app/metadata` directory and you'll find a newly-generated file: `ExampleUsers.hml`. The DDN CLI will use this
+Hasura Hasura Metadata Language file to represent the `users` table from Oracle in your API as a
+[model](/reference/metadata-reference/models.mdx).
+
+### Step 7. Create a new build
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+### Step 8. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and Oracle connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+### Step 9. Run your first query
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query {
+  exampleUsers {
+    userId
+    name
+    age
+  }
+}
+```
+
+```json title="You'll get the following response:"
+{
+  "data": {
+    "exampleUsers": [
+      {
+        "userId": 1,
+        "name": "Alice",
+        "age": 25
+      },
+      {
+        "userId": 2,
+        "name": "Bob",
+        "age": 30
+      },
+      {
+        "userId": 3,
+        "name": "Charlie",
+        "age": 35
+      }
+    ]
+  }
+}
+```
+
+### Step 10. Iterate on your Oracle schema
+
+```SQL title="Let's add a new table for posts:"
+CREATE TABLE posts (
+  user_id Number,
+  post_id Number,
+  title Varchar2(45),
+  content Varchar2(45)
+);
+```
+
+```SQL title="Then, seed it:"
+INSERT ALL
+  INTO posts (user_id, post_id, title, content) VALUES (1, 1, 'My First Post', 'This is Alice''s first post.')
+  INTO posts (user_id, post_id, title, content) VALUES (1, 2, 'Another Post', 'Alice writes again!')
+  INTO posts (user_id, post_id, title, content) VALUES (2, 3, 'Bob''s Post', 'Bob shares his thoughts.')
+  INTO posts (user_id, post_id, title, content) VALUES (3, 4, 'Hello World', 'Charlie joins the conversation.')
+SELECT 1 FROM DUAL;
+```
+
+```SQL title="Finally, we can check the posts were generated:"
+SELECT * FROM posts;
+```
+
+### Step 11. Refresh your metadata and rebuild your project
+
+:::tip
+
+The following steps are necessary each time you make changes to your **source** schema. This includes, adding,
+modifying, or dropping tables.
+
+:::
+
+#### Step 11.1. Re-introspect your data source
+
+```sh title="Run the introspection command again:"
+ddn connector introspect my_oracle
+```
+
+In `app/connector/my_oracle/configuration.json`, you'll see schema updated to include operations for the `posts` table.
+In `app/metadata/my_oracle.hml`, you'll see `posts` present in the metadata as well.
+
+#### Step 11.2. Update your metadata
+
+```sh title="Add the posts model:"
+ddn model add my_oracle "EXAMPLE.POSTS"
+```
+
+#### Step 11.3. Kill your services
+
+Bring down the services by pressing `CTRL+C` in the terminal tab logging their activity.
+
+#### Step 11.4. Create a new build
+
+```sh title="Next, create a new build:"
+ddn supergraph build local
+```
+
+#### Step 11.5 Restart your services
+
+```sh title="Bring everything back up:"
+ddn run docker-start
+```
+
+### Step 12. Query your new build
+
+```graphql title="Head back to your console and query the posts model:"
+query GetPosts {
+  examplePosts {
+    userId
+    postId
+    title
+    content
+  }
+}
+```
+
+```json title="You'll get a response like this:"
+{
+  "data": {
+    "examplePosts": [
+      {
+        "userId": 1,
+        "postId": 1,
+        "title": "My First Post",
+        "content": "This is Alice's first post."
+      },
+      {
+        "userId": 1,
+        "postId": 2,
+        "title": "Another Post",
+        "content": "Alice writes again!"
+      },
+      {
+        "userId": 2,
+        "postId": 3,
+        "title": "Bob's Post",
+        "content": "Bob shares his thoughts."
+      },
+      {
+        "userId": 3,
+        "postId": 4,
+        "title": "Hello World",
+        "content": "Charlie joins the conversation."
+      }
+    ]
+  }
+}
+```
+
+### Step 13. Create a relationship
+
+```yaml title="Open the ExamplePosts.hml file and add the following to the end:"
+---
+kind: Relationship
+version: v1
+definition:
+  name: user
+  sourceType: ExamplePosts
+  target:
+    model:
+      name: ExampleUsers
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: userId
+      target:
+        modelField:
+          - fieldName: userId
+```
+
+:::tip LSP-Assisted authoring is available
+
+We've created an extension for VS Code that leverages LSP to make authoring these metadata objects easier. Check it out
+[here](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura).
+
+:::
+
+### Step 14. Rebuild your project
+
+Bring down the services by pressing `CTRL+C` in the terminal tab logging their activity.
+
+```sh title="As your metadata has changed, create a new build:"
+ddn supergraph build local
+```
+
+```sh title="Bring everything back up:"
+ddn run docker-start
+```
+
+### Step 15. Query using your relationship
+
+```graphql title="Now, execute a nested query using your relationship:"
+query GetPosts {
+  examplePosts {
+    postId
+    title
+    content
+    user {
+      userId
+      name
+      age
+    }
+  }
+}
+```
+
+```json title="Which should return a result like this:"
+{
+  "data": {
+    "examplePosts": [
+      {
+        "postId": 1,
+        "title": "My First Post",
+        "content": "This is Alice's first post.",
+        "user": {
+          "userId": 1,
+          "name": "Alice",
+          "age": 25
+        }
+      },
+      {
+        "postId": 2,
+        "title": "Another Post",
+        "content": "Alice writes again!",
+        "user": {
+          "userId": 1,
+          "name": "Alice",
+          "age": 25
+        }
+      },
+      {
+        "postId": 3,
+        "title": "Bob's Post",
+        "content": "Bob shares his thoughts.",
+        "user": {
+          "userId": 2,
+          "name": "Bob",
+          "age": 30
+        }
+      },
+      {
+        "postId": 4,
+        "title": "Hello World",
+        "content": "Charlie joins the conversation.",
+        "user": {
+          "userId": 3,
+          "name": "Charlie",
+          "age": 35
+        }
+      }
+    ]
+  }
+}
+```
+
+## Next steps
+
+Congratulations on completing your first Hasura DDN project with Oracle! 🎉
+
+Here's what you just accomplished:
+
+- You started with a fresh project and connected it to an Oracle database.
+- You set up metadata to represent your tables and relationships, which acts as the blueprint for your API.
+- Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
+  GraphQL queries to fetch data.
+- Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
+
+Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
+
+Take a look at our [Oracle docs](/reference/connectors/oracle/index.mdx) to learn more about how to use Hasura DDN with
+Oracle. Or, if you're ready, get started with adding [permissions](/reference/metadata-reference/permissions.mdx) to
+control access to your API.

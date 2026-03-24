@@ -1,0 +1,50 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
+For each Go connector in a project, follow the steps below.
+
+<Thumbnail src="/img/get-started/ERD/deploy-connector.png" alt="Deploy a connector to Hasura DDN" width="1000px" />
+
+## Steps
+
+:::tip Required
+
+- [DDN CLI](/quickstart.mdx)
+- A new or existing [supergraph](/quickstart.mdx)
+- A new or existing [subgraph](/quickstart.mdx)
+- A new or existing [data connector](/quickstart.mdx)
+- A new or existing [project](/deployment/hasura-ddn/tutorial/01-create-a-project.mdx)
+- A new or existing [subgraph on Hasura DDN](/deployment/hasura-ddn/tutorial/02-create-a-subgraph.mdx)
+
+:::
+
+### Step 1. Build and deploy your cloud connector
+
+You can now build and deploy your connector on Hasura DDN. Simply run the following replacing the directory names with
+those that reflect your project if necessary.
+
+```bash title="Taking care to update the path to your connector's configuration file, run:"
+ddn connector build create --connector ./my_subgraph/connector/my_go/connector.yaml
+```
+
+The CLI will respond with read and write URLs for your deployed connector.
+
+In this command we're passing a few arguments:
+
+- `--connector` specifies the path to the connector's cloud configuration file which we want to build.
+- `--target-env-file` specifies the path to the subgraph's cloud environment file to which the read and write URLs for
+  the newly built cloud connector will be written to.
+- `--target-subgraph` specifies the path to the subgraph's configuration yaml file to which the target env file belongs.
+- `--target-connector-link` where the latest schema for the connector will be updated.
+
+You're now ready to build and deploy your supergraph!
+
+## What did this do?
+
+The steps above built and deployed your Go connector to Hasura DDN. This means you can now use this connector to enrich
+or transform data on your DDN-hosted supergraph 🎉
+
+## Next steps
+
+If you have other connectors needed for a supergraph, repeat these steps for each connector. Otherwise, you're ready to
+[create a new build of your supergraph](/deployment/hasura-ddn/tutorial/04-deploy-your-supergraph.mdx) and deploy it to
+Hasura DDN!

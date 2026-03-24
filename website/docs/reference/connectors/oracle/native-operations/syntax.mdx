@@ -1,0 +1,62 @@
+---
+sidebar_position: 2
+sidebar_label: Syntax
+description: Learn how to write Native Operations with the proper syntax in Hasura.
+keywords:
+  - hasura
+  - native operations
+  - troubleshooting
+  - sql
+  - gotchas
+  - limitations
+seoFrontMatterUpdated: false
+---
+
+# Native Operations SQL Syntax
+
+There are a few requirements for writing valid Hasura DDN Native Operations SQL:
+
+## Arguments are defined as a colon prefixed string
+
+Arguments are specified in curly braces variables in your statement, like `{{id}}`, `{{name}}`, etc. These are placeholders for
+the actual values.
+
+## Arguments as scalar values only
+
+The arguments are not interpolated, but are translated to parameters of parameterized queries (arguments like `{{id}}` and
+`{{name}}` are translated to `?`) and passed as data, and therefore can only be used in place of scalar values, not table
+names, column names, or other arbitrary SQL.
+
+## No quoting of string arguments
+
+Since the arguments are translated to parameters of parameterized queries, they are passed as data and do not need to be
+quoted. For example, use `{{name}}` instead of `'{{name}}'`.
+
+## Single statements only
+
+The SQL of a Native Operation should be a single SQL statement that returns a result and **should not contain a
+semicolon** at the end, as the SQL is used inside another SQL query.
+
+## String value arguments in patterns using concatenation
+
+Since you can't directly interpolate arguments (like variables) into your SQL statements in the same way you might in
+other contexts, in order to use a string argument inside a pattern, such as in a `LIKE` predicate, the argument can be
+concatenated with the relevant pattern parts.
+
+For example:
+
+```sql
+SELECT * FROM "Artist" WHERE "Name" LIKE '%John%'
+```
+
+can be written as
+
+```sql
+SELECT * FROM "Artist" WHERE "Name" LIKE '%' || {{name}} || '%'
+```
+
+using the `||` concatenation operator to concatenate the parts of the pattern with the argument variable.
+
+## No "hasura\_" prefixed arguments
+
+Argument names that begin with the prefix `hasura_` are reserved for internal use.

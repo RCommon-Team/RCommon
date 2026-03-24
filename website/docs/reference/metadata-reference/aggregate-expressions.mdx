@@ -1,0 +1,431 @@
+---
+sidebar_position: 9
+sidebar_label: Aggregate Expressions
+description:
+  "Explore aggregate expression types in Hasura. Learn how to aggregate different data types and expose them in your
+  API."
+keywords:
+  - hasura documentation
+  - graphql data structure
+  - data domain mapping
+  - hasura ddn
+  - hasura data specification
+  - graphql schema
+  - aggregate expressions
+  - aggregate
+toc_max_heading_level: 4
+seoFrontMatterUpdated: false
+canonicalUrl: "https://promptql.io/docs/reference/metadata-reference/aggregate-expressions/"
+---
+
+# Aggregate Expressions
+
+## Introduction
+
+Aggregate expression types allow you to summarize and calculate collective properties of your data. These expressions
+enable you to define how to aggregate over different data types, facilitating efficient data manipulation and retrieval.
+
+Aggregate expressions can be used to configure how data is summarized in your models, or as the types of arguments to
+commands or models.
+
+## How AggregateExpressions work
+
+### Lifecycle
+
+:::tip Examples below
+
+Below this description of the lifecycle are examples for each step and how to define AggregateExpressions in your
+metadata files.
+
+:::
+
+You'll need to ensure you've generated [ScalarTypes](/reference/metadata-reference/types.mdx#scalartype-scalartype) and
+[DataConnectorScalarRepresentations](/reference/metadata-reference/data-connector-links.mdx#dataconnectorscalarrepresentation-dataconnectorscalarrepresentation)
+for the data types you want to aggregate over. We recommend saving these in your connector's type definition file.
+
+Once you have these, you can create AggregateExpression objects for the types you want to aggregate over. We recommend
+these be saved in a model's metadata file.
+
+Finally, you'll need to update your `graphql-config.hml` in the `globals` subgraph to
+[include an `aggregate` field in the `definition`](/reference/metadata-reference/graphql-config.mdx#graphqlconfig-aggregategraphqlconfig).
+
+Once these are included, you'll need to [create a new build](/reference/cli/commands/ddn_supergraph_build_local.mdx)
+using the CLI.
+
+### Examples
+
+In the following example, we'll show the snippets necessary to implement the example explained above: an
+AggregateExpression for the `Reviews` model of our sample application.
+
+```yaml title="metadata/my_connector-types.hml"
+# Existing definitions above
+---
+kind: ScalarType
+version: v1
+definition:
+  name: Numeric
+  graphql:
+    typeName: Numeric
+
+---
+kind: DataConnectorScalarRepresentation
+version: v1
+definition:
+  dataConnectorName: my_connector
+  dataConnectorScalarType: numeric
+  representation: Numeric
+  graphql:
+    comparisonExpressionTypeName: NumericComparisonExp
+```
+
+```yaml title="metadata/Reviews.hml"
+# Existing objects above
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: Int4_aggregate_exp
+  operand:
+    scalar:
+      aggregatedType: Int4
+      aggregationFunctions:
+        - name: avg
+          returnType: Numeric
+      dataConnectorAggregationFunctionMapping:
+        - dataConnectorName: my_connector
+          dataConnectorScalarType: int4
+          functionMapping:
+            avg:
+              name: avg
+  graphql:
+    selectTypeName: Int4_aggregate_fields
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: Reviews_aggregate_exp
+  operand:
+    object:
+      aggregatedType: Reviews
+      aggregatableFields:
+        - fieldName: rating
+          aggregateExpression: Int4_aggregate_exp
+  graphql:
+    selectTypeName: Reviews_aggregate_fields
+  description: Aggregate over Reviews
+```
+
+```yaml title="globals/graphql-config.hml"
+kind: GraphqlConfig
+version: v1
+definition:
+  query:
+    rootOperationTypeName: Query
+    argumentsInput:
+      fieldName: args
+    limitInput:
+      fieldName: limit
+    offsetInput:
+      fieldName: offset
+    filterInput:
+      fieldName: where
+      operatorNames:
+        and: _and
+        or: _or
+        not: _not
+        isNull: _is_null
+    orderByInput:
+      fieldName: order_by
+      enumDirectionValues:
+        asc: Asc
+        desc: Desc
+      enumTypeNames:
+        - directions:
+            - Asc
+            - Desc
+          typeName: OrderBy
+    #highlight-start
+    aggregate:
+      filterInputFieldName: filter_input
+      countFieldName: _count
+      countDistinctFieldName: _count_distinct
+    #highlight-end
+  mutation:
+    rootOperationTypeName: Mutation
+```
+
+---
+
+## Metadata structure
+
+
+### AggregateExpression {#aggregateexpression-aggregateexpression}
+
+Definition of an aggregate expression on an OpenDD type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `AggregateExpression` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [AggregateExpressionV1](#aggregateexpression-aggregateexpressionv1) | true | Definition of how to aggregate over a particular operand type |
+
+ **Example:**
+
+```yaml
+kind: AggregateExpression
+version: v1
+definition:
+  name: Invoice_aggregate_exp
+  operand:
+    object:
+      aggregatedType: Invoice
+      aggregatableFields:
+        - fieldName: Total
+          aggregateExpression: Float_aggregate_exp
+  graphql:
+    selectTypeName: Invoice_aggregate_fields
+  description: Aggregate over Invoices
+```
+
+
+#### AggregateExpressionV1 {#aggregateexpression-aggregateexpressionv1}
+
+Definition of how to aggregate over a particular operand type
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [AggregateExpressionName](#aggregateexpression-aggregateexpressionname) | true | The name of the aggregate expression. |
+| `operand` | [AggregateOperand](#aggregateexpression-aggregateoperand) | true | The type this aggregation expression aggregates over, and its associated configuration |
+| `count` | [AggregateCountDefinition](#aggregateexpression-aggregatecountdefinition) / null | false | Configuration for the count aggregate function used over the operand |
+| `countDistinct` | [AggregateCountDefinition](#aggregateexpression-aggregatecountdefinition) / null | false | Configuration for the count distinct aggregate function used over the operand |
+| `graphql` | [AggregateExpressionGraphQlDefinition](#aggregateexpression-aggregateexpressiongraphqldefinition) / null | false | Configuration for how this command should appear in the GraphQL schema. |
+| `description` | string / null | false | The description of the aggregate expression. Gets added to the description of the command's root field in the GraphQL schema. |
+
+
+
+#### AggregateExpressionGraphQlDefinition {#aggregateexpression-aggregateexpressiongraphqldefinition}
+
+The definition of how an aggregate expression should appear in the GraphQL API.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `selectTypeName` | [GraphQlTypeName](#aggregateexpression-graphqltypename) | true | The type name to use for the aggregate selection type |
+| `deprecated` | [Deprecated](#aggregateexpression-deprecated) / null | false | Whether this command root field is deprecated. If set, this will be added to the graphql schema as a deprecated field. |
+
+ **Example:**
+
+```yaml
+selectTypeName: Invoice_aggregate_fields
+```
+
+
+#### Deprecated {#aggregateexpression-deprecated}
+
+OpenDd configuration to indicate whether an object type field, relationship, model root field or command root field is deprecated.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `reason` | string / null | false | The reason for deprecation. |
+
+
+
+#### GraphQlTypeName {#aggregateexpression-graphqltypename}
+
+The name of a GraphQL type.
+
+
+**Value:** string
+
+
+#### AggregateCountDefinition {#aggregateexpression-aggregatecountdefinition}
+
+Definition of a count aggregation function
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `enable` | boolean | true | Whether or not the aggregate function is available for use or not |
+| `description` | string / null | false | A description of the aggregation function. Gets added to the description of the field in the GraphQL schema. |
+| `returnType` | [TypeName](#aggregateexpression-typename) / null | false | The scalar type that the count aggregation function returns. Must be an integer type. If omitted, Int is used as the default. |
+
+
+
+#### AggregateOperand {#aggregateexpression-aggregateoperand}
+
+Definition of an aggregate expression's operand
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `object` | [ObjectAggregateOperand](#aggregateexpression-objectaggregateoperand) | false | Definition of an aggregate over an object-typed operand |
+| `scalar` | [ScalarAggregateOperand](#aggregateexpression-scalaraggregateoperand) | false | Definition of an aggregate over a scalar-typed operand |
+
+
+
+#### ScalarAggregateOperand {#aggregateexpression-scalaraggregateoperand}
+
+Definition of an aggregate over a scalar-typed operand
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `aggregatedType` | [TypeName](#aggregateexpression-typename) | true | The name of the scalar type the aggregate expression is aggregating |
+| `aggregationFunctions` | [[AggregationFunctionDefinition](#aggregateexpression-aggregationfunctiondefinition)] | true | The aggregation functions that operate over the scalar type |
+| `dataConnectorAggregationFunctionMapping` | [[DataConnectorAggregationFunctionMapping](#aggregateexpression-dataconnectoraggregationfunctionmapping)] | true | Mapping of aggregation functions to corresponding aggregation functions in various data connectors |
+
+
+
+#### DataConnectorAggregationFunctionMapping {#aggregateexpression-dataconnectoraggregationfunctionmapping}
+
+Definition of how to map an aggregate expression's aggregation functions to data connector aggregation functions.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `dataConnectorName` | [DataConnectorName](#aggregateexpression-dataconnectorname) | true | The data connector being mapped to |
+| `dataConnectorScalarType` | [DataConnectorScalarType](#aggregateexpression-dataconnectorscalartype) | true | The matching scalar type in the data connector for the operand scalar type |
+| `functionMapping` | [AggregationFunctionMappings](#aggregateexpression-aggregationfunctionmappings) | true | Mapping from Open DD aggregation function to data connector aggregation function |
+
+
+
+#### AggregationFunctionMappings {#aggregateexpression-aggregationfunctionmappings}
+
+Mapping of aggregation functions to their matching aggregation functions in the data connector.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [AggregateFunctionMapping](#aggregateexpression-aggregatefunctionmapping) | false | Definition of how to map the aggregation function to a function in the data connector |
+
+
+
+#### AggregateFunctionMapping {#aggregateexpression-aggregatefunctionmapping}
+
+Definition of how to map the aggregation function to a function in the data connector
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [DataConnectorAggregationFunctionName](#aggregateexpression-dataconnectoraggregationfunctionname) | true | The name of the aggregation function in the data connector |
+
+
+
+#### DataConnectorAggregationFunctionName {#aggregateexpression-dataconnectoraggregationfunctionname}
+
+The name of an aggregation function in a data connector
+
+
+**Value:** string
+
+
+#### DataConnectorScalarType {#aggregateexpression-dataconnectorscalartype}
+
+The name of a scalar type in a data connector.
+
+
+**Value:** string
+
+
+#### DataConnectorName {#aggregateexpression-dataconnectorname}
+
+The name of a data connector.
+
+
+**Value:** string
+
+
+#### AggregationFunctionDefinition {#aggregateexpression-aggregationfunctiondefinition}
+
+Definition of an aggregation function
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [AggregationFunctionName](#aggregateexpression-aggregationfunctionname) | true | The name of the aggregation function |
+| `description` | string / null | false | A description of the aggregation function. Gets added to the description of the field in the GraphQL schema. |
+| `returnType` | [TypeReference](#aggregateexpression-typereference) | true |  |
+
+
+
+#### TypeReference {#aggregateexpression-typereference}
+
+A reference to an Open DD type including nullable values and arrays.
+Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array.
+Eg: '[String!]!' is a non-nullable array of non-nullable strings.
+
+
+**Value:** string
+
+
+#### AggregationFunctionName {#aggregateexpression-aggregationfunctionname}
+
+The name of an aggregation function.
+
+
+**Value:** string
+
+
+#### TypeName {#aggregateexpression-typename}
+
+The name of the scalar type the aggregate expression is aggregating
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [InbuiltType](#aggregateexpression-inbuilttype) | An inbuilt primitive OpenDD type. |
+| [CustomTypeName](#aggregateexpression-customtypename) |  |
+
+
+
+#### InbuiltType {#aggregateexpression-inbuilttype}
+
+An inbuilt primitive OpenDD type.
+
+
+**Value:** `ID` / `Int` / `Float` / `Boolean` / `String`
+
+
+#### ObjectAggregateOperand {#aggregateexpression-objectaggregateoperand}
+
+Definition of an aggregate over an object-typed operand
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `aggregatedType` | [CustomTypeName](#aggregateexpression-customtypename) | true | The name of the object type the aggregate expression is aggregating |
+| `aggregatableFields` | [[AggregatableFieldDefinition](#aggregateexpression-aggregatablefielddefinition)] | true | The fields on the object that are aggregatable |
+
+
+
+#### AggregatableFieldDefinition {#aggregateexpression-aggregatablefielddefinition}
+
+Definition of an aggregatable field on an object type
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | [FieldName](#aggregateexpression-fieldname) | true | The name of the field on the operand aggregated type that is aggregatable |
+| `description` | string / null | false | A description of the aggregatable field. Gets added to the description of the field in the GraphQL schema. |
+| `aggregateExpression` | [AggregateExpressionName](#aggregateexpression-aggregateexpressionname) | true | The aggregate expression used to aggregate the type of the field |
+
+
+
+#### FieldName {#aggregateexpression-fieldname}
+
+The name of a field in a user-defined object type.
+
+
+**Value:** string
+
+
+#### CustomTypeName {#aggregateexpression-customtypename}
+
+The name of a user-defined type.
+
+
+**Value:** string
+
+
+#### AggregateExpressionName {#aggregateexpression-aggregateexpressionname}
+
+The name of an aggregate expression.
+
+
+**Value:** string

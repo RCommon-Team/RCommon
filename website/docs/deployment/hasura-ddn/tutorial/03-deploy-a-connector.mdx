@@ -1,0 +1,138 @@
+---
+sidebar_position: 3
+sidebar_label: Deploy a connector
+description: "Deploy a connector to Hasura DDN"
+hide_table_of_contents: true
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import PostgreSQL from "./partials/postgreSQL/_deployment-tutorial.mdx";
+import ClickHouse from "./partials/clickHouse/_deployment-tutorial.mdx";
+import TypeScript from "./partials/typeScript/_deployment-tutorial.mdx";
+import Python from "./partials/python/_deployment-tutorial.mdx";
+import Go from "./partials/go/_deployment-tutorial.mdx";
+import OpenAPI from "./partials/openAPI/_deployment-tutorial.mdx";
+import GraphQL from "./partials/graphQL/_deployment-tutorial.mdx";
+import MongoDB from "./partials/mongoDB/_deployment-tutorial.mdx";
+
+# Deploy a Connector
+
+## What's about to happen?
+
+Hasura DDN will host your deployed connectors for you, ensuring rapid delivery of data from your API to your consumers.
+
+<Tabs groupId="deploy-connector" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+<PostgreSQL />
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+<MongoDB />
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+<ClickHouse />
+
+  </TabItem>
+  <TabItem value="TypeScript" label="TypeScript">
+
+<TypeScript />
+
+  </TabItem>
+  <TabItem value="Python" label="Python">
+
+<Python />
+
+  </TabItem>
+
+<TabItem value="Go" label="Go">
+
+<Go />
+
+  </TabItem>
+  <TabItem value="OpenAPI" label="OpenAPI">
+
+<OpenAPI />
+
+  </TabItem>
+  <TabItem value="GraphQL" label="GraphQL">
+
+<GraphQL />
+
+  </TabItem>
+  <TabItem value="Other" label="Other">
+
+The process to deploy a connector is more or less the same for all connectors and varies mostly in the environment
+variables required. See the [specific connector's documentation](https://hasura.io/hub) which may be on the GitHub repo
+for more information.
+
+## Steps
+
+:::tip Required
+
+- [DDN CLI](/quickstart.mdx)
+- A new or existing [supergraph](/quickstart.mdx)
+- A new or existing [subgraph](/quickstart.mdx)
+- A new or existing [data connector](/quickstart.mdx)
+- A new or existing [project](/deployment/hasura-ddn/tutorial/01-create-a-project.mdx)
+- A new or existing [subgraph on Hasura DDN](/deployment/hasura-ddn/tutorial/02-create-a-subgraph.mdx)
+
+:::
+
+### Step 1. Update the root `.env.cloud`
+
+Usually, we will need to update the root `env.cloud` file with the connection URI we need for the cloud hosted connector
+to be able to communicate with the cloud based data source.
+
+```env title="For example, ./.env.cloud"
+CONNECTION_URI=<connection-uri>
+```
+
+### Step 2. Build and deploy your cloud connector
+
+At this stage, you can now build and deploy your connector on Hasura DDN.
+
+You can build the entire supergraph with all subgraphs and connectors.
+
+```bash
+ddn supergraph build create
+```
+
+You can also specify exactly which subgraphs and connectors you want to build. See
+[incremental builds](/deployment/hasura-ddn/incremental-builds.mdx) for more information.
+
+To build a specific connector, run the following replacing the directory names with those that reflect your project.
+
+```bash title="Taking care to update the path to your connector's configuration file, run:"
+ddn connector build create --connector ./my_subgraph/connector/my_connector/connector.yaml
+```
+
+The CLI will respond with the URLs required to communicate with your deployed connector.
+
+In this command we're passing the `--connector` argument, which specifies the path to the connector's configuration file
+which we want to build.
+
+## What did this do?
+
+The steps above built and deployed your connector to Hasura DDN. So long as the connection URI you provided is reachable
+by DDN, your connector will be able to communicate between your API and your data source.
+
+## Next steps
+
+If you have other connectors needed for a supergraph, repeat these steps for each connector. Otherwise, you're ready to
+[create a new build of your supergraph](/deployment/hasura-ddn/tutorial/04-deploy-your-supergraph.mdx) and deploy it to
+Hasura DDN!
+
+  </TabItem>
+</Tabs>

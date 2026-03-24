@@ -1,0 +1,56 @@
+---
+sidebar_position: 1
+title: Private DDN
+sidebar_label: Basics
+description:
+  "Get started with Hasura Private DDN to build secure, scalable, and customizable GraphQL APIs on your own
+  infrastructure or in the cloud."
+keywords:
+  - hasura ddn
+  - private ddn
+  - byoc
+  - vpc
+  - enterprise
+  - data plane
+---
+
+# Hasura Private DDN
+
+## Introduction
+
+Hasura Private DDN allows you to provision private Data Planes — either on your own infrastructure, or dedicated Hasura
+infrastructure — to give you complete control over your supergraphs. With Hasura Private DDN, enterprises can ensure
+data privacy, security, and compliance by hosting the data plane within their own Virtual Private Cloud (VPC) provided
+by Hasura or any infrastructure you choose.
+
+:::info An enterprise contract is required for Private DDN
+
+To enable Private DDN, you'll need an Enterprise contract. Reach out to sales [here](https://hasura.io/contact-us).
+
+:::
+
+## Data Planes
+
+Data Planes are at the core of Hasura Private DDN. They serve as the runtime environment for your API, handling data
+access, authorization, and other operations. By deploying Data Planes privately, you can:
+
+- **Maintain data sovereignty**: Ensure data never leaves your private infrastructure.
+- **Enhance security**: Leverage existing enterprise-grade security measures, including firewalls, IAM policies, and
+  more.
+- **Optimize performance**: Reduce latency by hosting the data plane close to your data sources.
+- **Enable BYOC**: Bring your own cloud and deploy the data plane on the cloud provider of your choice, whether it's
+  AWS, GCP, Azure.
+
+Each Data Plane integrates seamlessly with Hasura DDN's Control Plane, enabling collaborative API development, version
+control, and CI/CD integration while keeping runtime operations secure and private.
+
+## Next Steps
+
+Ready to get started with Hasura Private DDN? Here's what you can do next:
+
+- [Architecture](/private-ddn/architecture/index.mdx)
+- [Create a Data Plane](/private-ddn/creating-a-data-plane/index.mdx)
+- [Add collaborators to a Data Plane](/private-ddn/data-plane-collaboration.mdx)
+- [Create a project on a private Data Plane](/private-ddn/create-a-project-on-a-data-plane.mdx)
+- [DDN workspace](/private-ddn/ddn-workspace.mdx)
+- [Learn more about the architecture](/reference/ddn-topology-architecture.mdx)

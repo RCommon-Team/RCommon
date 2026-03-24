@@ -1,0 +1,103 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description: "Reference documentation for the setup process for the HTTP connector"
+keywords:
+  - http
+  - configuration
+---
+
+# Configuration
+
+## Introduction
+
+The connector reads `config.{json,yaml}` file in the configuration folder.
+
+```yaml title="The file contains information about the schema file path and its specification:"
+files:
+  - file: swagger.json
+    spec: openapi2
+  - file: openapi.yaml
+    spec: openapi3
+    trimPrefix: /v1
+    envPrefix: PET_STORE
+  - file: schema.json
+    spec: ndc
+```
+
+The config of each element follows the
+[config schema](https://raw.githubusercontent.com/hasura/ndc-http/refs/heads/main/ndc-http-schema/config.example.yaml)
+of `ndc-http-schema`.
+
+You can add many API documentation files into the same connector.
+
+:::info Conflicting types
+
+Conflicting object and scalar types will be ignored. Only the type of the first file is kept in the schema.
+
+:::
+
+## Supported specs
+
+### OpenAPI
+
+The HTTP connector supports both OpenAPI 2 and 3 specifications.
+
+- `oas3`/`openapi3`: OpenAPI 3.0/3.1.
+- `oas2`/`openapi2`: OpenAPI 2.0.
+
+### HTTP Connector schema
+
+Enum: `ndc`
+
+HTTP schema is the native configuration schema which other specs will be converted to behind the scene. The schema
+extends the NDC Specification with HTTP configuration and can be converted from other specs by the
+[NDC HTTP schema CLI](https://github.com/hasura/ndc-http/tree/main/ndc-http-schema).
+
+## Timeout and retry
+
+The global timeout and retry strategy can be configured in each file:
+
+```yaml
+files:
+  - file: swagger.json
+    spec: oas2
+    timeout:
+      # The time in seconds to wait before timeout
+      value: 30
+    retry:
+      times:
+        value: 1
+      delay:
+        # The default delay between each retry in milliseconds.
+        # The connector prefers the Retry-After header in the response if exists
+        value: 500
+      httpStatus: [429, 500, 502, 503]
+```
+
+## JSON patch
+
+You can add JSON patches to extend API documentation files. The HTTP connector supports `merge` and `json6902`
+strategies. JSON patches can be applied before or after the conversion from OpenAPI to HTTP schema configuration. It
+will be useful if you need to extend or fix some fields in the API documentation such as server URL.
+
+```yaml
+files:
+  - file: openapi.yaml
+    spec: oas3
+    patchBefore:
+      - path: patch-before.yaml
+        strategy: merge
+    patchAfter:
+      - path: patch-after.yaml
+        strategy: json6902
+```
+
+See [the example](https://github.com/hasura/ndc-http/tree/main/ndc-http-schema/command/testdata/patch) for more context.
+
+## Runtime settings
+
+### Stringify JSON (boolean)
+
+This setting treats the arbitrary JSON scalars as a JSON string. This setting is useful when, for example, making the
+schema compatible with [PromptQL](https://promptql.hasura.io).

@@ -1,0 +1,57 @@
+---
+sidebar_label: ddn command show
+sidebar_position: 28
+description: Show diff between the command and its corresponding ndc function/procedure using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_command_show"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn command show
+---
+
+# DDN CLI: ddn command show
+
+Show diff between the command and its corresponding ndc function/procedure.
+
+## Synopsis
+
+Show diff between the command and its corresponding ndc function/procedure
+
+```bash
+ddn command show <command-name> [flags]
+```
+
+## Examples
+
+```bash
+# Show diff between the 'InsertUsers' command and its corresponding ndc function/procedure
+ ddn command show InsertUsers
+
+# Show diff between commands and their corresponding ndc functions/procedures for all commands matching glob pattern 'Delete*'
+ ddn command show "Delete*"
+```
+
+## Options
+
+```sass
+    --ci                Disables the use of context
+-c, --context string    Name of the context to use. (default <current_context>)
+-h, --help              help for show
+    --pattern string    Pattern to detect targets. Can be 'glob' or 'literal'. (default "glob")
+    --subgraph string   Path to Subgraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn command](/reference/cli/commands/ddn_command) - Perform Command-related operations

@@ -1,0 +1,61 @@
+---
+sidebar_label: ddn subgraph build create
+sidebar_position: 99
+description: Create a SubgraphBuild on Hasura DDN using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_subgraph_build_create"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn subgraph build create
+---
+
+# DDN CLI: ddn subgraph build create
+
+Create a SubgraphBuild on Hasura DDN.
+
+## Synopsis
+
+Create a SubgraphBuild on Hasura DDN
+
+```bash
+ddn subgraph build create [flags]
+```
+
+## Examples
+
+```bash
+# Build the Subgraph from a config file for Project with some environment variables
+ ddn subgraph build create --subgraph ./app/subgraph.yaml --project pet-lion-2649 --env key1=val1
+```
+
+## Options
+
+```sass
+    --ci                             Disables the use of context
+-c, --context string                 Name of the context to use. (default <current_context>)
+-d, --description string             (Optional) description of the build
+-e, --env stringArray                Environment variable, e.g. key=val. Can be repeated to provide multiple env vars
+    --env-file stringArray           Path to .env file. Can be repeated to provide multiple env files
+-h, --help                           help for create
+    --no-build-connectors            Do not recursively build all connectors in the subgraph and use their URLs for subgraph build. (default: false)
+-p, --project string                 DDN Project name
+    --self-hosted-data-plane         Is the data plane self hosted?
+    --subgraph string                Path to Subgraph config file
+    --target-env-file string         Env file to write the connector build URLs to.
+    --update-connector-link-schema   Update DataConnectorLink schema with the NDC schema of the connectors built recursively. (default: false)
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn subgraph build](/reference/cli/commands/ddn_subgraph_build) - Perform SubgraphBuild-related operations

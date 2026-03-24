@@ -1,0 +1,54 @@
+---
+sidebar_label: FAQ
+description: "Frequently Asked Questions about authentication modes and permissions in Hasura."
+keywords:
+  - JWT mode
+  - Webhook mode
+  - Hasura permissions
+  - NoAuth mode
+---
+
+# Frequently Asked Questions about Auth
+
+## Should I choose JWT or Webhook mode?
+
+JWT mode is recommended for most use cases. It's easy to set up, integrates with many 3rd party providers and provides a
+robust security model.
+
+Webhook mode is more flexible and can be useful for custom authentication scenarios. Webhook mode will be slightly
+slower than JWT mode due to the additional network request.
+
+## How do I test permissions with JWT mode?
+
+You can test permissions directly in the Hasura Console's API interface:
+
+1. Define the desired permissions for a particular Type, Model, or Command in your metadata.
+2. Create a new build of your supergraph.
+3. Make a request through the Hasura DDN Console GraphiQL API interface with an auth token that includes the required
+   session variables.
+4. Check the returned data to ensure it adheres to your permission configurations.
+
+Read more about setting up a test token in the [JWT mode tutorial](/auth/jwt/tutorials/setup-test-jwt.mdx).
+
+## How do I create a new role?
+
+A role comes into existence when it is defined in one of TypePermissions, ModelPermissions, or CommandPermissions.
+
+## How do I delete a role?
+
+To delete a role, you need to remove the role from all TypePermissions, ModelPermissions, and CommandPermissions
+objects.
+
+## How do I enable a fully open production API where any user can query anything without any auth in their queries?
+
+Use [NoAuth](/auth/noauth-mode.mdx) mode and [set the API to public](/auth/private-vs-public.mdx) via the console in
+`Settings > Summary > API Access Mode` or by using the `ddn project set-api-access-mode public` command.
+
+## How do I enable a **mostly** fully public API with no authentication but where **some** fields are not public?
+
+Enable webhook mode and for any query which doesn't have auth header properties assign the `public` session variable
+role in the response. For any user query with proper auth, assign the appropriate role.
+
+## How do I enable a secure API with JWT mode but where some fields are fully public?
+
+In this case queries to “public” fields still need a valid JWT.

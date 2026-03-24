@@ -1,0 +1,58 @@
+---
+sidebar_label: ddn connector upgrade
+sidebar_position: 45
+description: Upgrade connector configuration using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector_upgrade"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector upgrade
+---
+
+# DDN CLI: ddn connector upgrade
+
+Upgrade connector configuration.
+
+## Synopsis
+
+Connectors are released on their own cadence; new versions may have new features, fixes, or security updates. To upgrade a connector's version to the latest — or a specific — configuration version, use this command. The connector will be automatically re-introspected after the upgrade to update the configuration.
+
+```bash
+ddn connector upgrade [flags]
+```
+
+## Examples
+
+```bash
+# Upgrade Connector to latest version
+ ddn connector upgrade --connector path/to/connector.yaml
+
+# Upgrade Connector to specific version
+ ddn connector upgrade --connector path/to/connector.yaml --version v1.2.3
+```
+
+## Options
+
+```sass
+    --ci                     Disables the use of context
+    --connector string       Path to Connector YAML config file
+-c, --context string         Name of the context to use. (default <current_context>)
+    --env-file stringArray   Path to .env file. Can be repeated to provide multiple env files
+-h, --help                   help for upgrade
+    --version string         Target version for the connector
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector](/reference/cli/commands/ddn_connector) - Perform Connector related operations

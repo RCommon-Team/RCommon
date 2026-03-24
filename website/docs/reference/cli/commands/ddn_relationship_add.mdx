@@ -1,0 +1,65 @@
+---
+sidebar_label: ddn relationship add
+sidebar_position: 92
+description: Adds Relationships from foreign keys on collection-name or targeting collection-name using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_relationship_add"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn relationship add
+---
+
+# DDN CLI: ddn relationship add
+
+Adds Relationships from foreign keys on collection-name or targeting collection-name.
+
+## Synopsis
+
+Adds Relationships from foreign keys on collection-name or targeting collection-name
+
+```bash
+ddn relationship add <connector-link-name> <collection-name> [flags]
+```
+
+## Examples
+
+```bash
+# Add all Relationships for DataConnectorLink "mydb" in the subgraph set in the context
+ ddn relationship add mydb "*"
+
+# Add Relationships for the collection "Album" in the DataConnectorLink "mydb" in the Subgraph "app"
+ ddn relationship add mydb Album --subgraph ./app/subgraph.yaml
+
+# Add Relationships for collections that match the glob pattern "sales_*"
+ ddn relationship add mydb "sales_*"
+
+# Add Relationships for the collection "Album" defined by the foreign key "artists_album_id_fkey" on the collection "Artist"
+ ddn relationship add mydb Album --fk-collection Artist --fk-name artists_album_id_fkey
+```
+
+## Options
+
+```sass
+    --ci                     Disables the use of context
+-c, --context string         Name of the context to use. (default <current_context>)
+    --fk-collection string   Only consider foreign keys defined on this collection
+    --fk-name string         Only consider foreign keys with this name
+-h, --help                   help for add
+    --pattern string         Pattern to detect targets. Can be 'glob' or 'literal'. (default "glob")
+    --subgraph string        Path to Subgraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn relationship](/reference/cli/commands/ddn_relationship) - Perform Relationship related operations

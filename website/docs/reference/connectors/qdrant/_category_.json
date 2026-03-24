@@ -1,0 +1,7 @@
+{
+  "label": "Qdrant",
+  "position": 13,
+  "customProps": {
+    "connector-ids": ["qdrant"]
+  }
+}

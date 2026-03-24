@@ -1,0 +1,120 @@
+---
+sidebar_label: DDN Topology & Architecture
+description: "Learn about the topology and architecture of Hasura DDN"
+keywords:
+  - hasura ddn
+  - architecture
+  - topology
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# DDN Topology & Architecture
+
+## Topology
+
+Compared to Hasura v2, a fundamental architecture improvement introduced Hasura DDN where the buildtime and runtime are
+separated into distinct components. The [Control Plane](#control-plane) builds the project's metadata and makes it
+available for the Hasura DDN engine running on the [Data Plane](#data-plane).
+
+<Thumbnail src="/img/deployment/control_plane.png" alt="control plane" />
+
+### Control Plane {#control-plane}
+
+Developers interact with the Hasura DDN Control Plane to create [supergraph builds](/project-configuration/overview.mdx)
+Each supergraph build produces a unique GraphQL API, hosted by the Data Plane. As a developer, you use the Hasura
+console on the Control Plane to visualize the supergraph and interact with the GraphQL API.
+
+The Control Plane also provides monitoring and observability features. The console lets you add collaborators so that
+you can invite other developers to contribute to the supergraph and also to share the GraphQL API with consumers.
+
+The Control Plane enables preview deployments, in the form of builds, by accepting your project metadata and making it
+available to the Data Plane in a format optimized for the Hasura DDN Engine runtime.
+
+Each build you create will results in a unique, immutable GraphQL API that can be used to execute operations
+independently, without affecting any other builds.
+
+The Control Plane processes observability data sent by the Data Plane and makes it available for consumption on the
+console. This includes traces for every GraphQL operation executed and overall metrics on API usage.
+
+### Data Plane {#data-plane}
+
+The Hasura DDN Engine and the data connectors run on the Data Plane. The Hasura DDN Data Plane runs an enhanced version
+of the DDN engine which is capable of serving multiple GraphQL APIs at the same time. It is a serverless-like runtime
+where the configuration for executing a GraphQL request is loaded on-demand and is discarded after processing the
+request. This makes the runtime extremely efficient and highly scalable.
+
+Certain connectors also makes use of similar strategies to efficiently handle connection pools, only creating them
+on-demand.
+
+The Data Plane can be deployed across multiple regions, enabling API requests to be routed to the nearest client
+location for optimal latency through advanced load-balancing with Anycast IP addresses.
+
+This feature is readily available on GCP, AWS, and Azure, and can also be deployed on self-hosted Hasura DDN, provided
+the infrastructure supports the necessary network capabilities.
+
+## Architecture
+
+Hasura DDN is a fully managed SaaS product where your API is running on the cloud, and where performance, availability
+and security is already taken care of for you. Your API will be running on Hasura's optimized serverless production
+infrastructure.
+
+For organizations with advanced security and compliance needs, Hasura DDN can be deployed within isolated compute and
+network infrastructure and hosted with a specific cloud provider and regions you choose. Private deployment of Hasura
+DDN enables secure connectivity to your data sources, whether they are within your Cloud VPCs or on-prem infrastructure.
+You can also configure the API to be exposed over internal IP alone. Advanced firewall rules and API protections are
+also available.
+
+Hasura Private DDN is available as a dedicated offering that is fully hosted and managed by Hasura. It can be deployed
+to your own cloud provider account in a Bring Your Own Cloud (BYOC) model, where it is still completely managed by
+Hasura.
+
+### Hasura DDN
+
+When you create a project on Hasura DDN, your GraphQL API is running on global serverless edge infrastructure hosted by
+Hasura. You configure your instance to talk to your databases, APIs, or other connectors that are hosted on your
+infrastructure and Hasura communicates with them over the public internet.
+
+<Thumbnail src="/img/deployment/ddn_architecture.png" alt="DDN Architecture" />
+
+With serverless-edge deployment, Hasura and your connectors operate within Hasura's infrastructure. We manage automatic
+scaling, provisioning, operations, and maintenance.
+
+This deployment option is production-ready, with the API available **instantly**. There is no base cost: it is free if
+you are on the Free plan, or you only pay for the [models](/reference/metadata-reference/models.mdx) if you're on the
+Base or Advanced plans. For more details, visit our [pricing page](https://hasura.io/pricing/ddn).
+
+### Hasura Private DDN
+
+Hasura Private DDN provides all the benefits of Hasura DDN with the added advantage of private data connectivity and
+isolated infrastructure. We highly recommend Private DDN for any organization using Hasura DDN to connect to private
+data, ensuring that sensitive information remains secure and is protected from vulnerabilities associated with public
+networks.
+
+<Thumbnail src="/img/deployment/private_ddn.png" alt="Hasura Private DDN Architecture" />
+
+With Private DDN, the Data Plane is running on Dedicated Infrastructure which provides dedicated network and compute
+infrastructure for your deployment, offering superior security by isolating traffic from public networks and other
+customers. The highest level of isolation provided by cloud providers is used to make sure that the workloads are
+dedicated to the customer.
+
+Private Data Source Connectivity enables direct, secure, and private connections to data sources without relying on
+public networks, minimizing latency and enhancing data protection. With Private DDN, VPC peering, VPN, Private Link or
+any other cloud vendor specific technology is available.
+
+Single Sign-On (SAML) with Private DDN enables effortless and secure access by integrating with identity providers like
+Okta or Active Directory. Custom Firewall Rules allows organizations to define custom rules, controlling network traffic
+flow based on specific security policies. Private DDN also gives customers Private API Endpoints (For Internal network
+use) that are restricted to internal networks, ensuring external traffic cannot access your applications or data.
+
+### Multi-region
+
+Hasura DDN is deployed to many regions around the globe. This deployment model provides lowest latency possible to your
+API clients. The API endpoint that Hasura DDN provides is backed by an Anycast IP address, where a single IP is
+allocated for serving the incoming request and the request is routed to the nearest Hasura DDN region.
+
+<Thumbnail src="/img/deployment/multi_region_postgres.png" alt="DDN multi-region routing" />
+
+Combined with multi-region databases, Hasura DDN gives you the best performance for your APIs, without the hassle of
+setting up any of this infrastructure yourself. Read more about how this works on
+[our blog](https://hasura.io/blog/global-reach-local-performance-introducing-hasuras-multi-region-database-routing).

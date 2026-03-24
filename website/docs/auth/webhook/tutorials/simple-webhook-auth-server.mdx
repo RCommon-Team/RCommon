@@ -1,0 +1,244 @@
+---
+sidebar_position: 1
+description: Learn how to create a simple webhook authentication server using Node.js and Express for Hasura DDN
+keywords:
+  - webhook
+  - authentication
+  - server
+  - node.js
+  - express
+  - hasura
+  - ddn
+---
+
+# Simple Webhook Auth Server Demo Tutorial
+
+This tutorial demonstrates how to create a basic demo webhook authentication server using Node.js and Express. This
+example server shows the structure for handling authentication requests from Hasura DDN, but uses mock data instead of
+actual validation. In a production environment, you would need to implement proper token validation and user
+authentication.
+
+## Prerequisites
+
+- Node.js v16 or higher installed on your system
+- Basic understanding of Express.js (v4.x)
+- A Hasura DDN project set up
+- Basic understanding of JWT tokens and OAuth (for production implementation)
+
+## Project Setup
+
+1. Create a new directory for your project and initialize it:
+
+```bash
+mkdir hasura-webhook-auth
+cd hasura-webhook-auth
+npm init -y
+```
+
+2. Install the required dependencies:
+
+```bash
+npm install express
+```
+
+3. Create a new file called `server.js` and add the following code:
+
+```javascript
+const express = require("express");
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Mock function to fetch user info from a token
+function fetchUserInfo(token) {
+  // In a real application, you would:
+  // 1. Validate the token
+  // 2. Query your database or auth service
+  // 3. Return user information
+  return {
+    role: "user",
+    userId: "1",
+    // Add any other user information needed for your permissions
+  };
+}
+
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.send("Webhook auth server is running");
+});
+
+// Webhook endpoint for Hasura DDN
+app.post("/webhook", (req, res) => {
+  // Extract the Authorization header
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({
+      error: "No authorization token provided",
+    });
+  }
+
+  try {
+    // Fetch user information based on the token
+    const userInfo = fetchUserInfo(token);
+
+    // Return the Hasura variables
+    const hasuraVariables = {
+      "X-Hasura-Role": userInfo.role,
+      "X-Hasura-User-Id": userInfo.userId,
+      // Add any other variables needed for your permissions
+    };
+
+    res.json(hasuraVariables);
+  } catch (error) {
+    res.status(500).json({
+      error: "Error processing authentication request",
+    });
+  }
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Webhook auth server running on port ${port}`);
+});
+```
+
+## Running the Server
+
+1. Start the server:
+
+```bash
+node server.js
+```
+
+2. The server will start on port 3000 (or the port specified in the PORT environment variable).
+
+## Testing the Webhook
+
+You can test the webhook using curl:
+
+```bash
+curl -X POST http://localhost:3000/webhook \
+  -H "Authorization: Bearer your-token-here" \
+  -H "Content-Type: application/json"
+```
+
+The response should look like:
+
+```json
+{
+  "X-Hasura-Role": "user",
+  "X-Hasura-User-Id": "1"
+}
+```
+
+## Configuring DDN
+
+You can configure DDN to use your webhook by updating the `auth-config.hml` file in your Hasura DDN project.
+
+```yaml title="globals/metadata/auth-config.hml"
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    webhook:
+      url:
+        valueFromEnv: AUTH_WEBHOOK_URL
+      method: POST
+      customHeadersConfig:
+        body:
+          headers:
+            forward:
+              - authorization
+              - content-type
+        headers:
+          additional:
+            user-agent: "Hasura DDN"
+```
+
+## Next Steps
+
+This is a basic implementation. In a production environment, you should:
+
+1. Implement proper token validation with your auth provider:
+
+   - Use JWT validation libraries like `jsonwebtoken`
+   - Verify token signatures with your secret key
+   - Check token expiration and claims
+   - Example:
+
+     ```js
+     const jwt = require("jsonwebtoken");
+
+     async function validateToken(token) {
+       try {
+         // Remove 'Bearer ' prefix if present
+         const tokenValue = token.replace("Bearer ", "");
+
+         // Verify JWT token
+         const decoded = jwt.verify(tokenValue, process.env.JWT_SECRET);
+
+         // Check required claims
+         if (!decoded.sub || !decoded.role) {
+           throw new Error("Invalid token claims");
+         }
+
+         // Check token expiration
+         if (decoded.exp && Date.now() >= decoded.exp * 1000) {
+           throw new Error("Token has expired");
+         }
+
+         return decoded;
+       } catch (err) {
+         console.error("Token validation failed:", err.message);
+         throw new Error("Invalid token");
+       }
+     }
+     ```
+
+   - For OAuth tokens, validate with the auth provider:
+
+     ```js
+     const fetch = require("node-fetch");
+
+     async function validateOAuthToken(token) {
+       try {
+         const response = await fetch("https://your-auth-provider/oauth2/v1/tokeninfo", {
+           method: "POST",
+           headers: {
+             Authorization: `Bearer ${token}`,
+             "Content-Type": "application/x-www-form-urlencoded",
+           },
+           body: `access_token=${token}`,
+         });
+
+         if (!response.ok) {
+           throw new Error(`OAuth validation failed: ${response.statusText}`);
+         }
+
+         const data = await response.json();
+
+         // Check token validity and required scopes
+         if (!data.active || !data.scope.includes("required-scope")) {
+           throw new Error("Invalid or insufficient token permissions");
+         }
+
+         return data;
+       } catch (err) {
+         console.error("OAuth validation failed:", err.message);
+         throw new Error("Invalid OAuth token");
+       }
+     }
+     ```
+
+2. Add error handling and logging
+3. Use environment variables for configuration
+4. Add rate limiting and security measures
+5. Implement proper user authentication and database integration
+
+## Additional Resources
+
+- [Webhook Mode Overview](/auth/webhook/webhook-mode.mdx)
+- [Permissions Guide](/auth/permissions/index.mdx)

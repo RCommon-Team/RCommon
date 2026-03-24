@@ -1,0 +1,155 @@
+---
+sidebar_position: 2
+sidebar_label: Standalone Docker Containers
+keywords:
+  - hasura ddn
+  - tutorial
+  - deploy
+  - deployment
+  - hosting
+  - self-hosted
+id: docker-containers
+pagination_prev: deployment/self-hosted/index
+pagination_next: private-ddn/overview
+---
+
+# Self-Host: Standalone Docker Containers
+
+## Introduction
+
+This guide walks you through deploying a Hasura DDN supergraph API using individual Docker containers. This modular
+approach allows you to:
+
+- Run services on the same machine or distribute them across multiple servers.
+- Scale individual components independently.
+- Manually configure networking, environment variables, and orchestration.
+
+## Prepare your project's metadata
+
+To begin, you'll need to create a set of project metadata files using the [DDN CLI](/reference/cli/index.mdx). You can
+use the [Quickstart](/quickstart.mdx) docs or get started with a
+[particular connector](/how-to-build-with-ddn/overview.mdx). We recommend completing this set of steps on your host
+machine or via your own CI setup.
+
+### Step 1. Create a `.env.deployment` file
+
+```sh title="In the root of your project, run the following to scaffold out your new env file:"
+cp .env .env.deployment
+```
+
+```plaintext title="For each connector, replace the READ and WRITE URLs, for example:"
+<SUBGRAPH_NAME>_<CONNECTOR_NAME>_READ_URL=http://<host>:<port>
+<SUBGRAPH_NAME>_<CONNECTOR_NAME>_WRITE_URL=http://<host>:<port>
+```
+
+:::info What are these URLs?
+
+In the strings above, `host` will refer to whatever domain or IP address your connector(s) will run on and `port` refers
+to the exposed port on which the connector is listening.
+
+You'll need to know these values before continuing.
+
+:::
+
+### Step 2. Create a new context
+
+```sh title="If you haven't yet done this, create a new context using the CLI:"
+ddn context create-context deployment
+```
+
+```yaml title="In .hasura/context.yaml, use the newly-created .env.deployment file:" {5}
+contexts:
+  deployment:
+    supergraph: ../supergraph.yaml
+    subgraph: ../app/subgraph.yaml
+    localEnvFile: ../.env.deployment
+```
+
+### Step 3. Build your supergraph
+
+```sh title="Using the deployment context, use the DDN CLI to create your project's metadata:"
+ddn supergraph build local
+```
+
+This will generate a set of JSON configuration files in `/engine/build` using your `.env.deployment` file.
+
+:::info Commit this to version control (optional)
+
+As you'll be using this metadata to build your Docker images on your server(s), you'll need a method by which you can
+copy these source files over. We recommend using version control (such as Git), but you can also SSH into your server
+and use `scp` to transfer over your project.
+
+:::
+
+## Build and run the engine
+
+### Step 1. Build your engine's image
+
+```bash title="On your server, with Docker installed and your latest metadata available, run the following command from the root of your project:"
+docker build -t my-engine -f engine/Dockerfile.engine engine
+```
+
+This will create an image named `my-engine` using the engine's Dockerfile.
+
+### Step 2. Run your engine
+
+```sh title="Then, from the root of your project, start the container with the required env vars:"
+docker run --rm -p 3280:3000 \
+  -e AUTHN_CONFIG_PATH=/md/auth_config.json \
+  -e ENABLE_CORS=true \
+  -e ENABLE_SQL_INTERFACE=true \
+  -e INTROSPECTION_METADATA_FILE=/md/metadata.json \
+  -e METADATA_PATH=/md/open_dd.json \
+  -e OTLP_ENDPOINT=<your_otlp_collector_endpoint> \
+  --add-host=local.hasura.dev:host-gateway \
+  my-engine
+```
+
+```sh title="You can verify this by sending a schema introspection request to your API:"
+curl -X POST https://<your-domain-or-ip>:3280/graphql \
+     -H "Content-Type: application/json" \
+     -d '{"query": "{ __schema { types { name } } }"}'
+```
+
+Of course, without a connector built and running, you won't be able to query data from the API.
+
+## Build and run a connector
+
+This process will need to be repeated for **each** connector.
+
+### Step 1. Build your connector's image
+
+```bash title="On your server, with Docker installed and the latest metadata available, run the following command from the root of your project:"
+docker build -t my-connector -f <subgraph_name>/connector/<connector_name>/.hasura-connector/Dockerfile.<connector_name> <subgraph_name>/connector/<connector_name>/
+```
+
+This will create an image named `my-connector` using the connector's Dockerfile.
+
+### Step 2. Run your connector
+
+```sh title="Then, from the root of your project, start the container with the required env vars:"
+docker run --rm -p 9758:8080 \
+  -e CONNECTION_URI="<your_database_connection_uri>" \
+  -e HASURA_SERVICE_TOKEN_SECRET="<your_service_token_secret>" \
+  -e OTEL_EXPORTER_OTLP_ENDPOINT="<your_otlp_collector_endpoint>" \
+  -e OTEL_SERVICE_NAME="<subgraph_name>_<my_connector>" \
+  --add-host=local.hasura.dev:host-gateway \
+  my-connector
+```
+
+:::info Where do I find these values?
+
+You can find these values in the `.env.deployment` file you created earlier.
+
+:::
+
+### Step 3. Test your setup
+
+```sh title="You can verify this by sending a real request to your API:"
+curl -X POST https://<your-domain-or-ip>:3280/graphql \
+     -H "Content-Type: application/json" \
+     -d '{"query": "{ <some_type> { <fields> { <field> } } }"}'
+```
+
+If everything is set up correctly, your API will return data from your connected source via the data connector(s). If
+you encounter issues, check your logs to ensure that your engine and connector containers are running correctly.

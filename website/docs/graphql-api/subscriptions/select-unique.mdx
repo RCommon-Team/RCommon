@@ -1,0 +1,24 @@
+---
+sidebar_label: Select unique
+sidebar_position: 1
+description: "Learn how to subscribe to unique data queries using your Hasura DDN API."
+keywords:
+  - graphql subscription
+  - hasura graphql api
+  - select unique
+---
+
+# Select Unique Subscription
+
+The following subscription will automatically update with new notifications for the **specified** user whenever they're
+added to the data source.
+
+```graphql
+subscription UserNotificationSubscription {
+  notifications(where: { user_id: { _eq: 123 } }) {
+    id
+    created_at
+    message
+  }
+}
+```

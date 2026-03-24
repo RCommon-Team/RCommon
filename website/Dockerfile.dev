@@ -1,0 +1,27 @@
+FROM ubuntu:22.04
+
+RUN yes | unminimize
+
+RUN apt-get update && apt-get install -y build-essential curl git vim sudo man-db
+
+ARG UID=1000
+ARG GID=1000
+
+RUN groupadd -r -g $GID mygroup &&\
+    useradd -rm -g mygroup -u $UID myuser &&\
+    echo "myuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/myuser
+
+USER myuser
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash &&\
+    export NVM_DIR="$HOME/.nvm" &&\
+    . "$NVM_DIR/nvm.sh" &&\
+    nvm install --default 18 &&\
+    nvm use node &&\
+    corepack enable && corepack prepare yarn@stable --activate
+
+RUN printf "\n\nexport NVM_DIR=\"\$HOME/.nvm\"\n. \"\$NVM_DIR/nvm.sh\"\n" >> ~/.bashrc
+
+WORKDIR /graphql-engine/docs
+
+EXPOSE 3001

@@ -1,0 +1,47 @@
+---
+sidebar_position: 3
+sidebar_label: Header passthrough
+description: "Learn how to configure header passthrough for the GraphQL connector."
+keywords:
+  - graphql connector
+  - header passthrough
+---
+
+# Header Passthrough
+
+## Introduction
+
+You can configure header passthrough for the GraphQL connector, enabling the passthrough of argument presets and other
+header values.
+
+## Example configuration
+
+```yaml title="You'll add this configuration to your DataConnectorLink object:"
+kind: DataConnectorLink
+version: v1
+definition:
+  name: my_graphql
+  url:
+    readWriteUrls:
+      read:
+        valueFromEnv: APP_GRAPHQL_READ_URL
+      write:
+        valueFromEnv: APP_GRAPHQL_WRITE_URL
+  schema:
+    # This is read from the connector schema configuration
+  argumentPresets:
+    - argument: headers
+      value:
+        httpHeaders:
+          forward:
+            - X-Hasura-Admin-Secret
+            - Authorization
+          additional: {}
+```
+
+:::tip Use the VS Code Extension
+
+[The Hasura VS Code Extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) can assist you with
+configuring header forwarding.
+
+:::

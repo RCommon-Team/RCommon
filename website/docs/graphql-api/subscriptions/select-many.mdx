@@ -1,0 +1,24 @@
+---
+sidebar_label: Select many
+sidebar_position: 2
+description: "Learn how to subscribe to data queries of many records using your Hasura DDN API."
+keywords:
+  - graphql subscription
+  - hasura graphql api
+  - select many
+---
+
+# Select Many Subscription
+
+The following subscription will automatically update with new notifications for **all** users whenever they're added to
+the data source.
+
+```graphql
+subscription AllNotificationSubscription {
+  notifications {
+    id
+    created_at
+    message
+  }
+}
+```

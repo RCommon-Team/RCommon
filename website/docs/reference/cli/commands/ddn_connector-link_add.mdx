@@ -1,0 +1,59 @@
+---
+sidebar_label: ddn connector-link add
+sidebar_position: 47
+description: Add a new DataConnectorLink to a Subgraph using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector-link_add"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector-link add
+---
+
+# DDN CLI: ddn connector-link add
+
+Add a new DataConnectorLink to a Subgraph.
+
+## Synopsis
+
+When you initialize a new connector, a DataConnectorLink is automatically added and configured to the current or specified subrgaph.
+
+```bash
+ddn connector-link add <connector-link-name> [flags]
+```
+
+## Examples
+
+```bash
+# Add a DataConnectorLink to the Subgraph "app"
+ ddn connector-link add mydb --subgraph ./app/subgraph.yaml
+
+# Add a DataConnectorLink to the Subgraph "app" and configure its connector URL as the Connector's local Docker service URL
+ ddn connector-link add mydb --subgraph app/subgraph.yaml --configure-host http://local.hasura.dev:<port>
+```
+
+## Options
+
+```sass
+    --ci                                 Disables the use of context
+    --configure-connector-token string   Token used to authenticate requests to the Connector
+    --configure-host string              Read and Write URL of the Connector
+-c, --context string                     Name of the context to use. (default <current_context>)
+-h, --help                               help for add
+    --subgraph string                    Path to Subgraph config file
+    --target-env-file string             Subgraph env file to write the connector URLs to
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector-link](/reference/cli/commands/ddn_connector-link) - Perform DataConnectorLink related operations

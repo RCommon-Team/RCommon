@@ -1,0 +1,482 @@
+---
+sidebar_position: 5
+sidebar_label: Types
+description:
+  "Explore types in Hasura, discover primitive types, custom types and container types. Learn how to define your data
+  structure and map existing data connector scalars to types in your data domain. Understand how these elements form the
+  foundation of your data, allowing for flexibility and seamless interconnection."
+keywords:
+  - hasura documentation
+  - graphql data structure
+  - data domain mapping
+  - hasura ddn
+  - hasura data specification
+  - graphql schema
+  - data connector scalars
+  - primitive types
+  - custom types
+toc_max_heading_level: 4
+seoFrontMatterUpdated: true
+canonicalUrl: "https://promptql.io/docs/reference/metadata-reference/types/"
+---
+
+# Types
+
+## Introduction
+
+Types serve as the fundamental elements that define the structure of your data.
+
+Being able to define types in your data domain is beneficial because it provides you with the flexibility to define them
+separately from the types referenced by a data connector's source.
+
+The specification employs a concrete type system that includes both primitive and user-defined types. All subsequent
+layers, such as [models](/reference/metadata-reference/models.mdx),
+[commands](/reference/metadata-reference/commands.mdx), and
+[relationships](/reference/metadata-reference/relationships.mdx) are defined in terms of these types.
+
+The types can be one of the following:
+
+| Type            | Description                                                                                              |
+| --------------- | -------------------------------------------------------------------------------------------------------- |
+| Primitive       | These are the basic types `ID`, `Int`, `Float`, `Boolean`, or `String`.                                  |
+| Custom          | These are user-defined types, such as ScalarType or ObjectType.                                          |
+| Type References | When specifying the types of a field or an argument, you can mark them as required `!` or repeated `[]`. |
+
+The spec also allows you to map existing data connector scalars to types in your data domain.
+
+:::info Primitive types and type references
+
+Primitive types supported are `ID`, `Int`, `Float`, `Boolean` and `String`.
+
+Type references follow [GraphQL type syntax](https://spec.graphql.org/June2018/#sec-Combining-List-and-Non-Null). Fields
+and arguments are nullable by default. To represent non-nullability, specify a `!` after the type name. Similarly, array
+fields and arguments are wrapped in `[]`.
+
+:::
+
+## How types work
+
+### Lifecycle
+
+Typically, types will be generated from the data connector schema when you
+[introspect a data connector](/reference/cli/commands/ddn_connector_introspect.mdx). You can also define custom types to
+represent data that doesn't exist in the data connector.
+
+Further, you can define custom types by either aliasing existing types (such as primitives or custom), or you can define
+a type with fields. In turn, the fields themselves can be a primitive or another custom type.
+
+Type references are types of fields and arguments that refer to other primitive or custom types and which can be marked
+as nullable, required or repeated (in the case of arrays).
+
+To make a new types available in your supergraph, you'll need to
+[create a new build](/reference/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
+#### ScalarType
+
+```yaml title="A sample scalar type definition:"
+kind: ScalarType
+version: v1
+definition:
+  name: Uuid
+  graphql:
+    typeName: Uuid
+```
+
+| **Field**                     | **Description**                                                                 | **Reference**                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `kind`                        | Indicates that this configuration is for a custom scalar type.                  | [ScalarType](#scalartype-scalartype)                                         |
+| `version`                     | The version of the ScalarType configuration.                                    | [ScalarTypeV1](#scalartype-scalartypev1)                                     |
+| `definition.name`             | The unique name for your custom scalar type, used throughout your project.      | [CustomTypeName](#scalartype-customtypename)                                 |
+| `definition.graphql.typeName` | The name to use for this scalar type in your GraphQL schema.                    | [ScalarTypeGraphQLConfiguration](#scalartype-scalartypegraphqlconfiguration) |
+| `definition.description`      | An optional description of this scalar type that appears in the GraphQL schema. | [ScalarTypeV1](#scalartype-scalartypev1)                                     |
+
+#### ObjectType
+
+```yaml title="A sample object type definition:"
+kind: ObjectType
+version: v1
+definition:
+  name: CartItems
+  fields:
+    - name: cartId
+      type: Uuid!
+    - name: createdAt
+      type: Timestamptz
+    - name: id
+      type: Uuid!
+    - name: productId
+      type: Uuid!
+    - name: quantity
+      type: Int4!
+    - name: updatedAt
+      type: Timestamptz
+  graphql:
+    typeName: CartItems
+    inputTypeName: CartItemsInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: my_pg
+      dataConnectorObjectType: cart_items
+      fieldMapping:
+        cartId:
+          column:
+            name: cart_id
+        createdAt:
+          column:
+            name: created_at
+        id:
+          column:
+            name: id
+        productId:
+          column:
+            name: product_id
+        quantity:
+          column:
+            name: quantity
+        updatedAt:
+          column:
+            name: updated_at
+```
+
+| **Field**                                              | **Description**                                                                                                   | **Reference**                                                                |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `kind`                                                 | Indicates that this configuration is for a custom object type.                                                    | [ObjectType](#objecttype-objecttype)                                         |
+| `version`                                              | The version of the ObjectType configuration.                                                                      | [ObjectTypeV1](#objecttype-objecttypev1)                                     |
+| `definition.name`                                      | The unique name for your custom object type, used throughout your project.                                        | [CustomTypeName](#objecttype-customtypename)                                 |
+| `definition.fields[].name`                             | The name of a field within your object type.                                                                      | [FieldName](#objecttype-fieldname)                                           |
+| `definition.fields[].type`                             | The data type for the field, which can be a primitive, custom type, or a type reference (e.g., `Uuid!`, `Int4!`). | [TypeReference](#objecttype-typereference)                                   |
+| `definition.fields[].description`                      | An optional description of this field that appears in the GraphQL schema.                                         | [ObjectFieldDefinition](#objecttype-objectfielddefinition)                   |
+| `definition.graphql.typeName`                          | The name to use for this object type in your GraphQL schema.                                                      | [ObjectTypeGraphQLConfiguration](#objecttype-objecttypegraphqlconfiguration) |
+| `definition.graphql.inputTypeName`                     | The name to use for this object type in input operations within your GraphQL schema.                              | [ObjectTypeGraphQLConfiguration](#objecttype-objecttypegraphqlconfiguration) |
+| `definition.dataConnectorTypeMapping[]`                | The mapping of data connector object types to your object type.                                                   | [DataConnectorTypeMapping](#objecttype-dataconnectortypemapping)             |
+| `definition.dataConnectorTypeMapping[].fieldMapping[]` | The mapping of fields in your object type to columns in a data connector.                                         | [ObjectTypeFieldMappings](#objecttype-fieldmappings)                         |
+
+---
+
+## Metadata structure
+
+
+### ScalarType {#scalartype-scalartype}
+
+Definition of a user-defined scalar type that that has opaque semantics.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `ScalarType` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ScalarTypeV1](#scalartype-scalartypev1) | true | Definition of a user-defined scalar type that that has opaque semantics. |
+
+ **Example:**
+
+```yaml
+kind: ScalarType
+version: v1
+name: CustomString
+graphql:
+  typeName: CustomString
+description: A custom string type
+```
+
+
+#### ScalarTypeV1 {#scalartype-scalartypev1}
+
+Definition of a user-defined scalar type that that has opaque semantics.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [CustomTypeName](#scalartype-customtypename) | true | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `graphql` | [ScalarTypeGraphQLConfiguration](#scalartype-scalartypegraphqlconfiguration) / null | false | Configuration for how this scalar type should appear in the GraphQL schema. |
+| `description` | string / null | false | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema. |
+
+
+
+#### ScalarTypeGraphQLConfiguration {#scalartype-scalartypegraphqlconfiguration}
+
+GraphQL configuration of an Open DD scalar type
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `typeName` | [GraphQlTypeName](#scalartype-graphqltypename) | true | The name of the GraphQl type to use for this scalar. |
+
+
+
+#### GraphQlTypeName {#scalartype-graphqltypename}
+
+The name of a GraphQL type.
+
+
+**Value:** string
+
+
+#### CustomTypeName {#scalartype-customtypename}
+
+The name of a user-defined type.
+
+
+**Value:** string
+### ObjectType {#objecttype-objecttype}
+
+Definition of a user-defined Open DD object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `ObjectType` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ObjectTypeV1](#objecttype-objecttypev1) | true | Definition of a user-defined Open DD object type. |
+
+ **Example:**
+
+```yaml
+kind: ObjectType
+version: v1
+definition:
+  name: Author
+  fields:
+    - name: author_id
+      type: Int!
+      description: The id of the author
+    - name: first_name
+      type: String
+      description: The first name of the author
+    - name: last_name
+      type: String
+      description: The last name of the author
+    - name: biography
+      type: String
+      description: AI generated biography for the author
+      arguments:
+        - name: ai_model
+          argumentType: String!
+          description: The AI model to use for generating the biography
+  description: An author of a book
+  globalIdFields:
+    - author_id
+  graphql:
+    typeName: Author
+  dataConnectorTypeMapping:
+    - dataConnectorName: my_db
+      dataConnectorObjectType: author
+      fieldMapping:
+        author_id:
+          column:
+            name: id
+    - dataConnectorName: my_vector_db
+      dataConnectorObjectType: author
+      fieldMapping:
+        biography:
+          column:
+            name: biography
+            argumentMapping:
+              ai_model: model
+```
+
+
+#### ObjectTypeV1 {#objecttype-objecttypev1}
+
+Definition of a user-defined Open DD object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [CustomTypeName](#objecttype-customtypename) | true | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `fields` | [[ObjectFieldDefinition](#objecttype-objectfielddefinition)] | true | The list of fields defined for this object type. |
+| `globalIdFields` | [[FieldName](#objecttype-fieldname)] / null | false | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
+| `graphql` | [ObjectTypeGraphQLConfiguration](#objecttype-objecttypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
+| `description` | string / null | false | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
+| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#objecttype-dataconnectortypemapping)] | false | Mapping of this object type to corresponding object types in various data connectors. |
+
+
+
+#### DataConnectorTypeMapping {#objecttype-dataconnectortypemapping}
+
+This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data connector.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `dataConnectorName` | [DataConnectorName](#objecttype-dataconnectorname) | true |  |
+| `dataConnectorObjectType` | [DataConnectorObjectType](#objecttype-dataconnectorobjecttype) | true |  |
+| `fieldMapping` | [FieldMappings](#objecttype-fieldmappings) | false |  |
+
+
+
+#### FieldMappings {#objecttype-fieldmappings}
+
+Mapping of object fields to their source columns in the data connector.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [FieldMapping](#objecttype-fieldmapping) | false |  |
+
+
+
+#### FieldMapping {#objecttype-fieldmapping}
+
+Source field directly maps to some column in the data connector.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `column` | [ColumnFieldMapping](#objecttype-columnfieldmapping) | true | The target column in a data connector object that a source field maps to. |
+
+
+
+#### ColumnFieldMapping {#objecttype-columnfieldmapping}
+
+The target column in a data connector object that a source field maps to.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [DataConnectorColumnName](#objecttype-dataconnectorcolumnname) | true | The name of the target column |
+| `argumentMapping` | [ArgumentMapping](#objecttype-argumentmapping) / null | false | Arguments to the column field |
+
+
+
+#### ArgumentMapping {#objecttype-argumentmapping}
+
+Mapping of a comand or model argument name to the corresponding argument name used in the data connector. The key of this object is the argument name used in the command or model and the value is the argument name used in the data connector.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [DataConnectorArgumentName](#objecttype-dataconnectorargumentname) | false |  |
+
+
+
+#### DataConnectorArgumentName {#objecttype-dataconnectorargumentname}
+
+The name of an argument as defined by a data connector.
+
+
+**Value:** string
+
+
+#### DataConnectorColumnName {#objecttype-dataconnectorcolumnname}
+
+The name of a column in a data connector.
+
+
+**Value:** string
+
+
+#### DataConnectorObjectType {#objecttype-dataconnectorobjecttype}
+
+The name of an object type in a data connector.
+
+
+**Value:** string
+
+
+#### DataConnectorName {#objecttype-dataconnectorname}
+
+The name of a data connector.
+
+
+**Value:** string
+
+
+#### ObjectTypeGraphQLConfiguration {#objecttype-objecttypegraphqlconfiguration}
+
+GraphQL configuration of an Open DD object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `typeName` | [GraphQlTypeName](#objecttype-graphqltypename) / null | false | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName` | [GraphQlTypeName](#objecttype-graphqltypename) / null | false | The name to use for the GraphQL type representation of this object type when used in an input context. |
+| `apolloFederation` | [ObjectApolloFederationConfig](#objecttype-objectapollofederationconfig) / null | false | Configuration for exposing apollo federation related types and directives. |
+
+
+
+#### ObjectApolloFederationConfig {#objecttype-objectapollofederationconfig}
+
+Configuration for apollo federation related types and directives.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `keys` | [[ApolloFederationObjectKey](#objecttype-apollofederationobjectkey)] | true |  |
+
+
+
+#### ApolloFederationObjectKey {#objecttype-apollofederationobjectkey}
+
+The definition of a key for an apollo federation object.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fields` | [[FieldName](#objecttype-fieldname)] | true |  |
+
+
+
+#### GraphQlTypeName {#objecttype-graphqltypename}
+
+The name of a GraphQL type.
+
+
+**Value:** string
+
+
+#### ObjectFieldDefinition {#objecttype-objectfielddefinition}
+
+The definition of a field in a user-defined object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [FieldName](#objecttype-fieldname) | true | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type. |
+| `type` | [TypeReference](#objecttype-typereference) | true | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string / null | false | The description of this field. Gets added to the description of the field's definition in the graphql schema. |
+| `deprecated` | [Deprecated](#objecttype-deprecated) / null | false | Whether this field is deprecated. If set, the deprecation status is added to the field's graphql schema. |
+| `arguments` | [[FieldArgumentDefinition](#objecttype-fieldargumentdefinition)] | false | The arguments for the field |
+
+
+
+#### FieldArgumentDefinition {#objecttype-fieldargumentdefinition}
+
+The definition of an argument for a field in a user-defined object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [ArgumentName](#objecttype-argumentname) | true |  |
+| `argumentType` | [TypeReference](#objecttype-typereference) | true |  |
+| `description` | string / null | false |  |
+
+
+
+#### ArgumentName {#objecttype-argumentname}
+
+The name of an argument.
+
+
+**Value:** string
+
+
+#### Deprecated {#objecttype-deprecated}
+
+OpenDd configuration to indicate whether an object type field, relationship, model root field or command root field is deprecated.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `reason` | string / null | false | The reason for deprecation. |
+
+
+
+#### TypeReference {#objecttype-typereference}
+
+A reference to an Open DD type including nullable values and arrays.
+Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array.
+Eg: '[String!]!' is a non-nullable array of non-nullable strings.
+
+
+**Value:** string
+
+
+#### FieldName {#objecttype-fieldname}
+
+The name of a field in a user-defined object type.
+
+
+**Value:** string
+
+
+#### CustomTypeName {#objecttype-customtypename}
+
+The name of a user-defined type.
+
+
+**Value:** string

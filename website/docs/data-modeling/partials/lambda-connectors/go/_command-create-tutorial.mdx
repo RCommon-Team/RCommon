@@ -1,0 +1,66 @@
+```sh title="Initalize a new connector and select hasura/go from the list:"
+ddn connector init my_go -i
+```
+
+```go title="Rename hello.go to nameToUpperCase.go:"
+package functions
+
+import (
+  "context"
+  "fmt"
+  "hasura-ndc.dev/ndc-go/types"
+  "strings"
+)
+
+// NameArguments defines the input arguments for the function
+type NameArguments struct {
+  Name string `json:"name"` // required argument
+}
+
+// NameResult defines the output result for the function
+type NameResult string
+
+// FunctionShoutName converts a name string to uppercase
+func FunctionShoutName(ctx context.Context, state *types.State, arguments *NameArguments) (*NameResult, error) {
+  if arguments.Name == "" {
+    return nil, fmt.Errorf("name cannot be empty")
+  }
+
+  upperCaseName := NameResult(strings.ToUpper(arguments.Name))
+  return &upperCaseName, nil
+}
+```
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_go
+```
+
+```bash title="Track the function:"
+ddn command add my_go shoutName
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your expanded table with the transformed name:"
+query ShoutTheName {
+  shoutName(name: "Alice")
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "shoutName": "ALICE"
+  }
+}
+```

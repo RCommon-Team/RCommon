@@ -1,0 +1,132 @@
+---
+description: "Learn how to make admin-level and unauthenticated requests to a Hasura DDN instance with a webhook."
+sidebar_label: Admin and Unauthenticated Requests
+sidebar_position: 3
+keywords:
+  - hasura webhook mode
+  - hasura engine authentication
+  - graphql request authentication
+  - webhook authentication
+  - webhook configuration
+  - api authorization
+  - hasura api requests
+  - session variables
+  - hasura user-role
+---
+
+# Admin and Unauthenticated Requests
+
+Hasura DDN projects enable an `admin` role by default which has access to all Models and Types in your supergraph.
+
+## Making admin-level requests
+
+To make an admin-level request, after [updating up your AuthConfig](/auth/webhook/webhook-mode.mdx#update-authconfig),
+shape your webhook's response as follows:
+
+```json title="Example response from your webhook to Hasura DDN"
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "X-Hasura-Role": "admin",
+}
+```
+
+Any request that triggers this response from your webhook will be treated as an `admin` request.
+
+:::info Your JWT claims should be unique for each role
+
+When designing or implementing an auth server, it is crucial to generate JWTs with different claims for each user role
+so that each token enables the appropriate data access permissions for that user.
+
+:::
+
+## Making unauthenticated requests
+
+To make an unauthenticated request (i.e., one that is publicly accessible without any authentication), you'll need to do
+a few things.
+
+### Step 1. Create the claims
+
+In your authentication server, you can provide a response that identifies the user's role as `public`. This can be any
+role name you wish, so long as it's not a role (such as `admin`) that already exists.
+
+```json title="Example response from your webhook to Hasura DDN"
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "X-Hasura-Role": "public",
+}
+```
+
+### Step 2. Update ModelPermissions
+
+For whatever [models](/reference/metadata-reference/models.mdx) you'd like to publicly expose, add a
+[`ModelPermissions`](/reference/metadata-reference/permissions.mdx#modelpermissions-modelpermissions) rule for the
+public role.
+
+```yaml title="Example ModelPermission for an Events Model"
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Events
+  permissions:
+    - role: admin
+      select:
+        filter: null
+    #highlight-start
+    - role: public
+      select:
+        filter: null
+    #highlight-end
+```
+
+### Step 3. Update TypePermissions
+
+Then, determine which [types](/reference/metadata-reference/types.mdx) you'd like to publicly expose by updating
+[TypePermissions](/reference/metadata-reference/permissions.mdx#typepermissions-typepermissions). Hasura DDN gives you
+the ability to granularly determine which fields from each Model are available to each role.
+
+```yaml title="Example TypePermissions for an Events Model"
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Events
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - id
+          - owner_id
+          - created_at
+          - updated_at
+          - is_live
+          - title
+          - date
+          - description
+    #highlight-start
+    - role: public
+      output:
+        allowedFields:
+          - id
+          - is_live
+          - title
+          - date
+          - description
+    #highlight-end
+```
+
+### Step 4. Rebuild your supergraph
+
+Once you've updated your metadata files, you can rebuild your supergraph and test it locally.
+
+```bash title="For example, from the root of your project, run:"
+ddn supergraph build local
+```
+
+### Step 5. Make an unauthenticated request
+
+Now you can make an unauthenticated request to your API. The request response body will include
+`{"x-hasura-role": "public"}` and as such the engine will limit access to the fields that are returned to the ones
+specified in the `TypePermissions` for that role.

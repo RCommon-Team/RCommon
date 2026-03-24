@@ -1,0 +1,327 @@
+---
+sidebar_position: 4
+sidebar_label: "Relationships connect data"
+description: "Relationships allow you to connect data across different models."
+keywords:
+  - relationship
+  - data modeling
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Thumbnail from "@site/src/components/Thumbnail";
+
+import PostgresRelationshipCreateModelToModel from "@site/docs/data-modeling/partials/classic-connectors/postgreSQL/_relationship-create-model-to-model.mdx";
+import MongoDBRelationshipCreateModelToModel from "@site/docs/data-modeling/partials/classic-connectors/mongoDB/_relationship-create-model-to-model.mdx";
+import ClickHouseRelationshipCreateModelToModel from "@site/docs/data-modeling/partials/classic-connectors/clickHouse/_relationship-create-model-to-model.mdx";
+
+# Relationships Connect Data
+
+## Introduction
+
+Relationships allow you to connect data, enabling you to query data across multiple entities.
+
+Examples include:
+
+- Querying a `Customer` and at the same time getting their `Orders` and each `Product` item in those orders. (Model to
+  Model)
+- Querying a `Customer` and also getting the analytics of their app usage from another data source. (Model to Model in
+  another subgraph or data connector)
+- Querying an `Order` and also getting a live currency conversion for the value of the order enabled with a lambda data
+  connector with a connection to a currency exchange API. (Model to Command)
+
+Relationships can be added between _any_ kind of semantically related models and/or commands. They do not need to be
+related in the data source by, for example, a foreign key. They also do not need to be backed by the same data source or
+be in the same subgraph.
+
+## Lifecycle
+
+Many relationships can be created automatically by the DDN CLI from detected underlying connections such as foreign
+keys. In such cases the lifecycle in creating a relationship in your metadata is as follows:
+
+1. Introspect your data source using the DDN CLI with the relevant data connector to fetch the entity resources.
+2. Add the detected relationships to your metadata with the DDN CLI.
+3. Create a build of your supergraph API with the DDN CLI.
+4. Serve your build as your API with the Hasura engine either locally or in the cloud.
+5. Iterate on your API by repeating this process or by editing your metadata manually as needed.
+
+<Thumbnail src="/img/data-modeling/ddn-cli-process.png" alt="Data modeling lifecycle" width="1000px" />
+
+If the relationship cannot be detected automatically, you can easily manually create a relationship in your metadata and
+then perform lifecycle steps 3-5 from above as needed.
+
+## Create a relationship
+
+Relationships are defined in metadata from an
+[object type](/reference/metadata-reference/types.mdx#objecttype-objecttype), to a
+[model](/reference/metadata-reference/models.mdx) or [command](/reference/metadata-reference/commands.mdx). But since
+models and commands are also defined with object types, you can think of relationships as being between models and/or
+commands.
+
+The target command can be enabled with a a custom piece of business logic on a lambda data connector, or a native
+mutation operation.
+
+### Using the DDN CLI
+
+The DDN CLI and your data connectors will detect many relationships in your data sources automatically, for instance
+from foreign keys in a relational database, and once introspected, you can add them to your metadata.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Show the found relationships:"
+ddn connector show-resources <connector_name>
+```
+
+```bash title="Add a relationship to your metadata:"
+ddn relationship add <connector_link_name> <collection_name>
+```
+
+Or optionally add all relationships found for a connector at once:
+
+```bash
+ddn relationship add <connector_link_name> "*"
+```
+
+:::info Context for CLI commands
+
+Note that the above CLI commands work without also adding the relevant subgraph to the command with the `--subgraph`
+flag because this has been set in the CLI context. You can learn more about creating and switching contexts in the
+[CLI context](/) section. {/* TODO: Add link */}
+
+:::
+
+### Manually creating a relationship
+
+Relationships can also be manually added to your metadata.
+
+The [VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) can help you to author
+relationships.
+
+For example, you can configure a relationship so that you can also get Orders when querying a Customer.
+
+```yaml title="Create a relationship in your metadata:"
+---
+kind: Relationship
+version: v1
+definition:
+  sourceType: Customers # The existing source object type which also defines the model
+  name: orders # A name we want to use when we query the Orders from the Customer
+  target:
+    model: # The target can be a model or a command
+      name: Orders # The existing model that we want to access when we query the Orders from the Customer
+      relationshipType: Array # The relationship type which can be Object or Array. Since a customer can have many orders, we use an Array.
+  mapping: # The mapping defines which field on the source object type maps to which field on the target model
+    - source:
+        fieldPath:
+          - fieldName: customerId # The existing field on the source object type that we want to map to the target model
+      target:
+        modelField:
+          - fieldName: customerId # The existing field on the target model that we want to map to the source object type
+```
+
+By defining this `Relationship` object, all other [models](/reference/metadata-reference/models.mdx) or
+[commands](/reference/metadata-reference/commands.mdx) whose output type is the source object type in the relationship
+will now have a connection to the target model or command.
+
+Learn more about the [Relationship](/reference/metadata-reference/relationships.mdx) object.
+
+## Update a relationship
+
+Your underlying data source may change over time. You can update your relationship to reflect these changes.
+
+If you have an automatically detected relationship and a property on the source object type has changed, you can update
+the relationship to reflect this change.
+
+First, update your connector configuration and models.
+
+```bash title="Update your source introspection:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, update your model:"
+ddn model update <connector_name> <model_name>
+```
+
+Now, you can either delete the existing `Relationship` object and use the DDN CLI to add it again:
+
+```bash title="Delete your existing relationship manually and add it again:"
+ddn relationship add <connector_link_name> <collection_name>
+```
+
+Or you can update the `Relationship` object manually. Learn more about the
+[Relationship](/reference/metadata-reference/relationships.mdx) object.
+
+## Delete a relationship
+
+If you no longer need a relationship, simply delete the `Relationship` metadata object manually. It is fully
+self-contained.
+
+## Tutorials
+
+These tutorials follow on from the tutorials in the
+[How to Build with DDN section](/how-to-build-with-ddn/overview.mdx).
+
+### Creating a relationship
+
+#### Between a model and a model
+
+<Tabs groupId="source-preference" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+<PostgresRelationshipCreateModelToModel />
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+<MongoDBRelationshipCreateModelToModel />
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+<ClickHouseRelationshipCreateModelToModel />
+
+  </TabItem>
+</Tabs>
+
+#### Between a model and a command
+
+We will use a business logic function defined in a lambda data connector to build a model to command relationship for
+all connector types.
+
+<details>
+  <summary>Create a custom function with the TypeScript lambda data connector to use in the tutorials</summary>
+
+Initialize a new data connector with the TypeScript connector.
+
+```bash title="Run the following command in your DDN project directory:"
+ddn connector init my_ts -i
+```
+
+- Select `hasura/nodejs` from the list of connectors.
+- Accept the suggested port.
+- Edit the `functions.ts` file in the connector directory with the `shoutName` function.
+
+```ts
+export function shoutName(name: string) {
+  return `${name.toUpperCase()}`;
+}
+```
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_ts
+```
+
+Then, we can add the model made available from the introspection.
+
+```bash title="Track the function:"
+ddn command add my_ts shoutName
+```
+
+</details>
+
+To create a relationship between the `Users` model and the `shoutName` function (see the drop-down above for how to
+implement this function) we can create the following relationship. Using the
+[VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) makes the authoring and
+validation of the relationship easier.
+
+```yaml title="Create a relationship:"
+---
+kind: Relationship
+version: v1
+definition:
+  name: shoutName # Define a name to expose in the supergraph API
+  sourceType: Users # The existing source object type (which also defines the source model Users)
+  target:
+    command: # The target is a command
+      name: ShoutName # The name of the existing command we have defined in metadata
+      subgraph: app # The existing subgraph the command is defined in
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: name # The field on the source object type that we want to provide to the target command as an argument
+      target:
+        argument:
+          argumentName: name # The name of the argument on the target command that we want to map to the source field
+```
+
+```bash title="Create a build of your supergraph API:"
+ddn supergraph build local
+```
+
+```bash title="Serve your build as your API locally:"
+ddn run docker-start
+ddn console --local
+```
+
+We can now query the `Users` model and also return the result of the `shoutName` function with its default argument of
+`name`.
+
+```graphql title="Query the Users model:"
+query {
+  users {
+    name
+    shoutName
+  }
+}
+```
+
+```json title="Result:"
+{
+  "data": {
+    "users": [
+      {
+        "name": "Alice",
+        "shoutName": "ALICE"
+      },
+      {
+        "name": "Bob",
+        "shoutName": "BOB"
+      },
+      {
+        "name": "Charlie",
+        "shoutName": "CHARLIE"
+      }
+    ]
+  }
+}
+```
+
+With relationships and custom commands we can transform or enrich any data.
+
+### Updating a relationship
+
+Your underlying data source may change over time. You can update your relationship to reflect these changes.
+
+If you have an automatically detected relationship and a property on the source object type has changed, you can update
+the relationship to reflect this change.
+
+First, update your connector configuration and models.
+
+```bash title="Update your source introspection:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, update your model:"
+ddn model update <connector_name> <model_name>
+```
+
+Now, you can either delete the existing `Relationship` object and use the DDN CLI to add it again:
+
+```bash title="Delete your existing relationship manually and add it again:"
+ddn relationship add <connector_link_name> <collection_name>
+```
+
+Or you can update the `Relationship` object manually. Learn more about the
+[Relationship](/reference/metadata-reference/relationships.mdx) object.
+
+### Deleting a relationship
+
+If you no longer need a relationship, simply delete the `Relationship` metadata object manually. It is fully
+self-contained.
+
+## Reference
+
+You can learn more about relationships in the metadata reference
+[docs](/reference/metadata-reference/relationships.mdx).

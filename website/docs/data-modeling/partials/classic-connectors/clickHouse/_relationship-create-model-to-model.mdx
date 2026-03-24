@@ -1,0 +1,100 @@
+Following on from the [ClickHouse tutorial in the How to Build with DDN](/how-to-build-with-ddn/with-clickhouse.mdx)
+section, you can manually create a relationship between two models which have no foreign-key-like relationship defined
+in the database which the data connector would be able to detect.
+
+In the tutorial, we created a `posts` to `users` relationship. Let's now add the inverse as a relationship from the
+`Users` to `Posts` models.
+
+```yaml title="Open the Users.hml file and add the following to the end:"
+---
+kind: Relationship
+version: v1
+definition:
+  name: posts
+  sourceType: Users
+  target:
+    model:
+      name: Posts
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: userId
+      target:
+        modelField:
+          - fieldName: userId
+```
+
+Now you can build your supergraph API, serve it, and query your data.
+
+```bash title="Build and run your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now you can query your data with your relationship in the console get users and their posts.
+
+```bash title="Query your data:"
+ddn console --local
+```
+
+```graphql
+query UsersWithPosts {
+  users {
+    name
+    age
+    posts {
+      content
+      title
+      userId
+    }
+  }
+}
+```
+
+```json
+{
+  "data": {
+    "users": [
+      {
+        "name": "Alice",
+        "age": 25,
+        "posts": [
+          {
+            "content": "This is Alice's first post.",
+            "title": "My First Post",
+            "userId": 1
+          },
+          {
+            "content": "Alice writes again!",
+            "title": "Another Post",
+            "userId": 1
+          }
+        ]
+      },
+      {
+        "name": "Bob",
+        "age": 30,
+        "posts": [
+          {
+            "content": "Bob shares his thoughts.",
+            "title": "Bob's Post",
+            "userId": 2
+          }
+        ]
+      },
+      {
+        "name": "Charlie",
+        "age": 35,
+        "posts": [
+          {
+            "content": "Charlie joins the conversation.",
+            "title": "Hello World",
+            "userId": 3
+          }
+        ]
+      }
+    ]
+  }
+}
+```

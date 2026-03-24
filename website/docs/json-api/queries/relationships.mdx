@@ -1,0 +1,178 @@
+---
+description: "Learn how to include related resources in your queries using Hasura's JSON:API implementation"
+title: Including Relationships
+sidebar_label: Relationships
+keywords:
+  - hasura
+  - json:api
+  - relationships
+  - includes
+sidebar_position: 3
+---
+
+# Including Relationships
+
+## Introduction
+
+JSON:API allows you to include [related resources](https://jsonapi.org/format/#fetching-includes) in a single request
+using the `include` parameter. This reduces the number of API calls needed to fetch related data.
+
+## Request format
+
+```http
+GET /v1/jsonapi/<subgraph-name>/<model-name>?include=<relationship-paths>
+```
+
+Where:
+
+| Parameter            | Description                                                                                                | Example                                                                               |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `subgraph-name`      | Name of your subgraph.                                                                                     | `"default"`                                                                           |
+| `model-name`         | Name of your model.                                                                                        | `"Users"`                                                                             |
+| `relationship-paths` | Comma-separated list of relationship paths, where each path is a dot-separated list of relationship names. | `"posts"`, `"posts.comments"`, `"posts,profile"`, `"posts.comments,profile.settings"` |
+
+## Examples
+
+### Single relationship
+
+Fetch all users and their posts.
+
+```http title="Request:"
+GET /v1/jsonapi/default/Users?include=posts
+```
+
+```json title="Response:"
+{
+  "data": [
+    {
+      "type": "User",
+      "id": "1",
+      "attributes": {
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "relationships": {
+        "posts": {
+          "data": [
+            { "type": "Post", "id": "1" },
+            { "type": "Post", "id": "2" }
+          ]
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "Post",
+      "id": "1",
+      "attributes": {
+        "title": "First Post",
+        "content": "Hello world!"
+      }
+    },
+    {
+      "type": "Post",
+      "id": "2",
+      "attributes": {
+        "title": "Second Post",
+        "content": "Another post"
+      }
+    }
+  ]
+}
+```
+
+### Nested relationship
+
+Fetch all users and their posts and comments.
+
+```http title="Request:"
+GET /v1/jsonapi/default/Users?include=posts.comments
+```
+
+```json title="Response:"
+{
+  "data": [
+    {
+      "type": "User",
+      "id": "1",
+      "attributes": {
+        "name": "John Doe"
+      },
+      "relationships": {
+        "posts": {
+          "data": [{ "type": "Post", "id": "1" }]
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "Post",
+      "id": "1",
+      "attributes": {
+        "title": "First Post"
+      },
+      "relationships": {
+        "comments": {
+          "data": [{ "type": "Comment", "id": "1" }]
+        }
+      }
+    },
+    {
+      "type": "Comment",
+      "id": "1",
+      "attributes": {
+        "text": "Great post!"
+      }
+    }
+  ]
+}
+```
+
+### Multiple relationships
+
+Fetch all users and their posts and profile.
+
+```http title="Request:"
+GET /v1/jsonapi/default/Users?include=posts,profile
+```
+
+```json title="Response:"
+{
+  "data": [
+    {
+      "type": "User",
+      "id": "1",
+      "attributes": {
+        "name": "John Doe"
+      },
+      "relationships": {
+        "posts": {
+          "data": [{ "type": "Post", "id": "1" }]
+        },
+        "profile": {
+          "data": { "type": "Profile", "id": "1" }
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "Post",
+      "id": "1",
+      "attributes": {
+        "title": "First Post"
+      }
+    },
+    {
+      "type": "Profile",
+      "id": "1",
+      "attributes": {
+        "bio": "Software developer",
+        "location": "San Francisco"
+      }
+    }
+  ]
+}
+```

@@ -1,0 +1,250 @@
+---
+sidebar_position: 3
+sidebar_label: Authentication
+description: "Learn how to set up various auth providers with the HTTP connector."
+keywords:
+  - http
+  - configuration
+  - auth
+---
+
+# Authentication Configuration
+
+## Introduction
+
+The connector supports API key and auth token authentication schemes. The configuration is inspired from
+`securitySchemes` [with env variables](https://github.com/hasura/ndc-http/ndc-http-schema#authentication). The connector
+supports the following authentication strategies:
+
+- API Key
+- Basic Auth
+- Bearer Auth
+- Cookie
+- OAuth 2.0
+- Mutual TLS
+
+The configuration automatically generates environment variables for those security schemes.
+
+## API Key
+
+There is a `value` field with the environment variable to be replaced in runtime. The name of the variable is generated
+from the security scheme key. For example:
+
+```yaml
+securitySchemes:
+  api_key:
+    type: apiKey
+    value:
+      env: API_KEY # the constant case of api_key
+    in: header
+    name: api_key
+```
+
+```
+api_key: {{API_KEY}}
+```
+
+## Basic Auth
+
+Set `username` and `password` environment variables:
+
+```yaml
+securitySchemes:
+  basic:
+    type: basic
+    header: Authorization
+    username:
+      value: PET_STORE_USERNAME
+    password:
+      value: PET_STORE_PASSWORD
+```
+
+## Bearer Auth
+
+Configure the `value` environment variable, header name, and scheme. For example, the below configuration will inject
+the bearer token into incoming requests:
+
+```yaml
+securitySchemes:
+  bearer:
+    type: http
+    header: Authorization
+    value:
+      env: PET_STORE_BEARER_TOKEN
+    scheme: bearer
+```
+
+```
+Authorization: Bearer {{PET_STORE_BEARER_TOKEN}}
+```
+
+## OAuth 2.0
+
+The client credentials grant is built-in supported. You can set the tokenUrl, scopes, client ID, and client secret
+variables. The connector automatically refreshes access tokens and injects them into incoming requests.
+
+```yaml
+securitySchemes:
+  petstore_auth:
+    type: oauth2
+    flows:
+      clientCredentials:
+        tokenUrl:
+          value: http://localhost:4444/oauth2/token
+        clientId:
+          env: OAUTH2_CLIENT_ID
+        clientSecret:
+          env: OAUTH2_CLIENT_SECRET
+        scopes:
+          read:pets: read your pets
+          write:pets: modify pets in your account
+```
+
+For other OAuth 2.0 flows, you need to enable [headers forwarding](#headers-forwarding) from the Hasura DDN engine to
+the connector.
+
+## Cookie
+
+For Cookie authentication and OAuth 2.0, you need to enable [headers forwarding](#headers-forwarding) from the Hasura
+DDN engine to the connector.
+
+## Headers Forwarding
+
+Enable `forwardHeaders` in the configuration file.
+
+```yaml
+# ...
+forwardHeaders:
+  enabled: true
+  argumentField: headers
+```
+
+And configure in the DataConnectorLink metadata:
+
+```yaml
+kind: DataConnectorLink
+version: v1
+definition:
+  name: my_api
+  # ...
+  argumentPresets:
+    - argument: headers
+      value:
+        httpHeaders:
+          forward:
+            - Cookie
+          additional: {}
+```
+
+## Mutual TLS
+
+### Basic
+
+If the `mutualTLS` security scheme exists, the TLS configuration will be generated in the `settings` field.
+
+```yaml
+settings:
+  servers:
+    - url:
+        env: PET_STORE_URL
+  securitySchemes:
+    mtls:
+      type: mutualTLS
+  tls:
+    # Provide the certificate contents as a base64-encoded string.
+    certPem:
+      env: PET_STORE_CERT_PEM
+    # Provide the key contents as a base64-encoded string.
+    keyPem:
+      env: PET_STORE_KEY_PEM
+    # Provide the CA cert contents as a base64-encoded string.
+    caPem:
+      env: PET_STORE_CA_PEM
+    # Additionally you can configure TLS to be enabled but skip verifying the server's certificate chain (optional).
+    insecureSkipVerify:
+      env: PET_STORE_INSECURE_SKIP_VERIFY
+      value: false
+```
+
+### Full configuration
+
+```yaml title="Below, you'll find a complete configuration example:"
+settings:
+  servers:
+    - url:
+        env: PET_STORE_URL
+  securitySchemes:
+    mtls:
+      type: mutualTLS
+  tls:
+    # Path to the TLS cert to use for TLS required connections.
+    certFile:
+      env: PET_STORE_CERT_FILE
+    # Alternative to cert_file. Provide the certificate contents as a base64-encoded string instead of a filepath.
+    certPem:
+      env: PET_STORE_CERT_PEM
+    # Path to the TLS key to use for TLS required connections.
+    keyFile:
+      env: PET_STORE_KEY_FILE
+    # Alternative to key_file. Provide the key contents as a base64-encoded string instead of a filepath.
+    keyPem:
+      env: PET_STORE_KEY_PEM
+    # Path to the CA cert.
+    caFile:
+      env: PET_STORE_CA_FILE
+    # Alternative to ca_file. Provide the CA cert contents as a base64-encoded string instead of a filepath.
+    caPem:
+      env: PET_STORE_CA_PEM
+    # Additionally you can configure TLS to be enabled but skip verifying the server's certificate chain (optional).
+    insecureSkipVerify:
+      env: PET_STORE_INSECURE_SKIP_VERIFY
+      value: false
+    # Whether to load the system certificate authorities pool alongside the certificate authority (optional).
+    includeSystemCACertsPool:
+      env: PET_STORE_INCLUDE_SYSTEM_CA_CERT_POOL
+      value: false
+
+    ## ServerName requested by client for virtual hosting (optional).
+    serverName:
+      env: PET_STORE_SERVER_NAME
+
+    ## Minimum acceptable TLS version (optional).
+    minVersion: "1.0"
+
+    ## Maximum acceptable TLS version (optional).
+    maxVersion: "1.3"
+
+    ## Explicit cipher suites can be set. If left blank, a safe default list is used (optional).
+    # cipherSuites:
+    #   - TLS_AES_128_GCM_SHA256
+```
+
+:::info Encoding patterns
+
+It's recommended to use inline bases64-encoded PEM data `*_PEM` variables if you deploy the connector to Hasura Cloud.
+
+:::
+
+### Multiple certificates
+
+If the service has many servers, you can configure different TLS configurations for each server.
+
+```yaml
+settings:
+  servers:
+    - url:
+        env: PET_STORE_URL
+    - url:
+        env: PET_STORE_URL_2
+      tls:
+        certFile:
+          env: PET_STORE_CERT_FILE_2
+        # ...
+  securitySchemes:
+    mtls:
+      type: mutualTLS
+  tls:
+    certFile:
+      env: PET_STORE_CERT_FILE
+    # ...
+```

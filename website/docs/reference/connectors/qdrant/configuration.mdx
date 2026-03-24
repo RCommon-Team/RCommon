@@ -1,0 +1,136 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description: "Reference documentation for the setup process for the Hasura Qdrant connector."
+keywords:
+  - qdrant
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration is a metadata object that lists all the database entities — such as collections and fields — that the
+data connector has to know about in order to serve queries. It never changes during the lifetime of the data connector
+service instance. When your database schema changes you will have to update the configuration accordingly, see
+[updating with introspection](#updating-with-introspection).
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "config": {
+    "collection_names": [],
+    "object_fields": {},
+    "object_types": {},
+    "collection_vectors": {},
+    "functions": [],
+    "procedures": []
+  }
+}
+```
+
+### Property: Collection Names
+
+This is an array of collection (table) names that are included in the configuration. This is a required field.
+
+```json title="Example:"
+{
+  "collection_names": ["multivector_collection", "terraforming", "star_charts"]
+}
+```
+
+### Property: Object Fields
+
+This is a JSON object that maps each collection name to its field names. These field names correspond to the attributes
+or columns available in each collection.
+
+```json title="Example for a single collection:"
+{
+  "multivector_collection": ["name", "type", "id", "score", "vector"]
+}
+```
+
+### Property: Object Types
+
+This is a JSON object providing detailed type information for each field in every collection. It includes both required
+and nullable fields, using type descriptors.
+
+```json title="Example:"
+{
+  "multivector_collection": {
+    "fields": {
+      "id": {
+        "type": {
+          "type": "named",
+          "name": "Int"
+        }
+      },
+      "score": {
+        "type": {
+          "type": "nullable",
+          "underlying_type": {
+            "type": "named",
+            "name": "Float"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+For nullable fields, the type is wrapped in a `nullable` descriptor:
+
+```json title="Nullable field example:"
+{
+  "vector": {
+    "type": {
+      "type": "nullable",
+      "underlying_type": {
+        "type": "array",
+        "element_type": {
+          "type": "named",
+          "name": "Float"
+        }
+      }
+    }
+  }
+}
+```
+
+### Property: Collection Vectors
+
+This field maps collection names to a boolean indicating whether the collection supports multi-vector search.
+
+```json title="Example:"
+{
+  "terraforming_plans": true,
+  "multivector_collection": false
+}
+```
+
+### Property: Functions and Procedures
+
+Arrays of function and procedure definitions.
+
+```json
+{
+  "functions": [],
+  "procedures": []
+}
+```
+
+## Updating with introspection
+
+Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
+reflect those changes.
+
+Running `update` in a configuration directory will do the following:
+
+- Connect to the database and refresh the collection metadata
+- Update the `collection_names`, `object_fields`, and `object_types` to reflect the current database schema
+- Preserve any custom configuration that doesn't conflict with the updated schema

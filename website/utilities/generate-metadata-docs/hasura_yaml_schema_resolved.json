@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProjectConfig",
+  "anyOf": [
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "v3"
+        }
+      },
+      "required": ["version"],
+      "additionalProperties": false,
+      "description": "DDN project Config",
+      "title": "ProjectConfig",
+      "definitions": {}
+    }
+  ]
+}

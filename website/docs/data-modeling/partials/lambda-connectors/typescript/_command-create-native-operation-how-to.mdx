@@ -1,0 +1,54 @@
+You can run whatever arbitrary code you want in your TypeScript connector and expose it as a GraphQL mutation or query
+in your supergraph API.
+
+```sh title="Initalize a new connector and select hasura/nodejs from the list:"
+ddn connector init my_ts -i
+```
+
+```ts title="Replace the functions.ts contents with your own custom code:"
+/**
+ * @readonly
+ */
+export function myCustomCode(myInput: string): string {
+  // Do something with the input
+  return "My output";
+}
+```
+
+By adding the `@readonly` tag, we are indicating that this function is a read-only operation to be exposed as an NDC
+function which will ulitmately show up as a GraphQL query. Leaving the tag off will expose the function as an NDC
+procedure which will be a GraphQL mutation.
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_ts
+```
+
+```bash title="Track the function:"
+ddn command add my_ts myCustomCode
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your native operation:"
+query MyCustomCode {
+  myCustomCode(myInput: "My input")
+}
+```
+
+```json title="You will see a response like this:"
+{
+  "data": {
+    "myCustomCode": "My output"
+  }
+}
+```

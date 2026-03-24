@@ -1,0 +1,60 @@
+---
+sidebar_label: ddn connector build create
+sidebar_position: 32
+description: Create a ConnectorBuild on Hasura DDN using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector_build_create"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector build create
+---
+
+# DDN CLI: ddn connector build create
+
+Create a ConnectorBuild on Hasura DDN.
+
+## Synopsis
+
+Create a ConnectorBuild on Hasura DDN
+
+```bash
+ddn connector build create --connector <path-to-connector-config-file-.yaml> [flags]
+```
+
+## Examples
+
+```bash
+# Create a ConnectorBuild
+ ddn connector build create --connector ./app/connector/my_connector/connector.yaml
+```
+
+## Options
+
+```sass
+    --ci                             Disables the use of context
+    --connector string               Path to Connector YAML config file
+-c, --context string                 Name of the context to use. (default <current_context>)
+-e, --env stringArray                Environment variable, e.g. key=val. Can be repeated to provide multiple env vars
+    --env-file stringArray           Path to .env file. Can be repeated to provide multiple env files
+-h, --help                           help for create
+-p, --project string                 DDN Project name
+    --target-connector-link string   DataConnectorLink to update with the schema from the ConnectorBuild
+    --target-env-file string         Path to the env file in which the Build URLs should be updated in
+    --target-subgraph string         Path to Subgraph config file containing target DataConnectorLink
+    --update-connector-link-schema   Update DataConnectorLink schema with the NDC schema of the built connector. (default: false)
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector build](/reference/cli/commands/ddn_connector_build) - Perform ConnectorBuild-related operations

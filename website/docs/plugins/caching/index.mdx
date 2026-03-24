@@ -1,0 +1,31 @@
+---
+title: Caching Plugin
+sidebar_position: 1
+description: "Learn more about the Caching Plugin for Hasura DDN."
+keywords:
+  - hasura plugins
+  - caching plugin
+  - plugins architecture
+  - engine plugins
+---
+
+# Caching Plugin
+
+## Introduction
+
+The [Caching Plugin](https://github.com/hasura/engine-plugin-caching) allows you to cache responses for specific GraphQL
+queries, enhancing performance by reducing repeated computation for frequently executed queries.
+
+The plugin integrates with Hasura DDN as both a **pre-parse plugin** and **pre-response plugin**. It uses Redis as the
+caching backend, ensuring fast and reliable storage for cached query results.
+
+Key benefits of the caching plugin include:
+
+- **Improved performance:** Reduces load on your supergraph by caching frequently executed queries.
+- **Customizable caching:** Define specific queries to cache and configure cache lifetimes.
+- **Integration-ready:** Compatible with Hasura's lifecycle plugin hooks and OpenTelemetry for tracing.
+
+## Next steps
+
+To configure and deploy the Caching Plugin, refer to the [guide](/plugins/caching/how-to.mdx), which provides detailed
+steps for setting up the plugin in a local or production environment.

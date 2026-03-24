@@ -1,0 +1,52 @@
+---
+sidebar_label: ddn supergraph build export-descriptions
+sidebar_position: 109
+description: Export descriptions for a specific supergraph build using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_supergraph_build_export-descriptions"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn supergraph build export-descriptions
+---
+
+# DDN CLI: ddn supergraph build export-descriptions
+
+Export descriptions for a specific supergraph build.
+
+## Synopsis
+
+Export descriptions for a specific supergraph build
+
+```bash
+ddn supergraph build export-descriptions <supergraph-build-version> [flags]
+```
+
+## Examples
+
+```bash
+# Export descriptions for a specific supergraph build version
+ ddn supergraph build export-descriptions <supergraph-build-version>
+```
+
+## Options
+
+```sass
+    --ci               Disables the use of context
+-c, --context string   Name of the context to use. (default <current_context>)
+-h, --help             help for export-descriptions
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn supergraph build](/reference/cli/commands/ddn_supergraph_build) - Perform SupergraphBuild-related operations

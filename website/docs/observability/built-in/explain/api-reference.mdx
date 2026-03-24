@@ -1,0 +1,418 @@
+---
+sidebar_label: API Reference
+sidebar_position: 2
+description:
+  "Dive into the comprehensive guide for the Hasura Explain API. Understand how to analyze GraphQL queries, interpret
+  execution plans, and optimize your API interactions for improved performance."
+keywords:
+  - graphql analysis
+  - query optimization
+  - execution plan
+  - hasura explain api
+  - api debugging
+  - graphql performance
+  - data connector explain
+  - api endpoint analysis
+  - query execution
+  - api troubleshooting
+seoFrontMatterUpdated: true
+---
+
+# Explain API Reference
+
+## Introduction
+
+The Explain API is an endpoint for analyzing GraphQL queries. Given a query and authorization, it will return the
+execution plan for the engine and data connector, if supported.
+
+## Endpoint
+
+All requests are `POST` requests to the `/v1/explain` endpoint.
+
+## API Spec
+
+### Request
+
+The request expects the exact same payload as the GraphQL API (including authentication-related headers).
+
+- `query`: the GraphQL query to be analyzed.
+- `variables` (optional): the variables used in the GraphQL query.
+- `operationName` (optional): the name of the GraphQL operation.
+
+```http
+POST /v1/explain HTTP/1.1
+Content-Type: application/json
+
+{
+  "query": "<GraphQL query>",
+  "variables": {
+    "var1" : "...",
+    "var2" : "..."
+  }
+}
+```
+
+#### Sample request
+
+```http
+POST /v1/explain HTTP/1.1
+Content-Type: application/json
+
+{
+  "query": "query GetAlbumTracks($AlbumId: Int) {\n  AlbumByID(AlbumId: $AlbumId) {\n    Title\n    Tracks {\n      Name\n    }\n  }\n}",
+  "variables": {
+    "AlbumId": 1
+  },
+  "operationName": "GetAlbumTracks"
+}
+```
+
+### Response
+
+The response for a query is the engine's plans for executing the GraphQL query:
+
+```none
+{
+  "explain": "<ExplainStep>",
+  "errors": [<GraphQLError>]
+}
+```
+
+#### ExplainStep
+
+The `ExplainStep` can be one of the following:
+
+1. `ModelSelect`: A select on the data connector's model
+2. `CommandSelect`: A select on the data connector's command
+3. `ForEach`: A for-each loop on the data returned by the parent step
+4. `HashJoin`: A hash join of the data returned by the steps to construct valid response
+5. `Sequence`: A sequential execution of steps
+6. `Parallel`: A parallel execution of steps
+
+#### ModelSelect {#modelselect}
+
+A ModelSelect represents a select on the data connector's model. It has the following structure:
+
+```none
+{
+  "type": "modelSelect",
+  "value": {
+    "modelName": "<ModelName>",
+    "queryRequest": <NDCQueryRequest>,
+    "ndcExplain": <NDCExplain>
+  }
+}
+```
+
+The fields in the `ModelSelect` are:
+
+| Key          | Schema                                                                                 | Description                                  |
+| ------------ | -------------------------------------------------------------------------------------- | -------------------------------------------- |
+| modelName    | String                                                                                 | The name of the model being selected         |
+| queryRequest | [NDCQueryRequest](https://hasura.github.io/ndc-spec/reference/types.html#queryrequest) | The query request sent to the data connector |
+| ndcExplain   | NDCExplain                                                                             | The explain response from the data connector |
+
+#### CommandSelect {#commandselect}
+
+A CommandSelect represents a select on the data connector's command. It has the following structure:
+
+```none
+{
+  "type": "commandSelect",
+  "value": {
+    "commandName": "<CommandName>",
+    "queryRequest": <NDCQueryRequest>,
+    "ndcExplain": <NDCExplain>
+  }
+}
+```
+
+The fields in the `CommandSelect` are:
+
+| Key          | Schema                                                                                 | Description                                  |
+| ------------ | -------------------------------------------------------------------------------------- | -------------------------------------------- |
+| commandName  | String                                                                                 | The name of the command being selected       |
+| queryRequest | [NDCQueryRequest](https://hasura.github.io/ndc-spec/reference/types.html#queryrequest) | The query request sent to the data connector |
+| ndcExplain   | NDCExplain                                                                             | The explain response from the data connector |
+
+#### ForEach
+
+A ForEach represents a for-each loop on the data returned by the parent step. This is present if the engine is going to
+perform remote joins. It has the following structure:
+
+```none
+{
+  "type": "forEach",
+  "value": <ForEachStep>
+}
+```
+
+The value of the `ForEach` step can be either a [ModelSelect](#modelselect) or a [CommandSelect](#commandselect).
+
+#### HashJoin
+
+A HashJoin represents a hash join of the data returned by the steps to construct valid response. This is present if the
+engine is going to perform remote joins. It has the following structure:
+
+```none
+{
+  "type": "hashJoin"
+}
+```
+
+#### Sequence
+
+A Sequence represents a sequential execution of steps. It has the following structure:
+
+```none
+{
+  "type": "sequence",
+  "value": [<ExplainStep>]
+}
+```
+
+#### Parallel
+
+A Parallel represents a parallel execution of steps. It has the following structure:
+
+```none
+{
+  "type": "parallel",
+  "value": [<ExplainStep>]
+}
+```
+
+#### NDCExplain
+
+The `NDCExplain` contains the explanation of the query execution from the DataConnector's point of view. It has the
+following structure:
+
+```none
+{
+  "type": "response" || "error" || "notSupported"
+  "value": <data connector specific response>
+}
+```
+
+The `NDCExplain` can be of the following types:
+
+1. `response`: The data connector supports explaining query and has given a valid response.
+2. `error`: The data connector has raised some error while explaining the query.
+3. `notSupported`: The data connector doesn't support explaining NDC queries.
+
+## Example
+
+Let's try to understand the meaning of various nodes in [ExplainStep](#explainstep) through examples.
+
+Using the following query:
+
+```graphql
+query {
+  Album {
+    AlbumId
+    ArtistId
+    Artist {
+      # a remote relationship
+      ArtistId
+    }
+    Tracks {
+      # a local relationship
+      TrackId
+      Album {
+        # a remote relationship
+        AlbumId
+      }
+    }
+  }
+}
+```
+
+We get the following response:
+
+```json
+{
+  "explain": {
+    "type": "sequence",
+    "value": [
+      {
+        "type": "modelSelect",
+        "value": {
+          "modelName": "Album",
+          "queryRequest": {
+            "collection": "Album",
+            "query": {
+              "fields": {
+                "AlbumId": {
+                  "type": "column",
+                  "column": "AlbumId"
+                },
+                "ArtistId": {
+                  "type": "column",
+                  "column": "ArtistId"
+                },
+                "__hasura_phantom_field__ArtistId": {
+                  "type": "column",
+                  "column": "ArtistId"
+                },
+                "Tracks": {
+                  "type": "relationship",
+                  "query": {
+                    "fields": {
+                      "TrackId": {
+                        "type": "column",
+                        "column": "TrackId"
+                      },
+                      "__hasura_phantom_field__AlbumId": {
+                        "type": "column",
+                        "column": "AlbumId"
+                      }
+                    }
+                  },
+                  "relationship": "[{\"subgraph\":\"connector_2\",\"name\":\"Album\"},\"Tracks\"]",
+                  "arguments": {}
+                }
+              }
+            },
+            "arguments": {},
+            "collection_relationships": {
+              "[{\"subgraph\":\"connector_2\",\"name\":\"Album\"},\"Tracks\"]": {
+                "column_mapping": {
+                  "AlbumId": "AlbumId"
+                },
+                "relationship_type": "array",
+                "target_collection": "Track",
+                "arguments": {}
+              }
+            }
+          },
+          "ndcExplain": {
+            "type": "response",
+            "value": {
+              "details": {
+                "Execution Plan": "Aggregate  (cost=2342.72..2342.73 rows=1 width=32)\n  ->  Aggregate  (cost=2342.70..2342.71 rows=1 width=32)\n        ->  Nested Loop Left Join  (cost=11.06..2341.65 rows=210 width=40)\n              ->  Seq Scan on \"Album\" \"%0_Album\"  (cost=0.00..12.10 rows=210 width=8)\n              ->  Subquery Scan on \"%3_rows\"  (cost=11.06..11.08 rows=1 width=32)\n                    ->  Aggregate  (cost=11.06..11.07 rows=1 width=32)\n                          ->  Bitmap Heap Scan on \"Track\" \"%2_Track\"  (cost=4.29..11.05 rows=2 width=8)\n                                Recheck Cond: (\"%0_Album\".\"AlbumId\" = \"AlbumId\")\n                                ->  Bitmap Index Scan on \"IFK_TrackAlbumId\"  (cost=0.00..4.29 rows=2 width=0)\n                                      Index Cond: (\"AlbumId\" = \"%0_Album\".\"AlbumId\")",
+                "SQL Query": "EXPLAIN\nSELECT\n  coalesce(json_agg(row_to_json(\"%5_universe\")), '[]') AS \"universe\"\nFROM\n  (\n    SELECT\n      *\n    FROM\n      (\n        SELECT\n          coalesce(json_agg(row_to_json(\"%6_rows\")), '[]') AS \"rows\"\n        FROM\n          (\n            SELECT\n              \"%0_Album\".\"AlbumId\" AS \"AlbumId\",\n              \"%0_Album\".\"ArtistId\" AS \"ArtistId\",\n              \"%0_Album\".\"ArtistId\" AS \"__hasura_phantom_field__ArtistId\",\n              \"%1_RELATIONSHIP_Tracks\".\"Tracks\" AS \"Tracks\"\n            FROM\n              \"public\".\"Album\" AS \"%0_Album\"\n              LEFT OUTER JOIN LATERAL (\n                SELECT\n                  row_to_json(\"%1_RELATIONSHIP_Tracks\") AS \"Tracks\"\n                FROM\n                  (\n                    SELECT\n                      *\n                    FROM\n                      (\n                        SELECT\n                          coalesce(json_agg(row_to_json(\"%3_rows\")), '[]') AS \"rows\"\n                        FROM\n                          (\n                            SELECT\n                              \"%2_Track\".\"TrackId\" AS \"TrackId\",\n                              \"%2_Track\".\"AlbumId\" AS \"__hasura_phantom_field__AlbumId\"\n                            FROM\n                              \"public\".\"Track\" AS \"%2_Track\"\n                            WHERE\n                              (\"%0_Album\".\"AlbumId\" = \"%2_Track\".\"AlbumId\")\n                          ) AS \"%3_rows\"\n                      ) AS \"%3_rows\"\n                  ) AS \"%1_RELATIONSHIP_Tracks\"\n              ) AS \"%1_RELATIONSHIP_Tracks\" ON ('true')\n          ) AS \"%6_rows\"\n      ) AS \"%6_rows\"\n  ) AS \"%5_universe\""
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "parallel",
+        "value": [
+          {
+            "type": "forEach",
+            "value": {
+              "type": "modelSelect",
+              "value": {
+                "modelName": "Artist",
+                "queryRequest": {
+                  "collection": "Artist",
+                  "query": {
+                    "fields": {
+                      "ArtistId": {
+                        "type": "column",
+                        "column": "ArtistId"
+                      }
+                    },
+                    "where": {
+                      "type": "binary_comparison_operator",
+                      "column": {
+                        "type": "column",
+                        "name": "ArtistId",
+                        "path": []
+                      },
+                      "operator": {
+                        "type": "equal"
+                      },
+                      "value": {
+                        "type": "variable",
+                        "name": "$ArtistId"
+                      }
+                    }
+                  },
+                  "arguments": {},
+                  "collection_relationships": {},
+                  "variables": []
+                },
+                "ndcExplain": {
+                  "type": "response",
+                  "value": {
+                    "details": {
+                      "Execution Plan": "",
+                      "SQL Query": "EXPLAIN\nSELECT\n  coalesce(json_agg(\"%5_universe_agg\".\"universe\"), '[]') AS \"universe\"\nFROM\n  (\n    SELECT\n      row_to_json(\"%2_universe\") AS \"universe\"\n    FROM\n      json_to_recordset(cast($1 as json)) AS \"%0_%variables_table\"(\"%variable_order\" int)\n      CROSS JOIN LATERAL (\n        SELECT\n          *\n        FROM\n          (\n            SELECT\n              coalesce(json_agg(row_to_json(\"%3_rows\")), '[]') AS \"rows\"\n            FROM\n              (\n                SELECT\n                  \"%1_Artist\".\"ArtistId\" AS \"ArtistId\"\n                FROM\n                  \"public\".\"Artist\" AS \"%1_Artist\"\n                WHERE\n                  (\n                    \"%1_Artist\".\"ArtistId\" = cast(\"%0_%variables_table\".\"$ArtistId\" as int4)\n                  )\n              ) AS \"%3_rows\"\n          ) AS \"%3_rows\"\n      ) AS \"%2_universe\"\n    ORDER BY\n      \"%0_%variables_table\".\"%variable_order\" ASC\n  ) AS \"%5_universe_agg\""
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "sequence",
+            "value": [
+              {
+                "type": "forEach",
+                "value": {
+                  "type": "modelSelect",
+                  "value": {
+                    "modelName": "Album",
+                    "queryRequest": {
+                      "collection": "Album",
+                      "query": {
+                        "fields": {
+                          "AlbumId": {
+                            "type": "column",
+                            "column": "AlbumId"
+                          }
+                        },
+                        "where": {
+                          "type": "binary_comparison_operator",
+                          "column": {
+                            "type": "column",
+                            "name": "AlbumId",
+                            "path": []
+                          },
+                          "operator": {
+                            "type": "equal"
+                          },
+                          "value": {
+                            "type": "variable",
+                            "name": "$AlbumId"
+                          }
+                        }
+                      },
+                      "arguments": {},
+                      "collection_relationships": {},
+                      "variables": []
+                    },
+                    "ndcExplain": {
+                      "type": "response",
+                      "value": {
+                        "details": {
+                          "Execution Plan": "",
+                          "SQL Query": "EXPLAIN\nSELECT\n  coalesce(json_agg(\"%5_universe_agg\".\"universe\"), '[]') AS \"universe\"\nFROM\n  (\n    SELECT\n      row_to_json(\"%2_universe\") AS \"universe\"\n    FROM\n      json_to_recordset(cast($1 as json)) AS \"%0_%variables_table\"(\"%variable_order\" int)\n      CROSS JOIN LATERAL (\n        SELECT\n          *\n        FROM\n          (\n            SELECT\n              coalesce(json_agg(row_to_json(\"%3_rows\")), '[]') AS \"rows\"\n            FROM\n              (\n                SELECT\n                  \"%1_Album\".\"AlbumId\" AS \"AlbumId\"\n                FROM\n                  \"public\".\"Album\" AS \"%1_Album\"\n                WHERE\n                  (\n                    \"%1_Album\".\"AlbumId\" = cast(\"%0_%variables_table\".\"$AlbumId\" as int4)\n                  )\n              ) AS \"%3_rows\"\n          ) AS \"%3_rows\"\n      ) AS \"%2_universe\"\n    ORDER BY\n      \"%0_%variables_table\".\"%variable_order\" ASC\n  ) AS \"%5_universe_agg\""
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "hashJoin"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "hashJoin"
+      }
+    ]
+  }
+}
+```
+
+The JSON above represents the execution plan for the query. The query is broken down into multiple steps, each step is a
+`ModelSelect` or a `ForEach` step. The `ModelSelect` step represents a select on the data connector's model, and the
+`ForEach` step represents a for-each loop on the data returned by the parent step.
+
+This allows you to understand how the query is executed and how the data is fetched from the data connector.

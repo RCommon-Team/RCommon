@@ -1,0 +1,46 @@
+```sh title="Initalize a new connector and select hasura/nodejs from the list:"
+ddn connector init my_ts -i
+```
+
+```ts title="Replace the functions.ts contents with the following:"
+/**
+ * @readonly
+ */
+export function shoutName(name: string): string {
+  return name.toUpperCase();
+}
+```
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_ts
+```
+
+```bash title="Track the function:"
+ddn command add my_ts shoutName
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your expanded table with the transformed name:"
+query ShoutTheName {
+  shoutName(name: "Alice")
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "shoutName": "ALICE"
+  }
+}
+```

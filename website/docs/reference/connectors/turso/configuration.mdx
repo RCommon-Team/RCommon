@@ -1,0 +1,135 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description: "Reference documentation for the setup process for the Hasura Turso connector."
+keywords:
+  - turso
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration is a metadata object that lists all the database entities — such as collections and fields — that the
+data connector has to know about in order to serve queries. It never changes during the lifetime of the data connector
+service instance. When your database schema changes you will have to update the configuration accordingly, see
+[updating with introspection](#updating-with-introspection).
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "config": {
+    "collection_names": [],
+    "object_fields": {},
+    "object_types": {}
+  }
+}
+```
+
+### Property: Collection Names
+
+This is an array of collection (table) names that are included in the configuration. This is a required field.
+
+```json title="Example:"
+{
+  "collection_names": ["users", "posts"]
+}
+```
+
+### Property: Object Fields
+
+This is a JSON object containing metadata about each collection's fields, including data types, primary keys, nullable
+fields, and foreign key relationships.
+
+```json title="Example for a single collection:"
+{
+  "users": {
+    "field_names": ["id", "name", "age"],
+    "field_types": {
+      "id": "Int",
+      "name": "String",
+      "age": "Int"
+    },
+    "primary_keys": ["id"],
+    "unique_keys": [],
+    "nullable_keys": [],
+    "foreign_keys": {}
+  }
+}
+```
+
+Each collection entry contains:
+
+- **field_names**: Array of column names in the collection
+- **field_types**: Mapping of field names to their data types
+- **primary_keys**: Array of field names that form the primary key
+- **unique_keys**: Array of field names with unique constraints
+- **nullable_keys**: Array of field names that can be null
+- **foreign_keys**: Object mapping fields to their foreign key relationships
+
+```json title="Foreign key example:"
+{
+  "foreign_keys": {
+    "user_id": {
+      "table": "users",
+      "column": "id"
+    }
+  }
+}
+```
+
+### Property: Object Types
+
+This provides detailed type information for each field in each collection, including handling of nullable fields.
+
+```json title="Example:"
+{
+  "users": {
+    "fields": {
+      "id": {
+        "type": {
+          "type": "named",
+          "name": "Int"
+        }
+      },
+      "name": {
+        "type": {
+          "type": "named",
+          "name": "String"
+        }
+      }
+    }
+  }
+}
+```
+
+For nullable fields, the type is wrapped in a `nullable` type descriptor:
+
+```json
+{
+  "created_at": {
+    "type": {
+      "type": "nullable",
+      "underlying_type": {
+        "type": "named",
+        "name": "String"
+      }
+    }
+  }
+}
+```
+
+## Updating with introspection
+
+Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
+reflect those changes.
+
+Running `update` in a configuration directory will do the following:
+
+- Connect to the database and refresh the collection metadata
+- Update the `collection_names`, `object_fields`, and `object_types` to reflect the current database schema
+- Preserve any custom configuration that doesn't conflict with the updated schema

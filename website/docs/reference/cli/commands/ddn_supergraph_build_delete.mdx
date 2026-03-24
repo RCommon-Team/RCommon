@@ -1,0 +1,69 @@
+---
+sidebar_label: ddn supergraph build delete
+sidebar_position: 107
+description: Delete SupergraphBuilds from a Project using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_supergraph_build_delete"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn supergraph build delete
+---
+
+# DDN CLI: ddn supergraph build delete
+
+Delete SupergraphBuilds from a Project.
+
+## Synopsis
+
+Delete SupergraphBuilds from a Project
+
+```bash
+ddn supergraph build delete [supergraph-build-version] [flags]
+```
+
+## Examples
+
+```bash
+# Delete a specific SupergraphBuild from a Project "pet-lion-2649"
+ ddn supergraph build delete <supergraph-build-version> --project pet-lion-2649
+
+# Delete all unapplied SupergraphBuilds from a Project "pet-lion-2649"
+ ddn supergraph build delete --unapplied --project pet-lion-2649
+
+# Keep only the last 5 SupergraphBuilds and the currently applied build
+ ddn supergraph build delete --retain-latest 5 --project pet-lion-2649
+
+# Delete all SupergraphBuilds created before a specific timestamp (except the currently applied build)
+ ddn supergraph build delete --older-than "2024-01-01T00:00:00Z" --project pet-lion-2649
+
+# Preview what builds would be deleted without actually deleting them
+ ddn supergraph build delete --unapplied --dry-run --project pet-lion-2649
+```
+
+## Options
+
+```sass
+    --ci                  Disables the use of context
+-c, --context string      Name of the context to use. (default <current_context>)
+    --dry-run             Show what builds would be deleted without actually deleting them
+-h, --help                help for delete
+    --older-than string   Delete all supergraph builds that were created before the timestamp (RFC3339 format), except the currently applied build
+-p, --project string      DDN Project name
+    --retain-latest int   Keep only the last n builds and the currently applied build. Deletes all other builds
+    --unapplied           Delete all builds except the currently applied build
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn supergraph build](/reference/cli/commands/ddn_supergraph_build) - Perform SupergraphBuild-related operations

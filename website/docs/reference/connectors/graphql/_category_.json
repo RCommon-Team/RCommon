@@ -1,0 +1,7 @@
+{
+  "label": "GraphQL",
+  "position": 5,
+  "customProps": {
+    "connector-ids": ["graphql"]
+  }
+}

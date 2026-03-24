@@ -1,0 +1,7 @@
+{
+  "label": "Turso",
+  "position": 19,
+  "customProps": {
+    "connector-ids": ["turso"]
+  }
+}

@@ -1,0 +1,95 @@
+---
+sidebar_position: 3
+sidebar_label: Native Queries
+description:
+  "Native Queries allow you to run custom SQL queries on your BigQuery database. This page explains how to configure
+  Native Queries in your DDN project."
+keywords:
+  - native queries
+  - custom queries
+  - bigquery
+seoFrontMatterUpdated: false
+---
+
+# Native Queries
+
+## Introduction
+
+Native Queries allow you to run custom SQL queries on your BigQuery database. These allow you to run queries that are
+not supported by Hasura's DDN GraphQL API by default.
+
+## Structure
+
+A Native Query is a single SQL statement that returns results and can take arguments. The SQL structure of a Native
+Query is specified in the [Native Operation syntax](/reference/connectors/bigquery/native-operations/syntax.mdx) page.
+
+## Create a Native Query
+
+To create a new Native Query, create a new SQL file inside the connector configuration directory, then use the `ddn` CLI
+to add it to the connector configuration. For example:
+
+1. Create a new directory structure under the connector configuration:
+
+   ```sh
+   mkdir -p my_subgraph/connector/bigquery-connector/native_operations/queries/
+   ```
+
+2. Create a new SQL file `my_subgraph/connector/bigquery-connector/native_operations/queries/artist_by_name_between.sql` with
+   the following content:
+
+   ```sql
+   SELECT *
+   FROM "Artist"
+   WHERE "Name" LIKE :name
+     AND "ArtistId" > :lower_bound
+     AND "ArtistId" < :upper_bound
+   ```
+
+3. Create a new entry in the connector configuration:
+
+   NOTE: The `operation-path` provided should be relative to the configuration directory. It means that for the below case,
+   the SQL file is expected to be present at `<ddn-project-root>/my_subgraph/connector/bigquery-connector/native-operations/queries/artist_by_name_between.sql`
+
+   ```sh
+   ddn connector plugin --connector my_subgraph/connector/bigquery-connector/connector.yaml -- \
+     native-queries create --operation-path native_operations/queries/artist_by_name_between.sql --name artist_by_name_between
+   ```
+
+4. If your data connector is running, run the following command to update your metadata to track the new native query:
+
+   ```sh
+   ddn connector-link update bigquery_connector --add-all-resources
+   ```
+
+   If you get a `connection refused` error, it means that your data connector is not running. You can either start the
+   data connector and try again, or, run the following commands to update your metadata to track the new native query:
+
+   ```sh
+   # start the connector and introspect your DB
+   ddn connector introspect bigquery_connector
+
+   # update your metadata to track the new native query
+   ddn model add bigquery_connector "artist_by_name_between"
+   ```
+
+## Updating a Native Query
+
+A Native Query can be updated with the `create` command and setting the `--overwrite` option. For example:
+
+```sh
+ddn connector plugin --connector my_subgraph/connector/bigquery_connector/connector.yaml -- \
+  native-queries create --name artist_by_name_between --operation-path native_operations/queries/artist_by_name_between.sql  --overwrite
+```
+
+### Usage
+
+With the example above, you can then use the query in your GraphQL API like this:
+
+```graphql
+query {
+  artist_by_name_between(args: {name: "Black", lower_bound: 10, upper_bound: 50}) {
+    ArtistId
+    Name
+  }
+}
+```

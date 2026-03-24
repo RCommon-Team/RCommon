@@ -1,0 +1,60 @@
+---
+sidebar_position: 1
+sidebar_label: Deprecated Metadata Upgrades
+description: "Upgrade your metadata to take advantage of new features."
+keywords:
+  - hasura
+  - hasura ddn
+  - project metadata
+  - supergraph metadata
+  - upgrade metadata
+seoFrontMatterUpdated: false
+---
+
+[//]: # "Add codemods in the order the user is expected to run them."
+[//]: # "This is a descending order list. Newer codemods appear at the top."
+
+# Deprecated Metadata Upgrades
+
+Codemods can upgrade your metadata to the latest version so you can take advantage of the latest engine features.
+
+Codemods below are listed with the CLI version they were added in.
+
+## `upgrade-object-boolean-expression-types` (v2.4.0)
+
+Upgrades the deprecated
+[`ObjectBooleanExpressionType`](/reference/metadata-reference/boolean-expressions.mdx#objectbooleanexpressiontype-objectbooleanexpressiontype)
+to the new [`BooleanExpressionType`](/reference/metadata-reference/boolean-expressions.mdx).
+
+This enables filtering Models on nested objects and arrays, and based on relationships.
+
+```bash
+ddn codemod upgrade-object-boolean-expression-types
+```
+
+By default the codemod will run against the supergraph.yaml from the context. Provide `--supergraph` or `--subgraph` to
+run the codemod against a different supergraph or subgraph.
+
+## `upgrade-graphqlconfig-aggregate` (v2.4.0)
+
+Add aggregates support to metadata through [`AggregateExpression`](/reference/metadata-reference/aggregate-expressions).
+Use aggregates (like sum, min, count, etc) in your GraphQL API.
+
+```bash
+ddn codemod upgrade-graphqlconfig-aggregate
+```
+
+By default the codemod will run against the supergraph.yaml from the context.
+
+The `GraphqlConfig` metadata object is required to be upgraded to enable aggregates for all subgraphs.
+
+Run against a specific supergraph.yaml or subgraph.yaml file
+
+```bash
+ddn codemod upgrade-graphqlconfig-aggregate --supergraph ./supergraph.cloud.yaml
+ddn codemod upgrade-graphqlconfig-aggregate --subgraph ./app/subgraph.yaml
+```
+
+## `upgrade-graphqlconfig-subscriptions` (v2.14.0)
+
+Learn more about upgrading your metadata to have subscriptions by visiting [this page](/graphql-api/subscriptions/).

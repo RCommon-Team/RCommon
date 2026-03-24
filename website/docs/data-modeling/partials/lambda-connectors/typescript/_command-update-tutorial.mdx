@@ -1,0 +1,19 @@
+You can update the command metadata for the Node.js lambda connector with the following workflow.
+
+Make changes to the function in your editor, then run the following commands to update the command metadata.
+
+```bash title="Use the DDN CLI to introspect your connector:"
+ddn connector introspect my_ts
+```
+
+```sh title="Show the resources discovered from your connector:"
+ddn connector show-resources my_ts
+```
+
+```sh title="Then, update your command:"
+ddn command update my_ts shoutName
+```
+
+```sh title="Or, update all commands:"
+ddn command update my_ts "*"
+```

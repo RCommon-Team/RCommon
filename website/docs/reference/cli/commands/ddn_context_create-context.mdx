@@ -1,0 +1,50 @@
+---
+sidebar_label: ddn context create-context
+sidebar_position: 54
+description: Create a new context using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_context_create-context"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn context create-context
+---
+
+# DDN CLI: ddn context create-context
+
+Create a new context.
+
+## Synopsis
+
+Create a new context
+
+```bash
+ddn context create-context <name> [flags]
+```
+
+## Examples
+
+```bash
+# Create a new context called staging
+ ddn context create-context staging
+```
+
+## Options
+
+```sass
+-h, --help   help for create-context
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn context](/reference/cli/commands/ddn_context) - Perform context operations

@@ -1,0 +1,22 @@
+.overviewIconCard {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+}
+.overviewIconCard svg {
+	width: 250px;
+	height: 250px;
+	opacity: .4;
+	margin-top: -40px;
+}
+
+.overviewIconCard svg path,
+.overviewIconCard svg rect,
+.overviewIconCard svg circle {
+	stroke: #4D5761;
+}
+
+[data-theme='dark'] .overviewIconCard svg {
+	opacity: .6;
+}

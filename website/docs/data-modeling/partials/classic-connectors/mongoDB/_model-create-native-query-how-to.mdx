@@ -1,0 +1,36 @@
+The process for adding a native query for MongoDB is:
+
+- Create a new MongoDB [aggregation pipeline](/reference/connectors/mongodb/native-operations/native-queries.mdx) which
+  defines the native query in your connector's directory.
+- Name the file with how you want to reference it in your supergraph API.
+- Use the DDN CLI plugin for the MongoDB connector to add the aggregation pipeline to the connector's configuration eg:
+
+```bash
+ddn connector plugin \
+  --connector subgraph_name/connector/connector_name/connector.yaml \
+  -- native-query create path/to/aggregation_pipeline_filename.json \
+  --collection collection_name
+```
+
+- Introspect your MongoDB data connector to fetch the latest resources.
+
+```bash
+ddn connector introspect <connector_name>
+```
+
+- Show the found resources to see the new native query.
+
+```bash
+ddn connector show-resources <connector_name>
+```
+
+- Add the model for the native query.
+
+```bash
+ddn model add <connector_link_name> <model_name>
+```
+
+- Rebuild and serve your supergraph API.
+
+Find out more about
+[native queries for MongoDB here](/reference/connectors/mongodb/native-operations/native-queries.mdx).

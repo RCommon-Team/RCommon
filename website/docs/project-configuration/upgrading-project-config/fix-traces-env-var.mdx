@@ -1,0 +1,60 @@
+---
+sidebar_position: 5
+sidebar_label: Fix env var for OTLP endpoint
+description: "Fix the name of the environment variable used to configure OTLP endpoint"
+keywords:
+  - hasura ddn
+  - data delivery network
+  - hasura cli
+  - project configuration
+  - hasura metadata management
+  - yaml configuration
+  - api development
+  - hasura build profiles
+  - hasura subgraphs
+  - hasura project management
+seoFrontMatterUpdated: true
+toc_max_heading_level: 4
+---
+
+# Fix the OTLP endpoint environment variable
+
+## What has happened?
+
+In DDN CLI versions **v2.7.0** and below, the environment variable `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`
+was used to configure the endpoint for sending traces from connectors. However, this environment variable
+is not supported by all Hasura connectors. Starting with CLI v2.7.1, the environment variable 
+`OTEL_EXPORTER_OTLP_ENDPOINT` is now used, which is supported by all Hasura connectors.
+
+## What has changed?
+
+When DDN CLI initializes a connector using `ddn connector init` the environment variable `OTEL_EXPORTER_OTLP_ENDPOINT`
+is used instead of `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` in `connector.yaml` and `compose.yaml` files.
+
+## Migrate an existing project
+To start using this new feature in an existing project:
+
+1. Update your CLI to the latest version.
+```bash
+ddn update-cli
+```
+2. Run codemod from Hasura project directory to update the name of the environment variables
+```bash
+ddn codemod fix-traces-env-var --dir .
+```
+
+This will fix the name of the environment variables in the connector configuration files and docker compose files.
+
+## Verifying the changes
+
+To verify that the traces are working correctly,
+
+1. Run the local engine using `ddn run docker-start`
+2. Open local console using `ddn console --local`
+3. Execute a GraphQL query
+4. Click on 'View Trace' and verify that the traces from the connector are also shown
+
+## Need help?
+
+If you need help migrating your project or have any other questions please reach out to us on our
+[Discord](https://hasura.io/discord).

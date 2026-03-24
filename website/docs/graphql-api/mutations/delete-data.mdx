@@ -1,0 +1,40 @@
+---
+sidebar_label: Delete data
+sidebar_position: 3
+description: "Learn how to delete data using your Hasura DDN API."
+keywords:
+  - graphql mutations
+  - hasura graphql api
+  - api mutations
+  - delete data
+---
+
+import GraphiQLIDE from "@site/src/components/GraphiQLIDE";
+
+# Delete Data
+
+## Delete an object
+
+You can delete an object by targeting it using a unique key according to the source schema.
+
+<GraphiQLIDE
+  query={`mutation DeletePost {
+  deletePostsById(keyId: "6") {
+    affectedRows
+  }
+}`}
+  response={`{
+  "data": {
+    "deletePostsById": {
+      "affectedRows": 1
+    }
+  }
+}`}
+/>
+
+## Custom delete mutations
+
+For connectors that support native mutations, you can also create custom delete mutations to delete data in your data
+source. This allows you to write any custom logic you need to delete data using your data source's native capabilities.
+
+Learn more in your [connector's reference documentation](/reference/connectors/index.mdx).

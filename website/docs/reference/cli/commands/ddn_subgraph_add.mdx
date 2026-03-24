@@ -1,0 +1,55 @@
+---
+sidebar_label: ddn subgraph add
+sidebar_position: 96
+description: Add a Subgraph config file to Supergraph config file using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_subgraph_add"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn subgraph add
+---
+
+# DDN CLI: ddn subgraph add
+
+Add a Subgraph config file to Supergraph config file.
+
+## Synopsis
+
+Adding a subgraph configuration file to the supergraph config allows the CLI to recognize the subgraph when generating new builds using the supergraph config.
+
+```bash
+ddn subgraph add --subgraph <path-to-subgraph-config-file> --target-supergraph <path-to-supergraph-config-file> [flags]
+```
+
+## Examples
+
+```bash
+# Add a Subgraph config file "./app/subgraph.yaml" to the Supergraph config file "./supergraph.yaml"
+ ddn subgraph add --subgraph ./app/subgraph.yaml --target-supergraph ./supergraph.yaml
+
+# Add a Subgraph config file "./app/subgraph.yaml" to multiple Supergraph config files"
+ ddn subgraph add --subgraph ./app/subgraph.yaml --target-supergraph ./supergraph.stg.yaml --target-supergraph ./supergraph.prod.yaml
+```
+
+## Options
+
+```sass
+-h, --help                            help for add
+    --subgraph string                 Path to Subgraph config file (required)
+    --target-supergraph stringArray   Supergraph config file to add the Subgraph. Can be repeated to provide multiple Supergraph config files (required)
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn subgraph](/reference/cli/commands/ddn_subgraph) - Perform Subgraph-related operations

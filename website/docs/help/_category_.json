@@ -1,0 +1,8 @@
+{
+  "label": "Help",
+  "position": 14,
+  "className": "faq-icon",
+  "customProps": {
+    "sidebar_pathname": "help"
+  }
+}

@@ -1,0 +1,43 @@
+---
+sidebar_label: ddn doctor
+sidebar_position: 62
+description: Check if the dependencies of DDN CLI are present using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_doctor"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn doctor
+---
+
+# DDN CLI: ddn doctor
+
+Check if the dependencies of DDN CLI are present.
+
+## Synopsis
+
+Check if the dependencies (Docker and Docker Compose) of DDN CLI are installed, are of the required version and if they are running.
+
+```bash
+ddn doctor [flags]
+```
+
+## Options
+
+```sass
+-h, --help   help for doctor
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

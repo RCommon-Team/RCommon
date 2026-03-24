@@ -1,0 +1,310 @@
+---
+sidebar_position: 14
+sidebar_label: With Snowflake
+description: "Learn the basics of Hasura DDN and how to get started with a Snowflake instance."
+custom_props:
+  connector-ids:
+    - snowflake
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - snowflake
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and Snowflake
+
+## Overview
+
+This tutorial takes about twenty minutes to complete. You'll learn how to:
+
+- Set up a new Hasura DDN project
+- Connect it to a Snowflake instance
+- Generate Hasura metadata
+- Create a build
+- Run your first query
+
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+
+This tutorial assumes you're starting from scratch, but you can easily follow the steps if you already have data seeded;
+Hasura will never modify your source schema.
+
+<Prereqs />
+
+## Tutorial
+
+### Step 1. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
+acknowledge your login, giving you access to Hasura Cloud resources.
+
+### Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
+
+### Step 3. Initialize your Snowflake connector
+
+```sh title="In your project directory, run:"
+ddn connector init my_snowflake -i
+```
+
+Select `hasura/snowflake` from the list of connectors.
+
+```plaintext title="The CLI will ask you for a connection string in the JDBC URL format, e.g.:"
+jdbc:snowflake://<account-identifier.<region>.snowflakecomputing.com?user=YOUR_USERNAME&password=YOUR_PASSWORD&db=YOUR_DATABASE&warehouse=YOUR_WAREHOUSE&schema=YOUR_SCHEMA&role=YOUR_ROLE
+```
+
+:::info Generating Snowflake JDBC URLs
+
+From Snowflake's UI, you can click on the account menu in the Snowflake control panel and then select
+`Connect a tool to Snowflake` to get a generated JDBC string from the `Connector/Drivers` tab.
+
+To learn more about Snowflake's conventions for JDBC URLs, see their
+[docs](https://docs.snowflake.com/developer-guide/jdbc/jdbc-configure#jdbc-driver-connection-string).
+
+:::
+
+### Step 4. Create and seed a new Snowflake database
+
+In a warehouse, create a new database called `DOCS`. Then, on the `PUBLIC` schema for the `DOCS` database, create a new
+table using the standard format via the Snowflake UI:
+
+```sql
+CREATE TABLE users (
+  id INT AUTOINCREMENT START 1 INCREMENT 1 PRIMARY KEY,
+  name STRING NOT NULL,
+  age INT NOT NULL
+);
+```
+
+Next, open a new worksheet on your database's `PUBLIC` schema and insert some seed data:
+
+```sql
+INSERT INTO users (name, age) VALUES ('Alice', 25);
+INSERT INTO users (name, age) VALUES ('Bob', 30);
+INSERT INTO users (name, age) VALUES ('Charlie', 35);
+```
+
+You can verify this worked by using the worksheet to query all records from the `users` table:
+
+```sql
+SELECT * FROM users;
+```
+
+### Step 5. Introspect your Snowflake database
+
+```sh title="Next, use the CLI to introspect your Snowflake database:"
+ddn connector introspect my_snowflake
+```
+
+After running this, you should see a representation of your database's schema in the
+`app/connector/my_snowflake/configuration.json` file; you can view this using `cat` or open the file in your editor.
+
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources my_snowflake
+```
+
+### Step 6. Add your model
+
+```sh title="Now, track the table from your Snowflake database as a model in your DDN metadata:"
+ddn model add my_snowflake DOCS.PUBLIC.USERS
+```
+
+Open the `app/metadata` directory and you'll find a newly-generated file: `DocsPublicUsers.hml`. The DDN CLI will use
+this Hasura Metadata Language file to represent the `users` table from Snowflake in your API as a
+[model](/reference/metadata-reference/models.mdx).
+
+### Step 7. Create a new build
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+### Step 8. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and Snowflake connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+### Step 9. Run your first query
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query {
+  docsPublicUsers {
+    id
+    name
+    age
+  }
+}
+```
+
+```json title="You'll get the following response:"
+{
+  "data": {
+    "docsPublicUsers": [
+      {
+        "id": 1,
+        "name": "Alice",
+        "age": 25
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "age": 30
+      },
+      {
+        "id": 3,
+        "name": "Charlie",
+        "age": 35
+      }
+    ]
+  }
+}
+```
+
+### Step 10. Iterate on your Snowflake schema
+
+```sql title="Add a new table for posts:"
+CREATE TABLE posts (
+  id INT AUTOINCREMENT PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+INSERT INTO posts (user_id, title, content) VALUES
+  (1, 'My First Post', 'This is Alice''s first post.'),
+  (1, 'Another Post', 'Alice writes again!'),
+  (2, 'Bob''s Post', 'Bob shares his thoughts.'),
+  (3, 'Hello World', 'Charlie joins the conversation.');
+```
+
+```sql title="Using the worksheet, query the joined data:"
+SELECT
+  posts.id AS post_id,
+  posts.title,
+  posts.content,
+  posts.created_at,
+  users.name AS author
+FROM
+  posts
+JOIN
+  users ON posts.user_id = users.id;
+```
+
+You should see a list of posts returned with the author's information joined from the `users` table
+
+### Step 11. Refresh your metadata and rebuild your project
+
+:::tip
+
+The following steps are necessary each time you make changes to your **source** schema. This includes, adding,
+modifying, or dropping tables.
+
+:::
+
+#### Step 11.1. Re-introspect your data source
+
+```sh title="Run the introspection command again:"
+ddn connector introspect my_snowflake
+```
+
+In `app/connector/my_snowflake/configuration.json`, you'll see schema updated to include operations for the `posts`
+table. In `app/metadata/my_snowflake.hml`, you'll see `DOCS.PUBLIC.POSTS` present in the metadata as well.
+
+#### Step 11.2. Update your metadata
+
+```sh title="Add the posts model:"
+ddn model add my_snowflake "DOCS.PUBLIC.POSTS"
+```
+
+#### Step 11.3. Create a new build
+
+```sh title="Next, create a new build:"
+ddn supergraph build local
+```
+
+#### Step 11.4. Restart your services
+
+```sh title="Bring down the services by pressing CTRL+C and start them back up:"
+ddn run docker-start
+```
+
+### Step 12. Query your new build
+
+```graphql title="Head back to your console and query the posts model:"
+query GetPosts {
+  docsPublicPosts {
+    id
+    title
+    content
+  }
+}
+```
+
+```json title="You'll get a response like this:"
+{
+  "data": {
+    "docsPublicPosts": [
+      {
+        "id": 1,
+        "title": "My First Post",
+        "content": "This is Alice's first post."
+      },
+      {
+        "id": 2,
+        "title": "Another Post",
+        "content": "Alice writes again!"
+      },
+      {
+        "id": 3,
+        "title": "Bob's Post",
+        "content": "Bob shares his thoughts."
+      },
+      {
+        "id": 4,
+        "title": "Hello World",
+        "content": "Charlie joins the conversation."
+      }
+    ]
+  }
+}
+```
+
+## Next steps
+
+Congratulations on completing your first Hasura DDN project with Snowflake! 🎉
+
+Here's what you just accomplished:
+
+- You started with a fresh project and connected it to a local Snowflake database.
+- You set up metadata to represent your tables, which acts as the blueprint for your API.
+- Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
+  GraphQL queries to fetch data.
+- Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
+
+Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
+
+Take a look at our Snowflake docs to learn more about how to use Hasura DDN with Snowflake. Or, if you're ready, get
+started with adding [permissions](/reference/metadata-reference/permissions.mdx) to control access to your API.

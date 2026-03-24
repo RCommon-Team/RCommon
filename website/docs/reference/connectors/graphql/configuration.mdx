@@ -1,0 +1,143 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description: "Reference documentation for the setup process for the Hasura GraphQL connector"
+keywords:
+  - graphql connector
+  - configuration
+---
+
+# Configuration
+
+## Introduction
+
+The `configuration.json` file is responsible for establishing connections between your GraphQL connector and the exposed
+API. You can configure different settings for introspection and query execution.
+
+## Structure
+
+```json title="When you first initialize a GraphQL connector, this structure will be generated automatically:"
+{
+  "$schema": "configuration.schema.json",
+  "introspection": {
+    "endpoint": {
+      "valueFromEnv": "GRAPHQL_ENDPOINT"
+    }
+  },
+  "execution": {
+    "endpoint": {
+      "valueFromEnv": "GRAPHQL_ENDPOINT"
+    }
+  }
+}
+```
+
+### `$schema`
+
+The `$schema` references a `configuration.schema.json` schema that will contain all the information necessary to
+introspect and execute queries against your existing API.
+
+You can explore this file by opening `<subgraph_name>/connector/<connector_name>/configuration.schema.json`
+
+### `introspection`
+
+The `introspection` object can be configured to accept headers.
+
+```json title="E.g.:"
+ "headers": {
+      "X-Hasura-Admin-Secret": {
+        "value": "secret-admin-key-from-a-v2-project"
+      },
+      "Content-Type": {
+        "value": "application/json"
+      }
+    }
+  },
+```
+
+### `execution`
+
+```json title="Here, we're forwarding the Authorization header for use in the existing GraphQL API:"
+{
+  ...
+  "execution": {
+    "endpoint": {
+      "valueFromEnv": "ANOTHER_GRAPHQL_ENDPOINT"
+    },
+    "headers": {
+      "Content-Type": {
+        "value": "application/json"
+      }
+    }
+  },
+}
+```
+
+:::info Why use different configurations for introspection and execution?
+
+For introspection, we're connecting to an existing Hasura v2 project using the x-hasura-admin-secret. This grants access
+as the admin role, ensuring full visibility over the entire schema — ideal for discovering all available types,
+relationships, and permissions.
+
+For execution, however, you may want more flexibility. You can specify a different endpoint, or use different headers
+and roles that match the actual production or client-facing environment, rather than the elevated admin role.
+
+:::
+
+### `request` (optional)
+
+#### `forwardHeaders`
+
+A list of request headers to forward. Defaults to `[]`, meaning no headers are forwarded by default. Supports glob
+patterns (e.g., `"X-Hasura-*"`).
+
+**Note:** Enabling this requires additional configuration on the DDN side. Refer to these
+[docs](/reference/connectors/graphql/header-passthrough.mdx) for details.
+
+#### `headersArgument`
+
+Specifies the name of the headers argument. Defaults to `"_headers"`.
+
+Make sure the name does **not** conflict with any existing arguments of root fields in the target schema. Change it to a
+different value if a conflict exists.
+
+#### `headersTypeName`
+
+Specifies the name of the headers argument type. Defaults to `"_HeaderMap"`.
+
+Ensure this type name does **not** conflict with existing types in the target schema. Change it to a different value if
+a conflict occurs.
+
+### `response` (optional)
+
+#### `forwardHeaders`
+
+A list of request headers to forward. Defaults to `[]`, meaning no headers are forwarded by default. Supports glob
+patterns (e.g., `"X-Hasura-*"`).
+
+**Note:** Enabling this requires additional configuration on the DDN side. Refer to these
+[docs](/reference/connectors/graphql/header-passthrough.mdx) for details.
+
+#### `headersField`
+
+Name of the headers field in the response type. Defaults to `headers`.
+
+#### `responseField`
+
+Name of the response field in the response type. Defaults to `response`.
+
+#### `typeNamePrefix`
+
+Prefix for response type names. Defaults to `_`. Generated response type names must be unique once prefix and suffix are
+applied.
+
+#### `typeNameSuffix`
+
+Suffix for response type names. Defaults to `Response`. Generated response type names must be unique once prefix and
+suffix are applied.
+
+:::tip Use environment variables
+
+Any literal `"value"` in the configuration can be replaced with `"valueFromEnv"` in order to read from environments.
+
+:::

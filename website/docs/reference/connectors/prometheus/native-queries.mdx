@@ -1,0 +1,56 @@
+---
+sidebar_position: 4
+sidebar_label: Native Queries
+description: "Reference documentation for the native queries for the Hasura Prometheus connector."
+keywords:
+  - prometheus
+  - native query
+---
+
+# Native Queries
+
+## Introduction
+
+When simple queries don't meet your needs you can define native queries in the connector's `configuration.yaml` file with
+prepared variables with the `${<name>}` template. Native queries are defined as collections.
+
+```yaml
+metadata:
+  native_operations:
+    queries:
+      service_up:
+        query: up{job="${job}", instance="${instance}"}
+        labels:
+          instance: {}
+          job: {}
+        arguments:
+          instance:
+            type: String
+          job:
+            type: String
+```
+
+The native query is exposed as a read-only function with two required fields `job` and `instance`.
+
+```graphql
+{
+  service_up(
+    args: { step: "1m", job: "node", instance: "node-exporter:9100" }
+    where: { timestamp: { _gt: "2024-10-11T00:00:00Z" }, job: { _in: ["node"] } }
+  ) {
+    job
+    instance
+    values {
+      timestamp
+      value
+    }
+  }
+}
+```
+
+:::info Labels aren't automatically added.
+
+You need to define them manually. Additionally, label and value boolean expressions in `where` are used to filter
+results after the query is executed.
+
+:::

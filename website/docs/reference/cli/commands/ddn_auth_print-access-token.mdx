@@ -1,0 +1,55 @@
+---
+sidebar_label: ddn auth print-access-token
+sidebar_position: 6
+description: Prints the access token to STDOUT using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_auth_print-access-token"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn auth print-access-token
+---
+
+# DDN CLI: ddn auth print-access-token
+
+Prints the access token to STDOUT.
+
+## Synopsis
+
+Your access token is stored locally and is only available after authenticating your CLI using one of the options via the ddn auth login command.
+
+```bash
+ddn auth print-access-token [flags]
+```
+
+**Alias:** pp, print-pat
+
+## Examples
+
+```bash
+# Print the access token as a string to STDOUT
+ ddn auth print-access-token
+
+# Print access token as a JSON to STDOUT
+ ddn auth print-access-token --out json
+```
+
+## Options
+
+```sass
+-h, --help   help for print-access-token
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn auth](/reference/cli/commands/ddn_auth) - Manage Hasura DDN CLI Auth

@@ -1,0 +1,57 @@
+---
+sidebar_label: ddn context set
+sidebar_position: 58
+description: Set the value of a key in the context using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_context_set"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn context set
+---
+
+# DDN CLI: ddn context set
+
+Set the value of a key in the context.
+
+## Synopsis
+
+Set default value of keys to be used in DDN CLI commands.
+
+```bash
+ddn context set <key> <value> (Allowed keys: project, supergraph, subgraph, localEnvFile, cloudEnvFile, selfHostedDataPlane, noBuildConnectors) [flags]
+```
+
+## Examples
+
+```bash
+# Set the Project name in the context
+ ddn context set project foo-bar-1234
+
+# Set the local Supergraph config file path in the context
+ ddn context set supergraph ./supergraph.local.yaml
+
+# Set the Subgraph config file path in the context
+ ddn context set subgraph ./app/subgraph.yaml
+```
+
+## Options
+
+```sass
+-c, --context string   Name of the context to use. (default <current_context>)
+-h, --help             help for set
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn context](/reference/cli/commands/ddn_context) - Perform context operations

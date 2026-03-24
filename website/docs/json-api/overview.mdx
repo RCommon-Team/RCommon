@@ -1,0 +1,46 @@
+---
+description: "Learn how to use Hasura's JSON:API implementation to interact with your data."
+title: JSON:API Overview
+sidebar_label: Basics
+keywords:
+  - hasura
+  - json:api
+  - rest
+  - api
+  - overview
+sidebar_position: 1
+---
+
+# Basics
+
+## Introduction
+
+Hasura DDN provides a JSON:API-compliant interface as an alternative to [GraphQL](/graphql-api/overview.mdx) for
+accessing your data. This implementation adheres to the [JSON:API specification](https://jsonapi.org), offering a
+standardized REST-based approach to interact with your resources.
+
+When you connect a source to Hasura DDN using a [data connector](/data-sources/overview.mdx) and generate Hasura
+metadata, the source becomes accessible through both GraphQL and JSON:API interfaces. Your Hasura metadata lets you
+control how the data is exposed and interacted with across both APIs.
+
+JSON:API endpoints are automatically generated from your data models, providing a seamless way to interact with your
+data without additional configuration. These endpoints use the same permission system as your GraphQL API, ensuring
+unified security across both interfaces. Hasura's optimization engine enhances performance, making queries efficient and
+scalable while maintaining a consistent experience. Since JSON:API support is built directly into Hasura DDN, it works
+out-of-the-box with your existing setup.
+
+:::warning Alpha release
+
+The JSON:API implementation in Hasura DDN is currently in alpha. While we aim to follow the JSON:API specification, some
+features may be incomplete or differ from the standard. Check the documentation for the latest supported features.
+
+:::
+
+## Learn more
+
+- [Explore the JSON:API schema](/json-api/schema.mdx)
+- [Query your data with JSON:API](/json-api/queries/index.mdx)
+- [Filter query results](/json-api/queries/filters.mdx)
+- [Include relationships](/json-api/queries/relationships.mdx)
+- [Sort query results](/json-api/queries/sorting.mdx)
+- [Paginate through results](/json-api/queries/pagination.mdx)

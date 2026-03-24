@@ -1,0 +1,612 @@
+---
+sidebar_position: 6
+sidebar_label: Models
+description:
+  "Explore the concept of Models in Hasura Data Domain, your link between the data sources and the generated API. Learn
+  about models, their structure, source configuration, and how they appear in the GraphQL API. Understand filterable
+  fields, orderable fields, data connector types, and how to configure them. Gain insights on unique identifiers and
+  their role in retrieving unique data objects from the model."
+toc_max_heading_level: 4
+keywords:
+  - hasura models
+  - data domain models
+  - hasura api
+  - graphql api configuration
+  - source configuration
+  - filterable fields
+  - orderable fields
+  - data connectors
+  - unique identifiers
+seoFrontMatterUpdated: true
+canonicalUrl: "https://promptql.io/docs/reference/metadata-reference/models/"
+---
+
+# Models
+
+## Introduction
+
+In Hasura DDN, a **model** represents a collection of data objects within a data domain. Models act as the foundational
+elements (or "nouns") that define the data structure and behavior in your API. They can be backed by various data
+sources such as database tables, custom SQL queries, materialized views, or even external REST or GraphQL APIs.
+
+Models bridge the gap between [data connectors](/data-sources/overview.mdx) and the
+[GraphQL API](/graphql-api/overview.mdx), enabling operations like insertion, updating, deletion, and querying with
+features like filtering, pagination, and sorting.
+
+## How models work
+
+### Lifecycle
+
+You can quickly add models to your metadata [using the CLI](/reference/cli/commands/ddn_model_add.mdx).
+
+Models themselves are backed by [types](/reference/metadata-reference/types.mdx), which are derived using the schema of
+the data source they represent via a [DataConnectorLink object](/reference/metadata-reference/data-connector-links.mdx).
+This means that when you add a model, Hasura DDN automatically generates the necessary types for you.
+
+Once a model is declared, it becomes a central reference point within your metadata. Models are often associated with
+[`Relationship`](/reference/metadata-reference/relationships.mdx) objects, allowing them to interact with other models,
+and with [`Permissions`](/reference/metadata-reference/permissions.mdx) objects, which control access to the data they
+represent. Like all other metadata objects, models are defined in an HML file.
+
+You should [update your models](/reference/cli/commands/ddn_model_update.mdx) whenever you make changes to your data
+sources and, in turn, your DataConnectorLink objects. This ensures that your API remains in sync with your data.
+
+To make a new model available in your supergraph, you'll need to
+[create a new build](/reference/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
+```yaml title="The following is an example of a model definition for a Users model:"
+---
+kind: Model
+version: v1
+definition:
+  name: Users
+  objectType: Users
+  source:
+    dataConnectorName: my_pg
+    collection: users
+  filterExpressionType: UsersBoolExp
+  orderableFields:
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: name
+      orderByDirections:
+        enableAll: true
+    - fieldName: email
+      orderByDirections:
+        enableAll: true
+    - fieldName: createdAt
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: users
+    selectUniques:
+      - queryRootField: usersById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: UsersOrderBy
+```
+
+| **Field**                                        | **Description**                                                                                                                                                                                | **Reference**                                                         |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **kind**                                         | Specifies the type of object being defined. In this case, it’s a model.                                                                                                                        | [Model](#model-model)                                                 |
+| **version**                                      | Indicates the version of the model's structure.                                                                                                                                                | [ModelV1](#model-modelv1)                                             |
+| **definition.name**                              | The name of the model, representing the collection of data objects within this model.                                                                                                          | [ModelName](#model-modelname)                                         |
+| **definition.objectType**                        | Defines the type of objects contained within this model.                                                                                                                                       | [CustomTypeName](#model-customtypename)                               |
+| **definition.source.dataConnectorName**          | The name of the data connector that backs this model, linking it to the actual data source.                                                                                                    | [DataConnectorName](#model-dataconnectorname)                         |
+| **definition.source.collection**                 | The specific collection within the data connector that this model maps to.                                                                                                                     | [CollectionName](#model-collectionname)                               |
+| **definition.filterExpressionType**              | Specifies the type used for filtering the model's data within GraphQL queries.                                                                                                                 | [CustomTypeName](#model-customtypename)                               |
+| **definition.orderableFields**                   | A list of fields (in this example: `id`, `name`, `email`, `createdAt`) that can be used to sort the data in this model.                                                                        | [OrderableField](#model-orderablefield)                               |
+| **definition.graphql.selectMany.queryRootField** | The root field in the GraphQL API for querying multiple objects from this model. Removing this will disable the ability to query and return an array of this model.                            | [SelectManyGraphQlDefinition](#model-selectmanygraphqldefinition)     |
+| **definition.graphql.selectUniques**             | Defines unique query root fields (e.g., usersById) and identifiers used to retrieve unique objects in GraphQL. Removing this will disable the abilty to query a single instance of this model. | [SelectUniqueGraphQlDefinition](#model-selectuniquegraphqldefinition) |
+| **definition.graphql.orderByExpressionType**     | The type name used for specifying how to order the data when querying this model in GraphQL.                                                                                                   | [GraphQlTypeName](#model-graphqltypename)                             |
+
+```graphql title="The earlier model definition enables the following query in the API:"
+query UsersQuery {
+  users(where: { name: { _eq: "Bob" } }, order_by: { createdAt: Asc }, limit: 10) {
+    id
+    name
+    email
+    createdAt
+  }
+}
+```
+
+The above example works because the earlier model definition includes the necessary configuration for filtering,
+sorting, and pagination. Alternatively, if we'd set `enableAll` to `false` for the `createdAt` field in the
+[`orderableFields` section](#model-orderablefield), the `createdAt` field would not be available for sorting in the API.
+
+<details>
+<summary>Check out Global IDs for relay:</summary>
+
+A Global ID is a unique identifier for an object across the entire application, not just within a specific table or
+type. Think of it as an ID which you can use to fetch any object directly, regardless of what kind of object it is. This
+is different from typical database IDs, which are often guaranteed unique only within a particular table.
+
+[//]: # "TODO: As long as it has already been fetched?"
+
+Hasura's Global ID implementation can be used to provide options for GraphQL clients to elegantly handle caching and
+data re-fetching in a predictable and standardized way.
+
+The Global ID generated by Hasura DDN follows the
+[Relay Global ID spec](https://relay.dev/graphql/objectidentification.htm).
+
+As the example below shows, the `user` object type has a field `user_id` that uniquely identifies a user. The Global ID
+for the `user` object type will be generated using the `user_id` field:
+
+For the following request on a model which has enabled Global ID:
+
+```graphql
+{
+  user_by_id(user_id: 1) {
+    id // Global ID
+    user_id
+    name
+  }
+}
+```
+
+The response obtained should look like the following:
+
+```json
+{
+  "data": {
+    "user_by_id": {
+      "id": "eyJ2ZXJzaW9uIjoxLCJ0eXBlbmFtZSI6IkFydGljbGUiLCJpZCI6eyJhcnRpY2xlX2lkIjoyfX0=",
+      "user_id": 1,
+      "name": "Bob"
+    }
+  }
+}
+```
+
+Now, with the Global ID received above, the `User` object corresponding to `user_id: 1` can be retrieved, as shown
+below.
+
+```graphql
+{
+  node(id: "eyJ2ZXJzaW9uIjoxLCJ0eXBlbmFtZSI6IkFydGljbGUiLCJpZCI6eyJhcnRpY2xlX2lkIjoyfX0=") {
+    id
+    __typename
+    ... on User {
+      name
+    }
+  }
+}
+```
+
+The response to the above request should identify the `User` with `user_id: 1`.
+
+```json
+{
+  "node": {
+    "id": "eyJ2ZXJzaW9uIjoxLCJ0eXBlbmFtZSI6IkFydGljbGUiLCJpZCI6eyJhcnRpY2xlX2lkIjoyfX0=",
+    "__typename": "User",
+    "name": "Bob"
+  }
+}
+```
+
+</details>
+
+---
+
+## Metadata structure
+
+
+#### Model {#model-model}
+
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [Model (v1)](#model-model-(v1)) |  |
+| [Model (v2)](#model-model-(v2)) |  |
+
+ **Example:**
+
+```yaml
+kind: Model
+version: v1
+definition:
+  name: Articles
+  objectType: article
+  globalIdSource: true
+  arguments: []
+  source:
+    dataConnectorName: data_connector
+    collection: articles
+    argumentMapping: {}
+  filterExpressionType: Article_bool_exp
+  orderableFields:
+    - fieldName: article_id
+      orderByDirections:
+        enableAll: true
+    - fieldName: title
+      orderByDirections:
+        enableAll: true
+    - fieldName: author_id
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectUniques:
+      - queryRootField: ArticleByID
+        uniqueIdentifier:
+          - article_id
+        description: Description for the select unique ArticleByID
+    selectMany:
+      queryRootField: ArticleMany
+      description: Description for the select many ArticleMany
+    orderByExpressionType: Article_Order_By
+    apolloFederation:
+      entitySource: true
+  description: Description for the model Articles
+```
+
+
+#### Model (v2) {#model-model-(v2)}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `Model` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [ModelV2](#model-modelv2) | true | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. ModelV2 implements the changes described in rfcs/open-dd-expression-type-changes.md. |
+
+
+
+#### ModelV2 {#model-modelv2}
+
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. ModelV2 implements the changes described in rfcs/open-dd-expression-type-changes.md.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [ModelName](#model-modelname) | true | The name of the data model. |
+| `objectType` | [CustomTypeName](#model-customtypename) | true | The type of the objects of which this model is a collection. |
+| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
+| `arguments` | [[ArgumentDefinition](#model-argumentdefinition)] | false | A list of arguments accepted by this model. Defaults to no arguments. |
+| `source` | [ModelSource](#model-modelsource) / null | false | The source configuration for this model. |
+| `filterExpressionType` | [CustomTypeName](#model-customtypename) / null | false | The boolean expression type that should be used to perform filtering on this model. |
+| `orderByExpression` | [OrderByExpressionName](#model-orderbyexpressionname) / null | false | The order by expression to use for this model. |
+| `aggregateExpression` | [AggregateExpressionName](#model-aggregateexpressionname) / null | false | The name of the AggregateExpression that defines how to aggregate over this model |
+| `graphql` | [ModelGraphQlDefinitionV2](#model-modelgraphqldefinitionv2) / null | false | Configuration for how this model should appear in the GraphQL schema. |
+| `description` | string / null | false | The description of the model. Gets added to the description of the model in the graphql schema. |
+
+
+
+#### ModelGraphQlDefinitionV2 {#model-modelgraphqldefinitionv2}
+
+The definition of how a model appears in the GraphQL API. Note: ModelGraphQlDefinitionV2 removed the `order_by_expression_type` property. See rfcs/open-dd-expression-type-changes.md.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `selectUniques` | [[SelectUniqueGraphQlDefinition](#model-selectuniquegraphqldefinition)] | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany` | [SelectManyGraphQlDefinition](#model-selectmanygraphqldefinition) / null | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType` | [GraphQlTypeName](#model-graphqltypename) / null | false | The type name of the input type used to hold the arguments of the model. |
+| `apolloFederation` | [ModelApolloFederationConfiguration](#model-modelapollofederationconfiguration) / null | false | Apollo Federation configuration |
+| `filterInputTypeName` | [GraphQlTypeName](#model-graphqltypename) / null | false | The type name of the input type used to hold the filtering settings used by aggregates (etc) to filter their input before processing |
+| `aggregate` | [ModelAggregateGraphQlDefinition](#model-modelaggregategraphqldefinition) / null | false | Configures the query root field added to the GraphQL API that can be used to aggregate over the model |
+
+ **Example:**
+
+```yaml
+selectUniques:
+  - queryRootField: ArticleByID
+    uniqueIdentifier:
+      - article_id
+    description: Description for the select unique ArticleByID
+selectMany:
+  queryRootField: ArticleMany
+  description: Description for the select many ArticleMany
+aggregate:
+  queryRootField: ArticleAggregate
+  description: Aggregate over Articles
+```
+
+
+#### OrderByExpressionName {#model-orderbyexpressionname}
+
+The name of an order by expression.
+
+
+**Value:** string
+
+
+#### Model (v1) {#model-model-(v1)}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `Model` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ModelV1](#model-modelv1) | true | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
+
+
+
+#### ModelV1 {#model-modelv1}
+
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [ModelName](#model-modelname) | true | The name of the data model. |
+| `objectType` | [CustomTypeName](#model-customtypename) | true | The type of the objects of which this model is a collection. |
+| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
+| `arguments` | [[ArgumentDefinition](#model-argumentdefinition)] | false | A list of arguments accepted by this model. Defaults to no arguments. |
+| `source` | [ModelSource](#model-modelsource) / null | false | The source configuration for this model. |
+| `filterExpressionType` | [CustomTypeName](#model-customtypename) / null | false | The boolean expression type that should be used to perform filtering on this model. |
+| `orderableFields` | [[OrderableField](#model-orderablefield)] | true | A list of fields that can be used to order the objects in this model. |
+| `aggregateExpression` | [AggregateExpressionName](#model-aggregateexpressionname) / null | false | The name of the AggregateExpression that defines how to aggregate over this model |
+| `graphql` | [ModelGraphQlDefinition](#model-modelgraphqldefinition) / null | false | Configuration for how this model should appear in the GraphQL schema. |
+| `description` | string / null | false | The description of the model. Gets added to the description of the model in the graphql schema. |
+
+
+
+#### ModelGraphQlDefinition {#model-modelgraphqldefinition}
+
+The definition of how a model appears in the GraphQL API.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `selectUniques` | [[SelectUniqueGraphQlDefinition](#model-selectuniquegraphqldefinition)] | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany` | [SelectManyGraphQlDefinition](#model-selectmanygraphqldefinition) / null | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType` | [GraphQlTypeName](#model-graphqltypename) / null | false | The type name of the input type used to hold the arguments of the model. |
+| `orderByExpressionType` | [GraphQlTypeName](#model-graphqltypename) / null | false | The type name of the order by expression input type. |
+| `apolloFederation` | [ModelApolloFederationConfiguration](#model-modelapollofederationconfiguration) / null | false | Apollo Federation configuration |
+| `filterInputTypeName` | [GraphQlTypeName](#model-graphqltypename) / null | false | The type name of the input type used to hold the filtering settings used by aggregates (etc) to filter their input before processing |
+| `aggregate` | [ModelAggregateGraphQlDefinition](#model-modelaggregategraphqldefinition) / null | false | Configures the query root field added to the GraphQL API that can be used to aggregate over the model |
+
+ **Example:**
+
+```yaml
+selectUniques:
+  - queryRootField: ArticleByID
+    uniqueIdentifier:
+      - article_id
+    description: Description for the select unique ArticleByID
+selectMany:
+  queryRootField: ArticleMany
+  description: Description for the select many ArticleMany
+orderByExpressionType: Article_Order_By
+aggregate:
+  queryRootField: ArticleAggregate
+  description: Aggregate over Articles
+```
+
+
+#### ModelAggregateGraphQlDefinition {#model-modelaggregategraphqldefinition}
+
+The definition of the GraphQL API for aggregating over a model.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `queryRootField` | [GraphQlFieldName](#model-graphqlfieldname) | true | The name of the query root field for this API. |
+| `description` | string / null | false | The description of the aggregate graphql definition of the model. Gets added to the description of the aggregate root field of the model in the graphql schema. |
+| `deprecated` | [Deprecated](#model-deprecated) / null | false | Whether this aggregate query field is deprecated. If set, the deprecation status is added to the aggregate root field's graphql schema. |
+| `subscription` | [SubscriptionGraphQlDefinition](#model-subscriptiongraphqldefinition) / null | false | Enable subscription on this aggregate root field. |
+
+
+
+#### ModelApolloFederationConfiguration {#model-modelapollofederationconfiguration}
+
+Apollo Federation configuration for a model.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `entitySource` | boolean | true | Whether this model should be used as the source for fetching _entity for object of its type. |
+
+
+
+#### GraphQlTypeName {#model-graphqltypename}
+
+The name of a GraphQL type.
+
+
+**Value:** string
+
+
+#### SelectManyGraphQlDefinition {#model-selectmanygraphqldefinition}
+
+The definition of the GraphQL API for selecting rows from a model.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `queryRootField` | [GraphQlFieldName](#model-graphqlfieldname) | true | The name of the query root field for this API. |
+| `description` | string / null | false | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
+| `deprecated` | [Deprecated](#model-deprecated) / null | false | Whether this select many query field is deprecated. If set, the deprecation status is added to the select many root field's graphql schema. |
+| `subscription` | [SubscriptionGraphQlDefinition](#model-subscriptiongraphqldefinition) / null | false | Enable subscription on this select many root field. |
+
+
+
+#### SelectUniqueGraphQlDefinition {#model-selectuniquegraphqldefinition}
+
+The definition of the GraphQL API for selecting a unique row/object from a model.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `queryRootField` | [GraphQlFieldName](#model-graphqlfieldname) | true | The name of the query root field for this API. |
+| `uniqueIdentifier` | [[FieldName](#model-fieldname)] | true | A set of fields which can uniquely identify a row/object in the model. |
+| `description` | string / null | false | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
+| `deprecated` | [Deprecated](#model-deprecated) / null | false | Whether this select unique query field is deprecated. If set, the deprecation status is added to the select unique root field's graphql schema. |
+| `subscription` | [SubscriptionGraphQlDefinition](#model-subscriptiongraphqldefinition) / null | false | Enable subscription on this select unique root field. |
+
+
+
+#### SubscriptionGraphQlDefinition {#model-subscriptiongraphqldefinition}
+
+The definition of the GraphQL API for enabling subscription on query root fields.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `rootField` | [GraphQlFieldName](#model-graphqlfieldname) | true | The name of the subscription root field. |
+| `description` | string / null | false | The description of the subscription graphql definition. Gets added to the description of the subscription root field in the graphql schema. |
+| `deprecated` | [Deprecated](#model-deprecated) / null | false | Whether this subscription root field is deprecated. If set, the deprecation status is added to the subscription root field's graphql schema. |
+| `pollingIntervalMs` | integer | false | Polling interval in milliseconds for the subscription. |
+
+
+
+#### Deprecated {#model-deprecated}
+
+OpenDd configuration to indicate whether an object type field, relationship, model root field or command root field is deprecated.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `reason` | string / null | false | The reason for deprecation. |
+
+
+
+#### GraphQlFieldName {#model-graphqlfieldname}
+
+The name of a GraphQL object field.
+
+
+**Value:** string
+
+
+#### AggregateExpressionName {#model-aggregateexpressionname}
+
+The name of an aggregate expression.
+
+
+**Value:** string
+
+
+#### OrderableField {#model-orderablefield}
+
+A field that can be used to order the objects in a model.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | [FieldName](#model-fieldname) | true |  |
+| `orderByDirections` | [EnableAllOrSpecific](#model-enableallorspecific) | true | Enable all or specific values. |
+
+
+
+#### EnableAllOrSpecific {#model-enableallorspecific}
+
+Enable all or specific values.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `enableAll` | boolean | false |  |
+| `enableSpecific` | [[OrderByDirection](#model-orderbydirection)] | false |  |
+
+
+
+#### OrderByDirection {#model-orderbydirection}
+
+
+**Value:** `Asc` / `Desc`
+
+
+#### FieldName {#model-fieldname}
+
+The name of a field in a user-defined object type.
+
+
+**Value:** string
+
+
+#### ModelSource {#model-modelsource}
+
+Description of how a model maps to a particular data connector
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `dataConnectorName` | [DataConnectorName](#model-dataconnectorname) | true | The name of the data connector backing this model. |
+| `collection` | [CollectionName](#model-collectionname) | true | The collection in the data connector that backs this model. |
+| `argumentMapping` | [ArgumentMapping](#model-argumentmapping) | false | Mapping from model argument names to data connector collection argument names. |
+
+ **Example:**
+
+```yaml
+dataConnectorName: data_connector
+collection: articles
+```
+
+
+#### ArgumentMapping {#model-argumentmapping}
+
+Mapping of a comand or model argument name to the corresponding argument name used in the data connector. The key of this object is the argument name used in the command or model and the value is the argument name used in the data connector.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [DataConnectorArgumentName](#model-dataconnectorargumentname) | false |  |
+
+
+
+#### DataConnectorArgumentName {#model-dataconnectorargumentname}
+
+The name of an argument as defined by a data connector.
+
+
+**Value:** string
+
+
+#### CollectionName {#model-collectionname}
+
+The name of a collection in a data connector.
+
+
+**Value:** string
+
+
+#### DataConnectorName {#model-dataconnectorname}
+
+The name of a data connector.
+
+
+**Value:** string
+
+
+#### ArgumentDefinition {#model-argumentdefinition}
+
+The definition of an argument for a field, command, or model.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [ArgumentName](#model-argumentname) | true | The name of an argument. |
+| `type` | [TypeReference](#model-typereference) | true |  |
+| `description` | string / null | false |  |
+
+
+
+#### TypeReference {#model-typereference}
+
+A reference to an Open DD type including nullable values and arrays.
+Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array.
+Eg: '[String!]!' is a non-nullable array of non-nullable strings.
+
+
+**Value:** string
+
+
+#### ArgumentName {#model-argumentname}
+
+The name of an argument.
+
+
+**Value:** string
+
+
+#### CustomTypeName {#model-customtypename}
+
+The name of a user-defined type.
+
+
+**Value:** string
+
+
+#### ModelName {#model-modelname}
+
+The name of data model.
+
+
+**Value:** string

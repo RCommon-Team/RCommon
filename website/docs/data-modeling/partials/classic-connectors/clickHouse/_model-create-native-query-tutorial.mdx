@@ -1,0 +1,44 @@
+Within your connector's directory, you can add a new SQL configuration file to define a
+[native query](/reference/connectors/clickhouse/native-operations/native-queries.mdx).
+
+```sh title="Create a new directory to store your native queries:"
+mkdir -p <my_subgraph>/connector/<connector_name>/queries/
+```
+
+```sql title="Create a new file in your connector's directory:"
+// queries/UsersByName.sql
+SELECT *
+FROM "default"."users"
+WHERE "users"."name" = {name: String}
+```
+
+Note this uses the
+[ClickHouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax)
+
+```json title="Update your the queries section in your configuration.json file:"
+// configuration.json
+{
+  "tables": {},
+  "queries": {
+    "UserByName": {
+      "exposed_as": "collection",
+      "file": "queries/UserByName.sql",
+      "return_type": {
+        "kind": "definition",
+        "columns": {
+          "id": "Int32",
+          "name": "String"
+        }
+      }
+    }
+  }
+}
+```
+
+```bash title="Use the DDN CLI to introspect your ClickHouse instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Then, update your models:"
+ddn model add <connector_name> UserByName
+```

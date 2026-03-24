@@ -1,0 +1,59 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description: "Reference documentation for the setup process for the Hasura Elasticsearch connector"
+keywords:
+  - elasticsearch
+  - configuration
+---
+
+# Configuration
+
+## Introduction
+
+This document is the reference documentation for the Elasticsearch data connector configuration. Configuration is
+currently a text file called `configuration.json` in the root folder of the connector. It is generated at the time of
+introspection of the database for the first time and is used to set up the connector. Subsequent introspections (using the
+`update` command) will overwrite the file. Below is an example configuration file along with explanations of its
+components:
+
+```json
+{
+  "indices": {
+    "customers": {
+      "mappings": {
+        "properties": {
+          "customer_id": {
+            "type": "keyword"
+          },
+          "email": {
+            "type": "keyword"
+          },
+          "location": {
+            "type": "geo_point"
+          },
+          "name": {
+            "fields": {
+              "raw": {
+                "ignore_above": 256,
+                "type": "keyword"
+              }
+            },
+            "type": "text"
+          }
+        }
+      }
+    }
+  },
+  "queries": {}
+}
+```
+
+#### `indices`
+
+The `indices` section reflects the indices that are available in the Elasticsearch instance. You should not edit this
+section. If you wish to remove certain indices from your GraphQL API, do not import it into your Hausra DDN metadata.
+
+#### `queries`
+
+This section is reserved for future use and is currently not used. You should not edit this section.

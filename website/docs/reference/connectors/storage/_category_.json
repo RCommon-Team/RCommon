@@ -1,0 +1,7 @@
+{
+  "label": "Storage",
+  "position": 16,
+  "customProps": {
+    "connector-ids": ["storage"]
+  }
+}

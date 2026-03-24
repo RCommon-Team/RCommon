@@ -1,0 +1,34 @@
+---
+title: Rate Limit Plugin
+sidebar_position: 1
+description: "Learn more about the Rate Limit Plugin for Hasura DDN."
+keywords:
+  - hasura plugins
+  - rate limit plugin
+  - plugins architecture
+  - engine plugins
+---
+
+# Rate Limit Plugin
+
+## Introduction
+
+The [Rate Limit Plugin](https://github.com/hasura/engine-plugin-rate-limit) allows you to add rate limiting to your
+supergraph, ensuring that the supergraph is not overloaded with requests. This can be useful for preventing abuse or
+denial-of-service attacks.
+
+The plugin integrates with Hasura DDN as a **pre-parse plugin**. It uses Redis for keeping track of the number of
+requests made to the supergraph.
+
+Key benefits of the rate limit plugin include:
+
+- **Enhanced security:** Prevent abuse or denial-of-service attacks.
+- **Flexibility:** Supports dynamic configuration including using roles, headers (can be used for IP-based rate
+  limiting) and session variables.
+- **Integration:** Works as a pre-parse plugin, ensuring easy integration with Hasura DDN.
+
+## Next steps
+
+To get started with configuring and deploying the Rate Limit Plugin, refer to the
+[guide](/plugins/rate-limit/how-to.mdx), which walks you through the process of setting up, configuring, and deploying
+the plugin.

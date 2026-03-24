@@ -1,0 +1,46 @@
+---
+sidebar_label: ddn completion PowerShell
+sidebar_position: 101
+description: Generate autocompletion scripts for the DDN CLI for the PowerShell shell.
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn completion powershell
+---
+
+# DDN CLI: ddn completion
+
+Generate autocompletion scripts for the DDN CLI for the PowerShell shell.
+
+## Synopsis
+
+Generate the autocompletion script for DDN for the PowerShell shell.
+
+To load completions in your current shell session:
+
+```sass
+         ddn completion powershell | Out-String | Invoke-Expression
+```
+
+To load completions for every new session, add the output of the above command to your powershell profile.
+
+## Options
+
+```sass
+-h, --help   help for powershell completion
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn completion](/reference/cli/commands/ddn_completion) - Generate autocompletion scripts for the DDN CLI

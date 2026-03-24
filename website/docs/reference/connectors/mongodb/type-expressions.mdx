@@ -1,0 +1,131 @@
+---
+sidebar_position: 4
+sidebar_label: Type Expressions
+description:
+  "Instructions for configuring types of schema fields, and native operation inputs and outputs."
+keywords:
+  - mongodb
+  - configuration
+---
+
+# Type Expressions in Connector Configuration
+
+Connector [configuration](./configuration.mdx) includes configuration for database collection schemas, and native
+operations. Each of these require **type expressions** to specify the types of collection fields, native operation
+arguments, and native operation outputs.
+
+```json title="For example here is a schema configuration:"
+{
+  "name": "users",
+  "collections": {
+    "users": {
+      "type": "users"
+    }
+  },
+  "objectTypes": {
+    "users": {
+      "fields": {
+        "_id": {
+          "type": { "scalar": "objectId" },
+          "description": "primary key"
+        },
+        "name": {
+          "type": { "scalar": "string" }
+        },
+        "metadata": {
+          "type": "extendedJSON"
+        }
+      }
+    }
+  }
+}
+```
+
+This example specifies the collection object type, an object type called `users`, and provides a definition for that
+object type with types for its `_id` and `_name` fields.
+
+Types are expressed as JSON objects with (in most cases) a single field to distinguish scalar types vs the different
+complex types.
+
+## Scalar types
+
+Scalar types are given as an object with a `scalar` key:
+
+```json
+{ "scalar": "string" }
+```
+
+The exception is the scalar type `extendJSON` which is expressed as a string instead of an object:
+
+```json
+"extendedJSON"
+```
+
+See [Connector Types](./connector-types.mdx#scalar-types) for a list of available scalar types.
+
+## Nullable types
+
+To get a nullable type, wrap any other type in an object with a `nullable` property:
+
+```json
+{ "nullable": { "scalar": "string" } }
+```
+
+```json
+{ "nullable": "extendedJSON" }
+```
+
+Values of nullable types may be values allowed by the underlying type, or they may be `null`.
+
+## Array types
+
+To get an array type, wrap any other type in an object with an `arrayOf` property:
+
+```json
+{ "arrayOf": { "scalar": "string" } }
+```
+
+Arrays are homogeneous: every element of the array is assigned the same type.
+
+## Object types
+
+Objects are record types with a fixed set of string keys, and a distinct type for each key.
+
+A reference to an object type is given by an object with an `object` property whose value is the name of an object type.
+
+```json
+{ "object": "TypeName" }
+```
+
+All object types are named types - there is no option for inline, anonymous object types.
+
+Definitions for object types are given in `objectTypes` maps in connector configuration files.
+
+```json
+  "objectTypes": {
+    "users": {
+      "fields": {
+        "_id": {
+          "type": { "scalar": "objectId" },
+          "description": "primary key"
+        },
+        "name": {
+          "type": { "scalar": "string" }
+        },
+        "metadata": {
+          "type": "extendedJSON"
+        }
+      }
+    }
+  }
+```
+
+The above example defines an object type called `users`. Each field of the object type has a required `type` field that
+uses the type expression syntax described on this page, and an optional `description` field which may contain markdown.
+
+These `objectTypes` maps can appear in each schema, native query, and native mutation file. The definitions from every
+configuration file are merged into one shared namespace. This has two implications:
+
+- Every object type name must be unique across all configuration files for the same connector.
+- Each configuration file may reference object types defined in any other configuration file. For example a native query
+  may reference an object type defined in a schema configuration file.

@@ -1,0 +1,144 @@
+---
+sidebar_position: 5
+sidebar_label: Comment on Metadata
+description: "Collaborate with your peers by commenting on your Supergraph Metadata"
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+  - collaborate
+  - comment
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Commenting on Metadata
+
+## Introduction
+
+Hasura DDN provides a commenting feature that allows your API producers and consumers to start conversations directly on
+the API metadata. This feature enhances collaboration by closing the feedback loop and helps teams communicate more
+effectively about their API design and implementation.
+
+:::tip Getting Access
+
+This feature is available for all users on [Base and Advanced plans](https://hasura.io/pricing).
+
+:::
+
+## How to comment
+
+You can add comments on various objects from your metadata.
+
+1. Navigate to any model page in your project via the `Explorer` tab.
+2. Hover over the field or section you want to comment on.
+3. Click on the comment icon that appears.
+
+<Thumbnail src="/img/get-started/console_comment-create.png" alt="Hover over fields to add comments" width="1000" />
+
+## Commenting areas
+
+### Explorer Tab
+
+The **Explorer Tab** is the primary interface where users interact with the API metadata, making it a crucial place for
+collaboration. Comments here enable API producers and consumers to discuss design decisions, clarify data models, and
+suggest improvements directly on specific metadata elements.
+
+- **Supergraph Page** – Comment on the overall schema design, structure, and implementation details of the supergraph.
+- **Subgraph Page** – Provide feedback on individual subgraphs, ensuring alignment with the larger supergraph design.
+- **Models → General**
+  - **Description** – Clarify the model’s purpose and usage for better documentation.
+  - **Signature** – Discuss function signatures, return types, and argument structures.
+  - **GraphQL Root Fields** – Suggest improvements or changes to the root field definitions.
+- **Models → Fields & Relationships**
+  - **Output Fields** – Ask questions or provide insights on field usage and expected data.
+  - **Arguments** – Discuss argument types, required vs. optional parameters, and potential defaults.
+  - **Relationships** – Ensure relationships between models are well-defined and documented.
+- **Models → Permissions**
+  - **Role** – Comment on role-based access control settings.
+  - **Read / Create / Update / Delete** – Discuss permission settings for different CRUD operations.
+
+This feature is especially useful for teams working on large-scale API projects, as it ensures everyone stays aligned on
+API structure and permissions.
+
+<Thumbnail src="/img/get-started/comments_explorer.png" alt="Comments on Explorer" width="800" />
+
+---
+
+### GraphiQL Tab
+
+The **GraphiQL Tab** is where users can interactively query the API and test GraphQL operations. Commenting here allows
+for real-time feedback on API responses, query structures, and potential performance optimizations.
+
+- Discuss unexpected query results and suggest potential schema modifications.
+- Collaborate on best practices for query structuring and field selection.
+- Provide feedback on performance concerns, such as response times and pagination strategies.
+- Leave notes on commonly used queries to improve team-wide API consistency.
+
+By adding comments directly in GraphiQL, teams can streamline debugging and optimize API queries collaboratively.
+
+<Thumbnail src="/img/get-started/comments_graphiql.png" alt="Comments on GraphiQL" width="800" />
+
+---
+
+### Insights Tab
+
+The **Insights Tab** provides performance metrics, traces, and reports about API usage. Commenting here helps teams
+analyze and discuss API behavior, identify bottlenecks, and track improvements over time.
+
+- **Performance** – Leave feedback on latency, throughput, and error rates.
+- **Platform Report** – Discuss API usage patterns and suggest improvements.
+- **Traces** – Analyze request traces and collaborate on optimizing execution paths.
+
+This feature is valuable for DevOps, backend engineers, and API consumers looking to enhance API efficiency.
+
+<Thumbnail src="/img/get-started/comments_insights.png" alt="Comments on Insights" width="800" />
+
+---
+
+### Builds Tab
+
+The **Builds Tab** allows teams to track and validate schema changes across supergraph, subgraph, and connector builds.
+Commenting in this area helps teams coordinate schema evolution and avoid breaking changes.
+
+- **Supergraph Builds** – Discuss schema changes at the supergraph level and their impact on consumers.
+- **Subgraph Builds** – Leave comments about specific subgraph updates and dependencies.
+- **Connector Builds** – Provide feedback on connector integrations and compatibility.
+- **Schema Diff** – Highlight breaking changes or inconsistencies between schema versions.
+
+By facilitating discussions on builds, teams can ensure smooth API evolution and prevent unexpected failures.
+
+<Thumbnail src="/img/get-started/comments_builds.png" alt="Comments on Builds" width="800" />
+
+## Notifications
+
+In-app notifications show new comments made on your project.
+
+The notification hub can be found in the top right corner of the console. On clicking the comments button, you will see
+all the comments where you are tagged in one place. You can click on a particular comment (deep linking) and go to the
+original thread on the console. You can also delete notifications from that menu.
+
+{/* <Thumbnail src="/img/get-started/comments_notification.png" alt="Notifications" width="100" height="100" /> */}
+![Alt text](/img/get-started/comments_notification.png)
+
+<br />
+<br />
+
+:::info Invite collaborators
+
+You can learn how to invite collaborators [here](/project-configuration/project-management/manage-collaborators.mdx).
+
+:::
+
+## Limitations
+
+The feature is in early access and has known limitations, which are in our backlog. Let us know if you would like to
+prioritize any specific functionality.
+
+1. Tagging users on comments
+2. Resolving comments
+3. Email notifications
+4. Ability to auto notify subgraph admin and developers.
+5. History Tab for comments.

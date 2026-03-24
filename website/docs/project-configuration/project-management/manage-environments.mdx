@@ -1,0 +1,58 @@
+---
+sidebar_position: 2.5
+sidebar_label: Environments
+---
+
+# Alternative Configuration Files per Environment
+
+## Introduction
+
+Following on from setting up and
+[managing multiple contexts](/project-configuration/project-management/manage-contexts.mdx), you can also specify
+different configuration files per environment. This is useful if you want to use different setups for each.
+
+## Example
+
+For example, if in `development` you want to use `noAuth` mode but for `staging` and `production` you want to use JWT
+mode, you can create a supergraph config file for each environment and then specify the correct file in the context.
+
+In the following example we have a `supergraph-development.yaml` file which specifies a chain to the
+`subgraph-development.yaml` to the `metadata_development` directory to include for the metadata which sets the `noAuth`
+mode for development context.
+
+```yaml title="supergraph-development.yaml"
+kind: Supergraph
+version: v2
+definition:
+  subgraphs:
+    # highlight-start
+    - globals/subgraph-development.yaml
+    # highlight-end
+    - my_subgraph/subgraph.yaml
+```
+
+```yaml title="globals/subgraph-development.yaml"
+kind: Subgraph
+version: v2
+definition:
+  name: globals
+  generator:
+    rootPath: .
+  # highlight-start
+  includePaths:
+    - metadata_development
+  # highlight-end
+```
+
+```yaml title="globals/metadata_development/auth-config.hml"
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    noAuth:
+      role: admin
+      sessionVariables: {}
+```
+
+Then similarly, we would have the supergraph file for the other environments to use which specifies JWT mode in the
+`auth-config.yaml` file. You can read more about [auth here](/auth/overview.mdx).

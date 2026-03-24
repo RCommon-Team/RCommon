@@ -1,0 +1,74 @@
+**Via a new table or view**
+
+```sql title="Create a new table or view in your PostgreSQL database:"
+CREATE TABLE public.comments (
+  id serial PRIMARY KEY,
+  comment text NOT NULL,
+  user_id integer NOT NULL,
+  post_id integer NOT NULL
+);
+
+INSERT INTO public.comments (comment, user_id, post_id)
+VALUES
+  ('Great post! Really enjoyed reading this.', 1, 2),
+  ('Thanks for sharing your thoughts!', 2, 1),
+  ('Interesting perspective.', 3, 1);
+```
+
+```bash title="Use the DDN CLI to introspect your PostgreSQL instance:"
+ddn connector introspect my_pg
+```
+
+```bash title="Then, add your model:"
+ddn model add my_pg comments
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your table:"
+query {
+  comments {
+    id
+    comment
+    user_id
+    post_id
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "comments": [
+      {
+        "id": 1,
+        "comment": "Great post! Really enjoyed reading this.",
+        "user_id": 1,
+        "post_id": 2
+      },
+      {
+        "id": 2,
+        "comment": "Thanks for sharing your thoughts!",
+        "user_id": 2,
+        "post_id": 1
+      },
+      {
+        "id": 3,
+        "comment": "Interesting perspective.",
+        "user_id": 3,
+        "post_id": 1
+      }
+    ]
+  }
+}
+```

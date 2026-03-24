@@ -1,0 +1,59 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura Databricks connector, including collection names and
+  types."
+keywords:
+  - databricks
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration is a metadata object that describes the schema of your Databricks workspace, including tables,
+columns, and the connection details. This configuration is static — changes in your Databricks schema will require
+updating and reapplying the configuration file. See [updating with introspection](#updating-with-introspection) for more
+details.
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "connection_uri": {
+    "variable": "JDBC_URL"
+  },
+  "tables": [],
+  "primary_keys": [],
+  "foreign_keys": {}
+}
+```
+
+### Property: connection_uri
+
+This field defines the environment variable that contains the JDBC connection URI to connect to your Databricks
+instance.
+
+### Property: tables
+
+This is an array of table definitions that describe the structure of the available data in your Databricks workspace.
+
+Each table includes:
+
+- Fully-qualified name (including schema and catalog)
+- List of columns and their types
+- Primary key and foreign key metadata (if available)
+
+## Updating with introspection
+
+If your Databricks schema changes, you should re-introspect to update the configuration accordingly.
+
+Running `update` in a configuration directory will:
+
+- Connect to the Databricks workspace using the `JDBC_URL`
+- Scan available tables and columns
+- Generate an updated configuration file reflecting the current schema

@@ -1,0 +1,50 @@
+---
+sidebar_label: ddn completion
+sidebar_position: 98
+description: Generate autocompletion scripts for the DDN CLI.
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn completion
+---
+
+# DDN CLI: ddn completion
+
+Generate autocompletion scripts for the DDN CLI for the specified shell.
+
+## Synopsis
+
+Generate the autocompletion script for DDN for the specified shell.  
+See each sub-command's help for details on how to use the generated script.
+
+```bash
+ddn completion [command] [flags]
+```
+
+## Available commands
+
+- [bash](/reference/cli/commands/ddn_completion_bash): Generate the autocompletion script for bash
+- [fish](/reference/cli/commands/ddn_completion_fish): Generate the autocompletion script for fish
+- [powershell](/reference/cli/commands/ddn_completion_powershell): Generate the autocompletion script for PowerShell
+- [zsh](/reference/cli/commands/ddn_completion_zsh): Generate the autocompletion script for zsh
+
+## Options
+
+```sass
+-h, --help   help for completion
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

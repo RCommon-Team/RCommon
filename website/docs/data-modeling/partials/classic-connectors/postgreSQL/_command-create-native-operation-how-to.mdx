@@ -1,0 +1,38 @@
+The process of creating a native operation for PostgreSQL is the following.
+
+Within your connector's directory, you can add a new file with a `.sql` extension to define a native operation.
+
+Then, use the PostgreSQL connector's plugin to add the native operation to your connector's configuration:
+
+```sh title="Then, use the PostgreSQL connector's plugin to add the native operation to your connector's configuration:"
+ddn connector plugin \
+  --connector <subgraph_name>/<path-to-your-connector>/connector.yaml \
+  -- \
+  native-operation create \
+  --operation-path <subgraph_name>/<path-to-your-connector>/native-operations/<operation_type>/<operation_name>.sql \
+  --kind mutation
+```
+
+By specifying the `--kind mutation` flag, you are indicating that the operation is a mutation. If you specify
+`--kind query`, the operation will be a query.
+
+```sh title="Introspect your PostgreSQL instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Show the found resources:"
+ddn connector show-resources <connector_name>
+```
+
+```sh title="Then, add your model:"
+ddn command add <connector_name> <mutation_name>
+```
+
+```title="Build and serve your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now in your console you can run the mutation with GraphQL.
+
+See the tutorial for creating a native mutation in PostgreSQL [here](#via-native-operation-tutorials).

@@ -1,0 +1,64 @@
+---
+title: Elasticsearch
+sidebar_position: 1
+description: "Learn how to configure the Elasticsearch connector and get an instant API for your Elasticsearch data."
+sidebar_label: Elasticsearch
+keywords:
+  - elasticsearch
+  - configuration
+  - connector
+seoFrontMatterUpdated: false
+---
+
+# Elasticsearch
+
+## Introduction
+
+The Elasticsearch connector enables you to connect Elasticsearch data sources to your Hasura DDN API. Here we'll provide
+an overview of the features offered by the connector and guide you through the configuration process within a Hasura DDN
+project.
+
+| Feature                                 | Supported |
+| --------------------------------------- | --------- |
+| Native Queries                          | ❌        |
+| Native Mutations                        | ❌        |
+| Filter / Search via term                | ✅        |
+| Filter / Search via terms               | ✅        |
+| Filter / Search via match               | ✅        |
+| Filter / Search via match_bool_prefix   | ✅        |
+| Filter / Search via match_phrase        | ✅        |
+| Filter / Search via prefix              | ✅        |
+| Filter / Search via range               | ✅        |
+| Filter / Search via regexp              | ✅        |
+| Filter / Search via wildcard            | ✅        |
+| Filter / Search via terms_set           | ❌        |
+| Filter / Search via intervals           | ❌        |
+| Filter / Search via query_string        | ❌        |
+| Filter / Search via simple_query_string | ❌        |
+| Filter / Search via fuzzy               | ❌        |
+| Simple Aggregation                      | ✅        |
+| Sort                                    | ✅        |
+| Paginate via offset                     | ✅        |
+| Paginate via search_after               | ✅        |
+| Distinct                                | ❌        |
+| Enums                                   | ❌        |
+| Default Values                          | ✅        |
+| User-defined Functions                  | ❌        |
+| Index Aliases                           | ✅        |
+| Field Aliases                           | ❌        |
+| Multi Fields                            | ❌        |
+| Runtime Fields                          | ❌        |
+| Field Analyzers                         | ❌        |
+
+:::tip Looking to get started?
+
+If you've ended up here and aren't concerned about tweaking your configuration, and rather are looking to get started
+with Elasticsearch and Hasura DDN as quickly as possible, check out our
+[Elasticsearch tutorial](/how-to-build-with-ddn/with-elasticsearch.mdx) or
+[learn how to connect](/data-sources/connect-to-a-source.mdx) to an Elasticsearch instance.
+
+:::
+
+## Elasticsearch docs
+
+- [Connector configuration](/reference/connectors/elasticsearch/configuration.mdx)

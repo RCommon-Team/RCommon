@@ -1,0 +1,79 @@
+.llm-button {
+  background: var(--ifm-color-primary);
+  border: solid 1px var(--ifm-color-primary);
+  padding: 8px 12px;
+  border-radius: 4px;
+  color: var(--primary-dark);
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  width: auto;
+  text-align: center;
+}
+
+.container {
+  position: relative;
+  display: inline-block;
+}
+
+.ellipsisButton {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ifm-color-primary);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.ellipsisButton:hover {
+  background-color: var(--ifm-color-emphasis-200);
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  background-color: #ffffff;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  z-index: 1000;
+}
+
+[data-theme='dark'] .dropdown {
+  background-color: var(--ifm-background-color);
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ifm-font-color-base);
+  transition: background-color 0.2s;
+}
+
+.dropdownItem:hover {
+  background-color: var(--ifm-color-emphasis-200);
+}
+
+.dropdownItem:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dropdownItem:not(:last-child) {
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}

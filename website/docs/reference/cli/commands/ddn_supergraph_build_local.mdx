@@ -1,0 +1,61 @@
+---
+sidebar_label: ddn supergraph build local
+sidebar_position: 111
+description: Build the Supergraph and generate assets to run the local Engine using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_supergraph_build_local"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn supergraph build local
+---
+
+# DDN CLI: ddn supergraph build local
+
+Build the Supergraph and generate assets to run the local Engine.
+
+## Synopsis
+
+Build the Supergraph and generate assets to run the local Engine using the DDN hosted metadata build service.
+
+Any relationships to subgraphs defined in other repositories will not be validated and will be ignored.
+
+```bash
+ddn supergraph build local [flags]
+```
+
+## Examples
+
+```bash
+# Build the Supergraph using the supergraph config and local env file from context and output it to default engine directory i.e. <project-root>/engine/build
+ ddn supergraph build local
+
+# Build the Supergraph using a specific supergraph config file and env file and output it to a specific directory
+ ddn supergraph build local --output-dir <path-to-engine-directory> --supergraph supergraph.yaml --env-file .env
+```
+
+## Options
+
+```sass
+    --ci                     Disables the use of context
+-c, --context string         Name of the context to use. (default <current_context>)
+-e, --env stringArray        Environment variable, e.g. key=val. Can be repeated to provide multiple env vars
+    --env-file stringArray   Path to .env file. Can be repeated to provide multiple env files
+-h, --help                   help for local
+    --output-dir string      Path to the engine directory to output the build artifacts. (defaults to `<project-root>/engine/build)
+    --supergraph string      Path to Supergraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn supergraph build](/reference/cli/commands/ddn_supergraph_build) - Perform SupergraphBuild-related operations

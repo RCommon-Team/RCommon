@@ -1,0 +1,84 @@
+The MongoDB data connector defines custom commands via
+[native mutations](/reference/connectors/mongodb/native-operations/native-mutations.mdx).
+
+Within your connector's directory, you can add a new JSON configuration file to define a native mutation.
+
+```sh title="Create a new directory to store your native mutations:"
+mkdir -p app/connector/my_mongo/native_mutations/
+```
+
+```json title="Create a new file in your connector's directory:"
+// native_mutations/insert_user.json
+{
+  "name": "insertUser",
+  "description": "Inserts a user record into the database",
+
+  "arguments": {
+    "name": { "type": { "scalar": "string" } }
+  },
+
+  "resultType": {
+    "object": "InsertUser"
+  },
+  "objectTypes": {
+    "InsertUser": {
+      "fields": {
+        "ok": { "type": { "scalar": "double" } },
+        "n": { "type": { "scalar": "int" } }
+      }
+    }
+  },
+
+  "command": {
+    "insert": "users",
+    "documents": [{ "name": "{{ name }}" }]
+  }
+}
+```
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect my_mongo
+```
+
+```sh title="Show the resources discovered from your MongoDB instance:"
+ddn connector show-resources my_mongo
+```
+
+```sh title="Then, add your command:"
+ddn command add my_mongo insertUser
+```
+
+Rebuild your supergraph API.
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+Serve your build.
+
+```bash title="Serve your build:"
+ddn run docker-start
+ddn console --local
+```
+
+Run the mutation:
+
+```graphql
+mutation InsertUser {
+  insertUser(name: "Sam") {
+    ok
+    n
+  }
+}
+```
+
+```json
+{
+  "data": {
+    "insertUser": {
+      "ok": 1,
+      "n": 1
+    }
+  }
+}
+```

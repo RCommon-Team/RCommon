@@ -1,0 +1,67 @@
+---
+sidebar_position: 4
+sidebar_label: Add collaborators to a Data Plane
+description: "Learn how to use the Data Plane collaboration feature for Private DDN."
+keywords:
+  - hasura ddn
+  - private ddn
+  - dedicated vpc
+  - enterprise ddn
+seoFrontMatterUpdated: false
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# How to Add Collaborators to a Data Plane
+
+## Introduction
+
+The Data Plane collaboration feature allows you to manage and facilitate collaboration on the Data Plane for which you
+are an owner or admin. The owner and admins of the Data Plane can invite other users to collaborate/create projects on the Data Plane. The
+invited users can create and manage projects on the Data Plane based on their assigned role. This feature enables users to invite, accept, reject,
+and remove collaborators for multi-team collaboration.
+
+## How to get started with Data Plane collaboration
+
+### Inviting a collaborator
+
+To invite a user to your Data Plane, you need to open the
+[Data Plane Management Dashboard](https://promptql.console.hasura.io/data-plane/). The dashboard will show all available
+Data Planes. Select the Data Plane for which you have the `owner` or `admin` role. Click `Invite Collaborator`. Enter the email
+address of the user you want to invite, select their role (`admin` or `viewer`), and click `Send Invites`. The invited user will receive an email with an
+invitation link.
+
+<Thumbnail src="/img/deployment/invite_data_plane_collaborator.png" alt="Invite Data Plane Collaborator" />
+
+### Accepting or rejecting an invitation
+
+The invited user can accept or reject the invitation by clicking on the invitation link received in the email or going
+to the [Data Plane Management Dashboard](https://promptql.console.hasura.io/data-plane/). The dashboard will show all
+the invites received by the user. The user can accept or reject the invitation by clicking `Accept` or `Decline`.
+
+<Thumbnail src="/img/deployment/accept_reject_data_plane_invitation.png" alt="Accept or Reject Data Plane Invitation" />
+
+### Removing a collaborator
+
+You can remove any Data Plane collaborator by going to the
+[Data Plane Management Dashboard](https://promptql.console.hasura.io/data-plane/). Select the Data Plane for which you
+have the `owner` or `admin` role, you'll be able to see all the collaborators of the Data Plane. Click `Remove` to remove the
+collaborator.
+
+<Thumbnail src="/img/deployment/remove_data_plane_collaborator.png" alt="Remove Data Plane Collaborator" />
+
+## Data Plane collaboration permissions
+
+There are three roles available for Data Plane collaboration:
+
+- `owner`: The owner of the Data Plane has full access to the Data Plane and can invite or remove collaborators, and manage private endpoints.
+- `admin`: The admin of the Data Plane can create projects, manage them, invite or remove other collaborators, and manage private endpoints.
+- `viewer`: The viewer of the Data Plane has read-only access to the Data Plane and its projects.
+
+:::note Deprecated Role
+The `member` role is deprecated and can no longer be assigned to new collaborators. Existing collaborators with the `member` role will retain their permissions, which allow them to create and manage projects on the Data Plane. However, members are not allowed to manage collaborators or private endpoints.
+:::
+
+## Next steps
+
+Learn how to [create a project on a Private Data Plane](/private-ddn/create-a-project-on-a-data-plane.mdx).

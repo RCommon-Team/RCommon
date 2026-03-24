@@ -1,0 +1,189 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description: "Reference documentation for the setup process for the Hasura Prometheus connector."
+keywords:
+  - prometheus
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The Prometheus connector gives you access to [time-series metrics](https://prometheus.io/docs/concepts/metric_types/)
+and [native APIs](https://prometheus.io/docs/prometheus/latest/querying/api/) on any running Prometheus server.
+
+## Schema
+
+As the schema for this connector is mapped to what Prometheus supports, the connector does not generate any local
+configuration files. Instead, when you introspect your data source,
+[this JSON schema](https://github.com/hasura/ndc-prometheus/blob/main/jsonschema/configuration.json) is used to generate
+a [`DataConnectorLink`](/reference/metadata-reference/data-connector-links.mdx) in your subgraph's metadata, complete
+with all the resources available via Prometheus.
+
+To explore this file, [try out the how-to guide for Prometheus](/how-to-build-with-ddn/with-prometheus.mdx) and — after
+introspecting — grep through the generated HML file for any metrics or API endpoints you desire.
+
+## How it works
+
+The connector can introspect and automatically transform available metrics on the Prometheus server to collection
+queries. Each metric has a common structure:
+
+```graphql
+{
+  <label_1>
+  <label_2>
+  # ...
+  timestamp
+  value
+  labels
+  values {
+    timestamp
+    value
+  }
+}
+```
+
+:::info Labels and metrics are introspected from the Prometheus server at the current time
+
+You need to introspect again whenever there are new labels or metrics.
+
+:::
+
+The configuration plugin introspects labels of each metric and defines them as collection columns that enable the
+ability of Hasura permissions and remote join. The connector supports basic comparison filters for labels.
+
+```graphql
+{
+  process_cpu_seconds_total(
+    where: {
+      timestamp: { _gt: "2024-09-24T10:00:00Z" }
+      job: {
+        _eq: "node"
+        _neq: "prometheus"
+        _in: ["node", "prometheus"]
+        _nin: ["ndc-prometheus"]
+        _regex: "prometheus.*"
+        _nregex: "foo.*"
+      }
+    }
+    args: { step: "5m", offset: "5m", timeout: "30s" }
+  ) {
+    job
+    instance
+    timestamp
+    value
+    values {
+      timestamp
+      value
+    }
+  }
+}
+```
+
+The connector can detect if you want to request an instant query or range query via the `timestamp` column:
+
+- `_eq`: instant query at the exact timestamp.
+- `_gt` < `_lt`: range query.
+
+The range query mode is default If none of the timestamp operators is set.
+
+The `timestamp` and `value` fields are the result of the instant query. If the request is a range query, `timestamp` and
+`value` are picked as the last item of the `values` series.
+
+### Common arguments
+
+- `step`: the query resolution step width in duration format or float number of seconds. The step should be explicitly
+  set for range queries. Even though the connector can estimate the approximate step width the result may be empty due
+  to too far interval.
+- `offset`: the offset modifier allows changing the time offset for individual instant and range vectors in a query.
+- `timeout`: the evaluation timeout of the request.
+- `fn`: the array of composable PromQL functions.
+- `flat`: flatten grouped values out of the root array. Use the runtime setting if the value is null.
+
+### Aggregation
+
+The `fn` argument is an array of [PromQL function](https://prometheus.io/docs/prometheus/latest/querying/functions/)
+parameters. You can set multiple functions that can be composed into the query. For example, with this PromQL query:
+
+```
+sum by (job) (rate(process_cpu_seconds_total[5m]))
+```
+
+The equivalent GraphQL query will be:
+
+```graphql
+{
+  process_cpu_seconds_total(
+    where: { timestamp: { _gt: "2024-09-24T10:00:00Z" } }
+    args: { step: "5m", fn: [{ rate: "5m" }, { sum: [job] }] }
+  ) {
+    job
+    timestamp
+    value
+    values {
+      timestamp
+      value
+    }
+  }
+}
+```
+
+## Prometheus APIs
+
+### Metadata APIs
+
+The following APIs are available.
+
+| Operation Name              | REST Prometheus API                                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| prometheus_alertmanagers    | [/api/v1/alertmanagers](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers)                       |
+| prometheus_alerts           | [/api/v1/alerts](https://prometheus.io/docs/prometheus/latest/querying/api/#alerts)                                     |
+| prometheus_label_names      | [/api/v1/labels](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names)                        |
+| prometheus_label_values     | [/api/v1/label/\<label_name\>/values](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values) |
+| prometheus_rules            | [/api/v1/rules](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)                                       |
+| prometheus_series           | [/api/v1/series](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)           |
+| prometheus_targets          | [/api/v1/targets](https://prometheus.io/docs/prometheus/latest/querying/api/#targets)                                   |
+| prometheus_targets_metadata | [/api/v1/targets/metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata)         |
+
+### Raw PromQL query
+
+Alternatively, you can execute a raw PromQL query directly. This API should only be used by the admin. The result
+contains labels and values only.
+
+```graphql
+{
+  promql_query(query: "process_cpu_seconds_total{job=\"node\"}", start: "2024-09-24T10:00:00Z", step: "5m") {
+    labels
+    values {
+      timestamp
+      value
+    }
+  }
+}
+```
+
+## Runtime settings
+
+```yaml
+runtime:
+  flat: false
+  unix_time_unit: s # enum: s, ms
+  format:
+    timestamp: rfc3339 # enum: rfc3339, unix
+    value: float64 # enum: string, float64
+```
+
+### Flatten values
+
+By default, values are grouped by the label set. If you want to flatten out the values array, set `flat=true`.
+
+### Unix timestamp's unit
+
+If you use integer values for duration and timestamp fields the connector will transform them with this Unix timestamp
+unit. Accept second (`s`) and millisecond (`ms`). The default unit is seconds.
+
+### Response format
+
+These settings specify the format of response timestamp and value.

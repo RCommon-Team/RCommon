@@ -1,0 +1,188 @@
+---
+description:
+  "Explore Hasura's GraphQL query execution with this guide. Learn about various execution types like ModelSelect,
+  CommandSelect, and HashJoin, and understand how Hasura's DDN optimizes query performance."
+title: Explain Overview
+sidebar_label: Explain
+keywords:
+  - graphql
+  - graphql analysis
+  - hasura v3
+  - hasura explain
+  - api debugging
+  - graphql performance
+  - data connector explain
+  - api endpoint analysis
+  - query execution
+  - execution plan
+  - api troubleshooting
+  - query optimization
+  - dataconnector
+  - modelselect
+  - commandselect
+  - hashjoin
+sidebar_position: 1
+seoFrontMatterUpdated: true
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Hasura Query Plan
+
+The Hasura DDN engine can output the GraphQL execution plan for a given query via the "explain" API.
+
+The execution plan output is represented as a tree of type [ExplainStep](#explainstep). You can also visualize the query
+plan, SQL plan, and SQL query used for each execution by clicking the `Explain query` button in your GraphiQL's request
+field:
+
+<Thumbnail src="/img/explain/0.0.1_console_explain-api-sql.png" alt="Explain with sql" width="700px" />
+
+## ExplainStep
+
+The `ExplainStep` output can be one of the following:
+
+| ExplainStep   | Description                                                               |
+| ------------- | ------------------------------------------------------------------------- |
+| ModelSelect   | A select on the data connector's model                                    |
+| CommandSelect | A select on the data connector's command                                  |
+| ForEach       | A for-each loop on the data returned by the parent step                   |
+| HashJoin      | A hash join of the data returned by the steps to construct valid response |
+| Sequence      | A sequential execution of steps                                           |
+| Parallel      | A parallel execution of steps                                             |
+
+### ModelSelect
+
+A `ModelSelect` step represents fetching data from a [Model](/reference/metadata-reference/models.mdx). This includes
+fetching across local relationships. For example, the following query's execution plan will be a `ModelSelect` only:
+
+```graphql
+query LocalRelationship {
+  cities {
+    # Backed by a model
+    code
+    name
+    state {
+      # Local relationship
+      name
+    }
+  }
+}
+```
+
+<Thumbnail src="/img/explain/local-relationship.png" alt="Local relationship" width="700px" />
+
+[Click here](./api-reference#modelselect) for the API reference of `ModelSelect`.
+
+### CommandSelect
+
+Just like the [ModelSelect](#modelselect), a `CommandSelect` represents fetching data from a
+[Command](docs/reference/metadata-reference/commands.mdx). [Click here](./api-reference#commandselect) for the API
+reference of `CommandSelect`.
+
+### ForEach
+
+A ForEach step represents fetching data from a `DataConnector` for each of the data from the parent node. A `ForEach`
+will always be present if we need to fetch some additional data (such as from a remote
+[relationship](/reference/metadata-reference/relationships.mdx)) for the data returned by the parent node. For example,
+the following query's execution plan will have a `ForEach` step:
+
+```graphql
+query RemoteRelationship {
+  cities {
+    # Backed by a model
+    code
+    name
+    weather {
+      # Remote relationship
+      forecast
+    }
+  }
+}
+```
+
+<Thumbnail src="/img/explain/remote-relationship.png" alt="Remote relationship" width="700px" />
+
+### HashJoin
+
+A `HashJoin` step represents joining the data fetched from two different steps. For example, the above query's execution
+plan will have a `HashJoin` step for joining the `Weather` model to `City`.
+
+### Sequence
+
+A `Sequence` step represents a sequential execution of steps. For example, the following query's execution plan will
+have a `Sequence` step (as we need to fetch a `Weather` instance for each of the `City` models fetched):
+
+```graphql
+query RemoteRelationship {
+  cities {
+    # Backed by a model
+    code
+    name
+    weather {
+      # Remote relationship
+      forecast
+    }
+  }
+}
+```
+
+<Thumbnail src="/img/explain/remote-relationship.png" alt="Remote relationship" width="700px" />
+
+### Parallel
+
+A `Parallel` step represents a parallel execution of steps. For example, the following query's execution plan will have
+a `Parallel` step (as we can fetch `Department` and `Census` in parallel):
+
+```graphql
+query ParallelExecution {
+  cities {
+    # Backed by a model
+    code
+    name
+    departments {
+      # Remote relationship
+      name
+      ministers {
+        name
+      }
+    }
+    census {
+      # Remote relationship
+      data
+    }
+  }
+}
+```
+
+<Thumbnail src="/img/explain/parallel-execution.png" alt="Parallel execution" width="700px" />
+
+## Example
+
+In the example below, for each user, we are fetching the user's name, their notifications via a local relationship, and
+their favorite artists from a remote relationship:
+
+```graphql
+query MyQuery {
+  users {
+    name
+    # local relationship
+    notifications {
+      id
+      message
+    }
+    # remote relationship
+    user_to_favorite_artist {
+      name
+    }
+  }
+}
+```
+
+<Thumbnail src="/img/o11y/v0.1.1_console_explain-plan.png" alt="Explain plan example" width="700px" />
+
+Now, from [the explain plan](/observability/built-in/explain/api-reference#example), we can understand that:
+
+- There are three sequential steps:
+  - Make a selection on the `users` model
+  - For each user, make a selection on the `artists` model
+- HashJoin the `users` and `artists` models to construct the response

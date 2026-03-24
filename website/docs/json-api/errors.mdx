@@ -1,0 +1,99 @@
+---
+title: JSON:API Error Responses
+sidebar_label: Errors
+sidebar_position: 2
+description: "Learn about error responses from the Hasura DDN JSON:API"
+keywords:
+  - errors
+  - api errors
+  - json:api errors
+  - internal errors
+  - rest api errors
+---
+
+# JSON:API Error Responses
+
+## Introduction
+
+When a request to the JSON:API endpoint fails, Hasura returns error responses that conform to the
+[JSON:API specification](https://jsonapi.org/format/#errors). Each error response includes appropriate HTTP status codes
+and a structured error document.
+
+## Error format
+
+Error responses are returned as JSON objects containing an `errors` array.
+
+```json title="Each error object in the array a status code and message:"
+{
+  "errors": [
+    {
+      "status": "404",
+      "detail": "invalid route or path"
+    }
+  ]
+}
+```
+
+| Parameter | Description                                                  | Example          |
+| --------- | ------------------------------------------------------------ | ---------------- |
+| `status`  | The HTTP status code applicable to this error (as a string). | `"418"`          |
+| `detail`  | A human-readable explanation of the error.                   | `"I'm a teapot"` |
+
+## Common status codes
+
+The API uses [standard HTTP status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) to indicate the type
+of error:
+
+- `400 Bad Request`: Invalid request syntax or parameters
+- `401 Unauthorized`: Missing or invalid authentication
+- `403 Forbidden`: Valid authentication but insufficient permissions
+- `404 Not Found`: Requested resource doesn't exist
+- `500 Internal Server Error`: Unexpected server-side error
+
+## Error Types
+
+### Request Errors
+
+```json title="Request errors occur when the client sends an invalid request. E.g.:"
+{
+  "errors": [
+    {
+      "status": "400",
+      "detail": "Invalid filter parameter: unknown operator 'contains'"
+    }
+  ]
+}
+```
+
+### Permission Errors
+
+```json title="When a user attempts to access a resource without proper permissions:"
+{
+  "errors": [
+    {
+      "status": "403",
+      "detail": "Access forbidden"
+    }
+  ]
+}
+```
+
+### Internal Errors
+
+```json title="For security reasons, internal errors return a generic message without exposing implementation details:"
+{
+  "errors": [
+    {
+      "status": "500",
+      "detail": "Internal error"
+    }
+  ]
+}
+```
+
+:::info Debugging Errors
+
+Error responses to clients are intentionally generic for security reasons. However, detailed error information is
+available in the [request traces](/observability/built-in/traces.mdx) for debugging purposes.
+
+:::

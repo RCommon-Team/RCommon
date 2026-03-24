@@ -1,0 +1,63 @@
+---
+sidebar_label: ddn auth login
+sidebar_position: 4
+description: Login to DDN using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_auth_login"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn auth login
+---
+
+# DDN CLI: ddn auth login
+
+Login to DDN.
+
+## Synopsis
+
+Use this command to authenticate your DDN CLI with your Hasura Cloud account. By passing the --access-token flag, you can bypass the need for a browser, which is optimal for headless and CI environments.
+
+```bash
+ddn auth login [flags]
+```
+
+## Examples
+
+```bash
+# Login with browser
+ ddn auth login
+
+# Login with Personal Access Token
+ ddn auth login --access-token <your-access-token>
+
+# Login with OIDC ID Token
+ ddn auth login --oidc-id-token <your-id-token>
+
+# Login with OIDC Access Token
+ ddn auth login --oidc-access-token <your-access-token>
+```
+
+## Options
+
+```sass
+    --access-token string        The Personal Access Token or Service Account Token [env: HASURA_DDN_ACCESS_TOKEN]
+-h, --help                       help for login
+    --oidc-access-token string   The OIDC Access Token [env: HASURA_DDN_OIDC_ACCESS_TOKEN]
+    --oidc-id-token string       The OIDC ID Token [env: HASURA_DDN_OIDC_ID_TOKEN]
+    --pat string                 Personal Access token [env: HASURA_DDN_PAT] (DEPRECATED: use --access-token instead)
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn auth](/reference/cli/commands/ddn_auth) - Manage Hasura DDN CLI Auth

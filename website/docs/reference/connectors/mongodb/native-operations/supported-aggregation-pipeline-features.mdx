@@ -1,0 +1,99 @@
+---
+sidebar_position: 5
+sidebar_label: Supported Pipeline Features
+description: See which aggregation pipeline features work with automatic type inference.
+keywords:
+  - hasura
+  - native operations
+  - aggregate pipeline
+  - custom queries
+  - native queries
+  - syntax
+  - gotchas
+seoFrontMatterUpdated: false
+toc_max_heading_level: 4
+---
+
+# Supported aggregation pipeline features
+
+Native queries use [aggregation pipelines][] as the format for custom MongoDB queries. Native query configurations must
+include type declarations for inputs and outputs for the native query's pipeline. The DDN CLI is able to type check
+aggregation pipelines to write type declarations automatically (see [Manage native queries with the DDN CLI][]). But
+this feature is in beta, and only supports a subset of aggregation pipeline features.
+
+[aggregation pipelines]: https://www.mongodb.com/docs/manual/aggregation/#std-label-aggregation-pipeline-intro
+[Manage native queries with the DDN CLI]: ./native-queries.mdx#manage-native-queries-with-the-ddn-cli
+
+## Supported pipeline stages
+
+An aggregation pipeline is a list of [aggregation stages][] that each filter, transform, or sort documents that flow
+through them. Hasura's beta pipeline type inference currently supports these stages:
+
+[aggregation stages]: https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/
+
+| Stage          | Connector Version |
+| -------------- | ----------------- |
+| `$documents`   | 1.5.0             |
+| `$group`       | 1.5.0             |
+| `$limit`       | 1.5.0             |
+| `$match`       | 1.5.0             |
+| `$project`     | 1.5.0             |
+| `$replaceRoot` | 1.5.0             |
+| `$replaceWith` | 1.5.0             |
+| `$skip`        | 1.5.0             |
+| `$sort`        | 1.5.0             |
+| `$unwind`      | 1.5.0             |
+
+## Supported query predicate operators
+
+Certain stages, such as `$match`, use a specific format called a **query predicate**. These are not general purpose
+expressions - they are specialized for determining a match against an input document. Hasura's beta pipeline type
+inference currently supports these query predicate operators:
+
+| Query Predicate Operator                        | Connector Version |
+| ----------------------------------------------- | ----------------- |
+| `$all`                                          | 1.5.0             |
+| `$and` / `$or` / `$nor`                         | 1.5.0             |
+| `$elemMatch`                                    | 1.5.0             |
+| `$eq` / `$ne` / `$gt` / `$lt` / `$gte` / `$lte` | 1.5.0             |
+| `$exists`                                       | 1.5.0             |
+| `$expr`                                         | 1.5.0             |
+| `$in` / `$nin`                                  | 1.5.0             |
+| `$mod`                                          | 1.5.0             |
+| `$not`                                          | 1.5.0             |
+| `$size`                                         | 1.5.0             |
+| `$type`                                         | 1.5.0             |
+
+## Supported aggregation expression operators
+
+Aggregation pipelines use **aggregation expressions** to reference document values, or to express logic. Note that these
+are not the operators typically used in the `$match` stage, but you do see these in, for example, `$replaceWith` and
+`$project` stages.
+
+Hasura's beta pipeline type inference currently supports these aggregation expression operators:
+
+| Expression Operator                                                                                                   | Connector Version |
+| --------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `$abs`                                                                                                                | 1.5.0             |
+| `$add` / `$divide` / `$multiply` / `$subtract`                                                                        | 1.5.0             |
+| `$allElementsTrue` / `$anyElementTrue`                                                                                | 1.5.0             |
+| `$and` / `$or`                                                                                                        | 1.5.0             |
+| `$arrayElemAt`                                                                                                        | 1.5.0             |
+| `$eq` / `$gt` / `$gte` / `$lt` / `$lte` / `$ne`                                                                       | 1.5.0             |
+| `$not`                                                                                                                | 1.5.0             |
+| `$sin` / `$cos` / `$tan` / `$asin` / `$acos` / `$atan` / `$asinh` / `$acosh` / `$atanh` / `$sinh` / `$cosh` / `$tanh` | 1.5.0             |
+| `$split`                                                                                                              | 1.5.0             |
+
+## Supported accumulators
+
+Accumulators are used in stages like `$group` and `$bucket`.
+
+Hasura's beta pipeline type inference currently supports these accumulators:
+
+| Accumulator     | Connector Version |
+| --------------- | ----------------- |
+| `$avg`          | 1.5.0             |
+| `$count`        | 1.5.0             |
+| `$min` / `$max` | 1.5.0             |
+| `$push`         | 1.5.0             |
+| `$sum`          | 1.5.0             |

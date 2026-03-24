@@ -1,0 +1,50 @@
+---
+title: Basics
+sidebar_position: 1
+description: "Learn about Hasura's powerful plugins architecture."
+keywords:
+  - hasura plugins
+  - allowlist plugin
+  - plugins architecture
+  - engine plugins
+seoFrontMatterUpdated: false
+---
+
+# Engine Plugins
+
+## Introduction
+
+Hasura's engine plugins architecture allows you to integrate HTTP hooks at various stages of the API execution pipeline.
+This functionality enables you to embed custom logic that reacts to specific events, effectively extending the core
+capabilities of your API. These hooks can be triggered either before or after the execution of a query or mutation,
+providing a powerful mechanism to implement user-defined workflows and event-driven customizations.
+
+## Types of plugins
+
+### Pre-Parse plugins
+
+Pre-parse plugins are executed at the very beginning of the execution pipeline. They allow you to insert custom logic
+**before** the query-parsing step occurs. This enables you to pre-process, or manipulate incoming queries, and modify
+the behavior of your API at an early stage.
+
+### Pre-Response plugins
+
+Pre-response plugins are triggered at the final stage of the execution pipeline, **after the query has been executed but
+before the response is sent to the client**. These plugins allow you to execute logic based on the response such as
+calling third-party services. They can operate in asynchronous mode (default) for non-blocking operations like
+notifications, or synchronous mode for response modifications and operations that must complete before the client
+receives the response.
+
+### Pre-Route plugins
+
+Pre-route plugins are executed at the very beginning of request handling, **before predefined endpoints are processed**.
+They allow you to insert custom HTTP handlers into your API, enabling features like REST-style GraphQL endpoints,
+internal tools, or documentation interfaces such as a GraphQL schema visualizer or Swagger UI for a JSON API.
+
+## Find out more
+
+- [Learn more about how plugins work](/plugins/introduction.mdx)
+- [Allowlist](/plugins/allowlist/index.mdx)
+- [Caching](/plugins/caching/index.mdx)
+- [RESTified Endpoints](/plugins/restified-endpoints/index.mdx)
+- [Rate Limiting](/plugins/rate-limit/index.mdx)

@@ -1,0 +1,72 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
+For each OpenAPI connector in a project, follow the steps below.
+
+<Thumbnail src="/img/get-started/ERD/deploy-connector.png" alt="Deploy a connector to Hasura DDN" width="1000px" />
+
+## Steps
+
+:::tip Required
+
+- [DDN CLI](/quickstart.mdx)
+- A new or existing [supergraph](/quickstart.mdx)
+- A new or existing [subgraph](/quickstart.mdx)
+- A new or existing [data connector](/quickstart.mdx)
+- A new or existing [project](/deployment/hasura-ddn/tutorial/01-create-a-project.mdx)
+- A new or existing [subgraph on Hasura DDN](/deployment/hasura-ddn/tutorial/02-create-a-subgraph.mdx)
+
+:::
+
+### Step 1. Update the .env.cloud for the connector
+
+### Specifying the OpenAPI base URL
+
+We need our cloud hosted connector to be able to communicate with the OpenAPI API. If we added this URI via an
+environment variable in the `env.local` file, we need to update the `env.cloud` file with the connection URI for the
+cloud hosted connector. Eg:
+
+```env title="For example, my_subgraph/my_openapi/.env.cloud"
+NDC_OAS_BASE_URL=<your-openapi-base-url>
+```
+
+Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3` However, if you've edited this directly in your
+`functions.ts` file, you can skip this step.
+
+You may have used a development API server while iterating locally. You can now replace that value with your staging or
+production API server, depending on your needs.
+
+### Step 1. Build and deploy your cloud connector
+
+You can now build and deploy your connector to Hasura DDN. Simply run the following, replacing the directory names with
+those that reflect your project.
+
+```bash title="Taking care to update the path to your connector's configuration file, run:"
+ddn connector build create --connector ./my_subgraph/connector/my_openapi/connector.yaml
+```
+
+The CLI will respond with read and write URLs for your deployed connector.
+
+### Step 3. Create a .env.cloud for the subgraph
+
+If you haven't already deployed a connector for this subgraph, you'll need to create a `.env.cloud.my_subgraph` file in
+the root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs
+which were returned from the command above. Your file should look like this example with a connector named `my_openapi`
+in the `my_subgraph` subgraph.
+
+```env title="For example, my_subgraph/.env.cloud.my_subgraph:"
+MY_SUBGRAPH_MY_OPENAPI_READ_URL=<cloud-connector-read-url>
+MY_SUBGRAPH_MY_OPENAPI_WRITE_URL=<cloud-connector-write-url>
+```
+
+At this stage, you're ready to now build and deploy your supergraph!
+
+## What did this do?
+
+The steps above built and deployed your data connector to Hasura DDN. So long as the connection URI you provided is
+reachable by DDN, your connector will be able to communicate between your API and your data source.
+
+## Next steps
+
+If you have other connectors needed for a supergraph, repeat these steps for each connector. Otherwise, you're ready to
+[create a new build of your supergraph](/deployment/hasura-ddn/tutorial/04-deploy-your-supergraph.mdx) and deploy it to
+Hasura DDN!

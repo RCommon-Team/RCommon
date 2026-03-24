@@ -1,0 +1,542 @@
+---
+sidebar_position: 8
+sidebar_label: Boolean Expressions
+description:
+  "Explore boolean expression types in Hasura. Learn how to define comparisons between different data types and expose
+  them in your API."
+keywords:
+  - hasura documentation
+  - graphql data structure
+  - data domain mapping
+  - hasura ddn
+  - hasura data specification
+  - graphql schema
+  - boolean expressions
+toc_max_heading_level: 4
+seoFrontMatterUpdated: false
+canonicalUrl: "https://promptql.io/docs/reference/metadata-reference/boolean-expressions/"
+---
+
+# Boolean Expressions
+
+## Introduction
+
+Hasura provides powerful tools to control filtering and selecting data. Boolean expression types let you control which
+filters are available for a [model](/reference/metadata-reference/models.mdx) or
+[command](/reference/metadata-reference/commands.mdx). They can be used to configure filters on models, such as in the
+[filtering](graphql-api/queries/filters/index.mdx) section, or as the types of arguments to commands or models.
+
+## How Boolean expressions work
+
+### Lifecycle
+
+There are two types of boolean expressions:
+
+| Type              | Description                                               |
+| ----------------- | --------------------------------------------------------- |
+| [Scalar](#scalar) | This specifies how a user able to compare a scalar field. |
+| [Object](#object) | This specifies how fields of a type can be filtered.      |
+
+Regardless of the type, boolean expressions are used to define how a user is able to filter data and are defined in your
+metadata.
+
+### Examples
+
+#### Scalar
+
+This specifies how a user is able to compare a scalar field. For instance, you might want to say that a user can only
+check if a `String` type is equals to another, or whether it is null or not. You can do that with the following
+metadata:
+
+```yaml
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: String_comparison_exp_with_eq_and_is_null
+  operand:
+    scalar:
+      type: String
+      comparisonOperators:
+        - name: equals
+          argumentType: String!
+      dataConnectorOperatorMapping:
+        - dataConnectorName: postgres
+          dataConnectorScalarType: varchar
+          operatorMapping:
+            equals: _eq
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: String_comparison_exp_with_eq_and_is_null
+```
+
+Note the `dataConnectorOperatorMapping`. This allows us to define what these operators mean in zero or more data
+connectors. Here, we want our `equals` operator to use Postgres's `_eq` operator.
+
+This would allow us to write filters like:
+
+```json
+{ "first_name": { "_is_null": true } }
+```
+
+```json
+{ "last_name": { "equals": "Bruce" } }
+```
+
+#### Object
+
+An object `BooleanExpressionType` is used to define how fields of a type can be filtered. Note that nothing here talks
+about specific data connectors - instead you can specify which `BooleanExpressionType` is used to filter each field or
+relationship, and then defer the mappings of individual scalar types to those `BooleanExpressionType`s.
+
+```yaml
+kind: BooleanExpressionType
+version: v2
+definition:
+  name: Album_bool_exp
+  operand:
+    object:
+      type: Album
+      comparableFields:
+        - fieldName: AlbumId
+          booleanExpressionType: Int_comparison_exp
+        - fieldName: ArtistId
+          booleanExpressionType: Int_comparison_exp_with_is_null
+        - fieldName: Address
+          booleanExpressionType: Address_bool_exp
+      comparableRelationships:
+        - relationshipName: artist
+          booleanExpressionType: Artist_bool_exp
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: Album_bool_exp
+```
+
+Note here that we can specify different comparison operators for `AlbumId` and `ArtistId` by using different
+`BooleanExpressionType`s for them. We are also able to define filtering on nested objects such as `Address`.
+
+The above would let us write filters on `Album` types like:
+
+```json
+{ "album": { "AlbumId": { "equals": 100 } } }
+```
+
+```json
+{ "album": { "Address": { "postcode": { "like": "N1" } } } }
+```
+
+```json
+{ "album": { "artist": { "name": { "equals": "Madonna" } } } }
+```
+
+---
+
+## Metadata structure
+
+
+### BooleanExpressionType {#booleanexpressiontype-booleanexpressiontype}
+
+Definition of a type representing a boolean expression on an OpenDD type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `BooleanExpressionType` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [BooleanExpressionTypeV1](#booleanexpressiontype-booleanexpressiontypev1) | true | Definition of a type representing a boolean expression on an OpenDD object type. |
+
+ **Example:**
+
+```yaml
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: Album_bool_exp
+  operand:
+    object:
+      type: Album
+      comparableFields:
+        - fieldName: AlbumId
+          booleanExpressionType: pg_Int_Comparison_exp
+        - fieldName: ArtistId
+          booleanExpressionType: pg_Int_Comparison_exp_with_is_null
+        - fieldName: Address
+          booleanExpressionType: Address_bool_exp
+      comparableRelationships:
+        - relationshipName: artist
+          booleanExpressionType: Artist_bool_exp
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: App_Album_bool_exp
+```
+
+
+#### BooleanExpressionTypeV1 {#booleanexpressiontype-booleanexpressiontypev1}
+
+Definition of a type representing a boolean expression on an OpenDD object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [CustomTypeName](#booleanexpressiontype-customtypename) | true | The name to give this boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `operand` | [BooleanExpressionOperand](#booleanexpressiontype-booleanexpressionoperand) | true | The type that this boolean expression applies to. |
+| `logicalOperators` | [BooleanExpressionLogicalOperators](#booleanexpressiontype-booleanexpressionlogicaloperators) | true | Whether to enable _and / _or / _not |
+| `isNull` | [BooleanExpressionIsNull](#booleanexpressiontype-booleanexpressionisnull) | true | Whether to enable _is_null |
+| `graphql` | [BooleanExpressionTypeGraphQlConfiguration](#booleanexpressiontype-booleanexpressiontypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
+
+
+
+#### BooleanExpressionTypeGraphQlConfiguration {#booleanexpressiontype-booleanexpressiontypegraphqlconfiguration}
+
+GraphQL configuration of an OpenDD boolean expression type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `typeName` | [GraphQlTypeName](#booleanexpressiontype-graphqltypename) | true | The name to use for the GraphQL type representation of this boolean expression type. |
+
+
+
+#### GraphQlTypeName {#booleanexpressiontype-graphqltypename}
+
+The name of a GraphQL type.
+
+
+**Value:** string
+
+
+#### BooleanExpressionIsNull {#booleanexpressiontype-booleanexpressionisnull}
+
+Configuration for is_null in boolean expressions
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `enable` | boolean | true |  |
+
+
+
+#### BooleanExpressionLogicalOperators {#booleanexpressiontype-booleanexpressionlogicaloperators}
+
+Configuration for logical operators in boolean expressions
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `enable` | boolean | true |  |
+
+
+
+#### BooleanExpressionOperand {#booleanexpressiontype-booleanexpressionoperand}
+
+Configuration for object or scalar boolean expression
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `object` | [BooleanExpressionObjectOperand](#booleanexpressiontype-booleanexpressionobjectoperand) | false | Definition of an object type representing a boolean expression on an OpenDD object type. |
+| `scalar` | [BooleanExpressionScalarOperand](#booleanexpressiontype-booleanexpressionscalaroperand) | false | Definition of a scalar type representing a boolean expression on an OpenDD scalar type. |
+
+
+
+#### BooleanExpressionScalarOperand {#booleanexpressiontype-booleanexpressionscalaroperand}
+
+Definition of a scalar type representing a boolean expression on an OpenDD scalar type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `type` | [TypeName](#booleanexpressiontype-typename) | true | The OpenDD type name of the scalar type that this boolean expression applies to. |
+| `comparisonOperators` | [[ComparisonOperator](#booleanexpressiontype-comparisonoperator)] | true | The list of comparison operators that can used on this scalar type |
+| `dataConnectorOperatorMapping` | [[DataConnectorOperatorMapping](#booleanexpressiontype-dataconnectoroperatormapping)] | true | The list of mappings between OpenDD operator names and the names used in the data connector schema |
+
+
+
+#### DataConnectorOperatorMapping {#booleanexpressiontype-dataconnectoroperatormapping}
+
+Mapping between OpenDD operator names and the names used in the data connector schema
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `dataConnectorName` | [DataConnectorName](#booleanexpressiontype-dataconnectorname) | true | Name of the data connector this mapping applies to |
+| `dataConnectorScalarType` | [DataConnectorScalarType](#booleanexpressiontype-dataconnectorscalartype) | true | Name of the scalar type according to the data connector's schema |
+| `operatorMapping` | [operator_mapping](#booleanexpressiontype-operator_mapping) | true | Mapping between OpenDD operator names and the data connector's operator names Defaults to the same operator name (e.g. "_eq: _eq") if no explicit mapping is present. |
+
+
+
+#### operator_mapping {#booleanexpressiontype-operator_mapping}
+
+Mapping between OpenDD operator names and the data connector's operator names Defaults to the same operator name (e.g. "_eq: _eq") if no explicit mapping is present.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [DataConnectorOperatorName](#booleanexpressiontype-dataconnectoroperatorname) | false | The name of an operator in a data connector. |
+
+
+
+#### DataConnectorOperatorName {#booleanexpressiontype-dataconnectoroperatorname}
+
+The name of an operator in a data connector.
+
+
+**Value:** string
+
+
+#### DataConnectorScalarType {#booleanexpressiontype-dataconnectorscalartype}
+
+The name of a scalar type in a data connector.
+
+
+**Value:** string
+
+
+#### DataConnectorName {#booleanexpressiontype-dataconnectorname}
+
+The name of a data connector.
+
+
+**Value:** string
+
+
+#### ComparisonOperator {#booleanexpressiontype-comparisonoperator}
+
+Definition of a comparison operator for a scalar type
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [OperatorName](#booleanexpressiontype-operatorname) | true | Name you want to give the operator in OpenDD / GraphQL |
+| `argumentType` | [TypeReference](#booleanexpressiontype-typereference) | true | An OpenDD type |
+
+
+
+#### TypeReference {#booleanexpressiontype-typereference}
+
+A reference to an Open DD type including nullable values and arrays.
+Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array.
+Eg: '[String!]!' is a non-nullable array of non-nullable strings.
+
+
+**Value:** string
+
+
+#### OperatorName {#booleanexpressiontype-operatorname}
+
+The name of an operator
+
+
+**Value:** string
+
+
+#### TypeName {#booleanexpressiontype-typename}
+
+The OpenDD type name of the scalar type that this boolean expression applies to.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [InbuiltType](#booleanexpressiontype-inbuilttype) | An inbuilt primitive OpenDD type. |
+| [CustomTypeName](#booleanexpressiontype-customtypename) |  |
+
+
+
+#### InbuiltType {#booleanexpressiontype-inbuilttype}
+
+An inbuilt primitive OpenDD type.
+
+
+**Value:** `ID` / `Int` / `Float` / `Boolean` / `String`
+
+
+#### BooleanExpressionObjectOperand {#booleanexpressiontype-booleanexpressionobjectoperand}
+
+Definition of an object type representing a boolean expression on an OpenDD object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `type` | [CustomTypeName](#booleanexpressiontype-customtypename) | true | The name of the object type that this boolean expression applies to. |
+| `comparableFields` | [[BooleanExpressionComparableField](#booleanexpressiontype-booleanexpressioncomparablefield)] | true | The list of fields of the object type that can be used for comparison when evaluating this boolean expression. |
+| `comparableRelationships` | [[BooleanExpressionComparableRelationship](#booleanexpressiontype-booleanexpressioncomparablerelationship)] | true | The list of relationships of the object type that can be used for comparison when evaluating this boolean expression. |
+
+
+
+#### BooleanExpressionComparableRelationship {#booleanexpressiontype-booleanexpressioncomparablerelationship}
+
+Definition of a relationship that can be used for a comparison
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `relationshipName` | [RelationshipName](#booleanexpressiontype-relationshipname) | true | The name of the relationship to use for comparison |
+| `booleanExpressionType` | [CustomTypeName](#booleanexpressiontype-customtypename) / null | false | The boolean expression type to use for comparison. This is optional for relationships to models, and defaults to the filterExpressionType of the model |
+
+
+
+#### RelationshipName {#booleanexpressiontype-relationshipname}
+
+The name of the GraphQL relationship field.
+
+
+**Value:** string
+
+
+#### BooleanExpressionComparableField {#booleanexpressiontype-booleanexpressioncomparablefield}
+
+Comparison configuration definition for a field that can be used for a comparison
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | [FieldName](#booleanexpressiontype-fieldname) | true | The name of the field that can be compared. |
+| `booleanExpressionType` | [CustomTypeName](#booleanexpressiontype-customtypename) | true | The boolean expression type that can be used for comparison against the type of the field. |
+
+
+
+#### FieldName {#booleanexpressiontype-fieldname}
+
+The name of a field in a user-defined object type.
+
+
+**Value:** string
+
+
+#### CustomTypeName {#booleanexpressiontype-customtypename}
+
+The name of a user-defined type.
+
+
+**Value:** string
+### ObjectBooleanExpressionType {#objectbooleanexpressiontype-objectbooleanexpressiontype}
+
+Definition of a type representing a boolean expression on an Open DD object type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `ObjectBooleanExpressionType` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ObjectBooleanExpressionTypeV1](#objectbooleanexpressiontype-objectbooleanexpressiontypev1) | true | Definition of a type representing a boolean expression on an Open DD object type. Deprecated in favour of `BooleanExpressionType`. |
+
+ **Example:**
+
+```yaml
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: AuthorBoolExp
+  objectType: Author
+  dataConnectorName: my_db
+  dataConnectorObjectType: author
+  comparableFields:
+    - fieldName: article_id
+      operators:
+        enableAll: true
+    - fieldName: title
+      operators:
+        enableAll: true
+    - fieldName: author_id
+      operators:
+        enableAll: true
+  graphql:
+    typeName: Author_bool_exp
+```
+
+
+#### ObjectBooleanExpressionTypeV1 {#objectbooleanexpressiontype-objectbooleanexpressiontypev1}
+
+Definition of a type representing a boolean expression on an Open DD object type. Deprecated in favour of `BooleanExpressionType`.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [CustomTypeName](#objectbooleanexpressiontype-customtypename) | true | The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `objectType` | [CustomTypeName](#objectbooleanexpressiontype-customtypename) | true | The name of the object type that this boolean expression applies to. |
+| `dataConnectorName` | [DataConnectorName](#objectbooleanexpressiontype-dataconnectorname) | true | The data connector this boolean expression type is based on. |
+| `dataConnectorObjectType` | [DataConnectorObjectType](#objectbooleanexpressiontype-dataconnectorobjecttype) | true | The object type in the data connector's schema this boolean expression type is based on. |
+| `comparableFields` | [[ComparableField](#objectbooleanexpressiontype-comparablefield)] | true | The list of fields of the object type that can be used for comparison when evaluating this boolean expression. |
+| `graphql` | [ObjectBooleanExpressionTypeGraphQlConfiguration](#objectbooleanexpressiontype-objectbooleanexpressiontypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
+
+
+
+#### ObjectBooleanExpressionTypeGraphQlConfiguration {#objectbooleanexpressiontype-objectbooleanexpressiontypegraphqlconfiguration}
+
+GraphQL configuration of an Open DD boolean expression type.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `typeName` | [GraphQlTypeName](#objectbooleanexpressiontype-graphqltypename) | true | The name to use for the GraphQL type representation of this boolean expression type. |
+
+
+
+#### GraphQlTypeName {#objectbooleanexpressiontype-graphqltypename}
+
+The name of a GraphQL type.
+
+
+**Value:** string
+
+
+#### ComparableField {#objectbooleanexpressiontype-comparablefield}
+
+A field of an object type that can be used for comparison when evaluating a boolean expression.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | [FieldName](#objectbooleanexpressiontype-fieldname) | true |  |
+| `operators` | [EnableAllOrSpecific](#objectbooleanexpressiontype-enableallorspecific) | true | Enable all or specific values. |
+
+
+
+#### EnableAllOrSpecific {#objectbooleanexpressiontype-enableallorspecific}
+
+Enable all or specific values.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `enableAll` | boolean | false |  |
+| `enableSpecific` | [[OperatorName](#objectbooleanexpressiontype-operatorname)] | false |  |
+
+
+
+#### OperatorName {#objectbooleanexpressiontype-operatorname}
+
+The name of an operator
+
+
+**Value:** string
+
+
+#### FieldName {#objectbooleanexpressiontype-fieldname}
+
+The name of a field in a user-defined object type.
+
+
+**Value:** string
+
+
+#### DataConnectorObjectType {#objectbooleanexpressiontype-dataconnectorobjecttype}
+
+The name of an object type in a data connector.
+
+
+**Value:** string
+
+
+#### DataConnectorName {#objectbooleanexpressiontype-dataconnectorname}
+
+The name of a data connector.
+
+
+**Value:** string
+
+
+#### CustomTypeName {#objectbooleanexpressiontype-customtypename}
+
+The name of a user-defined type.
+
+
+**Value:** string

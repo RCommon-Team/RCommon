@@ -1,0 +1,54 @@
+---
+sidebar_label: ddn context get
+sidebar_position: 55
+description: Get the value of a key in the context using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_context_get"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn context get
+---
+
+# DDN CLI: ddn context get
+
+Get the value of a key in the context.
+
+## Synopsis
+
+Get the value of a key in the context
+
+```bash
+ddn context get <key> (Allowed keys: supergraph, subgraph, localEnvFile, cloudEnvFile, selfHostedDataPlane, noBuildConnectors, project) [flags]
+```
+
+## Examples
+
+```bash
+# Get the Project name set in the context
+ ddn context get project
+
+# Get the Supergraph config file path set in the context
+ ddn context get supergraph
+```
+
+## Options
+
+```sass
+-c, --context string   Name of the context to use. (default <current_context>)
+-h, --help             help for get
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn context](/reference/cli/commands/ddn_context) - Perform context operations

@@ -1,0 +1,60 @@
+---
+sidebar_label: ddn codemod upgrade-auth-config-to-v3
+sidebar_position: 16
+description: Upgrade AuthConfig version from "v1"/"v2" to "v3" using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_codemod_upgrade-auth-config-to-v3"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn codemod upgrade-auth-config-to-v3
+---
+
+# DDN CLI: ddn codemod upgrade-auth-config-to-v3
+
+Upgrade AuthConfig version from "v1"/"v2" to "v3".
+
+## Synopsis
+
+Upgrade AuthConfig version from "v1"/"v2" to "v3"
+
+```bash
+ddn codemod upgrade-auth-config-to-v3 [flags]
+```
+
+## Examples
+
+```bash
+# Run on the supergraph defined in the context. Finds `AuthConfig` present in any subgraphs within the supergraph and modifies it to version v3
+ ddn codemod upgrade-auth-config-to-v3
+
+# Run on a specific supergraph config file. Finds `AuthConfig` present in any subgraphs within the supergraph and modifies it to version v3
+ ddn codemod upgrade-auth-config-to-v3 --supergraph ./supergraph.cloud.yaml
+
+# Run on a specific subgraph config file. Finds `AuthConfig` present in the subgraph and modifies it to version v3
+ ddn codemod upgrade-auth-config-to-v3 --subgraph app/subgraph.yaml
+```
+
+## Options
+
+```sass
+    --ci                  Disables the use of context
+-c, --context string      Name of the context to use. (default <current_context>)
+-h, --help                help for upgrade-auth-config-to-v3
+    --subgraph string     Path to Subgraph config file
+    --supergraph string   Path to Supergraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn codemod](/reference/cli/commands/ddn_codemod) - Perform transformations on your Hasura project directory

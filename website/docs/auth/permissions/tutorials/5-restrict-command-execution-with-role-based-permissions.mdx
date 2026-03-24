@@ -1,0 +1,154 @@
+---
+sidebar_position: 5
+sidebar_label: Restrict command execution with role-based permissions
+description: "Learn how to restrict command execution with role-based permissions."
+keywords:
+  - hasura
+  - hasura ddn
+  - authorization
+  - role-based execution
+seoFrontMatterUpdated: false
+---
+
+# Restrict Command Execution with Role-based Permissions
+
+## Introduction
+
+Often, you'll want to limit a user's ability to execute certain [commands](/data-modeling/command.mdx) — which power
+mutations in your GraphQL API — based on some related data. In the example below, we'll build on the
+[tutorial found in our PostgreSQL getting-started section](/how-to-build-with-ddn/with-postgresql.mdx) and **restrict
+users to only being able to update posts of which they're the author**.
+
+:::info Prerequisites
+
+Before continuing, ensure you have:
+
+- A local Hasura DDN project.
+- Either JWT or Webhook mode enabled in your [AuthConfig](/reference/metadata-reference/auth-config.mdx).
+
+:::
+
+## Tutorial
+
+## Step 1. Add an `author` role to your CommandPermissions object
+
+```yaml title="Locate your UpdatePostsById.hml file and update it to the following:" {9-23}
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: UpdatePostsById
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: author
+      allowExecution: true
+      argumentPresets:
+        - argument: preCheck
+          value:
+            booleanExpression:
+              relationship:
+                # Here, `user` refers to the pre-generated relationship's name
+                name: user
+                predicate:
+                  fieldComparison:
+                    field: id
+                    operator: _eq
+                    value:
+                      sessionVariable: x-hasura-user-id
+```
+
+This role grants the `author` role permission to execute the `UpdatePostsById` command, but only if the user who
+authored the post has an `id` that matches the `x-hasura-user-id` session variable in the request header. This ensures
+users can only update posts they have authored.
+
+## Step 2. Add TypePermissions to your response type
+
+The new `author` role will need access to return types for the `UpdatePostsByIdResponse` type.
+
+```yaml title="Find the UpdatePostsByIdResponse TypePermissions object and add the following:" {11-14}
+kind: TypePermissions
+version: v1
+definition:
+  typeName: UpdatePostsByIdResponse
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - affectedRows
+          - returning
+    - role: author
+      output:
+        allowedFields:
+          - affectedRows
+```
+
+In the configuration above, we're only allowing a user with the role of `author` to access the number of affected rows.
+Alternatively, you could include `returning` in the `output` array and _then_ set ModelPermissions **and**
+TypePermissions for the `author` role on the `Posts` type to allow for any or specific fields to be returned.
+
+## Step 3. Create a new build and test {#build-and-test}
+
+```yaml title="To test this, if you don't have JWT or Webhook mode enabled, we recommend replacing your AuthConfig with:"
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    noAuth:
+      role: author
+      sessionVariables: { "x-hasura-user-id": 1 }
+```
+
+This will set your `x-hasura-role` session variable as `author` and the `x-hasura-user-id` as `1`, enabling you to
+impersonate Alice.
+
+```bash title="Create a new build and start your services:"
+ddn supergraph build local && ddn run docker-start
+```
+
+```graphql title="Then, run the following query:"
+mutation UPDATE_POST_TITLE {
+  updatePostsById(keyId: "1", updateColumns: { title: { set: "This is not Alice's first post" } }) {
+    affectedRows
+  }
+}
+```
+
+```json title="As Alice is the owner of the post with the ID of 1, you should then see the following response:"
+{
+  "data": {
+    "updatePostsById": {
+      "affectedRows": 1
+    }
+  }
+}
+```
+
+```graphql title="Alternatively, if we run the following — which is on a post Alice does not own — we'll see a different return value:"
+mutation UPDATE_POST_TITLE {
+  updatePostsById(keyId: "4", updateColumns: { title: { set: "Malicious Actions in the API" } }) {
+    affectedRows
+  }
+}
+```
+
+```json title="Being 0, which is the number of rows affected:"
+{
+  "data": {
+    "updatePostsById": {
+      "affectedRows": 0
+    }
+  }
+}
+```
+
+## Wrapping up
+
+In this tutorial, we've demonstrated the minimum sets of permissions necessary to enforce role-based execution of
+commands. While the example illustrates limiting users to updating their own posts, the principles can be applied to any
+scenario by which you want to limit command execution — and mutations — based on relationships.
+
+## Learn more about permissions and auth
+
+- [Permissions](/auth/permissions/index.mdx) with Hasura DDN
+- [Auth](/auth/overview.mdx) with Hasura DDN

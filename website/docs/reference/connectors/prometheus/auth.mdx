@@ -1,0 +1,68 @@
+---
+sidebar_position: 3
+sidebar_label: Authentication
+description: "Reference documentation for authentication for the Hasura Prometheus connector."
+keywords:
+  - prometheus
+  - auth
+---
+
+# Authentication Configuration
+
+## Introduction
+
+The connector supports a wide array of authentication strategies which you can adjust in the connector's
+`configuration.yaml` file.
+
+### Basic Authentication
+
+```yaml
+connection_settings:
+  authentication:
+    basic:
+      username:
+        env: PROMETHEUS_USERNAME
+      password:
+        env: PROMETHEUS_PASSWORD
+```
+
+### HTTP Authorization
+
+```yaml
+connection_settings:
+  authentication:
+    authorization:
+      type:
+        value: Bearer
+      credentials:
+        env: PROMETHEUS_AUTH_TOKEN
+```
+
+### OAuth2
+
+```yaml
+connection_settings:
+  authentication:
+    oauth2:
+      token_url:
+        value: http://example.com/oauth2/token
+      client_id:
+        env: PROMETHEUS_OAUTH2_CLIENT_ID
+      client_secret:
+        env: PROMETHEUS_OAUTH2_CLIENT_SECRET
+```
+
+### Google Cloud
+
+The configuration accepts either the Google application credentials JSON string or file path. If the object is empty the
+client automatically loads the credential file from the `GOOGLE_APPLICATION_CREDENTIALS` environment variable.
+
+```yaml
+connection_settings:
+  authentication:
+    google:
+      # credentials:
+      #   env: GOOGLE_APPLICATION_CREDENTIALS_JSON
+      # credentials_file:
+      #   env: GOOGLE_APPLICATION_CREDENTIALS
+```

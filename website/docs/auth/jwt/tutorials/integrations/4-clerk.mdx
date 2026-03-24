@@ -1,0 +1,123 @@
+---
+sidebar_position: 5
+sidebar_label: Clerk
+description: "Learn how to connect Clerk to your Hasura DDN supergraph."
+keywords:
+  - hasura
+  - hasura ddn
+  - authentication
+  - jwt
+  - clerk
+  - guide
+toc_max_heading_level: 4
+seoFrontMatterUpdated: false
+---
+
+# Clerk
+
+## Introduction
+
+In this tutorial, you'll learn how to configure an existing [Clerk application](https://clerk.com/) and generate a JWT
+which you can pass in the header of your requests to Hasura. After setting up your
+[AuthConfig](/reference/metadata-reference/auth-config.mdx) object to use JWT mode, this will allow you to validate
+users' identities and create [permission rules](/reference/metadata-reference/permissions.mdx) which can limit access to
+underlying data served by Hasura DDN.
+
+:::info Prerequisites
+
+Before continuing, ensure you have:
+
+- A [Clerk application](https://clerk.com/docs/quickstarts/setup-clerk).
+- A local application that can integrate with Clerk for authentication.
+- A local Hasura DDN project.
+
+### Step 1. Create a JWT template
+
+From your [Clerk application's dashboard](https://dashboard.clerk.com/), click `JWT templates` in the sidenav and create
+a new blank template. You can name this whatever you wish along with configuring properties like the token's lifetime,
+clock skew, etc.
+
+In the claims editor, add the following:
+
+```javascript
+{
+	"claims.jwt.hasura.io": {
+		"x-hasura-user-id": "{{user.id}}",
+		"x-hasura-default-role": "user",
+		"x-hasura-allowed-roles": [
+			"user"
+		]
+	}
+}
+```
+
+This will add the required Hasura namespace with the keys that Hasura DDN expects when decoding a JWT. You can modify
+the keys to suit your Hasura DDN [roles](/reference/metadata-reference/permissions.mdx#typepermissions).
+
+You can also see that we're hard-coding the user's role. You can dynamically set a user's role using Clerk's metadata to
+set a `role` field on the `User` object whenever a user registers. You can learn more
+[here](https://clerk.com/docs/users/metadata).
+
+This enables you to then pass the value of `{{user.publicMetadata.role}}` in the custom claims of the JWT.
+
+:::tip Custom claims
+
+You can create any custom keys you wish and reference them in your permissions using session variables. Above,
+`x-hasura-user-id` is simply an example. Any claim prefixed with `x-hasura-` is accessible to the Hasura DDN Engine.
+
+:::
+
+### Step 2. Update your AuthConfig
+
+Update your AuthConfig object to use JWT mode and your Clerk JWKs, which rely on your Clerk domain name found in the
+sidenav under `Domains`:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: "/claims.jwt.hasura.io"
+      key:
+        jwkFromUrl: "https://<your-clerk-domain>/.well-known/jwks.json"
+      tokenLocation:
+        type: Header
+        name: Auth-Token
+```
+
+Then, create a new build of your supergraph:
+
+```sh
+ddn supergraph build local
+```
+
+### Step 3. Test your configuration
+
+Generate a new JWT by logging into your application. These values aren't typically displayed to users, so you'll need to
+log them while in development. You can then add that value as a header in the console and test any permissions you have
+in your metadata.
+
+Clerk's [various SDKs](https://clerk.com/docs/references/overview) make this easy, as you can pass the name of a JWT
+template and get back the encoded token.
+
+```javascript title="As an example, using the JavaScript SDK:"
+const jwt = await session.getToken({ template: "hasura" });
+```
+
+## Wrapping up
+
+In this guide, you learned how to integrate Clerk with Hasura DDN to create a secure and scalable identity management
+solution using JWTs. By leveraging custom claims in conjunction with
+[permissions](/reference/metadata-reference/permissions.mdx), you can define precise access-control rules, ensuring that
+your application remains secure and meets your users' needs.
+
+As you continue building out your supergraph, keep in mind that authentication and authorization are crucial components.
+Always validate your configuration and regularly test your setup to ensure it functions as expected across different
+roles and environments.
+
+If you encounter issues or need further customization, consider reviewing our related documentation or exploring
+additional Clerk features that can enhance your authentication flows.

@@ -1,0 +1,48 @@
+---
+sidebar_position: 1
+sidebar_label: Basics
+description:
+  "Hasura DDN offers a variety of native data connectors that allow you to bring nearly any form of data into a single
+  API."
+keywords:
+  - hasura ddn
+  - data sources
+  - data connector
+---
+
+import Gallery from "@site/src/components/ConnectorGallery";
+
+# Basics
+
+## What is a data source?
+
+When we talk about data, many people first think of structured tables in a database. While that’s a significant part of
+the picture, data comes in many forms—some structured, others not. A data source, in the context of Hasura DDN, can be
+as straightforward as a relational database or as dynamic as the output of a custom function.
+
+With Hasura DDN, you can connect it all and serve it from a single endpoint.
+
+## How do I connect my data to Hasura DDN?
+
+We use **native data connectors** to make your data accessible through a GraphQL API. These connectors are tailored for
+specific sources, including relational databases, NoSQL, external GraphQL APIs, REST APIs, and more.
+
+We have the following data connectors available today:
+
+<Gallery />
+
+## Building your own data connector
+
+You are also able to build your own data connector. This is useful if you have a custom data source that is not
+supported. You can find information for this in the [NDC Spec](https://github.com/hasura/ndc-spec) and the rendered
+[NDC Spec data connector tutorial](https://hasura.github.io/ndc-spec/tutorial/index.html) as well as the SDKs for
+various languages:
+
+- [Rust](https://github.com/hasura/ndc-sdk-rs)
+- [TypeScript](https://github.com/hasura/ndc-sdk-typescript)
+- [Python](https://github.com/hasura/ndc-sdk-python)
+- [Go](https://github.com/hasura/ndc-sdk-go)
+
+## Get started
+
+- Learn how to [connect your data](/data-sources/connect-to-a-source.mdx)

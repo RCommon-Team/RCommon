@@ -1,0 +1,7 @@
+{
+  "label": "PostgreSQL",
+  "position": 11,
+  "customProps": {
+    "connector-ids": ["postgres"]
+  }
+}

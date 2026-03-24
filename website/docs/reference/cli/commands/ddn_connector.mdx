@@ -1,0 +1,54 @@
+---
+sidebar_label: ddn connector
+sidebar_position: 30
+description: Perform Connector related operations using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector
+---
+
+# DDN CLI: ddn connector
+
+Perform Connector related operations.
+
+## Synopsis
+
+Native Data Connectors (or connectors for short) are the link between your data source(s) and your API. To learn more, check out the docs: https://hasura.io/docs/3.0/data-sources/overview/
+
+**Alias:** connectors
+
+## Available operations
+
+- [ddn connector build](/reference/cli/commands/ddn_connector_build) - Perform ConnectorBuild-related operations
+- [ddn connector env](/reference/cli/commands/ddn_connector_env) - Manage environment variables for Connectors
+- [ddn connector init](/reference/cli/commands/ddn_connector_init) - Add a new Connector
+- [ddn connector introspect](/reference/cli/commands/ddn_connector_introspect) - Introspect the Connector data source to update the Connector configuration
+- [ddn connector list](/reference/cli/commands/ddn_connector_list) - List available versions of connectors
+- [ddn connector plugin](/reference/cli/commands/ddn_connector_plugin) - Run a subcommand from a Connector plugin
+- [ddn connector remove](/reference/cli/commands/ddn_connector_remove) - Remove a Connector, its corresponding DataConnectorLink and all its associated metadata objects
+- [ddn connector setenv](/reference/cli/commands/ddn_connector_setenv) - Run specified command with environment variables set
+- [ddn connector show-resources](/reference/cli/commands/ddn_connector_show-resources) - Show resources of a Connector
+- [ddn connector upgrade](/reference/cli/commands/ddn_connector_upgrade) - Upgrade connector configuration
+
+## Options
+
+```sass
+-h, --help   help for connector
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

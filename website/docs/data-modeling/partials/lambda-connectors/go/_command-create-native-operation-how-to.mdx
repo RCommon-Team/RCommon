@@ -1,0 +1,74 @@
+You can run whatever arbitrary code you want in your Go connector and expose it as a GraphQL mutation or query in your
+supergraph API.
+
+```sh title="Initialize a new connector and select hasura/go from the list:"
+ddn connector init my_go -i
+```
+
+```go title="Replace the functions.go contents with your own custom code:"
+package functions
+
+import (
+	"context"
+
+	"hasura-ndc.dev/ndc-go/types"
+)
+
+// InputArguments represents the input of the native operation.
+type InputArguments struct {
+	MyInput string `json:"myInput"`
+}
+
+// OutputResult represents the output of the native operation.
+type OutputResult struct {
+	MyOutput string `json:"myOutput"`
+}
+
+// ProcedureCustomCode is a native operation that can be called from the API.
+func ProcedureCustomCode(ctx context.Context, state *types.State, arguments *InputArguments) (*OutputResult, error) {
+	// Do something with the input
+	return &OutputResult{
+		MyOutput: "My output",
+	}, nil
+}
+```
+
+Using the prefix `Procedure` ensures ProcedureCustomCode() is exposed as a mutation in our API. Prefixing with
+`Function` identifies it as a function to be exposed as a query in your API.
+
+Both have typed input arguments and return strings, which the connector will use to generate the corresponding GraphQL
+schema.
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_go
+```
+
+```bash title="Track the function:"
+ddn command add my_go customCode
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your native operation:"
+query MyCustomCode {
+  customCode(myInput: "My input")
+}
+```
+
+```json title="You will see a response like this:"
+{
+  "data": {
+    "myCustomCode": "My output"
+  }
+}
+```

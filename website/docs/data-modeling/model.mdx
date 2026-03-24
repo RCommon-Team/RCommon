@@ -1,0 +1,240 @@
+---
+sidebar_position: 2
+sidebar_label: "Models read data"
+description: "Models allow you to define the structure of your data and how it can be queried."
+keywords:
+  - model
+  - data modeling
+toc_max_heading_level: 4
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Thumbnail from "@site/src/components/Thumbnail";
+
+import ModelCreatePostgreSQL from "@site/docs/data-modeling/partials/classic-connectors/postgreSQL/_model-create-tutorial.mdx";
+import ModelCreateMongoDB from "@site/docs/data-modeling/partials/classic-connectors/mongoDB/_model-create-tutorial.mdx";
+import ModelCreateClickHouse from "@site/docs/data-modeling/partials/classic-connectors/clickHouse/_model-create-tutorial.mdx";
+import ModelCreateNativeQueryHowToPostgreSQL from "@site/docs/data-modeling/partials/classic-connectors/postgreSQL/_model-create-native-query-how-to.mdx";
+import ModelCreateNativeQueryTutorialPostgreSQL from "@site/docs/data-modeling/partials/classic-connectors/postgreSQL/_model-create-native-query-tutorial.mdx";
+import ModelCreateNativeQueryHowToMongoDB from "@site/docs/data-modeling/partials/classic-connectors/mongoDB/_model-create-native-query-how-to.mdx";
+import ModelCreateNativeQueryTutorialMongoDB from "@site/docs/data-modeling/partials/classic-connectors/mongoDB/_model-create-native-query-tutorial.mdx";
+import ModelCreateNativeQueryHowToClickHouse from "@site/docs/data-modeling/partials/classic-connectors/clickHouse/_model-create-native-query-how-to.mdx";
+import ModelCreateNativeQueryTutorialClickHouse from "@site/docs/data-modeling/partials/classic-connectors/clickHouse/_model-create-native-query-tutorial.mdx";
+
+# Models Read Data
+
+## Introduction
+
+In DDN, models represent entities or collections that can be queried in your data sources, such as tables, views,
+collections, native queries, and more.
+
+## Lifecycle
+
+The lifecycle in creating a model in your metadata is as follows:
+
+1. Have some entity in your data source that you want to make queryable via your API.
+2. Introspect your data source using the DDN CLI with the relevant data connector to fetch the entity resources.
+3. Add the model to your metadata with the DDN CLI.
+4. Create a build of your supergraph API with the DDN CLI.
+5. Serve your build as your API with the Hasura engine either locally or in the cloud.
+6. Iterate on your API by repeating this process or by editing your metadata manually as needed.
+
+<Thumbnail src="/img/data-modeling/ddn-cli-process.png" alt="Data modeling lifecycle" />
+
+## Create a model
+
+To add a model you will need to have a data connector already set up and connected to the data source. Follow the
+relevant tutorial for your data source in [How to Build with DDN](/how-to-build-with-ddn/overview.mdx) to get to that
+point.
+
+### From a source entity
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+Whenever you update your data source, you can run the above command to fetch the latest resources.
+
+```bash title="Show the resources discovered from your data source:"
+ddn connector show-resources <connector_name>
+```
+
+This is an optional step and will output a list of resources that DDN discovered in your data source in the previous
+step.
+
+```bash
+ddn model add <connector_link_name> <collection_name>
+```
+
+Or you can optionally add all the models by specifying `"*"`.
+
+```bash
+ddn model add <connector_link_name> "*"
+```
+
+This will add models with their accompanying metadata definitions to your metadata.
+
+You can now build your supergraph API, serve it, and query your data.
+
+:::info Context for CLI commands
+
+Note that the above CLI commands work without also adding the relevant subgraph to the command with the `--subgraph`
+flag because this has been set in the CLI context. You can learn more about creating and switching contexts in the
+[CLI context](/reference/cli/commands/ddn_context.mdx) section.
+
+:::
+
+For a walkthrough on how to create a model, see the [Model Tutorials](#model-tutorials) section.
+
+### Via native query
+
+You can use the query syntax of the underlying data source to create a native query and expose it as a model in your
+supergraph API.
+
+The process of adding a native query is more or less unique for each data connector as each data source by nature has
+its own syntax.
+
+<Tabs groupId="source-preference" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+    <ModelCreateNativeQueryHowToPostgreSQL />
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+    <ModelCreateNativeQueryHowToMongoDB />
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+    <ModelCreateNativeQueryHowToClickHouse />
+
+  </TabItem>
+</Tabs>
+
+## Update a model
+
+If you want to update your model to reflect a change that happened in the underlying data source you should first
+introspect to get the latest resources and then update the relevant model.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, update your existing model:"
+ddn model update <connector_link_name> <model_name>
+```
+
+You will see an output which explains how new resources were added or updated in the model.
+
+You can now build your supergraph API, serve it, and query your data with the updated model.
+
+You can also update the model by editing the metadata manually.
+
+For a walkthrough on how to update a model, see the [Model Tutorials](#model-tutorials) section.
+
+## Extend a model
+
+A model can be extended in order to return nested data or to enrich or add to the data.
+
+For example you can extend a model like `Customers` to also return the related `Orders` for each customer.
+
+Or you can add a custom piece of logic on a model like `Orders` to compute and return the current currency conversion of
+the total price of the order.
+
+The way this is done is via a `Relationship`. Read more about
+[creating relationships here](/data-modeling/relationship.mdx).
+
+## Delete a model
+
+```bash title="If you no longer need a model, you can delete it:"
+ddn model remove users
+```
+
+In addition to removing the `Model` object itself, the DDN CLI will also remove the associated metadata definitions.
+
+## Tutorials {#model-tutorials}
+
+The tutorials below follow on from each particular tutorial in the
+[How to Build with DDN](/how-to-build-with-ddn/overview.mdx) section. Select the relevant data connector to follow the
+tutorial.
+
+### Creating a model
+
+To query data from your API, you'll first need to create a model that represents that data.
+
+#### From a source entity
+
+<Tabs groupId="source-preference" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+    <ModelCreatePostgreSQL />
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+    <ModelCreateMongoDB />
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+    <ModelCreateClickHouse />
+
+  </TabItem>
+</Tabs>
+
+#### Via native query
+
+<Tabs groupId="source-preference" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+    <ModelCreateNativeQueryTutorialPostgreSQL />
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+    <ModelCreateNativeQueryTutorialMongoDB />
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+    <ModelCreateNativeQueryTutorialClickHouse />
+
+  </TabItem>
+</Tabs>
+
+### Updating a model
+
+Your underlying data source may change over time. You can update your model to reflect these changes.
+
+You'll need to update the mapping of your model to the data source by updating the
+[DataConnectorLink](/reference/metadata-reference/data-connector-links.mdx) object.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, update your model:"
+ddn model update <connector_link_name> <model_name>
+```
+
+This will find changed resources in the data source and attempt to merge them into the model.
+
+If you'd like to completely add the model again, you can first run the `model remove` command (below) and then re-create
+your model.
+
+### Extending a model {#tutorial-extend-model}
+
+Find tutorials about extending a model with related information or custom logic in the
+[Relationships](/data-modeling/relationship.mdx) section.
+
+### Deleting a model
+
+```bash title="If you no longer need a model, you can delete it:"
+ddn model remove users
+```
+
+## Reference
+
+You can learn more about models in the metadata reference [docs](/reference/metadata-reference/models.mdx).

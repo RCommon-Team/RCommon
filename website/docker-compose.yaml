@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    entrypoint: ["/usr/bin/bash", "-ic"]
+    command: ["yarn start"]
+    volumes:
+      - .:/graphql-engine/docs
+    ports:
+      - 3001:3001

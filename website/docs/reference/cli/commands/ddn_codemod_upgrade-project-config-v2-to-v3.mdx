@@ -1,0 +1,51 @@
+---
+sidebar_label: ddn codemod upgrade-project-config-v2-to-v3
+sidebar_position: 22
+description: Upgrade project directory from version v2 to v3 using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_codemod_upgrade-project-config-v2-to-v3"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn codemod upgrade-project-config-v2-to-v3
+---
+
+# DDN CLI: ddn codemod upgrade-project-config-v2-to-v3
+
+Upgrade project directory from version v2 to v3.
+
+## Synopsis
+
+For more information on what's changed, check out the docs: https://hasura.io/docs/3.0/project-configuration/upgrading-project-config/upgrade-project-v3
+
+```bash
+ddn codemod upgrade-project-config-v2-to-v3 --dir <project-dir> [flags]
+```
+
+## Examples
+
+```bash
+# Upgrade project in the current directory from v2 to v3
+ ddn codemod upgrade-project-config-v2-to-v3 --dir .
+```
+
+## Options
+
+```sass
+    --dir string   The Hasura project directory (required)
+-h, --help         help for upgrade-project-config-v2-to-v3
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn codemod](/reference/cli/commands/ddn_codemod) - Perform transformations on your Hasura project directory

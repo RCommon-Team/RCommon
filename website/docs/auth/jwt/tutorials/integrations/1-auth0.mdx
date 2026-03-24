@@ -1,0 +1,212 @@
+---
+sidebar_position: 2
+sidebar_label: Auth0
+description: "Learn how to connect Auth0 to your Hasura DDN supergraph."
+keywords:
+  - hasura
+  - hasura ddn
+  - authentication
+  - jwt
+  - auth0
+  - tutorial
+  - guide
+toc_max_heading_level: 4
+seoFrontMatterUpdated: false
+---
+
+# Auth0
+
+## Introduction
+
+In this tutorial, you'll learn how to configure an existing [Auth0 application](https://auth0.com) and generate a JWT
+which you can pass in the header of your requests to Hasura. After setting up your
+[AuthConfig](/reference/metadata-reference/auth-config.mdx) object to use JWT mode, this will allow you to validate
+users' identities and create [permission rules](/reference/metadata-reference/permissions.mdx) which can limit access to
+underlying data served by Hasura DDN.
+
+:::info Prerequisites
+
+Before continuing, ensure you have:
+
+- An Auth0 [application](https://manage.auth0.com/dashboard).
+- A local application that you're actively developing, built with any language or framework supported by
+  [Auth0's SDKs](https://auth0.com/docs/libraries).
+- A local Hasura DDN project.
+
+:::
+
+## Tutorial
+
+### Step 1. Create a new Auth0 application
+
+From your Auth0 dashboard, click `Applications` in the sidebar and then click on `Create Application`. Enter a name for
+your application, then choose the application type that best suits your needs.
+
+After creating the application, go to `APIs` in the sidebar and create a new API with your GraphQL endpoint as the
+identifier.
+
+### Step 2. Create a new Auth0 Action
+
+From your Auth0 dashboard, click `Actions` in the sidebar and choose `Triggers`.
+
+Under `Sign Up & Login`, select the `post-login` trigger, click on the `+` icon, and then choose `Built from Scratch` to
+create a new Action.
+
+Enter a name for your Action such as `Hasura JWT Claims` and paste the following code:
+
+```javascript
+exports.onExecutePostLogin = async (event, api) => {
+  const namespace = "claims.jwt.hasura.io";
+  // Here, you'll need to fetch the user's role from Hasura DDN using an admin-level authenticated request
+  // Learn more here: https://hasura.io/docs/3.0/auth/authentication/jwt/special-roles
+  // Below, we're hard-coding the value for now
+  const user_role = "user"; // the role returned from your request ☝️
+  api.idToken.setCustomClaim(namespace, {
+    "x-hasura-default-role": user_role,
+    "x-hasura-allowed-roles": [user_role],
+    "x-hasura-user-id": event.user.user_id,
+    // Add any other custom claims you wish to include
+  });
+
+  // Set the necessary access token claims for Hasura to authenticate the user
+  api.accessToken.setCustomClaim(namespace, {
+    "x-hasura-default-role": user_role,
+    "x-hasura-allowed-roles": [user_role],
+    "x-hasura-user-id": event.user.user_id,
+  });
+};
+```
+
+This will add the required Hasura namespace with the keys that Hasura DDN expects when decoding a JWT. You can modify
+the keys to suit your Hasura DDN [roles](/reference/metadata-reference/permissions.mdx#typepermissions).
+
+Click `Deploy`.
+
+:::tip Custom claims
+
+You can create any custom keys you wish and reference them in your permissions using session variables. Above,
+`x-hasura-user-id` is simply an example. Any claim prefixed with `x-hasura-` is accessible to the Hasura DDN Engine.
+
+:::
+
+### Step 3. Update your AuthConfig
+
+Update your AuthConfig object to use JWT mode and your
+[Auth0 JWKs](https://auth0.com/docs/secure/tokens/json-web-tokens/json-web-key-sets):
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: "/claims.jwt.hasura.io"
+      issuer: "<your Auth0 tenant's URL>"
+      key:
+        jwkFromUrl: "https://<your Auth0 tenant's URL>/.well-known/jwks.json"
+      audience: ["<your GraphQL endpoint>"]
+      tokenLocation:
+        type: Header
+        name: Auth-Token
+```
+
+Then, create a new build of your supergraph:
+
+```sh
+ddn supergraph build local
+```
+
+### Step 4. Test your configuration
+
+The easiest way to verify your setup is to generate a new JWT by logging into your client application that uses Auth0.
+These values aren't typically displayed to users, so you'll need to log them while in development. You can then add that
+value as a header in the console and test any permissions you have in your metadata. If you're unfamiliar with this, we
+have a sample repo [here](https://github.com/hasura/ddn-auth-examples/tree/main/auth0).
+
+:::info Auth0 API Debugger
+
+Auth0 does provide an extension: the `Auth0 Authentication API Debugger` for testing configurations. However, custom
+claims have been known to cause issues. You can find more information about using their debugger
+[here](https://auth0.com/docs/customize/extensions/authentication-api-debugger-extension).
+
+:::
+
+### Step 5. Service account access token (optional)
+
+In certain cases, you may need to generate a service account access token to access your Hasura DDN supergraph when
+performing backend operations. You can do this by creating a new Auth0 application named `Service Account` with a type
+of `Machine to Machine Applications`.
+
+After creating the application, go to `Triggers`, located underneath `Actions` in the sidebar, and click on the
+`credentials-exchange` trigger. Similar to the `post-login` trigger, create a new Action and paste the code below:
+
+```javascript
+exports.onExecuteCredentialsExchange = async (event, api) => {
+  const namespace = "claims.jwt.hasura.io";
+
+  const service_role = "service_account";
+
+  api.accessToken.setCustomClaim(namespace, {
+    "x-hasura-default-role": service_role,
+    "x-hasura-allowed-roles": [service_role],
+  });
+};
+```
+
+This will generate a new JWT token with the `service_account` role which can then be used to access your Hasura DDN
+supergraph.
+
+You can generate a new access token using the following Python code:
+
+```python
+import http.client
+
+conn = http.client.HTTPSConnection("<Auth0 domain>")
+
+payload = "{\"client_id\":\"<client id>\",\"client_secret\":\"<Auth0 Client Secret>\",\"audience\":\"<your GraphQL endpoint>\",\"grant_type\":\"client_credentials\"}"
+
+headers = { 'content-type': "application/json" }
+
+conn.request("POST", "/oauth/token", payload, headers)
+
+res = conn.getresponse()
+data = res.read()
+
+print(data.decode("utf-8"))
+```
+
+The response will look like:
+
+```json
+{
+  "access_token": "<service account access token>",
+  "token_type": "Bearer"
+}
+```
+
+You can modify your metadata to allow the `service_account` role to access the necessary models.
+
+:::tip Best Practices for Service Accounts
+
+Instead of granting a service account full admin access, create a custom role with only the necessary permissions. This
+approach follows the principle of least privilege, thereby limiting potential impact in case of any errors or
+oversights.
+
+:::
+
+## Wrapping up
+
+In this guide, you learned how to integrate Auth0 with Hasura DDN to create a secure and scalable identity management
+solution using JWTs. By leveraging custom claims in conjunction with
+[permissions](/reference/metadata-reference/permissions.mdx), you can define precise access-control rules, ensuring that
+your application remains secure and meets your users' needs.
+
+As you continue building out your supergraph, keep in mind that authentication and authorization are crucial components.
+Always validate your configuration and regularly test your setup to ensure it functions as expected across different
+roles and environments.
+
+If you encounter issues or need further customization, consider reviewing our related documentation or exploring
+additional Auth0 features that can enhance your authentication flows.

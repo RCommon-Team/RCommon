@@ -1,0 +1,65 @@
+Within your connector's directory, you can add a new file with a `.sql` extension to define a native query.
+
+```sh title="Create a new directory to store your native queries:"
+mkdir -p app/connector/my_pg/native_operations/queries/
+```
+
+```sql title="Create a new file in your connector's directory:"
+-- native_operations/queries/order_users_of_same_age.sql
+SELECT
+    id,
+    name,
+    age,
+    RANK() OVER (PARTITION BY age ORDER BY name ASC) AS rank_within_age
+FROM
+    users
+WHERE
+    age = {{ age }}
+```
+
+Arguments are passed to the native query as variables surrounded by double curly braces `{{ }}`.
+
+```sh title="Then, use the PostgreSQL connector's plugin to add the native query to your connector's configuration:"
+ddn connector plugin \
+  --connector app/connector/my_pg/connector.yaml \
+  -- \
+  native-operation create \
+  --operation-path native_operations/queries/order_users_of_same_age.sql \
+  --kind query
+```
+
+```sh title="Introspect your PostgreSQL instance:"
+ddn connector introspect my_pg
+```
+
+```sh title="Show the found resources:"
+ddn connector show-resources my_pg
+```
+
+```sh title="Then, add your model:"
+ddn model add my_pg order_users_of_same_age
+```
+
+Let's add a few more users to make this native query example more interesting:
+
+```sql
+INSERT INTO users (name, age) VALUES ('Dan', 25), ('Erika', 25), ('Fatima', 25), ('Gabe', 25);
+```
+
+```title="Build and serve your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now in your console you can run the following query to see the results:
+
+```graphql
+query UsersOfSameAge {
+  orderUsersOfSameAge(args: { age: 25 }) {
+    id
+    name
+    age
+    orderWithinAge
+  }
+}
+```

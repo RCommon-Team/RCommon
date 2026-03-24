@@ -1,0 +1,27 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description: "Reference documentation for the setup process for the Hasura Stripe connector."
+keywords:
+  - stripe
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+Under the hood, the Stripe connector utilizes the [`ndc-http` connector](https://github.com/hasura/ndc-http) via
+[Stripe's OpenAPI spec](https://github.com/stripe/openapi). This ensures you can incorporate any resources available via
+[Stripe's REST API](https://docs.stripe.com/api) into your supergraph.
+
+## Schema
+
+As the schema for this connector is mapped to the OpenAPI spec for Stripe's API, the connector does not generate any
+local configuration files. Instead, when you introspect your data source,
+[this JSON schema](https://raw.githubusercontent.com/hasura/ndc-stripe/refs/heads/main/config/schema.json) is used to
+generate a [`DataConnectorLink`](/reference/metadata-reference/data-connector-links.mdx) in your subgraph's metadata,
+complete with all the resources available via Stripe's API.
+
+To explore this file, [try out the how-to guide for Stripe](/how-to-build-with-ddn/with-stripe.mdx) and — after
+introspecting — grep through the generated HML file for any endpoint you desire.

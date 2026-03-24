@@ -1,0 +1,49 @@
+---
+sidebar_label: ddn command
+sidebar_position: 24
+description: Perform Command-related operations using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_command"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn command
+---
+
+# DDN CLI: ddn command
+
+Perform Command-related operations.
+
+## Synopsis
+
+Commands represent actions that can be executed within a data domain. To learn more, check out the docs: https://hasura.io/docs/3.0/reference/metadata-reference/commands/
+
+**Alias:** commands
+
+## Available operations
+
+- [ddn command add](/reference/cli/commands/ddn_command_add) - Add new Commands to the local metadata
+- [ddn command list](/reference/cli/commands/ddn_command_list) - Lists details about the functions/procedures of DataConnectorLink, and their corresponding Commands
+- [ddn command remove](/reference/cli/commands/ddn_command_remove) - Removes Commands (and related metadata) in the local metadata
+- [ddn command show](/reference/cli/commands/ddn_command_show) - Show diff between the command and its corresponding ndc function/procedure
+- [ddn command update](/reference/cli/commands/ddn_command_update) - Update Commands in the local metadata
+
+## Options
+
+```sass
+-h, --help   help for command
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

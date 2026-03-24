@@ -1,0 +1,528 @@
+---
+sidebar_position: 1
+sidebar_label: Upgrade to project config v2
+description: "Guide to migrate local projects created by CLI versions <= 2024.06.05"
+keywords:
+  - hasura ddn
+  - data delivery network
+  - hasura cli
+  - project configuration
+  - hasura metadata management
+  - yaml configuration
+  - api development
+  - hasura build profiles
+  - hasura subgraphs
+  - hasura project management
+seoFrontMatterUpdated: true
+---
+
+import InstallTheCli from "@site/docs/_install-the-cli.mdx";
+
+# Upgrading to project config v2
+
+## What has happened?
+
+A new revision (**2024.06.06**) of the [DDN CLI](/reference/cli/installation.mdx) has been released. With this release,
+local project directory structures created by CLI versions **\<= 2024.06.05** are now out-of-date and deprecated.
+
+This page contains some information on what has changed and instructions to migrate your existing local projects.
+However, for users to most efficiently familiarize themselves with the new CLI and project structure, we recommend
+setting up a new project from scratch by following the new [getting started guide](/how-to-build-with-ddn/overview.mdx).
+
+:::warning A newer CLI version has been released since!
+
+A newer revision (**v1.x.x**) of the [DDN CLI](/reference/cli/installation.mdx) has been released. See the upgrade guide
+[here](project/configuration/overview.mdx If your local project was created by CLI versions **\<= 2024.06.05**, you will
+need to update your local project directory using this current guide first before upgrading to the above revision.
+
+:::
+
+## What has changed?
+
+- The project config version defined in `hasura.yaml` is bumped from `v1` to `v2`.
+- Local dev workflows using Docker have been introduced.
+- The DDN CLI commands. See details on the new commands [here](/reference/cli/commands/ddn).
+- The local project directory structure.
+- `SupergraphManifest` and `ConnectorManifest` objects are now called `Supergraph` and `Connector` respectively.
+- The `source` field for `Relationship` objects has been deprecated in favour of the `sourceType` field. Though
+  `Relationship` objects with the `source` field will continue to be supported.
+
+We **strongly recommend** you go through our [new getting started guide](/how-to-build-with-ddn/overview) to learn about
+all the changes and experience the new workflow to develop your API with DDN.
+
+:::info No changes to existing DDN projects
+
+Note that this a CLI only change and does not impact Hasura DDN projects. You can continue using existing DDN projects
+and builds and also be able to create new builds using the new CLI revision (with the new local project structure).
+
+:::
+
+## Migrate an existing local project
+
+Below are steps to convert a local project created with the DDN CLI versions `<= v2024.06.05` to the new project
+structure.
+
+### Step 1: Get the new CLI
+
+<InstallTheCli revision="v2" />
+
+Also, update your Hasura VS Code extension to `v0.6.x` if not done automatically.
+
+:::info Need the previous CLI revision?
+
+Note that the above will overwrite your current DDN CLI revision. You can re-install the previous revision by replacing
+`/ddn/cli/v2/` with `/ddn/cli/v1/` in the above download command.
+
+:::
+
+### Step 2: Set up a fresh local project
+
+#### Step 2.1: Initialize a new supergraph
+
+Run:
+
+```bash
+ddn supergraph init --dir <new-proj-dir>
+```
+
+Set the default supergraph config file to the CLI context to avoid having to repeat it in future commands. This file
+contains the `Supergraph` object similar to the `SupergraphManifest` object in your existing project directory.
+
+```bash
+cd <new-proj-dir> && ddn context set supergraph ./supergraph.local.yaml
+```
+
+#### Step 2.2: Copy over supergraph global objects
+
+Copy the files containing the supergraph global objects `CompatibilityConfig`, `GraphqlConfig` and `AuthConfig` from
+your existing project directory to the `supergraph_globals` directory in the new project directory. These should
+typically be in the `supergraph` directory in your existing project directory.
+
+Note that these objects are already created in the `supergraph_globals` directory of your new project directory. The
+`AuthConfig` object created here is to be used for local development. To avoid overwriting it, while copying your
+`auth-config.hml` file from the existing project directory rename it to `auth-config.cloud.hml` instead. The
+`graphql-config.hml` and `compatibility-config.hml` files on the other hand should be overwritten.
+
+### Step 3: Add your subgraphs
+
+For each subgraph in your project:
+
+Follow the below steps:
+
+#### Step 3.1: Initialize the subgraph
+
+Run:
+
+```bash
+ddn subgraph init <subgraph-name>
+```
+
+#### Step 3.2: Add an env file for deploying to DDN
+
+A `.env.<subgraph-name>` file is created in the `<subgraph-name>` directory to be used during local development.
+
+Create a new file `.env.cloud.<subgraph-name>` alongside it to be used for deployments to DDN. You can leave this file
+empty for now.
+
+### Step 4: Set up your data connectors
+
+**Case 1:**
+
+For self-deployed data connectors in your subgraphs, i.e. `ConnectorManifest` of type `endpoints`:
+
+You can skip this step.
+
+**Case 2:**
+
+For each data connector deployed on Hasura DDN in your subgraphs, i.e. `ConnectorManifest` of type `cloud`:
+
+Follow the steps below:
+
+#### Step 4.1: Initialize data connector
+
+Run:
+
+```bash
+ddn connector init <connector-name> --subgraph <subgraph-name> --hub-connector <connector-type>
+```
+
+Ensure you use the same connector name and type from your existing `ConnectorManifest`.
+
+#### Step 4.2: Create connector configuration files for deploying to DDN
+
+##### Step 4.2.1: Create a connector.cloud.yaml
+
+Each connector utilizes a `connector.yaml` file for local development. This file contains the `Connector` object similar
+to the `ConnectorManifest` object in your existing project.
+
+To deploy your connector to DDN create a `connector.cloud.yaml` file alongside the connector's local `connector.yaml`.
+You can simply copy the contents of the `connector.yaml` file and update the `envFile` key's value to `.env.cloud` which
+we'll create now.
+
+```yaml title="For example, <subgraph-name>/connector/<connector-name>/connector.cloud.yaml"
+kind: Connector
+version: v1
+definition:
+  name: <connector-name>
+  subgraph: <subgraph-name>
+  source: hasura/<connector-type>:<version>
+  context: .
+  #highlight-start
+  envFile: .env.cloud
+  #highlight-end
+```
+
+##### Step 4.2.2: Create a .env.cloud for the connector
+
+Create an environment variable file `.env.cloud` alongside the `.env.local` file for the connector. You can leave this
+file empty for now.
+
+#### Step 4.3: Add data connector configuration
+
+##### Case 1: For hasura/postgres connectors
+
+###### Step 4.3.1: Set database connection string
+
+Add a new key `CONNECTION_URI` to the file `<subgraph_name>/connector/<connector_name>/.env.cloud` and set your database
+connection string as the value.
+
+For example:
+
+```env
+CONNECTION_URI=<your_pg_url>
+```
+
+###### Step 4.3.2: Introspect the database schema
+
+Run:
+
+```bash
+ddn connector introspect --connector <subgraph-name>/connector/<connector-name>/connector.cloud.yaml
+```
+
+##### Case 2: For hasura/nodejs connectors
+
+###### Step 4.3.1: Copy over functions
+
+Copy the file(s) containing your TS functions from your existing project directory to the
+`<subgraph-name>/connector/<connector-name>` directory in the new project directory. This file should typically be the
+`functions.ts` file in the `<subgraph-name>/<connector-name>/connector` directory in your existing project directory.
+
+### Step 5: Bring over connector related metadata
+
+For each data connector:
+
+Follow the below steps:
+
+#### Step 5.1: Copy over connector related metadata files
+
+Copy the files containing metadata objects related to the connector from your existing project directory to the
+`<subgraph-name>/metadata` directory in the new project directory (the directory might need to be created). These files
+should typically be in the `<subgraph-name>/<connector-name>` directory in your existing project directory and be
+suffixed as `.hml`.
+
+- the file with the `DataConnectorLink` object. Typically `<connector-name>.hml`
+- the file with the data connector type objects. Typically `<connector-name>-types.hml`
+- the files with Models, Commands, Relationships, etc. Typically in `models`/`commands` directory.
+
+Within the `<subgraph-name>/metadata` directory you can choose to arrange these files however you like.
+
+#### Step 5.2: Update DataConnectorLink object
+
+In the `DataConnectorLink` object replace the `url` section with:
+
+```
+url:
+    readWriteUrls:
+      read:
+        valueFromEnv: <CONNECTOR_NAME>_READ_URL
+      write:
+        valueFromEnv: <CONNECTOR_NAME>_WRITE_URL
+```
+
+We will set the values of these env vars in the following steps.
+
+#### Step 5.3: (Optional) Update Relationship objects
+
+As mentioned earlier in the what-has-changed section, the `source` field for `Relationship` objects has been deprecated
+in favour of the `sourceType` field. Though `Relationship` objects with the `source` field will continue to be
+supported, it is recommended to update them.
+
+To update the relationship objects, rename the `source` key in your objects to `sourceType`.
+
+For example:
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: <rel-name>
+  #highlight-start
+  sourceType: <source-object-type>
+  #highlight-end
+  target: ...
+```
+
+### Step 6: Deploy to a DDN project
+
+#### Step 6.1: Set the DDN project to deploy to
+
+Run the following command to set your DDN project to the CLI context to avoid having to repeat it in future commands.
+You can find your project name in the `hasura.yaml` file in your existing project directory.
+
+```
+ddn context set project <project-name>
+```
+
+#### Step 6.2: Deploy the data connectors
+
+For each data connector deployed on Hasura DDN in your subgraphs, i.e. `ConnectorManifest` of type `cloud`:
+
+Run:
+
+```bash
+ddn connector build create --connector <subgraph-name>/connector/<connector-name>/connector.cloud.yaml
+```
+
+On deployment completion, the read and write URLs for your deployed connector will be returned as a response. You will
+need these in the next step.
+
+#### Step 6.3: Set connector endpoints in env files
+
+For each subgraph:
+
+Update the file `<subgraph-name>/.env.cloud.<subgraph-name>` with the read and write URLs of the data connectors in the
+subgraph.
+
+For a self-deployed data connector in your subgraph, i.e. `ConnectorManifest` of type `endpoints`, use the connector URL
+provided in the existing `ConnectorManifest` as both the read and write URLs.
+
+For data connectors deployed on Hasura DDN in your subgraph, use the connector URLs returned in the previous deploy
+step.
+
+For example:
+
+```env title="<subgraph-name>/.env.cloud.<subgraph-name>:"
+<CONNECTOR_NAME_1>_READ_URL=<connector1-read-url>
+<CONNECTOR_NAME_1>_WRITE_URL=<connector1-write-url>
+<CONNECTOR_NAME_2>_READ_URL=<connector2-read-url>
+<CONNECTOR_NAME_2>_WRITE_URL=<connector2-write-url>
+```
+
+#### Step 6.4: Deploy the supergraph
+
+##### Step 6.4.1: Create a supergraph config file for deploying to DDN
+
+In the root of the new project directory, create a new file `supergraph.cloud.yaml` and copy the contents of the
+existing `supergraph.yaml` file to it.
+
+Update the following values in the new file:
+
+- `./supergraph_globals/metadata/auth-config.hml` -> To the name of the AuthConfig file copied earlier. e.g.
+  `./supergraph_globals/metadata/auth-config.cloud.hml`
+- For each subgraph: `envFile: <subgraph-name>/.env.<subgraph-name>` -> To the name of the cloud env files created
+  earlier. e.g. `envFile: <subgraph-name>/.env.cloud.<subgraph-name>`
+
+For example:
+
+```yaml title="supergraph.cloud.yaml"
+kind: Supergraph
+version: v1
+definition:
+  supergraph_globals:
+    generator:
+      rootPath: ./supergraph_globals
+    envFile: ./supergraph_globals/.env.supergraph_globals
+    includePaths:
+      #highlight-start
+      - ./supergraph_globals/auth-config.cloud.hml
+      #highlight-end
+      - ./supergraph_globals/compatibility-config.hml
+      - ./supergraph_globals/graphql-config.hml
+  subgraphs:
+    <subgraph-name>:
+      generator:
+        rootPath: <subgraph-name>/metadata
+      #highlight-start
+      envFile: <subgraph-name>/.env.cloud.<subgraph-name>
+      #highlight-end
+      includePaths:
+        - <subgraph-name>/metadata
+```
+
+##### Step 6.4.2: Build and deploy your supergraph
+
+Run:
+
+```bash
+ddn supergraph build create --supergraph ./supergraph.cloud.yaml
+```
+
+On build completion, the build version, API endpoint and console URLs will be returned as response.
+
+#### Step 6.5: Verify migration
+
+You can now head to your project console using the console URL returned in the previous step and verify the API
+generated with the above build is the same as what you had earlier.
+
+## Need help?
+
+If you need help migrating your project or have any other questions please reach out to us on our
+[Discord](https://hasura.io/discord).
+
+## Legacy project structure
+
+<details>
+    <summary>
+        See the legacy project structure before this update below.
+    </summary>
+
+| File type                                    | Description                                                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [`hasura.yaml`](#hasurayaml)                 | The main configuration file.                                                                                               |
+| [`*.env.yaml`](#envyaml)                     | A file that stores environment variables.                                                                                  |
+| [`*.supergraph.yaml`](#supergraph-manifests) | Build manifest file(s) for a project.                                                                                      |
+| `*.hml`                                      | Hasura metadata files for a project.                                                                                       |
+| [`supergraph`](#supergraph)                  | A directory, containing all the necessary configuration and metadata files, for the supergraph-level scope of a project.   |
+| [`<SUBGRAPH_DIRECTORY>`](#subgraphs)         | A directory, containing all the necessary configuration and metadata files, for a corresponding subgraph within a project. |
+
+#### hasura.yaml
+
+This is the entrypoint to a Hasura project.
+
+```yaml
+version: v1
+project: <PROJECT_NAME>
+subgraphs:
+  app:
+    path: ./app
+defaultSupergraphManifest: base
+```
+
+The `version` section is used to specify the version of the configuration file. The `project` field is used to specify
+the project name.
+
+The `hasura.yaml` file also contains a `subgraphs` section. This section is used to specify the various
+[subgraphs](#subgraphs) associated with the project.
+
+#### \*.env.yaml
+
+This file is used to store environment variables. The CLI generates a `base.env.yaml` for you by default. You can add
+environment variables by adding key-value pairs under a particular subgraph:
+
+```yaml
+supergraph: {}
+subgraphs:
+  #highlight-start
+  app:
+    APP_CONNECTOR_CONNECTION_URI: "CONNECTION_URI"
+#highlight-end
+```
+
+And then referencing them in your metadata using `valueFromEnv`:
+
+```yaml
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: app_connector
+  type: cloud
+  connector:
+    type: hub
+    name: <CONNECTOR_NAME>
+  deployments:
+    - context: .
+      env:
+        CONNECTION_URI:
+          #highlight-start
+          valueFromEnv: APP_CONNECTOR_CONNECTION_URI
+#highlight-end
+```
+
+:::info Accessing environment variables
+
+In the example above, our `supergraphManifests` array references our `base.supergraph.hml` file, which contains an
+`envfile` key that maps to our `base.env.yaml`. Thus, any environment variables present in this YAML file will then be
+accessible in our HML.
+
+If these files contain sensitive information, you should add them to your gitignore so as to avoid accidentally
+committing them to version control.
+
+:::
+
+#### Supergraph manifests {#supergraph-manifests}
+
+Supergraph manifests tell Hasura DDN how to construct your supergraph. A manifest will contain information such as which
+subgraphs to include and which resources to use for the build.
+
+```yaml
+kind: SupergraphManifest
+version: v1
+definition:
+  name: base
+  envfile: base.env.yaml
+  subgraphs:
+    - app
+```
+
+#### Supergraph
+
+The `supergraph` directory contains the supergraph configuration files. The three included files are:
+
+```bash
+├── auth-config.hml
+├── compatibility-config.hml
+└── graphql-config.hml
+```
+
+:::info Organizing files
+
+The contents of these files include the necessary metadata objects to build your supergraph. We've separated them out
+into files organized by their purpose, but you can organize them anyway you like so long as the metadata objects within
+them are all included.
+
+:::
+
+Each of these files' contents are used to configure the supergraph.
+
+The `auth-config.hml` file contains the authentication configuration for the supergraph, allowing you to utilize either
+JWTs or webhooks.
+
+The `compatibility-config.hml` file contains the compatibility configuration — using a version number — for the
+supergraph.
+
+The `graphql-config.hml` file contains the GraphQL configuration for the supergraph, which allows you to customize the
+available query and mutation capabilities along with the schema.
+
+#### Subgraphs
+
+Each subgraph is listed as a top-level directory in the root of the project. The CLI will init your project with an
+`app` subgraph.
+
+Each subgraph directory will contain the following folder structure when a new connector manifest is added for the
+subgraph:
+
+```bash
+└── <CONNECTOR_NAME>
+│   ├── <CONNECTOR_NAME>-types.hml
+│   ├── <CONNECTOR_NAME>.hml
+│   ├── connector
+│   │   ├── <CONNECTOR_NAME>.build.hml
+│   │   ├── configuration.json
+│   │   └── schema.json
+│   └── models
+```
+
+| File/Folder                             | Description                                                                        |
+| --------------------------------------- | ---------------------------------------------------------------------------------- |
+| `<CONNECTOR_NAME>`                      | The directory containing the build artifacts for the connector.                    |
+| `<CONNECTOR_NAME>-types.html`           | The metadata file for the connector's types.                                       |
+| `<CONNECTOR_NAME>.hml`                  | The metadata file for the connector based on the introspection of the data source. |
+| `<CONNECTOR_NAME>/configuration.json`   | The configuration file for the connector.                                          |
+| `<CONNECTOR_NAME>/schema.json`          | The schema file for the connector.                                                 |
+| `/connector/<CONNECTOR_NAME>.build.hml` | The build manifest for the connector.                                              |
+
+</details>

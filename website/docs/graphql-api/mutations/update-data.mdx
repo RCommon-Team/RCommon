@@ -1,0 +1,53 @@
+---
+sidebar_label: Update data
+sidebar_position: 2
+description: "Learn how to update data using your Hasura DDN API."
+keywords:
+  - graphql mutations
+  - hasura graphql api
+  - api mutations
+  - update data
+---
+
+import GraphiQLIDE from "@site/src/components/GraphiQLIDE";
+
+# Update Data
+
+Depending on your connector, you'll have a range of update mutations available to mutate data via your API.
+
+## Update an object by a unique field
+
+You can update an object by targeting it using a unique key according to the source schema and then setting the new
+value.
+
+<GraphiQLIDE
+  query={`mutation UpdateUserAgeById {
+  updateUsersById(keyId: "1", updateColumns: {age: {set: "26"}}) {
+    returning {
+      id
+      name
+      age
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "updateUsersById": {
+      "returning": [
+        {
+          "id": 1,
+          "name": "Alice",
+          "age": 26
+        }
+      ]
+    }
+  }
+}`}
+/>
+
+## Custom update mutations
+
+For connectors that support native mutations, you can also create custom update mutations to update data in your data
+source. This allows you to write any custom logic you need to update data using your data source's native capabilities.
+
+Learn more in your [connector's reference documentation](/reference/connectors/index.mdx).

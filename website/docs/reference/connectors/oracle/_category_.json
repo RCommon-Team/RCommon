@@ -1,0 +1,7 @@
+{
+  "label": "Oracle",
+  "position": 10,
+  "customProps": {
+    "connector-ids": ["oracle"]
+  }
+}

@@ -1,0 +1,38 @@
+---
+title: RESTified Endpoints Plugin
+sidebar_position: 1
+description: "Learn more about the RESTified Endpoints Plugin for Hasura DDN."
+keywords:
+  - hasura plugins
+  - plugins
+  - engine plugins
+  - custom execution
+  - custom endpoints
+  - custom handlers
+  - restified endpoints
+  - restified graphql
+---
+
+# RESTified Endpoints Plugin
+
+The [RESTified Endpoints Plugin](https://github.com/hasura/engine-plugin-restified-endpoint) allows you to add RESTified
+GraphQL endpoints to DDN. This can be used to add custom REST endpoints to DDN that will execute a specified GraphQL
+query on the DDN GraphQL API and return the response.
+
+The plugin integrates with Hasura DDN as a **pre-route plugin** and can be deployed as an HTTP service using tools like
+Cloudflare Workers or similar services.
+
+Key benefits of using the RESTified Endpoints Plugin include:
+
+- **Simplified API Design**: The plugin enables you to design and expose your GraphQL API as RESTful endpoints, making
+  it easier for clients to interact with your API using familiar HTTP methods and conventions.
+- **Flexibility**: You can define custom REST endpoints that correspond to specific GraphQL queries, allowing you to
+  tailor your API to the needs of your clients.
+- **Easy Integration**: The plugin seamlessly integrates with Hasura DDN, ensuring that your RESTified endpoints are
+  well-integrated with your existing GraphQL API, providing a single, unified interface for your clients.
+
+## Next steps
+
+To get started with configuring and deploying the RESTified Endpoints Plugin, refer to the
+[guide](/plugins/restified-endpoints/how-to.mdx), which walks you through the process of setting up, configuring, and
+deploying the plugin.

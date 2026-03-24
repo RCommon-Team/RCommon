@@ -1,0 +1,175 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura Redshift connector, including connection URI details,
+  and native queries."
+keywords:
+  - redshift
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration is a metadata object that lists all the database entities — such as tables — that the Amazon Redshift
+connector has to know about in order to serve queries. It never changes during the lifetime of the data connector
+service instance. When your database schema changes you will have to update the configuration accordingly.
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "version": "v2",
+  "connection_uri": {
+    "value": "",
+    "variable": ""
+  },
+  "connection_pool_settings": {
+    "max_connections": 10,
+    "min_idle": 1,
+    "connection_timeout": 30000,
+    "initialization_fail_timeout": 30000
+  },
+  "schemas": [],
+  "tables": [],
+  "functions": [],
+  "native_operations": {}
+}
+```
+
+### Property: Version
+
+Specifies the version of the configuration format. Current version is `v2`.
+
+```json
+{
+  "version": "v2"
+}
+```
+
+### Property: Connection URI
+
+The connection URI to connect to the Amazon Redshift database. This is a required field.
+
+The value can either be a literal string or a reference to an environment variable:
+
+```json
+{
+  "connection_uri": {
+    "value": "jdbc:redshift://your-cluster-name.region.redshift.amazonaws.com:5439/database?user=username&password=password"
+  }
+}
+```
+
+Or using an environment variable:
+
+```json
+{
+  "connection_uri": {
+    "variable": "REDSHIFT_JDBC_URL"
+  }
+}
+```
+
+### Property: Connection Pool Settings
+
+This is an optional configuration for the connection pool.
+
+```json
+{
+  "connection_pool_settings": {
+    "max_connections": 10,
+    "min_idle": 1,
+    "connection_timeout": 30000,
+    "initialization_fail_timeout": 30000
+  }
+}
+```
+
+| Property                      | Description                                 | Default |
+| ----------------------------- | ------------------------------------------- | ------- |
+| `max_connections`             | Maximum number of connections in the pool   | 10      |
+| `min_idle`                    | Minimum number of idle connections          | 1       |
+| `connection_timeout`          | Connection timeout in milliseconds          | 30000   |
+| `initialization_fail_timeout` | Initialization fail timeout in milliseconds | 30000   |
+
+### Property: Schemas
+
+This is an optional array of schema names to include in the introspection process. If not provided, all schemas will be
+included except for system schemas such as `information_schema`, `pg_catalog`, `pg_internal`, and `pg_auto_copy`.
+
+Example:
+
+```json
+{
+  "schemas": ["public", "other_schema"]
+}
+```
+
+### Property: Tables
+
+This is an array of table definitions, generated automatically during introspection.
+
+Example:
+
+```json
+{
+  "tables": [
+    {
+      "name": "database.schema.table_name",
+      "description": null,
+      "category": "TABLE",
+      "columns": [
+        {
+          "name": "id",
+          "description": null,
+          "nullable": false,
+          "auto_increment": false,
+          "is_primarykey": true,
+          "data": {
+            "database_type": "integer",
+            "metadata": null
+          }
+        },
+        {
+          "name": "name",
+          "description": null,
+          "nullable": true,
+          "auto_increment": false,
+          "data": {
+            "database_type": "varchar",
+            "metadata": null
+          }
+        },
+        {
+          "name": "amount",
+          "description": null,
+          "nullable": true,
+          "auto_increment": false,
+          "data": {
+            "database_type": "decimal",
+            "metadata": {
+              "type": "numeric",
+              "precision": 10,
+              "scale": 2
+            }
+          }
+        }
+      ],
+      "primary_keys": ["id"],
+      "foreign_keys": {
+        "fk_constraint_name": {
+          "column_mapping": {
+            "department_id": "id"
+          },
+          "foreign_collection": "database.schema.departments"
+        }
+      }
+    }
+  ]
+}
+```

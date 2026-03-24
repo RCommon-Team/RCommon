@@ -1,0 +1,29 @@
+---
+description: "Detailed guide on configuring access control rules and permissions for data security."
+keywords:
+  - access control
+  - data security
+  - permissions
+  - role-based access
+  - API field access
+  - model data access
+  - command execution
+sidebar_label: Permissions
+---
+
+# Permissions
+
+Access control rules, authorization or "permissions" are essential for securing your data and ensuring that only
+authorized users can access it.
+
+Permissions allow you to declaratively define fine-grained rules in metadata which can determine exactly what data each
+user can access.
+
+The following types of permissions can be defined:
+
+- To define what **data** within a model are allowed to be accessed by a role, configure the appropriate
+  [`ModelPermissions`](/auth/permissions/model-permissions.mdx)
+- To define which **fields** are accessible by a role in the API, configure the appropriate
+  [`TypePermissions`](/auth/permissions/type-permissions.mdx)
+- To define whether the command is **executable** by a role, configure the appropriate
+  [`CommandPermissions`](/auth/permissions/command-permissions.mdx)

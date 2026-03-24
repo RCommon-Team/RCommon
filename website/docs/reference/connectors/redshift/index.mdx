@@ -1,0 +1,39 @@
+---
+title: Redshift
+sidebar_position: 1
+description:
+  "Learn how to configure the Redshift connector and utilize native operations to extend your API's capability."
+sidebar_label: Redshift
+keywords:
+  - redshift
+  - configuration
+  - connector
+seoFrontMatterUpdated: false
+---
+
+# Amazon Redshift
+
+## Introduction
+
+Hasura DDN includes a Native Data Connector for Amazon Redshift, providing seamless integration with Redshift clusters.
+This connector allows you to leverage Redshift's powerful data warehousing capabilities while taking advantage of
+Hasura's metadata-driven approach. Here, we'll explore the key features of the Redshift connector and walk through the
+configuration process within a Hasura DDN project.
+
+:::info Important Considerations for Using Hasura DDN with Redshift
+
+Amazon Redshift is a fully managed, petabyte-scale data warehouse service optimized for large-scale data analysis and
+complex queries. When integrating Redshift with Hasura DDN, it's essential to recognize that the performance of your API
+will be directly influenced by the query performance of Redshift. As a result, response times may vary depending on the
+complexity and volume of the queries executed. **Use this connector and Redshift for scenarios where data warehouse
+query performance is acceptable.**
+
+Redshift is designed for complex analytical queries and data warehousing rather than transactional use cases that
+require low-latency operations, high-frequency updates, or real-time responses. **Avoid using Hasura DDN with Redshift
+for applications that require rapid transactional processing or OLTP workloads.**
+
+:::
+
+## Redshift docs
+
+- [Connector configuration](/reference/connectors/redshift/configuration.mdx)

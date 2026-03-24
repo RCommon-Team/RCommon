@@ -1,0 +1,49 @@
+---
+sidebar_label: ddn context
+sidebar_position: 53
+description: Perform context operations using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_context"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn context
+---
+
+# DDN CLI: ddn context
+
+Perform context operations.
+
+## Synopsis
+
+Manage default value of keys to be used in DDN CLI commands. Contexts allow you to simplify your development workflow. To learn more, check out the docs: https://hasura.io/docs/3.0/project-configuration/project-management/manage-contexts
+
+## Available operations
+
+- [ddn context create-context](/reference/cli/commands/ddn_context_create-context) - Create a new context
+- [ddn context get](/reference/cli/commands/ddn_context_get) - Get the value of a key in the context
+- [ddn context get-context](/reference/cli/commands/ddn_context_get-context) - List contexts or get details of a specific context
+- [ddn context get-current-context](/reference/cli/commands/ddn_context_get-current-context) - Get name and contents of current context
+- [ddn context set](/reference/cli/commands/ddn_context_set) - Set the value of a key in the context
+- [ddn context set-current-context](/reference/cli/commands/ddn_context_set-current-context) - Set the current context
+- [ddn context unset](/reference/cli/commands/ddn_context_unset) - Unset the value of a key in the context
+
+## Options
+
+```sass
+-h, --help   help for context
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

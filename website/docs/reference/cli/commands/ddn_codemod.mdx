@@ -1,0 +1,53 @@
+---
+sidebar_label: ddn codemod
+sidebar_position: 12
+description: Perform transformations on your Hasura project directory using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_codemod"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn codemod
+---
+
+# DDN CLI: ddn codemod
+
+Perform transformations on your Hasura project directory.
+
+## Synopsis
+
+From time to time, the configuration and features available to a local project will evolve. This family of commands allows you to quickly and easily update your local project to enable new features and conventions.
+
+## Available operations
+
+- [ddn codemod configure-header-forwarding](/reference/cli/commands/ddn_codemod_configure-header-forwarding) - Configure headers to be forwarded to your connector
+- [ddn codemod fix-traces-env-var](/reference/cli/commands/ddn_codemod_fix-traces-env-var) - Fix env var used for configuring traces for connectors
+- [ddn codemod rename-graphql-prefixes](/reference/cli/commands/ddn_codemod_rename-graphql-prefixes) - Rename GraphQL root field and type name prefixes in metadata
+- [ddn codemod upgrade-auth-config-to-v3](/reference/cli/commands/ddn_codemod_upgrade-auth-config-to-v3) - Upgrade AuthConfig version from "v1"/"v2" to "v3"
+- [ddn codemod upgrade-context-v2-to-v3](/reference/cli/commands/ddn_codemod_upgrade-context-v2-to-v3) - Upgrade project's context config from v2 to v3
+- [ddn codemod upgrade-graphqlconfig-aggregate](/reference/cli/commands/ddn_codemod_upgrade-graphqlconfig-aggregate) - Upgrade GraphqlConfig to support aggregates
+- [ddn codemod upgrade-graphqlconfig-subscriptions](/reference/cli/commands/ddn_codemod_upgrade-graphqlconfig-subscriptions) - Upgrade GraphqlConfig to support subscriptions
+- [ddn codemod upgrade-model-v1-to-v2](/reference/cli/commands/ddn_codemod_upgrade-model-v1-to-v2) - Upgrade model from "version" "v1" to "v2" in metadata
+- [ddn codemod upgrade-object-boolean-expression-types](/reference/cli/commands/ddn_codemod_upgrade-object-boolean-expression-types) - Upgrade object boolean expression types metadata
+- [ddn codemod upgrade-project-config-v2-to-v3](/reference/cli/commands/ddn_codemod_upgrade-project-config-v2-to-v3) - Upgrade project directory from version v2 to v3
+- [ddn codemod upgrade-supergraph-config-v1-to-v2](/reference/cli/commands/ddn_codemod_upgrade-supergraph-config-v1-to-v2) - Upgrade all Supergraph config files at the root of the project directory from v1 to v2
+
+## Options
+
+```sass
+-h, --help   help for codemod
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

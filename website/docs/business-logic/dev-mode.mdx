@@ -1,0 +1,91 @@
+---
+sidebar_position: 5
+sidebar_label: Live reloading
+description: "Learn how to enable live reloading via dev mode for docker watch."
+keywords:
+  - hasura
+  - promptql
+  - business logic
+  - dev mode
+  - docker watch
+  - live reload
+---
+
+# Live Reloading with Compose Watch
+
+## Introduction
+
+When working with lambda connectors, you'll often want to make quick edits to your custom business logic and don't want
+to go through the hassle of bringing down all your services, rebuilding them all, and restarting them. Instead you can
+leverage [Compose Watch](https://docs.docker.com/compose/how-tos/file-watch/) to listen for changes to your connector's
+entrypoint, and rebuild the connector on the fly.
+
+:::info Are you adding new functions or modifying the signature of existing functions?
+
+The workflow described in the guide below helps when you're making changes to your connector's internal logic without
+altering the exposed function interfaces or metadata.
+
+If you're adding new functions that will need to be exposed as [commands](/reference/metadata-reference/commands.mdx) in
+your application, or modifying existing functions' arguments or return types, you'll still need to regenerate your
+metadata and create a new build of your application.
+
+Follow the steps [here](/data-sources/introspect-a-source.mdx) for more information.
+
+:::
+
+## Guide
+
+### Step 1. Update your start script
+
+Open your `.hasura/context.yaml` file and locate your `docker-start` script.
+
+```yaml title="Add the --watch flag to your start script:" {4,7}
+docker-start:
+  bash:
+    HASURA_DDN_PAT=$(ddn auth print-access-token) PROMPTQL_SECRET_KEY=$(ddn auth print-promptql-secret-key) docker
+    compose -f compose.yaml --env-file .env up --build --pull always --watch
+  powershell:
+    $Env:HASURA_DDN_PAT = ddn auth print-access-token; $Env:PROMPTQL_SECRET_KEY = ddn auth print-promptql-secret-key;
+    docker compose -f compose.yaml --env-file .env up --build --pull always --watch
+```
+
+By adding the `--watch` flag to the `docker compose up` command, you're telling Docker to monitor the files specified in
+your service's `develop` section for changes. When changes are detected, Docker automatically triggers the action you
+configured (in this case, we'll use `rebuild`) without requiring you to manually stop and restart your services. This
+creates a much faster feedback loop while developing.
+
+### Step 2. Update your connector's `compose.yaml`
+
+```yaml title="Add the following adjusting the path as necessary:" {14-17}
+services:
+  my_lambda_connector:
+    build:
+      context: .
+      dockerfile: .hasura-connector/Dockerfile
+    environment:
+      HASURA_SERVICE_TOKEN_SECRET: $MY_LAMBDA_CONNECTOR_HASURA_SERVICE_TOKEN_SECRET
+      OTEL_EXPORTER_OTLP_ENDPOINT: $MY_LAMBDA_CONNECTOR_OTEL_EXPORTER_OTLP_ENDPOINT
+      OTEL_SERVICE_NAME: $MY_LAMBDA_CONNECTOR_OTEL_SERVICE_NAME
+    extra_hosts:
+      - local.hasura.dev:host-gateway
+    ports:
+      - 8203:8080
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+```
+
+The `develop` section with `watch` tells Docker Compose which files or directories to monitor during development.
+
+- `path: .` means "watch the entire context directory". You can narrow this down to the entrypoint file(s) if you want
+  finer control. For example, you can isolate on the `functions.ts` file for the TypeScript connector or the
+  `./functions` directory for the Go connector.
+
+- `action: rebuild` means that if any file changes within the watched path, Docker will automatically rebuild and
+  restart the container. This setup ensures that your lambda connector is instantly rebuilt whenever you modify its code
+  — speeding up iteration dramatically without manual intervention.
+
+You can verify this by running `ddn run docker-start` from the root of your project and then making a modification to
+your lambda connector's logic. In your Docker logs, you should see the container for your connector being rebuilt and
+the changes you've made instantly reflected in your API.

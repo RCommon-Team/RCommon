@@ -1,0 +1,246 @@
+---
+sidebar_position: 1
+sidebar_label: Dedicated
+description: "Learn how to create a private Data Plane."
+keywords:
+  - hasura ddn
+  - private ddn
+  - dedicated vpc
+  - enterprise ddn
+  - create private ddn
+seoFrontMatterUpdated: false
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Dedicated: Create a Data Plane
+
+## Introduction
+
+A [Data Plane](/reference/ddn-topology-architecture.mdx#data-plane) in Hasura provides dedicated infrastructure for
+running your GraphQL workloads. This guide walks you through the process of creating a new Data Plane for
+[dedicated Private DDN](/private-ddn/architecture/dedicated.mdx).
+
+:::info Prerequisite
+
+To create a Data Plane in Private DDN, you'll need an Enterprise contract. Reach out to sales
+[here](https://hasura.io/contact-us) to get started.
+
+:::
+
+## How to create a new Data Plane on Dedicated Private DDN
+
+### Step 1. Create a new Data Plane
+
+Navigate to the `Private DDN` section in your [Hasura console](https://console.hasura.io).
+
+<Thumbnail src="/img/data-plane/private-ddn.png" alt="Data Plane Management" width="1000px" />
+
+<br></br>
+
+Click the `Create Data Plane` button.
+
+<Thumbnail src="/img/data-plane/pending-provision-data-planes.png" alt="Data Plane Creation Pending" width="1000px" />
+
+### Step 2. Complete the Data Plane Configuration Form
+
+- **Name:** Enter a descriptive name using only letters and spaces, between 4-30 characters. This will be used to
+  identify your Data Plane.
+- **Domain:** This field is automatically generated from your Data Plane name. This is the base domain for the GraphQL
+  API on this Data Plane.
+- **Cloud Provider:** Select your preferred cloud provider. Currently available options:
+  - Amazon Web Services (AWS)
+  - Google Cloud Platform (GCP)
+  - Microsoft Azure
+- **Region:** Select the geographical region for your Data Plane.
+- **Zones:** Select availability zones for your Data Plane. The maximum number of zones depends on your Hasura Private DDN subscription.
+  - For **AWS**: Use AZ IDs (e.g., use1-az1, use1-az2)
+  - For **GCP**: Use zone names (e.g., us-west2-a, us-west2-b)
+  - For **Azure**: Use physical zone names (e.g., eastus-az1, eastus-az2)
+
+  Expand below to view available zones for your cloud:
+
+<details>
+  <summary>AWS zones</summary>
+
+**Availability Zone (AZ) IDs** are unique identifiers for AWS Availability Zones within a region. Using AZ IDs ensures
+consistency across different AWS accounts and optimizes performance by aligning your Data Plane with your database's
+physical location.
+
+**Why Use AZ IDs Instead of AZ Names?**
+
+- **Consistency:** AZ IDs are consistent across all AWS accounts, whereas AZ Names can differ.
+- **Performance:** Deploying resources in the same physical AZ reduces latency.
+- **Cost Efficiency:** Avoids cross-zone network costs by ensuring resources are within the same AZ.
+
+Note: When selecting AZ IDs, ensure they correspond to the AZs where your database resides to maintain low latency and
+avoid cross-zone network costs. It is recommended to choose at least two AZs for higher availability and fault
+tolerance.
+
+[Learn more about AWS AZ IDs](https://docs.aws.amazon.com/ram/latest/userguide/working-with-az-ids.html)
+
+**Steps to View Available Zones:**
+
+Using AWS CLI:
+```bash
+aws ec2 describe-availability-zones \
+  --region us-east-1 \
+  --output table \
+  --query "AvailabilityZones[?State=='available'] | [].{ZoneName: ZoneName, ZoneId: ZoneId}"
+```
+
+Example output:
+```
+-----------------------------
+| DescribeAvailabilityZones |
++-----------+---------------+
+| ZoneId    | ZoneName      |
++-----------+---------------+
+| use1-az1  | us-east-1a    |
+| use1-az2  | us-east-1b    |
+| use1-az3  | us-east-1c    |
++-----------+---------------+
+```
+
+Note: Replace `us-east-1` in the command with your desired region.
+</details>
+
+<details>
+  <summary>GCP zones</summary>
+
+**Zones in Google Cloud Platform (GCP)** are identified by their zone names, which follow a consistent pattern across all GCP projects. Unlike AWS, GCP uses straightforward zone names that don't require separate ID mapping.
+
+**Why Use Zone Names?**
+
+- **Consistency:** Zone names are consistent across all GCP projects.
+- **Performance:** Deploying resources in the same zone reduces latency.
+- **Cost Efficiency:** Avoids cross-zone network costs by ensuring resources are within the same zone.
+
+Note: When selecting zones, ensure they correspond to the zones where your database resides to maintain low latency and
+avoid cross-zone network costs. It is recommended to choose at least two zones for higher availability and fault
+tolerance.
+
+[Learn more about GCP Zones](https://cloud.google.com/compute/docs/regions-zones)
+
+**Steps to View Available Zones:**
+
+Using gcloud CLI:
+```bash
+gcloud compute zones list \
+  --filter="region:us-west2" \
+  --format="table(name,region,status)"
+```
+
+Example output:
+```
+NAME        REGION    STATUS
+us-west2-a  us-west2  UP
+us-west2-b  us-west2  UP
+us-west2-c  us-west2  UP
+```
+
+Note: Replace `us-west2` in the command with your desired region.
+</details>
+
+<details>
+  <summary>Azure zones</summary>
+
+**Physical Zone Names** are unique identifiers for Azure Availability Zones within a region. Using physical zone names ensures
+consistency across different Azure subscriptions and optimizes performance by aligning your Data Plane with your database's
+physical location.
+
+**Why Use Physical Zone Names Instead of Logical Zones?**
+
+- **Consistency:** Physical zone names are consistent across all Azure subscriptions, whereas logical zones (1,2,3) can map differently.
+- **Performance:** Deploying resources in the same physical zone reduces latency.
+- **Cost Efficiency:** Avoids cross-zone network costs by ensuring resources are within the same physical zone.
+
+Note: When selecting physical zones, ensure they correspond to the zones where your database resides to maintain low latency and
+avoid cross-zone network costs. It is recommended to choose at least two physical zones for higher availability and fault
+tolerance.
+
+[Learn more about Azure Physical vs Logical Zone Mapping](https://learn.microsoft.com/en-us/azure/availability-zones/az-overview#physical-and-logical-availability-zones)
+
+**Steps to View Available Zones:**
+
+Using Azure CLI:
+```bash
+az rest --method get \
+  --uri '/subscriptions/{subscriptionId}/locations?api-version=2022-12-01' \
+  --query 'value[?name==`eastus` && availabilityZoneMappings != `null`].{displayName: displayName, name: name, availabilityZoneMappings: availabilityZoneMappings}'
+```
+
+Example output:
+```json
+[
+  {
+    "availabilityZoneMappings": [
+      {
+        "logicalZone": "1",
+        "physicalZone": "eastus-az1"
+      },
+      {
+        "logicalZone": "2",
+        "physicalZone": "eastus-az3"
+      },
+      {
+        "logicalZone": "3",
+        "physicalZone": "eastus-az2"
+      }
+    ],
+    "displayName": "East US",
+    "name": "eastus"
+  }
+]
+```
+
+Note: Replace `eastus` in the command with your desired region name.
+</details>
+
+- **VPC CIDR:** A /16-/19 CIDR block that defines the IP address range for your Data Plane's Virtual Private Cloud (VPC). Default value: 10.0.0.0/16.
+- **Kubernetes Service CIDR:** A /16-/20 CIDR block used for Kubernetes service cluster IP addresses in your Data Plane. This CIDR range is used internally by Kubernetes to assign IP addresses to services running in the cluster. Default value: 172.20.0.0/16.
+
+:::warning Important When choosing your VPC CIDR and Kubernetes Service CIDR:
+
+- Consider your current and future network topology, ensuring these CIDR ranges don't conflict with existing network
+  routes or address spaces, especially for VPC peering or VPN connections.
+- Consult with your network administrator if you're unsure about potential conflicts.
+- Remember that VPC CIDR and Kubernetes Service CIDR cannot be modified once the Data Plane has been created.
+- Kubernetes Service CIDR is only required for AWS.
+
+:::
+
+Data Plane Configuration form for AWS:
+<Thumbnail src="/img/data-plane/vpc-form.png" alt="Data Plane Creation Form" width="800px" />
+
+<br></br>
+
+Data Plane Configuration form for GCP and Azure:
+<Thumbnail src="/img/data-plane/vpc-form-gcp-azure.png" alt="Data Plane Creation Form" width="800px" />
+
+### Step 3. Create and Monitor your Data Plane
+
+Click the `Create` button after filling out all required fields. The creation process will begin, and you'll see your
+Data Plane listed with a `Creating` status. The creation process typically takes 60 minutes to complete for AWS and GCP deployments, and 2-3 business days for Azure deployments.
+
+<Thumbnail src="/img/data-plane/data-plane-page.png" alt="Data Plane Page" width="1000px" />
+
+<br></br>
+
+Click on the `Creating` button in the status column to see detailed progress.
+
+<Thumbnail src="/img/data-plane/provisioning-status-modal.png" alt="Data Plane Creating Status" width="100px" />
+
+## After Creation
+
+Once your data plane is successfully created and the status updates to Active, you and your team can begin
+[creating projects](/private-ddn/create-a-project-on-a-data-plane.mdx) on your Data Plane. To access more information
+about a specific Data Plane, simply click on its name within the Data Planes table. This action will navigate you to a
+detailed view page of the selected Data Plane, as illustrated below.
+
+<Thumbnail src="/img/data-plane/data-plane-detail.png" alt="Data Plane Detail" width="1000px" />
+
+## Next steps
+
+Now that you've created a Data Plane on dedicated Private DDN,
+[learn how to add collaborators](/private-ddn/data-plane-collaboration.mdx) so they can create projects.

@@ -1,0 +1,73 @@
+---
+sidebar_position: 1
+sidebar_label: Create a subgraph
+description: "Learn how to create a new local or a new cloud subgraph."
+keywords:
+  - hasura
+  - hasura ddn
+  - subgraph
+  - create subgraph
+---
+
+# How to Create a Subgraph
+
+## Introduction
+
+You can easily create subgraphs using the CLI and — for cloud projects — the Hasura DDN console. By default, the CLI
+will generate an `app` subgraph when a new project is initialized.
+
+## In your local metadata {#local}
+
+```sh title="Within a local project directory, run the following:"
+ddn subgraph init <subgraph-name>
+```
+
+You can verify this by identifying the new subdirectory in your project with the subgraph's name.
+
+```sh title="Then, add the subgraph to your supergraph's config file:"
+ddn subgraph add <subgraph-name> --subgraph ./<subgraph-name>/subgraph.yaml --target-supergraph ./supergraph.yaml
+```
+
+```sh title="This will add the new subgraph to your supergraph.yaml:"
+kind: Supergraph
+version: v2
+definition:
+  subgraphs:
+    - globals/subgraph.yaml
+    - app/subgraph.yaml
+    # highlight-start
+    - <subgraph-name>/subgraph.yaml
+    # highlight-end
+```
+
+## On a cloud project {#cloud}
+
+By default, when a cloud project is initialized, any subgraphs present in your supergraph configuration will be
+initialized as well. However, to explicitly add a new subgraph to a cloud project — such as when iterating on an
+existing project — follow these steps:
+
+### Using the CLI
+
+```sh title="The folowing will create a new subgraph on the current context's cloud project:"
+ddn project subgraph create <subgraph-name>
+```
+
+### Using the console
+
+Under `Settings` > `Subgraphs` click `+ Create New Subgraph`.
+
+:::info Subgraph mapping
+
+Be careful of mismatching subgraphs between your local metadata and a cloud project: if you create a subgraph locally
+and add it to your supergraph configuration without also creating the subgraph on your cloud project, cloud builds will
+fail.
+
+To resolve this, ensure that when you create a local subgraph in your metadata, you also create the companion subgraph
+on the cloud project.
+
+:::
+
+## Next steps
+
+- [Check out an end-to-end tutorial for working with multiple subgraphs](/project-configuration/tutorials/work-with-multiple-subgraphs.mdx)
+- [Learn how to work with multiple subgraphs in a project](/project-configuration/subgraphs/working-with-multiple-subgraphs.mdx)

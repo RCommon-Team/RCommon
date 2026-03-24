@@ -1,0 +1,181 @@
+---
+sidebar_position: 4
+sidebar_label: Security Best Practices
+description:
+  "When writing native queries it is critical to understand the security implications of how arguments are interpreted."
+keywords:
+  - native queries
+  - native mutations
+  - security
+seoFrontMatterUpdated: false
+---
+
+# Security Best Practices in MongoDB Native Operations
+
+Native queries and native mutations allow you to construct any arbitrary query or database command respectively. That
+power comes with the potential to introduce exploits in your API which you should take care to avoid. In particular
+input parameters in native queries and native mutations are **not** sanitized so you must take care to escape uses of
+inputs. These are inputs that appear in your query or command using the double-curly-brace placeholder syntax: `{{
+parameter_name }}`.
+
+## Do not substitute ASTs
+
+Double-curly-brace parameter substitution technically makes it possible to accept pipeline expressions or stages (a.k.a
+"ASTs") as arguments. **Do not do this**.
+
+```json
+[
+  {
+    "$match": {
+      "user_id": { "$eq": "{{ user_id }}" }
+    }
+  },
+  "{{ custom_query_steps }}",
+  {
+    "$project": {
+      "title": true,
+      "content": true
+    }
+  }
+]
+```
+
+The use of `custom_query_steps` gives complete control to users to insert any code into the query. Even if there is no
+sensitive data in a collection, there are aggregation stages, like `$out`, that can write to the database, and therefore
+can **inject data**. There are also stages, like `$lookup`, that can **read data from other collections**.
+
+:::info JSON delimiter injection is not possible
+
+Native query pipelines are parsed as BSON (by first parsing as JSON and interpreting the resulting document as [Extended
+JSON][]) **before** parameters are substituted. So there is no need to worry about arguments that terminate a JSON node to
+insert an extra node. For example an input of the form, `'"}}, { "$out": ... }'`, would not cause a security problem.
+
+[Extended JSON]: https://www.mongodb.com/docs/manual/reference/mongodb-extended-json/
+
+:::
+
+## Escape inputs
+
+Native queries are written as [aggregation pipelines][] which are JSON documents. Certain strings and object keys are
+interpreted specially - they are evaluated as expressions instead of as plain values. In general any string that begins
+with a dollar sign (`$`) evaluates as a lookup for a field in the "current" document, or references a variable; and any
+object key that begins with a dollar sign represents an expression operator.
+
+[aggregation pipelines]: https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/
+
+Consider this pipeline which is intended to produce results that pass through an input argument so that it appears in
+query output:
+
+```json
+[
+  {
+    "$project": {
+      "value_from_query_input": "{{ user_input }}"
+    }
+  }
+]
+```
+
+If a user is allowed to provide a string value for `user_input` then they could provide a string like
+`"$some_sensitive_field"`. That evaluates to whatever is in a field with the same name in each database document, which
+could cause information to leak that you might not want users to be able to access.
+
+The best way to avoid this potential problem is to **escape** any user inputs that appear in your query. MongoDB
+provides an operator that does this: `{ "$literal": <input value> }`. Unfortunately that operator is not allowed in
+all contexts, so the specific procedure for escaping inputs depends on where those inputs appear.
+
+### Escape inputs in `$match` stages
+
+This section applies to `$match` stages that do **not** use the `$expr` syntax to switch to an expression context. If
+you have a `$match` stage that uses the `$expr` operator see the [Escape inputs in other stages][] section below.
+
+[Escape inputs in other stages]: #escape-inputs-in-other-stages
+
+Although MongoDB aggregation pipelines support a fully-featured expression language, those expressions are not allowed
+by default in `$match`. Instead of expressions `$match` takes a [query predicate][] which only permits a limited set of
+query operators: `{ "$eq": <value> }`, `{ "$or": [<predicates>] }`, etc. This means that the input-escaping operator, `{
+"$literal": <input value> }`, is not permitted because that is an expression operator, not a query operator. On the
+other hand this also means that arbitrary expressions cannot be injected into this context via user input.
+
+[query predicate]: https://www.mongodb.com/docs/manual/reference/glossary/#std-term-query-predicate
+
+Where you can potentially see a problem is when using an implicit equality check instead of explicitly using the `$eq`
+operator.
+
+This is an **implicit** equality comparison:
+
+```json
+[
+  {
+    "$match": {
+      "user_id": "{{ user_id }}"
+    }
+  }
+]
+```
+
+This is an **explicit** equality comparison:
+
+```json
+[
+  {
+    "$match": {
+      "user_id": { "$eq": "{{ user_id }}" }
+    }
+  }
+]
+```
+
+**Always use explicit comparisons.** This has the effect of escaping inputs because arguments to query operators are
+interpreted as literal values.
+
+The above examples filter to documents with an exact match for an input user ID. If a user is allowed to supply an
+object value for `user_value`, and you are using an implicit comparison what can happen is that the user can switch the
+query to a different comparison operator. For example if the value of `user_id` is `{ "$ne": "1234" }` then instead of
+getting only documents with `user_id` `1234` the query would return data from documents with all other user IDs, which
+might leak sensitive information.
+
+If you instead use an explicit comparison like `{ "$eq": <comparison value> }` then `comparison value` will be
+interpreted as a literal value.
+
+:::info The connector verifies input types, with a caveat
+
+In general the MongoDB connector checks that user inputs match the types declared for a query. So if the parameter
+`user_id` has the type `string` or `long` the connector won't accept an object as input. But if the parameter type is
+`extendedJSON` then the connector will accept any type of argument.
+
+:::
+
+### Escape inputs in other stages
+
+In most cases where user inputs appear you can escape them using the expression operator, `$literal`. For example the
+proper escaping for the example from the intro to this section looks like this:
+
+```json
+[
+  {
+    "$project": {
+      "value_from_query_input": { "$literal": "{{ user_input }}" }
+    }
+  }
+]
+```
+
+The `$literal` operator can be used in any context where an expression is used. But it is not allowed in query
+predicates.
+
+Use `$literal` in `$match` stages if that stage uses the `$expr` operator. `$expr` switches from a query predicate
+context to an expression context. Modifying the example from the previous section, a `$match` stage that uses `$expr`
+should be escaped like this:
+
+```json
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": ["$user_id", { "$literal": "{{ user_id}}" }]
+      }
+    }
+  }
+]
+```

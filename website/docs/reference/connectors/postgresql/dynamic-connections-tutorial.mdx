@@ -1,0 +1,613 @@
+---
+sidebar_position: 4
+sidebar_label: Dynamic Connections Tutorial
+description: "A tutorial for implementing dynamic connections with PostgreSQL connector"
+keywords:
+  - postgresql
+  - dynamic connections
+  - read replicas
+  - load balancing
+  - webhook
+---
+
+# Dynamic Connections Tutorial
+
+## Introduction
+
+This tutorial demonstrates how to use dynamic connections with the PostgreSQL connector to implement read/write
+splitting and load balancing. We'll configure a primary database for writes and multiple read replicas for queries, with
+automatic routing based on operation type.
+
+:::info A note on complexity
+
+This architecture may seem overly complicated for the simple goal of supporting read replicas. And, it is!
+
+In this tutorial, we use read replicas as an example to demonstrate a much more powerful feature. For example, you could
+route requests to different databases based on the user's location, or the time of day, or any other criteria you can
+imagine.
+
+For simple use cases, prefer using the built-in read-write connector url feature, where you deploy a connector for reads
+and another for writes.
+
+:::
+
+## Overview
+
+The dynamic connection routing system uses a pre-NDC webhook to intercept requests before they reach the PostgreSQL
+connector, allowing us to route operations to different databases based on the operation type.
+
+```mermaid
+---
+title: Dynamic Connection Routing Flow
+---
+graph TD
+    Client[Client] -->|1. GraphQL Request| Engine[Hasura Engine]
+    Engine -->|2. Ndc Request + Session| Webhook["Pre-NDC Hook<br />• Receive NDC request + session<br/>• Check operation type<br/>• Add connection_name request argument<br/>• Return modified request"]
+    Webhook -->|3. Modified NDC Request| Engine
+    Engine -->|4. Modified NDC Request| Connector["PostgreSQL Connector<br \>Use connection_name request argument to choose database credentials"]
+    Connector -->|5. Query| Database[(Selected Database)]
+    Database -->|6. Results| Connector
+    Connector -->|7. NDC Response| Engine
+    Engine -->|8. GraphQL Response| Client
+
+    style Webhook fill:#fff2cc,stroke:#d6b656
+    style Database fill:#e1d5e7,stroke:#9673a6
+    style Connector fill:#ccffcc
+```
+
+### Request Flow
+
+1. **Client sends GraphQL request** to Hasura Engine
+2. **Engine triggers pre-NDC hook**, sending request details to the webhook
+3. **Webhook analyzes operation type** and adds appropriate `connection_name` to the request
+4. **Engine forwards modified request** to PostgreSQL connector with `connection_name` parameter
+5. **Connector routes to selected database** based on the `connection_name`
+6. **Database processes query** and returns results
+7. **Results flow back** through connector → engine → client
+
+## Prerequisites
+
+This tutorial demonstrates how to use dynamic connections with the PostgreSQL connector to implement read/write
+splitting and load balancing. Before we begin configuring dynamic routing, you'll need to complete these setup steps:
+
+### 1. Create a Hasura DDN project
+
+If you haven't already, create a new Hasura DDN project with a PostgreSQL connector:
+
+```bash
+ddn supergraph init myproject
+cd myproject
+ddn connector init -i  # select hasura/postgres, use defaults for all options
+```
+
+### 2. Set up multiple databases
+
+For this tutorial, we'll simulate a primary-replica setup using a single PostgreSQL instance with multiple databases. In
+production, these would be separate database servers.
+
+#### Create the database initialization script
+
+Create `app/connector/mypostgres/init-scripts/init-db.sql`:
+
+```sql
+-- Create the primary database and tables
+\c primary;
+
+CREATE TABLE IF NOT EXISTS "table" (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+INSERT INTO "table" (name) VALUES
+  ('Primary Record 1'),
+  ('Primary Record 2'),
+  ('Primary Record 3');
+
+-- Create follower databases
+CREATE DATABASE follower1;
+CREATE DATABASE follower2;
+CREATE DATABASE follower3;
+
+-- Connect to follower1 and create the same schema
+\c follower1;
+
+CREATE TABLE IF NOT EXISTS "table" (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+INSERT INTO "table" (name) VALUES
+  ('Follower1 Record 1'),
+  ('Follower1 Record 2'),
+  ('Follower1 Record 3');
+
+-- Connect to follower2 and create the same schema
+\c follower2;
+
+CREATE TABLE IF NOT EXISTS "table" (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+INSERT INTO "table" (name) VALUES
+  ('Follower2 Record 1'),
+  ('Follower2 Record 2'),
+  ('Follower2 Record 3');
+
+-- Connect to follower3 and create the same schema
+\c follower3;
+
+CREATE TABLE IF NOT EXISTS "table" (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+INSERT INTO "table" (name) VALUES
+  ('Follower3 Record 1'),
+  ('Follower3 Record 2'),
+  ('Follower3 Record 3');
+```
+
+#### Update the PostgreSQL compose configuration
+
+Update `app/connector/mypostgres/compose.postgres-adminer.yaml` to include the initialization script:
+
+```yaml
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: primary # change name of default db to primary
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+    image: pgvector/pgvector:pg17
+    ports:
+      - 8241:5432
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d # map the init script
+
+volumes:
+  db_data:
+```
+
+#### Restart the database to apply initialization
+
+If you already have the database running, you'll need to restart it to run the initialization script:
+
+```bash
+docker compose -f app/connector/mypostgres/compose.postgres-adminer.yaml down -v
+docker compose -f app/connector/mypostgres/compose.postgres-adminer.yaml up -d
+```
+
+The `-v` flag removes the volumes, ensuring the database starts fresh and runs the initialization script.
+
+### 3. Create the webhook runtime environment
+
+Set up a webhook server that will handle the dynamic routing logic. In this tutorial, we'll create a simple
+Node.js/Express server, but in production you would typically use your preferred hosting platform (AWS Lambda, Vercel,
+Railway, etc.).
+
+#### Set up the webhook project structure
+
+Create the webhook directory and files:
+
+```bash
+mkdir -p webhook/src
+```
+
+#### Create package.json
+
+Create `webhook/package.json`:
+
+```json
+{
+  "name": "hasura-webhook-server",
+  "version": "1.0.0",
+  "description": "Pre-NDC request webhook server for Hasura",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.15.11",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
+}
+```
+
+#### Create TypeScript configuration
+
+Create `webhook/tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+#### Create the basic server
+
+Create `webhook/src/server.ts`:
+
+```typescript
+import express, { Request, Response } from "express";
+
+const app = express();
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3033;
+const HOST = process.env.HOST || "0.0.0.0";
+
+// Middleware for parsing JSON
+app.use(express.json());
+
+// Health check endpoint
+app.get("/ping", (req: Request, res: Response) => {
+  res.json({ status: "ok" });
+});
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  console.log("404 Not Found for:", req.url);
+  res.status(404).json({ error: "Not found" });
+});
+
+// Start the server
+app.listen(PORT, HOST, () => {
+  console.log(`Webhook server running at http://${HOST}:${PORT}`);
+});
+```
+
+#### Create the Dockerfile
+
+Create `webhook/Dockerfile`:
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+RUN npm install
+
+# Copy TypeScript configuration and source code
+COPY tsconfig.json ./
+COPY src ./src
+
+# Build TypeScript code
+RUN npm run build
+
+EXPOSE 3033
+
+CMD ["npm", "start"]
+```
+
+## Step 1: Update connector configuration for dynamic connections
+
+First, we need to configure the PostgreSQL connector to support multiple database connections and update the environment
+variables.
+
+### Update connector configuration
+
+Update `app/connector/mypostgres/configuration.json` to include dynamic connection settings:
+
+```json
+{
+  "version": "5",
+  "$schema": "schema.json",
+  "connectionSettings": {
+    "connectionUri": {
+      "variable": "CONNECTION_URI"
+    },
+    "poolSettings": {
+      "maxConnections": 50,
+      "poolTimeout": 30,
+      "idleTimeout": 180,
+      "checkConnectionAfterIdle": 60,
+      "connectionLifetime": 600
+    },
+    "isolationLevel": "ReadCommitted",
+    "dynamicSettings": {
+      "mode": "named",
+      "connectionUris": {
+        "map": {
+          "primary": {
+            "variable": "CONNECTION_URI"
+          },
+          "follower1": {
+            "variable": "CONNECTION_URI_FOLLOWER1"
+          },
+          "follower2": {
+            "variable": "CONNECTION_URI_FOLLOWER2"
+          },
+          "follower3": {
+            "variable": "CONNECTION_URI_FOLLOWER3"
+          }
+        }
+      },
+      "fallbackToStatic": false,
+      "eagerConnections": true
+    }
+  },
+  "metadata": {
+    // ... your existing metadata configuration
+  }
+}
+```
+
+### Add environment variables
+
+Update your `.env` file to include the new connection strings:
+
+```bash
+# Primary database (for writes)
+APP_MYPOSTGRES_CONNECTION_URI=postgresql://user:password@localhost:8241/primary
+
+# Read replica connections
+APP_MYPOSTGRES_CONNECTION_URI_FOLLOWER1=postgresql://user:password@localhost:8241/follower1
+APP_MYPOSTGRES_CONNECTION_URI_FOLLOWER2=postgresql://user:password@localhost:8241/follower2
+APP_MYPOSTGRES_CONNECTION_URI_FOLLOWER3=postgresql://user:password@localhost:8241/follower3
+```
+
+### Update connector environment mapping
+
+Update `app/connector/mypostgres/connector.yaml` to include the new environment variables:
+
+```yaml
+kind: Connector
+version: v2
+definition:
+  name: mypostgres
+  subgraph: app
+  source: hasura/postgres:v3.0.0
+  context: .
+  envMapping:
+    CONNECTION_URI:
+      fromEnv: APP_MYPOSTGRES_CONNECTION_URI
+    CONNECTION_URI_FOLLOWER1:
+      fromEnv: APP_MYPOSTGRES_CONNECTION_URI_FOLLOWER1
+    CONNECTION_URI_FOLLOWER2:
+      fromEnv: APP_MYPOSTGRES_CONNECTION_URI_FOLLOWER2
+    CONNECTION_URI_FOLLOWER3:
+      fromEnv: APP_MYPOSTGRES_CONNECTION_URI_FOLLOWER3
+    # ... your existing environment mappings
+```
+
+Our connector should now expect a `connection_name` request level argument with every request, and route accordingly.
+
+## Step 2: Implement the routing webhook
+
+Now we'll add the actual routing logic to our webhook server and include it in the Docker Compose setup.
+
+### Add type definitions
+
+First, add the TypeScript interfaces for the webhook request. Add these to the top of `webhook/src/server.ts`:
+
+```typescript
+// Define types for the webhook request
+interface SessionVariables {
+  [key: string]: string;
+}
+
+interface Session {
+  role: string;
+  variables: SessionVariables;
+}
+
+interface NdcRequest {
+  request_arguments?: {
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+interface WebhookRequest {
+  session: Session;
+  ndcRequest: NdcRequest;
+  dataConnectorName: string;
+  operationType: "query" | "queryExplain" | "mutation" | "mutationExplain";
+  ndcVersion: string;
+}
+```
+
+### Add routing logic to the webhook
+
+Update `webhook/src/server.ts` to add the routing endpoint:
+
+```typescript
+// Global counter for round-robin selection
+// Note we are relying on server state here. A more robust implementation would use something like redis
+// This would also not work as intended in a lambda
+let currentFollowerIndex = 0;
+const followerConnections = ["follower1", "follower2", "follower3"];
+
+// Main webhook endpoint
+app.post("/pre/ndc", (req: Request<{}, {}, WebhookRequest>, res: Response) => {
+  try {
+    console.log("Received webhook request:", JSON.stringify(req.body, null, 2));
+
+    const requestData = req.body;
+
+    // Initialize request_arguments if not present
+    if (!requestData.ndcRequest.request_arguments) {
+      requestData.ndcRequest.request_arguments = {};
+    }
+
+    // Route mutations to primary database
+    if (requestData.operationType === "mutation" || requestData.operationType === "mutationExplain") {
+      requestData.ndcRequest.request_arguments["connection_name"] = "primary";
+      console.log("Routing mutation to primary database");
+    } else {
+      // Route queries to read replicas using round-robin
+      const selectedFollower = followerConnections[currentFollowerIndex];
+
+      // Increment the index for the next request
+      currentFollowerIndex = (currentFollowerIndex + 1) % followerConnections.length;
+
+      console.log(`Round-robin selected connection: ${selectedFollower}`);
+
+      requestData.ndcRequest.request_arguments["connection_name"] = selectedFollower;
+    }
+
+    res.json({
+      ndcRequest: requestData.ndcRequest,
+    });
+  } catch (error) {
+    console.error("Error in webhook:", error);
+    res.status(500).json({
+      error: "Internal server error",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+```
+
+### Add webhook to Docker Compose
+
+Update your main `compose.yaml` file to include the webhook service:
+
+```yaml
+services:
+  # ... your existing services (engine, otel-collector, etc.)
+
+  webhook:
+    build:
+      context: webhook
+      dockerfile: Dockerfile
+    ports:
+      - 3033:3033
+    extra_hosts:
+      - local.hasura.dev:host-gateway
+    restart: unless-stopped
+
+  # ... rest of your services
+```
+
+We should now have a webhook capable of routing requests to the appropriate database based on the operation type.
+
+## Step 3: Configure the lifecycle plugin hook
+
+Finally, we'll configure the lifecycle plugin hook to intercept requests and add the webhook URL environment mapping.
+
+### Add the lifecycle plugin hook
+
+Create or update `app/metadata/mypostgres.hml` to include the lifecycle plugin hook:
+
+```yaml
+kind: LifecyclePluginHook
+version: v1
+definition:
+  pre: ndcRequest
+  name: dynamic_routing
+  url:
+    valueFromEnv: APP_PRE_NDC_WEBHOOK_URL
+  connectors:
+    - mypostgres
+  config:
+    request:
+      session: {}
+      ndcRequest: {}
+
+---
+# ... your existing DataConnectorLink and other configurations
+```
+
+### Add webhook URL environment mapping
+
+Update your `.env` file to include the webhook URL:
+
+```bash
+# Webhook URL
+APP_PRE_NDC_WEBHOOK_URL=http://webhook:3033/pre/ndc
+```
+
+### Add webhook URL environment mapping
+
+Update `app/subgraph.yaml` to include the webhook URL environment mapping:
+
+```yaml
+kind: Subgraph
+version: v2
+definition:
+  name: app
+  generator:
+    rootPath: .
+    namingConvention: graphql
+  includePaths:
+    - metadata
+  envMapping:
+    APP_MYPOSTGRES_AUTHORIZATION_HEADER:
+      fromEnv: APP_MYPOSTGRES_AUTHORIZATION_HEADER
+    APP_MYPOSTGRES_READ_URL:
+      fromEnv: APP_MYPOSTGRES_READ_URL
+    APP_MYPOSTGRES_WRITE_URL:
+      fromEnv: APP_MYPOSTGRES_WRITE_URL
+    # add these two lines
+    APP_PRE_NDC_WEBHOOK_URL:
+      fromEnv: APP_PRE_NDC_WEBHOOK_URL
+  connectors:
+    - path: connector/mypostgres/connector.yaml
+      connectorLinkName: mypostgres
+```
+
+Learn more about [lifecycle plugin hooks](/reference/metadata-reference/engine-plugins.mdx).
+
+We should now have a complete setup for dynamic routing with read/write splitting and load balancing.
+
+## Step 4: Test the dynamic routing
+
+1. **Build and start the services:**
+
+   ```bash
+   ddn supergraph build local
+   ddn run docker-start
+   ```
+
+2. **Test a query (should use read replica):**
+
+   ```graphql
+   query {
+     table {
+       id
+       name
+     }
+   }
+   ```
+
+3. **Test a mutation (should use primary):**
+
+   ```graphql
+   mutation {
+     insert_table(objects: [{ name: "test" }]) {
+       affected_rows
+       returning {
+         id
+         name
+       }
+     }
+   }
+   ```
+
+4. **Check the webhook logs** to see the routing decisions:
+   ```bash
+   docker logs dynamic-demo-webhook-1
+   ```

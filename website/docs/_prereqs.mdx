@@ -1,0 +1,31 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import CodeBlock from "@theme/CodeBlock";
+import Version from "@site/src/components/CliVersion";
+import Admonition from "@theme/Admonition";
+import InstallTheCli from "@site/docs/_install-the-cli.mdx";
+
+## Prerequisites
+
+**Install the DDN CLI**
+
+:::info Minimum version requirements
+
+To use this guide, ensure you've installed/updated your CLI to at least `v2.28.0`.
+
+:::
+
+<InstallTheCli />
+
+**Install [Docker](https://docs.docker.com/engine/install/)**
+
+The Docker-based workflow helps you iterate and develop locally without deploying any changes to Hasura DDN, making the
+development experience faster and your feedback loops shorter. **You'll need Docker Compose `v2.20` or later.**
+
+**Validate the installation**
+
+You can verify that the DDN CLI is installed correctly by running:
+
+```ddn
+ddn doctor
+```

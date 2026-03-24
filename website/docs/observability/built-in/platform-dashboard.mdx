@@ -1,0 +1,172 @@
+---
+sidebar_position: 5
+sidebar_label: Platform Dashboard
+description:
+  "The Platform Dashboard is a comprehensive reporting tool designed to provide insights into the performance, security,
+  and usage of the Data Delivery Netowork"
+keywords:
+  - hasura ddn
+  - metrics
+  - performance
+  - latency
+  - request rate
+  - error rate
+  - graphql api
+  - opentelemetry
+  - application debugging
+  - application performance
+  - api monitoring
+  - platform dashboard
+  - dashboard
+  - application management
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Platform Dashboard
+
+## Introduction
+
+Go to the `Platform Report` tab in the `Insights` panel for your project to view platform metrics. This dashboard
+provides a visual overview of key metrics across four main categories, offering a comprehensive assessment of your API.
+
+## Security and Governance
+
+:::tip Available on
+
+Security and Governance metrics are available on [DDN Free plans](https://hasura.io/docs) and up.
+
+:::
+
+The Security and Governance dashboard provides comprehensive insights into three key areas:
+
+### Authentication status
+
+Quickly identify and resolve authentication configuration issues:
+
+- Displays current authentication status (Configured/Not Configured)
+- Shows authentication type when configured (JWT, etc.)
+- Provides step-by-step guidance for securing your project when no authentication is configured
+
+<Thumbnail
+  src="/img/get-started/dashboard_auth.png"
+  alt="The Security and Governance report showing authentication status"
+  width="1000"
+/>
+
+### Permission analysis
+
+Monitor and manage permissions across your supergraph:
+
+1. **Models Security**
+
+   - Tracks models with row-level filtering for non-admin roles
+   - Identifies models with unrestricted access
+   - Provides detailed recommendations for securing access
+
+2. **Types Security**
+
+   - Monitors field-level access restrictions
+   - Highlights types with unrestricted field access
+   - Offers guidance for implementing proper field-level security
+
+3. **Commands Security**
+   - Tracks command execution restrictions
+   - Identifies commands with unrestricted access
+   - Provides recommendations for implementing argument presets
+
+<Thumbnail
+  src="/img/get-started/dashboard_permissions.png"
+  alt="The Security and Governance report showing permission analysis"
+  width="1000"
+/>
+
+### Documentation coverage
+
+Track and improve API documentation:
+
+1. **Model & Field Descriptions**
+
+   - Monitors description coverage for models and their fields
+   - Shows percentage of documented items
+   - Identifies models and fields needing documentation
+
+2. **Command Descriptions**
+   - Tracks documentation coverage for commands
+   - Provides metrics on documented vs. undocumented commands
+   - Helps maintain comprehensive API documentation
+
+<Thumbnail
+  src="/img/get-started/dashboard_docs.png"
+  alt="The Security and Governance report showing documentation coverage"
+  width="1000"
+/>
+
+## API reliability
+
+:::tip Available on
+
+Available on DDN Base plans and up.
+
+:::
+
+Monitor your API's health with:
+
+- System Reliability: Error/Success ratio
+- Team based analysis coming soon!
+
+<Thumbnail
+  src="/img/get-started/dashboard_reliability.png"
+  alt="The API Reliability dashboard showing success rate and error metrics"
+  width="1000"
+/>
+
+## API usage trends
+
+:::tip Available on
+
+API Usage Trends metrics are available on DDN Base plans and up.
+
+:::
+
+### Requests per day
+
+<Thumbnail src="/img/get-started/dashboard_request_trend.png" alt="x" width="1000" />
+
+### Deprecated metadata
+
+Deprecated Features: List of deprecated objects.
+
+<Thumbnail src="/img/get-started/dashboard_usage.png" alt="x" width="1000" />
+
+## Developer productivity
+
+:::tip Available on
+
+Basic metrics available on DDN Base plans and up. Advanced team analytics available on DDN Advanced plans.
+
+:::
+
+Track team collaboration and access patterns:
+
+### Project access distribution
+
+- Visual breakdown of user roles (Owner, Admin, Read-only)
+- Total user count
+- Available on DDN Base plans
+
+### Subgraph access distribution
+
+- Per-subgraph collaboration metrics
+- Admin and read-only user distribution
+- Available on DDN Advanced plans
+
+<Thumbnail
+  src="/img/get-started/dashboard_productivity.png"
+  alt="The Developer Productivity dashboard showing team collaboration metrics"
+  width="1000"
+/>
+
+You can print the report out using the print icon on the top right
+
+<Thumbnail src="/img/get-started/dashboard_print.png" alt="x" width="1000" />

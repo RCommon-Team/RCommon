@@ -1,0 +1,141 @@
+---
+sidebar_position: 5
+sidebar_label: Create a project
+description: "Learn how to create a project on a private Data Plane."
+keywords:
+  - hasura ddn
+  - private ddn
+  - dedicated vpc
+  - enterprise ddn
+seoFrontMatterUpdated: false
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Create a Project on a Data Plane
+
+## Introduction
+
+:::tip Important
+
+This guide will walk you through the steps for creating a project on a Data Plane in
+[Private Hasura DDN](/private-ddn/overview.mdx). Before proceeding, you'll first need
+to be [invited](/private-ddn/data-plane-collaboration.mdx) to a Data Plane.
+
+If you are unable to meet the prerequisites listed below or your data source is inaccessible
+from the location where you run DDN CLI commands, consider using a [DDN Workspace](/private-ddn/ddn-workspace.mdx) instead.
+
+:::
+
+<Prereqs />
+
+## Step 1. Authenticate your CLI
+
+```sh title="Being by authenticating your CLI seession:"
+ddn auth login
+```
+
+A browser window will open and prompt you for your login credentials. After successfully logging in, you'll be able to
+return to the CLI.
+
+The DDN CLI will scaffold out all the necessary files and directories for your project.
+
+## Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running ls in your terminal, or by opening the directory in your preferred editor.
+
+## Step 3. Add a data source
+
+The command below will launch a wizard via the DDN CLI which will assist you in adding a data connector. You can learn
+more about adding sources via data connectors [here](/data-sources/connect-to-a-source.mdx).
+
+```sh title="Add a data source using the CLI:"
+ddn connector init <connector_name> -i
+```
+
+This will provision the necessary files — using your configuration — for connecting a data source to your supergraph
+API.
+
+:::info Organize your data into subgraphs
+
+You can also organize your API into **subgraphs**. Subgraphs are generally organized around team functions or business
+outcomes and allow for independent ownership and governance of data sources. Learn more
+[here](/project-configuration/subgraphs/index.mdx).
+
+:::
+
+## Step 4. Generate your metadata
+
+```sh title="First, introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Then, generate the metadata:"
+ddn model add <connector_name> '*'
+ddn command add <connector_name> '*'
+ddn relationship add <connector_name> '*'
+```
+
+You'll see metadata files generated for each entity in your data source. You can learn more
+[here](/data-modeling/overview.mdx).
+
+## Step 5. Create a new local build
+
+```sh title="You can now create a local build:"
+ddn supergraph build local
+```
+
+```sh title="Then run your local services, including the Hasura DDN Engine and your connector(s):"
+ddn run docker-start
+```
+
+```sh title="Finally, open the local development console usign the CLI:"
+ddn console --local
+```
+
+The development console will open wherein you can run your first query.
+
+## Step 6. Create a project on your Data Plane
+
+You'll create a new project using the DDN CLI and by passing two flags: the `data-plane-id` and the `plan`.
+
+:::info Get Data Plane ID
+
+You can find all the Data Planes you have access to on this page: https://console.hasura.io/data-plane
+
+:::
+
+:::info Available Plans
+
+- ddn_free
+- ddn_base
+- ddn_advanced
+
+Read more about plans [here](/reference/pricing.mdx)
+
+:::
+
+```sh title="Create a new project using your Data Plane ID and plan choice:"
+ddn project init --data-plane-id <data-plane-id> --plan <plan-name>
+```
+
+The CLI will return information about your newly created project.
+
+## Step 7. Build and deploy your supergraph
+
+```sh title="build and deploy you supergraph:"
+ddn supergraph build create
+```
+
+When this process is complete, the CLI will return a link to the hosted API where you can run the same query as before.
+
+## Next steps
+
+With your first project created, learn more about how Hasura handles [data modeling](/data-modeling/overview.mdx) before
+diving into advanced features.

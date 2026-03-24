@@ -1,0 +1,238 @@
+---
+sidebar_position: 2
+sidebar_label: Connect to a Source
+description: "Learn how to connect any data source to Hasura DDN."
+keywords:
+  - hasura ddn
+  - data sources
+  - connect
+  - data connector
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Connect to a source
+
+## Introduction
+
+This guide explains how to initialize a connector, configure its environment variables, and link it to your data source.
+Once initialized, you'll be ready to introspect the source and integrate it into your API.
+
+You'll need a [project](/reference/cli/commands/ddn_supergraph_init.mdx) before initializing a connector.
+
+## Step 1. Initialize a connector
+
+Regardless which connector you're using, you'll always begin by initializing it with a unique name:
+
+```sh title="Initialize a new connector in a project directory:"
+ddn connector init <your_name_for_the_connector> -i
+```
+
+A wizard will appear with a dropdown list. If you know the name of the connector, start typing the name. Otherwise, use
+the arrows to scroll through the list. Hit `ENTER` when you've selected your desired connector; you'll then be prompted
+to enter some values.
+
+:::info Customization
+
+You can customize which subgraph this connector is added to by
+[changing your project's context](/reference/cli/commands/ddn_context.mdx) or using flags. More information can be found
+in the [CLI docs](/reference/cli/commands/ddn_connector_init.mdx) for the `ddn connector init` command.
+
+:::
+
+## Step 2. Add environment variables
+
+The CLI will assign a random port for the connector to use during local development. You can hit `ENTER` to accept the
+suggested value or enter your own. Then, depending on your connector, there may be a set of environment variables that
+it requires:
+
+<Tabs groupId="source-preference" className="api-tabs">
+
+<TabItem value="BigQuery" label="BigQuery">
+
+| ENV        | Example                                                                                                                                                                                               | Description                                       |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `JDBC_URL` | `jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=project-id;DefaultDataset=dataset;OAuthType=0;OAuthServiceAcctEmail=service-account-email;OAuthPvtKey=/etc/connector/key.json;` | The JDBC URL to connect to the BigQuery database. |
+
+:::info BigQuery specific characteristics
+
+See [here](/how-to-build-with-ddn/with-bigquery.mdx) for instructions on saving your service account key file
+
+:::
+
+</TabItem>
+
+<TabItem value="ClickHouse" label="ClickHouse">
+
+| ENV                 | Example             | Description                                               |
+| ------------------- | ------------------- | --------------------------------------------------------- |
+| `CONNECTION_STRING` | `https://host:8123` | The HTTP(S) connection string to the ClickHouse instance. |
+| `USERNAME`          | `default`           | The database username.                                    |
+| `PASSWORD`          | `default`           | The database password.                                    |
+
+</TabItem>
+<TabItem value="Databricks" label="Databricks">
+
+| ENV            | Example                                                                                                                                                                  | Description                                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `JDBC_URL`     | `jdbc:databricks://<host>:<port>/default;transportMode=http;ssl=1;AuthMech=3;httpPath=/sql/1.0/warehouses/<warehouse-id>;UID=token;PWD=<access-token>;ConnCatalog=main;` | You can construct the base of this using your Databricks UI under `SQL Warehouses` » `<name-of-warehouse>` » `Connection details`. |
+| `JDBC_SCHEMAS` | `default,public`                                                                                                                                                         | A comma-separated list of schemas within the referenced catalog.                                                                   |
+
+</TabItem>
+<TabItem value="DuckDB" label="DuckDB">
+
+| ENV          | Example             | Description                                                                              |
+| ------------ | ------------------- | ---------------------------------------------------------------------------------------- |
+| `DUCKDB_URL` | `/path/to/*.duckdb` | The path to the DuckDB database file which will be mounted to the connector's container. |
+
+</TabItem>
+<TabItem value="Elasticsearch" label="Elasticsearch">
+
+| ENV                           | Example                                                        | Description                                                                                                                                                                |
+| ----------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ELASTICSEARCH_URL`           | `https://example.es.gcp.cloud.es.io:9200`                      | The comma-separated list of Elasticsearch host addresses for connection (Use `local.hasura.dev` instead of `localhost` if your connector is running on your local machine) |
+| `ELASTICSEARCH_USERNAME`      | `default`                                                      | The username for authenticating to the Elasticsearch cluster                                                                                                               |
+| `ELASTICSEARCH_PASSWORD`      | `default`                                                      | The password for the Elasticsearch user account                                                                                                                            |
+| `ELASTICSEARCH_API_KEY`       | `ABCzYWk0NEI0aDRxxxxxxxxxx1k6LWVQa2gxMUpRTUstbjNwTFIzbGoyUQ==` | The Elasticsearch API key for authenticating to the Elasticsearch cluster                                                                                                  |
+| `ELASTICSEARCH_CA_CERT_PATH`  | `/etc/connector/cacert.pem`                                    | The path to the Certificate Authority (CA) certificate for verifying the Elasticsearch server's SSL certificate                                                            |
+| `ELASTICSEARCH_INDEX_PATTERN` | `hasura*`                                                      | The pattern for matching Elasticsearch indices, potentially including wildcards, used by the connector                                                                     |
+
+</TabItem>
+<TabItem value="HTTP" label="HTTP">
+
+The HTTP connector won't prompt you for any environment variables. When you initialize the connector, a `config.yaml`
+will be generated where you can list valid specs for your API(s).
+
+Learn more [here](/reference/connectors/http/index.mdx).
+
+</TabItem>
+
+<TabItem value="GraphQL" label="GraphQL">
+
+| ENV                | Example                                     | Description                                |
+| ------------------ | ------------------------------------------- | ------------------------------------------ |
+| `GRAPHQL_ENDPOINT` | `https://spacex-production.up.railway.app/` | The GraphQL endpoint for the existing API. |
+
+:::info The GraphQL connector is highly configurable
+
+When you first initialize the connector, the CLI will only ask for the API's endpoint. You can further configure the
+connector — such as choosing different configurations for introspection vs. execution — using the connector's
+configuration file.
+
+Learn more [here](/reference/connectors/graphql/configuration.mdx).
+
+:::
+
+</TabItem>
+<TabItem value="MongoDB" label="MongoDB">
+
+| ENV            | Example                        | Description                                                                                             |
+| -------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `MONGO_DB_URL` | `mongodb://host:27017/db_name` | The full connection string — **including the database name** — used to connect to the MongoDB instance. |
+
+</TabItem>
+<TabItem value="SQLServer" label="MSSQL">
+
+| ENV              | Example                                                                                                | Description                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `CONNECTION_URI` | `Server=local.hasura.dev,1433;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true` | `TrustServerCertificate=true` should only be added for local databases. |
+
+</TabItem>
+<TabItem value="MySQL" label="MySQL">
+
+| ENV        | Example                                        | Description                         |
+| ---------- | ---------------------------------------------- | ----------------------------------- |
+| `JDBC_URL` | `jdbc:mysql://user:password@host:3306/db_name` | This connector requires a JDBC URL. |
+
+</TabItem>
+<TabItem value="PostgreSQL" label="PostgreSQL">
+
+| ENV              | Example                                       | Description                                                            |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------------------------- |
+| `CONNECTION_URI` | `postgresql://user:password@host:5432/dbname` | The full connection string used to connect to the PostgreSQL database. |
+
+</TabItem>
+<TabItem value="Prometheus" label="Prometheus">
+
+| ENV              | Example                 | Description                                                                                          |
+| ---------------- | ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| `CONNECTION_URL` | `https://<host>:<port>` | The full connection string used to connect to the Prometheus server. By default, the port is `9090`. |
+
+</TabItem>
+<TabItem value="Qdrant" label="Qdrant">
+
+| ENV              | Example                                       | Description                                                                                                                                          |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `QDRANT_URL`     | `https://<cluster-id>.<region>.<host>:<port>` | The connection string for the Qdrant database, including the port. You can generate this by selecting `Connect` under the Cluster in your dashboard. |
+| `QDRANT_API_KEY` | `eyJ...`                                      | The Qdrant API key presented to you when the cluster was provisioned.                                                                                |
+
+</TabItem>
+
+<TabItem value="Snowflake" label="Snowflake">
+
+| ENV        | Example                                                                                                                                                                                       | Description                         |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `JDBC_URL` | `jdbc:snowflake://<account-identifier.<region>.snowflakecomputing.com?user=YOUR_USERNAME&&password=YOUR_PASSWORD&db=YOUR_DATABASE&warehouse=YOUR_WAREHOUSE&schema=YOUR_SCHEMA&role=YOUR_ROLE` | This connector requires a JDBC URL. |
+
+:::info Optional parameters for Snowflake
+
+Snowflake allows you to set a number of defaults. Your JDBC can minimal (i.e., only including the account identifier,
+username, and password) or more granular depending on your settings within Snowflake.
+
+:::
+
+</TabItem>
+<TabItem value="Storage" label="Storage">
+
+| ENV                 | Example                                    | Description                                              |
+| ------------------- | ------------------------------------------ | -------------------------------------------------------- |
+| `ACCESS_KEY_ID`     | `AKIAIOSFODNN7EXAMPLE`                     | Your AWS access key ID used to authenticate with S3.     |
+| `SECRET_ACCESS_KEY` | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` | Your AWS secret access key used to authenticate with S3. |
+| `STORAGE_ENDPOINT`  | `https://s3.amazonaws.com`                 | The S3 service endpoint URL.                             |
+| `DEFAULT_BUCKET`    | `my-app-bucket`                            | The default S3 bucket name where files will be stored.   |
+
+:::info These environment variables are AWS-specific
+
+Upon initialization, the connector will prompt you for the environment variables listed above. However, you can
+configure this connector to work with any S3-compatible cloud provider. Check the configuration docs for more
+information.
+
+:::
+
+</TabItem>
+<TabItem value="Stripe" label="Stripe">
+
+| ENV                        | Example                               | Description                                                                                                                         |
+| -------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `STRIPE_BEARER_AUTH_TOKEN` | `sk_<test\|prod>_<unique_identifier>` | A **secret** key for your account, retrievable from your [API Keys dashboard in Stripe](https://dashboard.stripe.com/test/apikeys). |
+
+</TabItem>
+<TabItem value="Trino" label="Trino">
+
+| ENV        | Example                                                          | Description                         |
+| ---------- | ---------------------------------------------------------------- | ----------------------------------- |
+| `JDBC_URL` | `jdbc:trino://<host>:<port>/<database>/<schema>?user=<username>` | This connector requires a JDBC URL. |
+
+</TabItem>
+<TabItem value="Turso" label="Turso">
+
+| ENV                | Example                             | Description                                                                                                                                        |
+| ------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TURSO_URL`        | `libsql://dbname-username.turso.io` | The connection string for the Turso database, using `libsql` protocol. You can generate this from the database's overview in your Turso dashboard. |
+| `TURSO_AUTH_TOKEN` | `eyJ...`                            | A Turso auth token with access to the same database; this is also available via the Turso dashboard.                                               |
+
+</TabItem>
+
+</Tabs>
+
+If your data source requires a connection string or endpoint, the CLI will confirm that it successfully tested the
+connection to your source. Additionally, it generates configuration files, which you can find in the `connector`
+directory of the subgraph where you added the connector (default: `app`). Finally, the CLI will create a
+[DataConnectorLink](/reference/metadata-reference/data-connector-links.mdx) in your connector's `metadata` directory.
+
+## Next steps
+
+Now that you've initialized a connector and connected it to your data, you're ready to introspect the source and
+populate the configuration files with source-specific information that Hasura will need to build your API. Check out the
+[introspection page](/data-sources/introspect-a-source.mdx) to learn more.

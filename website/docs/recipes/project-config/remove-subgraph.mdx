@@ -1,0 +1,107 @@
+---
+sidebar_position: 2
+sidebar_label: Remove a subgraph
+description: "Learn how to remove a subgraph from your local project directory"
+keywords:
+  - hasura
+  - hasura ddn
+  - recipe
+  - guide
+  - project configuration
+  - remove
+  - subgraph
+seoFrontMatterUpdated: false
+---
+
+# Remove a subgraph
+
+## Introduction
+
+In this recipe, you'll learn how to remove a subgraph from your local project directory.
+
+:::info Prerequisites
+
+Before continuing, ensure you have:
+
+- A [local Hasura DDN project](/quickstart.mdx).
+- Stopped any running docker services related to the project.
+
+:::
+
+## Recipe
+
+### Step 1. Delete subgraph directory
+
+Delete the directory containing the subgraph related config files, connectors and metadata of the subgraph. The subgraph
+directory is typically located at `<subgraph-name>`.
+
+### Step 2. Update supergraph config files
+
+Remove the path to the subgraph config files in all [supergraph config files](/project/configuration/overview.mdxlocated
+at the project root, i.e., `<project-root>/supergraph.yaml`.
+
+```yaml title="supergraph.yaml"
+kind: Supergraph
+version: v2
+definition:
+  subgraphs:
+    - globals/subgraph.yaml
+    #highlight-start
+    - <subgraph-name>/subgraph.yaml
+    #highlight-end
+    ...
+```
+
+### Step 3. Update engine compose file
+
+Remove references to any compose files of connectors in the deleted subgraph from the engine compose file. The engine
+compose file is typically located at `<project-root>/compose.yaml`.
+
+```yaml title="<project-root>/compose.yaml"
+include:
+  #highlight-start
+  - path: <subgraph-name>/connector/<connector-1>/compose.yaml
+  - path: <subgraph-name>/connector/<connector-2>/compose.yaml
+  #highlight-end
+  ...
+services:
+  engine: ...
+```
+
+### Step 4. Remove subgraph config file from context
+
+The [context config file](/project/configuration/overview.mdxsubgraph config file path saved in the context. Remove the
+`subgraph` key if set as the deleted subgraph config file.
+
+```yaml title=".hasura/context.yaml"
+kind: Context
+version: v3
+definition:
+  current: default
+  contexts:
+    default:
+      supergraph: ../supergraph.yaml
+      #highlight-start
+      subgraph: ../<subgraph-name>/subgraph.yaml
+      #highlight-end
+      ...
+```
+
+### Step 5. (Optional) Remove subgraph relevant environment variables
+
+You can remove the environment variables that were defined for your subgraph from the env files that you might have. The
+CLI-generated environment variables for a subgraph typically start with the `<SUBGRAPH_NAME>_` prefix.
+
+```.env title="For example, .env"
+...
+#highlight-start
+<SUBGRAPH_NAME>_<CONNECTOR>_READ_URL="<connector-read-url>"
+<SUBGRAPH_NAME>_<CONNECTOR>_WRITE_URL="<connector-write-url>"
+<SUBGRAPH_NAME>_<CONNECTOR>_AUTHORIZATION_HEADER="Bearer <roken>"
+#highlight-end
+...
+```
+
+## Learn more
+
+- [Project configuration](/project/configuration/overview.mdx

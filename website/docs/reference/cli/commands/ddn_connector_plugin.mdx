@@ -1,0 +1,55 @@
+---
+sidebar_label: ddn connector plugin
+sidebar_position: 41
+description: Run a subcommand from a Connector plugin using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector_plugin"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector plugin
+---
+
+# DDN CLI: ddn connector plugin
+
+Run a subcommand from a Connector plugin.
+
+## Synopsis
+
+Run a subcommand from a Connector plugin
+
+```bash
+ddn connector plugin [flags] [-- <args>]
+```
+
+## Examples
+
+```bash
+# Run the "update" command of a connector
+ ddn connector plugin --connector app/connector/mypostgres/connector.yaml -- update
+```
+
+## Options
+
+```sass
+    --ci                     Disables the use of context
+    --connector string       Path to Connector YAML config file
+-c, --context string         Name of the context to use. (default <current_context>)
+-e, --env stringArray        Environment variable, e.g. key=val. Can be repeated to provide multiple env vars
+    --env-file stringArray   Path to .env file. Can be repeated to provide multiple env files
+-h, --help                   help for plugin
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector](/reference/cli/commands/ddn_connector) - Perform Connector related operations

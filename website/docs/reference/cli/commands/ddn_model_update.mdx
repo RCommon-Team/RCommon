@@ -1,0 +1,64 @@
+---
+sidebar_label: ddn model update
+sidebar_position: 71
+description: Update Models in the local metadata using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_model_update"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn model update
+---
+
+# DDN CLI: ddn model update
+
+Update Models in the local metadata.
+
+## Synopsis
+
+When the underlying data source changes, it's necessary to update the model's metadata to ensure Hasura DDN is aware of any modifications. Typically, before updating a model, you'll have re-introspected the underlying data source.
+
+```bash
+ddn model update <model-name> [flags]
+```
+
+## Examples
+
+```bash
+# Update all Models using the subgraph set in current context
+ ddn model update "*"
+
+# Update the Model "Album" in the "app" Subgraph
+ ddn model update Album --subgraph ./app/subgraph.yaml --supergraph ./supergraph.yaml
+
+# Update all the Models in the Subgraph "app"
+ ddn model update "*" --subgraph ./app/subgraph.yaml --supergraph ./supergraph.yaml
+
+# Update Models filtered by glob pattern in the Subgraph "app"
+ ddn model update "user*" --subgraph ./app/subgraph.yaml --supergraph ./supergraph.yaml
+```
+
+## Options
+
+```sass
+    --ci                  Disables the use of context
+-c, --context string      Name of the context to use. (default <current_context>)
+-h, --help                help for update
+    --pattern string      Pattern to detect targets. Can be 'glob' or 'literal'. (default "glob")
+    --subgraph string     Path to Subgraph config file
+    --supergraph string   Path to Supergraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn model](/reference/cli/commands/ddn_model) - Perform Model-related operations

@@ -1,0 +1,219 @@
+---
+title: Security
+sidebar_position: 2.8
+description:
+  "Overview of security measures and practices within Hasura DDN, including data encryption, access control, and
+  compliance with industry standards."
+keywords:
+  - hasura ddn
+  - security
+  - data encryption
+  - access control
+  - compliance
+  - metadata encryption
+  - data transmission
+  - authentication
+  - multi-factor authentication
+  - MFA
+  - SAML
+  - SSO
+---
+
+# Security in Hasura DDN
+
+## Introduction
+
+Hasura DDN is designed with a strong emphasis on security, ensuring that your data and APIs are protected through
+various measures. This document outlines the key security features and practices implemented within Hasura DDN, covering
+data encryption, access control, network security, and authentication.
+
+## Data Encryption
+
+### Encryption at Rest
+
+All metadata stored within Hasura DDN is encrypted at rest using the **AES-GCM-256** algorithm. This industry-standard
+encryption ensures that your data is secure even if the underlying storage is compromised. Hasura also uses **Envelope
+encryption** for the keys themselves.
+
+### Encryption in Transit
+
+All communication between your client applications, the Hasura DDN engine, and configured data connectors is secured
+using **HTTPS/TLS 1.2** or higher. This ensures that your data is encrypted during transmission, protecting it from
+interception or tampering.
+
+### Network Connectivity Requirements
+
+When using Hasura public DDN connectors to connect to your data sources, these sources must be accessible from the
+internet (allowing connections from `0.0.0.0/0`). This is because Hasura DDN operates from dynamic IP addresses and does
+not provide static IP addresses for connections.
+
+If your security requirements necessitate the use of static IP addresses or private network connectivity, consider using
+[Hasura Private DDN](/private-ddn/overview.mdx), which allows you to host the data plane within your own infrastructure.
+
+## Metadata Storage and Handling
+
+### Types of Metadata Stored
+
+Hasura DDN's control plane stores metadata related to your project's configuration. This metadata includes:
+
+- **HML (Hasura Metadata Language) files:** These files define the structure of your API, including data source
+  information such as table names, column names, relationships, and permissions.
+- **Subgraph information:** Details about your project's subgraphs.
+- **User access information:** RBAC rules and policies that determines supergraph and subgraph access for users.
+
+:::note
+
+Connection string or data source credentials used by the connectors are managed as secrets.
+
+:::
+
+### Metadata Immutability and Secret Protection
+
+Once a supergraph build is created, the metadata associated with that build, including any resolved values from
+environment variables, is immutable and encrypted using envelope encryption. This design allows Private DDNs to use
+their own master encryption keys for enhanced security. Critically, **secrets incorporated into the build via
+environment variables are not directly exposed or retrievable from the built metadata once on the control plane**.
+
+### Data Retention
+
+Metadata is retained for as long as a build is available on the system. When a build is deleted, the associated metadata
+is also deleted. Read more about deleting builds [here](/reference/cli/commands/ddn_supergraph_build_delete.mdx).
+
+## Access Control
+
+Hasura DDN employs a robust role-based access control (RBAC) system. You can define granular permissions to control
+which users or roles can access specific data and operations. This ensures that only authorized users can perform
+actions based on their assigned roles.
+
+[Learn more about permissions](/data-modeling/permissions.mdx).
+
+## Authentication
+
+Hasura DDN offers flexible authentication options utilising JWT tokens or webhooks, that allow you to integrate with
+many auth services or use your own.
+
+### Authentication Modes
+
+Hasura DDN offers the following authentication modes:
+
+- **JWT Mode:** Integrate with popular authentication providers like Auth0, AWS Cognito, Firebase, and Clerk.
+- **Webhook Mode:** Use a custom webhook for authentication in unique scenarios.
+- **NoAuth Mode:** For testing or development, or for fully public APIs, you can use NoAuth mode, which requires no
+  authentication.
+
+### Multi-Factor Authentication (MFA)
+
+Currently, Hasura DDN does not natively support MFA for console login. However, the recommended approach for enterprise
+clients is to integrate with a corporate Identity Provider (IDP) via SAML, allowing you to leverage your existing
+identity and multi-factor authentication infrastructure, and ensuring a consistent, and secure, access management
+process.
+
+If you use a corporate email address to sign up for Hasura DDN, the password you choose is tied only to our system and
+you can set it to whatever you'd like.
+
+## Self-Hosted Data Plane
+
+For enhanced security and control, Hasura Private DDN allows the data plane to be hosted within your own infrastructure.
+This ensures that the data processing and API execution occur within your controlled environment, providing an added
+layer of security. [Learn more](/private-ddn/overview.mdx).
+
+## Access Tokens
+
+Hasura DDN provides two types of access tokens for supergraph management: Personal Access Tokens (PATs) and Service
+Account Tokens. Service Account Tokens (as apposed to PATs) are recommended for interacting with the control plane,
+CI/CD pipelines and automated processes.
+
+### Service Account Tokens
+
+Service Account Tokens are designed for applications, services, or automated processes that need to interact with the
+Hasura DDN Control Plane.
+
+- **Usage:** Ideal for continuous integration and continuous deployment (CI/CD) pipelines, automated scripts, and
+  backend services.
+- **Security:** Associated with a project, not an individual user.
+- **Generation:** You can create new service accounts and manage tokens for existing ones via your project's
+  `Settings` > `Service Accounts` tab of the console.
+
+### Personal Access Tokens (PATs)
+
+Personal Access Tokens (PATs) are designed for individual users to interact with the Hasura DDN Control Plane. These
+tokens are tied to your user account and are ideal for development, testing, and accessing the Hasura Console.
+
+- **Usage:** Primarily used for accessing the Hasura Console and authenticating the DDN CLI during development and
+  testing.
+- **Security:** Linked to a user account; not to be shared or used in production environments.
+- **Generation:** Create and manage PATs through your
+  [account settings](https://cloud.hasura.io/account-settings/access-tokens) on the Hasura Cloud dashboard or via the
+  DDN CLI with the `ddn auth login` command and `ddn auth print-pat` command.
+
+## Securely Managing Secrets
+
+Hasura DDN strongly recommends using environment variables to manage sensitive information, such as API keys, database
+connection strings, and other credentials. This practice enhances security by keeping secrets out of your codebase and
+metadata files.
+
+Hasura DDN employs envelope encryption to secure all sensitive information, including secrets and metadata.
+
+### Best Practices
+
+1.  **Use Environment Variables:** Store sensitive information in environment variables rather than hardcoding them
+    directly into your configuration files.
+
+2.  **Local Development:** For local development, use `.env` files to manage environment variables. The DDN CLI
+    automatically recognizes and loads these files.
+
+3.  **Cloud Deployment:** When deploying to Hasura DDN, use the project's `.env.cloud` file.
+
+4.  **Connector Configuration:** When configuring data connectors, use the `valueFromEnv` option to reference
+    environment variables. This ensures that sensitive values are loaded from the environment rather than being stored
+    directly in the configuration.
+
+```yaml
+# Example of using valueFromEnv in a connector configuration
+kind: DataConnectorLink
+version: v1
+definition:
+  name: my_connector
+  url:
+    readWriteUrls:
+      read:
+        valueFromEnv: MY_CONNECTOR_READ_URL # URL is stored as an env var
+      write:
+        valueFromEnv: MY_CONNECTOR_WRITE_URL # URL is stored as an env var
+  headers:
+    Authorization:
+      valueFromEnv: MY_CONNECTOR_AUTHORIZATION_HEADER # API Key/Secret is stored as an env var
+  schema: ...
+```
+
+5.  **Gitignore:** Ensure that your `.env` files, and any other files that might hold secrets, are added to your
+    `.gitignore` file. This will prevent these files from being committed to version control.
+
+## Native Operations and Security
+
+Hasura DDN allows you to extend the GraphQL API using native queries and mutations, providing direct access to the
+underlying data source's capabilities. However, this comes with the responsibility of preventing vulnerabilities.
+
+**Important Considerations:**
+
+- **Code Injection:** When using native operations with user-provided input, _you are responsible for preventing code
+  injection vulnerabilities_. Carefully sanitize and validate all inputs to avoid potential security risks.
+- **Connector-Specific Guidance:** Review the documentation for your specific data connector (e.g.,
+  [PostgreSQL](/reference/connectors/postgresql/native-operations/index.mdx),
+  [MongoDB](/reference/connectors/mongodb/native-operations/index.mdx)) for detailed information on secure usage of
+  native operations.
+- See example of escaping inputs with the
+  [MongoDB connector](/reference/connectors/mongodb/native-operations/security-best-practices.mdx).
+
+## Disable APIs
+
+Instead of exposing all APIs in your supergraph, assess your requirements and disable any APIs that are not required.
+
+## Need more information?
+
+Check out these common questions, and if you still need help, reach out to us on
+[Discord](https://discord.com/invite/hasura) or through our
+[support portal](https://hasurahelp.zendesk.com/hc/en-us/requests/new).
+
+Join the [Hasura Security Announcements](https://groups.google.com/forum/#!forum/hasura-security-announce) group for
+emails about security announcements.

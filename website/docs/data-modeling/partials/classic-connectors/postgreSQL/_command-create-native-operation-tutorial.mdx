@@ -1,0 +1,88 @@
+Within your connector's directory, you can add a new file with a `.sql` extension to define a native mutation.
+
+```sh title="Create a new directory to store your native mutations:"
+mkdir -p app/connector/my_pg/native_operations/mutations/
+```
+
+Let's create a mutation using a `SQL` `UPDATE` statement that updates the title of all posts from user's of that age by
+appending their age to the title.
+
+```sql title="Create a new file in your connector's directory:"
+-- native_operations/mutations/update_post_titles_by_age.sql
+UPDATE posts
+SET title = CASE
+    WHEN title ~ ' - age \d+$' THEN regexp_replace(title, ' - age \d+$', ' - age ' || {{ age }})
+    ELSE title || ' - age ' || {{ age }}
+END
+FROM users
+WHERE posts.user_id = users.id
+    AND users.age = {{ age }}
+RETURNING
+    posts.id,
+    posts.title,
+    posts.user_id,
+    users.name,
+    users.age;
+```
+
+Arguments are passed to the native mutation as variables surrounded by double curly braces `{{ }}`.
+
+```sh title="Then, use the PostgreSQL connector's plugin to add the native mutation to your connector's configuration:"
+ddn connector plugin \
+  --connector app/connector/my_pg/connector.yaml \
+  -- \
+  native-operation create \
+  --operation-path native_operations/mutations/update_post_titles_by_age.sql \
+  --kind mutation
+```
+
+```sh title="Introspect your PostgreSQL instance:"
+ddn connector introspect my_pg
+```
+
+```sh title="Show the found resources:"
+ddn connector show-resources my_pg
+```
+
+```sh title="Then, add your model:"
+ddn command add my_pg update_post_titles_by_age
+```
+
+```title="Build and serve your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now in your console you can run the following mutation to see the results:
+
+```graphql title="Run the following mutation:"
+mutation UpdatePostTitlesByAge {
+  updatePostTitlesByAge(age: "25") {
+    affectedRows
+    returning {
+      id
+      title
+    }
+  }
+}
+```
+
+```json title="The response will be:"
+{
+  "data": {
+    "updatePostTitlesByAge": {
+      "affectedRows": 2,
+      "returning": [
+        {
+          "id": 1,
+          "title": "My First Post - age 25"
+        },
+        {
+          "id": 2,
+          "title": "Another Post - age 25"
+        }
+      ]
+    }
+  }
+}
+```

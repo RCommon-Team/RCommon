@@ -1,0 +1,7 @@
+{
+  "label": "Snowflake",
+  "position": 14,
+  "customProps": {
+    "connector-ids": ["snowflake"]
+  }
+}

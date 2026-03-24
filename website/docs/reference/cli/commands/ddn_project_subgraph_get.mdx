@@ -1,0 +1,56 @@
+---
+sidebar_label: ddn project subgraph get
+sidebar_position: 87
+description: List Subgraphs for a Hasura DDN Project or get details of a specific one using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_project_subgraph_get"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn project subgraph get
+---
+
+# DDN CLI: ddn project subgraph get
+
+List Subgraphs for a Hasura DDN Project or get details of a specific one.
+
+## Synopsis
+
+List Subgraphs for a Hasura DDN Project or get details of a specific one
+
+```bash
+ddn project subgraph get [subgraph-name] [flags]
+```
+
+## Examples
+
+```bash
+# List all Subgraphs for a Project
+ ddn project subgraph get --project pet-lion-2649
+
+# View details of a Subgraph "app" in a Project
+ ddn project subgraph get app --project pet-lion-2649
+```
+
+## Options
+
+```sass
+    --ci               Disables the use of context
+-c, --context string   Name of the context to use. (default <current_context>)
+-h, --help             help for get
+-p, --project string   DDN Project name
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn project subgraph](/reference/cli/commands/ddn_project_subgraph) - Manage Subgraphs in a Hasura DDN Project

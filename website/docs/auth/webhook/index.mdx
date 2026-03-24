@@ -1,0 +1,31 @@
+---
+description:
+  "Get comprehensive information on how to configure Hasura to use webhook mode to authenticate incoming requests.
+  Understand the process and requirements, and how to control the Hasura Engine's response to user authentication."
+keywords:
+  - hasura webhook mode
+  - hasura engine authentication
+  - graphql request authentication
+  - webhook authentication
+  - webhook configuration
+  - api authorization
+  - hasura api requests
+  - session variables
+  - hasura user-role
+sidebar_position: 4
+sidebar_label: Webhook
+---
+
+# Authentication Using a Webhook
+
+## Introduction
+
+You can configure the Hasura DDN to use webhook mode in order to authenticate incoming requests.
+
+This requires specifying a URL - which Hasura calls with the original request headers - that then returns a body
+containing the session variables after authenticating the request.
+
+## Webhook mode setup
+
+- [How to set up webhook mode](/auth/webhook/webhook-mode.mdx)
+- [Webhook admin and unauthenticated requests](/auth/webhook/tutorials/special-roles.mdx)

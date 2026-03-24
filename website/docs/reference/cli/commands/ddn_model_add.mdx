@@ -1,0 +1,64 @@
+---
+sidebar_label: ddn model add
+sidebar_position: 67
+description: Add new Models to the local metadata using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_model_add"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn model add
+---
+
+# DDN CLI: ddn model add
+
+Add new Models to the local metadata.
+
+## Synopsis
+
+When adding a model to your local metadata, the CLI will generate boilerplate metadata that — when the supergraph is built — will make it available to the exposed API.
+
+```bash
+ddn model add <connector-link-name> <collection-name> [flags]
+```
+
+## Examples
+
+```bash
+# Add all Models for DataConnectorLink "mydb" in the subgraph set in the context
+ ddn model add mydb "*"
+
+# Add a new Model "Album" from the collection "Album" in the DataConnectorLink "mydb" in Subgraph "app"
+ ddn model add mydb Album --subgraph ./app/subgraph.yaml --supergraph ./supergraph.yaml
+
+# Add all the Models from the collections in the DataConnectorLink "mydb" in Subgraph "app"
+ ddn model add mydb "*" --subgraph ./app/subgraph.yaml --supergraph ./supergraph.yaml
+
+# Add Models filtered by glob pattern from the collections in the DataConnectorLink "mydb" in Subgraph "app"
+ ddn model add mydb "user*" --subgraph ./app/subgraph.yaml
+```
+
+## Options
+
+```sass
+    --ci                  Disables the use of context
+-c, --context string      Name of the context to use. (default <current_context>)
+-h, --help                help for add
+    --pattern string      Pattern to detect targets. Can be 'glob' or 'literal'. (default "glob")
+    --subgraph string     Path to Subgraph config file
+    --supergraph string   Path to Supergraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn model](/reference/cli/commands/ddn_model) - Perform Model-related operations

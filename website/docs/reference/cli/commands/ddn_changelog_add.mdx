@@ -1,0 +1,54 @@
+---
+sidebar_label: ddn changelog add
+sidebar_position: 9
+description: Update version number for existing changelog entries using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_changelog_add"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn changelog add
+---
+
+# DDN CLI: ddn changelog add
+
+Update version number for existing changelog entries.
+
+## Synopsis
+
+Update the version_number field for existing changelog entries associated with a specific build. This command is used for backfilling existing entries that predate the version numbering feature.
+
+```bash
+ddn changelog add <build-version> [flags]
+```
+
+## Examples
+
+```bash
+# Update version number for all changelog entries of a specific build
+ ddn changelog add abc123 --version-number 2025.02.23
+```
+
+## Options
+
+```sass
+    --ci                      Disables the use of context
+-c, --context string          Name of the context to use. (default <current_context>)
+-h, --help                    help for add
+    --project string          Project name for the changelog entry
+    --version-number string   Version number for the changelog entry in CalVer format (YYYY.MM.DD) (required)
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn changelog](/reference/cli/commands/ddn_changelog) - Manage changelogs for applied supergraph builds

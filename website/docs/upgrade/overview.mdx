@@ -1,0 +1,98 @@
+---
+title: Upgrade
+sidebar_position: 1
+description: Learn how to upgrade from older versions of Hasura to Hasura DDN.
+sidebar_label: Basics
+keywords:
+  - hasura
+  - docs
+  - upgrade
+  - v2
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Upgrade From v2
+
+## Introduction
+
+The Hasura Data Delivery Network presents a new way to build applications with Hasura. This section of documentation
+will help you understand the similarities and differences between the older versions of Hasura and Hasura DDN, guide you
+through the upgrade process, and provide you with resources to aid in migrating your existing applications to Hasura
+DDN.
+
+## Why upgrade?
+
+Hasura DDN delivers a wealth of features that will help you build applications faster and more efficiently. You can
+explore our documentation to get a better sense of what Hasura DDN has to offer.
+
+### Individual developers
+
+As an **individual developer working on a small or hobby project**, you can use Hasura DDN for free. That's right: free!
+We'll host your API for you at no cost, forever.
+
+**Before:**
+
+- Limited by Hasura v2's metadata model that was tightly coupled with PostgreSQL and GraphQL, making it hard to think of
+  it as a general-purpose API platform.
+- Struggled with the complexities of managing server infrastructure or paying for hosted services (yep, even Hasura
+  Cloud). Worried about the long-term costs and scalability of your project.
+- Adding custom business logic was non intuititve and less flexible.
+
+**After:**
+
+- Server infrastructure worries are a thing of the past — [Hasura DDN takes care of hosting](https://hasura.io/pricing)
+  for free. Enjoy peace of mind knowing that your project can grow without added costs.
+- You can fully concentrate on building your product, with backend infrastructure handled.
+- Enhanced capabilities to add business logic in Typescript, Python and Go, with the ability to host business logic
+  functions on Hasura Cloud.
+
+### Small teams
+
+As a **small team**, you can leverage Hasura DDN to streamline your development process and reduce overhead. With Hasura
+DDN, your team can quickly prototype and iterate on features using immutable builds, ensuring that deployments are
+consistent and reliable. This means more time to focus on delivering value to your customers and less time spent
+debugging.
+
+**Before:**
+
+- Hasura v2's build and runtime coupling led to performance issues, slowing down your deployment processes.
+- No ability to preview the API, publish or rollback quickly.
+- Lack of clarity on subgraph changes for your published API and long feedback loops due to the inability to test during
+  local development.
+
+**After:**
+
+- Speed up your workflow with [immutable builds](/project-configuration/overview.mdx) that make rapid prototyping a
+  breeze.
+- Ensure smooth and dependable [deployments](/deployment/hasura-ddn/tutorial/index.mdx), cutting down on debugging time.
+- Simplify your development lifecycle with [declarative metadata](/reference/metadata-reference/index.mdx) that defines
+  your API structure.
+
+### Mature teams
+
+For **mature teams in large organizations**, Hasura DDN transforms your approach to scaling and integrating
+applications. With built-in federation using subgraphs and Hasura's metadata-driven data access layer, you can grow your
+application as your business expands, seamlessly adding new data sources and services without extensive rewrites. These
+two pillars of value—federation and metadata—further streamline your architecture, providing a unified and scalable way
+to manage your API across multiple environments.
+
+**Before:**
+
+- Hasura v2’s monolithic metadata made it challenging for multiple teams to collaborate, leading to inefficiencies and
+  slower development cycles.
+- Integration of new data sources and services required extensive rewrites.
+- Managing APIs across various environments was complex and time-consuming.
+
+**After:**
+
+- Easily scale with [built-in federation](/project-configuration/subgraphs/index.mdx) that integrates subgraphs into
+  your Hasura DDN setup.
+- Add [new data sources](/data-sources/overview.mdx) seamlessly, avoiding the need for major overhauls.
+- Manage your API effortlessly across different environments with the world's first
+  [declarative metadata access layer](/reference/metadata-reference/index.mdx) that unifies control.
+
+## Learn more
+
+- [Learn how to upgrade.](/upgrade/guide.mdx)
+- [Understand the differences between Hasura DDN and older versions of Hasura.](/upgrade/feature-availability/index.mdx)

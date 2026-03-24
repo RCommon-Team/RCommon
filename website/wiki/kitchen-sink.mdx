@@ -1,0 +1,360 @@
+import CodeStep from '@site/src/components/CodeStep';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import GraphiQLIDE from '@site/src/components/GraphiQLIDE';
+import Thumbnail from '@site/src/components/Thumbnail';
+import Introduction from '@site/static/icons/award-02.svg';
+import { OverviewIconCard } from '@site/src/components/OverviewIconCard';
+
+# The Kitchen Sink
+
+As we bring over components from the old site, we're using this page as a UI playground to make sure everything looks as
+expected.
+
+<hr />
+
+###### Styles
+
+## Headings
+
+# Heading level 1
+
+## Heading level 2
+
+### Heading level 3
+
+#### Heading level 4
+
+##### Heading level 5
+
+###### Heading level 6
+
+<hr />
+
+###### Styles
+
+## Headings with inline code
+
+# Heading level 1 `inline code`
+
+## Heading level 2 `inline code`
+
+### Heading level 3 `inline code`
+
+#### Heading level 4 `inline code`
+
+##### Heading level 5 `inline code`
+
+###### Heading level 6 `inline code`
+
+<hr />
+
+###### Styles
+
+## Paragraph text and inline formatting
+
+Some text in a paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet
+ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et
+diam eget libero egestas mattis sit amet vitae augue.
+
+The highlighted words are a link: [This is a link](#)
+
+This is bold with two asterisks: <b>bold</b>.
+
+This is bold with two underscores: **bold**.
+
+This is italic with one asterisk: **_bold_**.
+
+This is italic with one asterisk: _italic_.
+
+This is italic with one underscore: _italic_.
+
+This is strikethrough with two tildes: ~~strikethrough~~.
+
+This is inline code with backticks: `inline code`.
+
+<hr />
+
+###### Styles
+
+## Blockquote
+
+```
+This is a blockquote.
+```
+
+<hr />
+
+###### Styles
+
+## Lists
+
+### Unordered List
+
+- Item 1
+- Item 2
+- Item 3
+
+### Ordered List
+
+1. Item 1
+2. Item 2
+3. Item 3
+
+<hr />
+
+###### Styles
+
+## Code blocks & steps
+
+This is an example of a code block with a title and specified language and some lines highlighted:
+
+```javascript{1,3} title="/src/components/HelloCodeTitle.js"
+const foo = 'bar';
+const baz = 'qux';
+const quux = 'quuz';
+```
+
+<hr />
+
+###### Styles
+
+## Tab Selectors
+
+<Tabs groupId="user-preference" className="api-tabs">
+  <TabItem value="console" label="Console">
+
+Some console stuff.
+
+  </TabItem>
+  <TabItem value="cli" label="CLI">
+
+Some CLI stuff.
+
+  </TabItem>
+  <TabItem value="api" label="API">
+
+Some API stuff.
+
+  </TabItem>
+</Tabs>
+
+<hr />
+
+###### Styles
+
+## Admonitions
+
+:::note
+
+Some **content** with _Markdown_ `syntax`. Check [this `api`](#).
+
+```bash title="Run the following:"
+ddn model update Users
+```
+
+:::
+
+:::tip
+
+Some **content** with _Markdown_ `syntax`. Check [this `api`](#).
+
+```javascript title="Run the following:"
+const foo = 'bar';
+```
+
+
+:::
+
+:::info
+
+Some **content** with _Markdown_ `syntax`. Check [this `api`](#).
+
+```typescript title="Here is an extremely long title, the purpose of which is to test the wrapping of the title in the code block. Let us all hope that it works and looks nice"
+const foo: string = 'bar';
+```
+
+:::
+
+:::caution
+
+Some **content** with _Markdown_ `syntax`. Check [this `api`](#).
+
+<GraphiQLIDE
+  query={`query Users {
+  users {
+    id
+    name
+    email
+  }
+ }`}
+  response={`{
+  "data": {
+    "users": [
+    {
+      "id": 1,
+      "name": "Alice",
+      "email": "alice@xyz.com"
+    },
+    {
+      "id": 2,
+      "name": "Bob",
+      "email": null
+    },
+    {
+      "id": 3,
+      "name": "Sam",
+      "email": null
+    }
+    ]
+  }
+ }`}
+/>
+
+
+:::
+
+:::danger
+
+Some **content** with _Markdown_ `syntax`. Check [this `api`](#).
+
+```bash title="Run the following:"
+ddn model update Users
+```
+
+:::
+
+## Nested Admonitions
+
+:::::info Parent
+
+Parent content
+
+::::danger Child
+
+Child content
+
+:::tip Deep Child
+
+Deep child content
+
+:::
+
+::::
+
+:::::
+
+<hr />
+
+###### Styles
+
+## Links
+
+[This is a link](https://www.hasura.io)
+
+[This is a link with title](https://www.hasura.io 'Hasura')
+
+<hr />
+
+###### Styles
+
+## Tables
+
+| Column 1 | Column 2 |
+| -------- | -------- |
+| Cell 1   | Cell 2   |
+
+<hr />
+
+###### Styles
+
+## Image and video containers
+
+### The 50/50
+
+<div className={'front-matter'}>
+  <div>
+    Some text in a paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue.
+
+    Some text in a paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris.
+
+  </div>
+  <div className="kitchen-image-container heightAuto">
+    <p>Img or video container</p>
+  </div>
+</div>
+
+<hr />
+
+### The full-width
+
+Some text in a paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet
+ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et
+diam eget libero egestas mattis sit amet vitae augue.
+
+<div className="kitchen-image-container">
+  <p>Img or video container</p>
+</div>
+
+<hr />
+
+###### Styles
+
+## Footnotes
+
+Here's a sentence with a footnote.[^1]
+
+[^1]: This is the footnote.
+
+<hr />
+
+###### Styles
+
+## Collapsible Section (Details / Summary)
+
+<details>
+  <summary>Click to expand!</summary>
+
+This is a hidden section.
+
+</details>
+
+<hr />
+
+###### Styles
+
+## GraphiQL IDE
+
+**NB: Do note that a name for the query is required, otherwise it will break upon rendering whenever a user attempts to
+"prettify" the query.**
+
+<GraphiQLIDE
+  query={`query Users {
+  users {
+    id
+    name
+    email
+  }
+ }`}
+  response={`{
+  "data": {
+    "users": [
+    {
+      "id": 1,
+      "name": "Alice",
+      "email": "alice@xyz.com"
+    },
+    {
+      "id": 2,
+      "name": "Bob",
+      "email": null
+    },
+    {
+      "id": 3,
+      "name": "Sam",
+      "email": null
+    }
+    ]
+  }
+ }`}
+/>

@@ -1,0 +1,198 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura DuckDB connector, including collection names, object
+  types, and native functions."
+keywords:
+  - duckdb
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration is a metadata object that lists all the database entities — such as collections — that the data
+connector has to know about in order to serve queries. It never changes during the lifetime of the data connector
+service instance. When your database schema changes you will have to update the configuration accordingly, see
+[updating with introspection](#updating-with-introspection).
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "config": {
+    "collection_names": [],
+    "collection_aliases": {},
+    "object_types": {},
+    "functions": [],
+    "procedures": []
+  }
+}
+```
+
+### Property: Collection Names
+
+This is an array of collection names that the connector will expose for querying. This is a required field.
+
+Example:
+
+```json
+{
+  "collection_names": ["posts", "users"]
+}
+```
+
+### Property: Collection Aliases
+
+This is a JSON object mapping collection names to their full path in the database. This allows you to reference
+collections with simpler names.
+
+Example:
+
+```json
+{
+  "collection_aliases": {
+    "posts": "data.main.posts",
+    "users": "data.main.users"
+  }
+}
+```
+
+### Property: Object Types
+
+This is a JSON object containing definitions for each collection's structure, including fields and their types.
+
+Example:
+
+```json
+{
+  "object_types": {
+    "posts": {
+      "fields": {
+        "id": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "description": "No description available"
+        },
+        "title": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "named",
+              "name": "String"
+            }
+          },
+          "description": "No description available"
+        }
+      },
+      "description": "No description available"
+    }
+  }
+}
+```
+
+Each field definition includes:
+
+- Field name
+- Type specification (including nullability)
+- Description
+
+Supported types include:
+
+- `Int`
+- `String`
+- `Timestamp`
+- `Boolean`
+- `Float`
+- `Double`
+- `Decimal`
+
+### Property: Functions
+
+This is an array of function definitions that can be called through the connector.
+
+Example:
+
+```json
+{
+  "functions": [
+    {
+      "name": "get_post_by_id",
+      "arguments": {
+        "post_id": {
+          "type": {
+            "type": "named",
+            "name": "Int"
+          },
+          "description": "The ID of the post to retrieve"
+        }
+      },
+      "return_type": {
+        "type": "object",
+        "name": "posts"
+      },
+      "description": "Retrieves a post by its ID"
+    }
+  ]
+}
+```
+
+### Property: Procedures
+
+This is an array of procedure definitions that can be executed through the connector.
+
+Example:
+
+```json
+{
+  "procedures": [
+    {
+      "name": "create_new_post",
+      "arguments": {
+        "user_id": {
+          "type": {
+            "type": "named",
+            "name": "Int"
+          },
+          "description": "The user ID for the new post"
+        },
+        "title": {
+          "type": {
+            "type": "named",
+            "name": "String"
+          },
+          "description": "The title of the new post"
+        },
+        "content": {
+          "type": {
+            "type": "named",
+            "name": "String"
+          },
+          "description": "The content of the new post"
+        }
+      },
+      "description": "Creates a new post in the database"
+    }
+  ]
+}
+```
+
+## Updating with introspection
+
+Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
+reflect those changes.
+
+Running `update` in a configuration directory will do the following:
+
+- Connect to the DuckDB database and scan all available collections
+- Update the `collection_names`, `collection_aliases`, and `object_types` fields to reflect the current database schema
+- Preserve any custom functions and procedures defined in the configuration

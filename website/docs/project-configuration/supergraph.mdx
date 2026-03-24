@@ -1,0 +1,42 @@
+---
+sidebar_position: 3
+sidebar_label: Supergraph
+description: "Learn what a supergraph is, what components make it up, and how it works."
+keywords:
+  - hasura
+  - hasura ddn
+  - project
+  - supergraph
+---
+
+# Supergraph
+
+## Introduction
+
+A supergraph is essentially the API for your project. It provides a unified interface for interacting with your data and
+serves as the backbone for building applications that rely on multiple data sources.
+
+## Components
+
+The supergraph is made up of several key components that work together to deliver a seamless API experience:
+
+- **Subgraphs**: These represent different data domains and can include multiple data connectors to bring in data from
+  various sources.
+- **Builds**: A supergraph consists of immutable builds. At any given time, one build is applied, and it can be easily
+  rolled back to a previous state if necessary.
+
+## How it all works
+
+The supergraph is defined using Hasura Metadata Language, which the engine uses to generate and serve the API. This
+metadata acts as the blueprint for everything, including:
+
+- Defining roles and permissions to control access.
+- Configuring authentication mechanisms.
+- Defining relationships across and between data sources.
+- Specifying the GraphQL fields and types exposed by the API.
+
+By centralizing these configurations, the supergraph ensures consistency and simplifies collaboration across teams.
+
+## Next steps
+
+- [Learn more about subgraphs](/project-configuration/subgraphs/index.mdx)

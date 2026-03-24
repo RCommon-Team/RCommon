@@ -1,0 +1,56 @@
+---
+sidebar_position: 2
+sidebar_label: Metrics
+description:
+  "Learn how to leverage metrics to track user requests across various services in the Hasura Data Delivery Network.
+  Understand how to diagnose and debug potential failure points and monitor performance for better application
+  management."
+keywords:
+  - hasura ddn
+  - metrics
+  - performance
+  - latency
+  - request rate
+  - error rate
+  - graphql api
+  - opentelemetry
+  - application debugging
+  - application performance
+  - api monitoring
+  - application management
+seoFrontMatterUpdated: true
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Metrics
+
+## Introduction
+
+Hasura DDN ships with a set of metrics that help you monitor and debug performance of your GraphQL API. Simply head to
+the `Performance` tab from `Insights` panel for a project's console, and you'll see performance metrics for all your API
+requests.
+
+From the performance page, metrics can be viewed for either an entire project or a single build.
+
+<Thumbnail src="/img/o11y/v0.1.1_console_performance-metrics.png" alt="Execute a query" width="1000px" />
+
+## Time-series metrics
+
+Time-series metrics are a set of metrics that are collected over time. These metrics are useful for tracking the health
+of your GraphQL API and diagnosing potential failure points. **These metrics can be filtered one day at a time and are
+retained for 30 days.**
+
+### Request Rates
+
+The number of requests to your GraphQL API per minute.
+
+### Request Latency
+
+Request latency is the time taken to execute a request to your GraphQL API. The P99 (99th percentile) metric indicates
+that 99% of requests are completed within the recorded time whereas the P95 (95th percentile) metric indicates that 95%
+of requests are completed within the recorded time.
+
+### Error Rate
+
+The percentage of requests to your GraphQL API that resulted in an error.

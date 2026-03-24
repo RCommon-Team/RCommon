@@ -1,0 +1,160 @@
+---
+sidebar_position: 4
+sidebar_label: Vector Search
+description:
+  "Vector search allows you to run vector similarity queries on your PostgreSQL database. This page explains how to
+  configure vector search in Hasura using native queries."
+keywords:
+  - native queries
+  - vector search
+  - vector
+  - similarity
+  - neighbor
+  - nearest neighbor
+  - pgvector
+seoFrontMatterUpdated: false
+---
+
+# Vector Search
+
+Vector search allows you to run queries on vector types in your PostgreSQL database. This page explains how to configure
+vector search in Hasura using Native Queries.
+
+:::info Prerequisites
+
+In order to run a vector search query, you need to have a PostgreSQL database with the
+[`pgvector` extension](https://github.com/pgvector/pgvector) installed. You'll also need data in the database which has
+been vectorized using a [model such as `word2vec`](https://www.tensorflow.org/text/tutorials/word2vec).
+
+:::
+
+## Example
+
+Imagine a `products` table like the one we use in the docs-sample-app with the following columns:
+
+| Column Name       | Type        |
+| ----------------- | ----------- |
+| id                | uuid        |
+| name              | text        |
+| description       | text        |
+| price             | int4        |
+| manufacturer_id   | uuid        |
+| category_id       | uuid        |
+| image             | text        |
+| country_of_origin | text        |
+| created_at        | timestamptz |
+| updated_at        | timestamptz |
+| vector            | vector      |
+
+We want to be able to run vector searches on the `vector` column of this table. We can do this by writing a query to
+project the vector similarity given a query vector and expose it as a model in Hasura. Then, we can create a
+relationship from this projection to the full products table and query it flexibly in the GraphQL API.
+
+### Create a vector search Native Query
+
+1. Create a new SQL file under the connector configuration directory
+   `my_subgraph/connector/my_pg/native_operations/queries/products_vector_distance.sql` with the following content:
+
+   ```sql
+   SELECT
+   id,
+   vector <=> {{query_vector}} AS distance
+   FROM products
+   ```
+
+2. Create an entry for the Native Query in the connector configuration:
+
+   ```sh
+   ddn connector plugin --connector my_subgraph/connector/my_pg/connector.yaml -- \
+     native-operation create --operation-path native_operations/queries/products_vector_distance.sql --kind query
+   ```
+
+### Hasura metadata
+
+First, you would need to track the newly-available collection from the step above as types / models in your project's
+metadata ([see instructions here](/data-modeling/overview.mdx)). Then, you would need to add a relationship from the
+generated `ProductsVectorDistance` type to the main `Products` model, like this:
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: product
+  source: ProductsVectorDistance
+  target:
+    model:
+      name: Products
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: id
+```
+
+### Usage
+
+Now you can use the flexibility of Hasura's GraphQL API to search your vectors in many ways.
+
+#### Search products based on vector
+
+```graphql
+query MyQuery {
+  productsVectorDistance(args: { query_vector: "<input vector>" }, limit: 10, order_by: { distance: Asc }) {
+    id
+    distance
+    product {
+      name
+    }
+  }
+}
+```
+
+#### Search products based on price and vector
+
+```graphql
+query MyQuery {
+  productsVectorDistance(
+    args: { query_vector: "<input vector>" }
+    limit: 10
+    order_by: { distance: Asc }
+    where: { product: { price: { _gt: 500 } } }
+  ) {
+    id
+    distance
+    product {
+      name
+    }
+  }
+}
+```
+
+### Permissions
+
+You can also set the appropriate model permissions to restrict which rows can be accessed by an API client. The
+permissions predicate for the vectors can also traverse relationships.
+
+For example, if we want to restrict manufacturers to being able to search vectors only for their own products, and
+assuming the currently logged in manufacturer's ID is present in the session variable `x-hasura-manufacturer-id`, we
+would add the following to the metadata:
+
+```yaml
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: ProductsVectorDistance
+  permissions:
+    - role: manufacturer
+      select:
+        filter:
+          relationship:
+            name: product
+            predicate:
+              fieldComparison:
+                field: manufacturer_id
+                operator: _eq
+                value:
+                  sessionVariable: x-hasura-manufacturer-id
+```

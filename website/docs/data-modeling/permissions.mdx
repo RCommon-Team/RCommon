@@ -1,0 +1,131 @@
+---
+sidebar_position: 5
+sidebar_label: "Permissions protect data"
+description: "Permissions allow you to control who can access your data and what they can do with it."
+keywords:
+  - permissions
+  - data modeling
+toc_max_heading_level: 4
+---
+
+# Permissions Protect Data
+
+## Introduction
+
+Permissions keep data secure by allowing you to control what can be accessed in your API by which user roles.
+
+When an authentication mode is enabled, the Hasura engine will look for session variables on every API request, it can
+then use permissions defined in metadata and the session variables to determine if the request is allowed to proceed.
+
+## Lifecycle
+
+Hasura DDN uses Role Based Access Control (RBAC) to determine which user roles can access which data.
+
+The DDN CLI will automatically create permissions for your models and commands when they are added to your metadata for
+only the `admin` role by default.
+
+All other permissions for all other user roles must be added manually.
+
+## Create permissions
+
+### Row access
+
+You can create a `ModelPermission` object to implement row-level security and restrict which rows a user can access.
+
+For example, to only allow users to access their own records in the `Users` table:
+
+```yaml title=""
+---
+# e.g., Users.hml
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Users
+  permissions:
+    # admin is present by default
+    - role: admin
+      select:
+        filter: null
+    #highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+    #highlight-end
+```
+
+The highlighted role above will filter responses from the `Users` field in your API to only those whose `id` matches the
+`x-hasura-user-id` passed in the header of the request.
+
+### Field access
+
+To restrict which fields can be queried, you can create a `TypePermission` object.
+
+Below, the user role can only access the `name` field, not the `id` field which the admin role can.
+
+```yaml title="The user role can only access their name field:"
+# e.g., Users.hml
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Users
+  permissions:
+    # admin is present by default
+    - role: admin
+      output:
+        allowedFields:
+          - id
+          - name
+    #highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - name
+    #highlight-end
+```
+
+### Command (mutation) access
+
+To determine commands can be executed by which roles, you can create a `CommandPermission` object.
+
+```yaml title="In this example, we'll make it so a user can update their own record:"
+# e.g., UpdateUsersById.hml
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: UpdateUsersById # Specify the existing command
+  permissions:
+    - role: admin
+      allowExecution: true
+      #highlight-start
+    - role: user
+      allowExecution: true
+      argumentPresets: # Specify the arguments and their values which need to be passed to the command
+        - argument: keyId
+          value:
+            sessionVariable: "x-hasura-user-id" # The value of the argument must equal the session variable
+      #highlight-end
+```
+
+## Update permissions
+
+Since all permissions are stored in metadata, you can use your text editor to find and update them easily.
+
+For example, to check everything which the `user` role can access, search for `- role: user` and analyze the results.
+
+## Deleting permissions
+
+If you no longer need a role, find all mentions of it in your metadata and remove them all.
+
+If you no longer need a particular permission, simply remove it from the relevant `ModelPermissions`, `TypePermissions`,
+or `CommandPermissions` object.
+
+## Reference
+
+You can learn more about permissions in the metadata reference [docs](/reference/metadata-reference/permissions.mdx).

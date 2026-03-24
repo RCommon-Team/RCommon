@@ -1,0 +1,66 @@
+---
+sidebar_label: ddn console
+sidebar_position: 52
+description: Open the DDN console using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_console"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn console
+---
+
+# DDN CLI: ddn console
+
+Open the DDN console.
+
+## Synopsis
+
+Open the DDN console
+
+```bash
+ddn console [flags]
+```
+
+## Examples
+
+```bash
+# Open the console for the DDN project set in the context
+ ddn console
+
+# Open the local dev console
+ ddn console --local
+
+# Open the local dev console with a specific engine url
+ ddn console --url http://localhost:8080
+
+# Open the console for a specific DDN project
+ ddn console --project my-project-123
+
+# Open the console for a specific SupergraphBuild
+ ddn console --project my-project-123 --build-version build-version-123
+```
+
+## Options
+
+```sass
+    --build-version string   SupergraphBuild version
+-h, --help                   help for console
+    --local                  Open the local dev console
+-p, --project string         DDN Project name
+    --url string             Local engine url
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

@@ -1,0 +1,97 @@
+---
+description: "Learn how to use Hasura's JSON:API schema endpoint to explore and integrate with your API"
+title: JSON:API Schema
+sidebar_label: Schema
+keywords:
+  - hasura
+  - json:api
+  - openapi
+  - schema
+  - rest
+  - api
+  - documentation
+sidebar_position: 3
+---
+
+# JSON:API Schema
+
+## Introduction
+
+Hasura DDN provides an [OpenAPI 3.1](https://swagger.io/specification/) schema endpoint for the JSON:API interface,
+making it easier to explore, test, and integrate with your API. This schema gives you a complete overview of your API's
+structure, including available endpoints, models, and operations.
+
+With the OpenAPI specification, you can generate interactive documentation using tools like Swagger UI or Redoc, making
+it simple to explore and understand your API. If you're building a client application, OpenAPI code generators can help
+you quickly scaffold client code. For testing, you can import the schema into Postman to validate requests and
+responses. Additionally, the schema enables automatic type generation for various programming languages, ensuring type
+safety in your applications.
+
+By leveraging this schema, you can streamline API development, debugging, and integration, all while maintaining a
+standardized approach to working with JSON:API in Hasura DDN.
+
+## Schema endpoint
+
+```http title="To retrieve the OpenAPI specification for your JSON:API endpoints, send a GET request to:"
+GET /v1/jsonapi/__schema
+```
+
+The response will be a standard OpenAPI 3.1 specification in JSON format, describing all available endpoints, models,
+and operations.
+
+### Authentication
+
+The schema endpoint follows the same authentication rules as your other API endpoints. Make sure to include appropriate
+authentication headers as configured in your [authentication settings](/auth/overview.mdx).
+
+### Response format
+
+The response is a JSON document conforming to the OpenAPI 3.1 specification. It includes:
+
+- API information and version
+- Available endpoints and operations
+- Model schemas and relationships
+- Request/response formats
+
+```json title="Example response:"
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hasura JSONAPI (alpha)",
+    "description": "REST API generated to match the JSON:API spec: https://jsonapi.org",
+    "version": "0.1"
+  },
+  "paths": {
+    // Available endpoints and operations
+  },
+  "components": {
+    // Reusable components and schemas
+  }
+}
+```
+
+## Integration examples
+
+### Swagger UI
+
+To view your API documentation in Swagger UI:
+
+1. Visit [Swagger Editor](https://editor.swagger.io)
+2. Copy your schema JSON from the `/__schema` endpoint
+3. Paste it into the editor
+
+### Postman
+
+To import your API into Postman:
+
+1. Copy the URL of your schema endpoint
+2. In Postman, click "Import" > "OpenAPI"
+3. Paste the URL or import the JSON directly
+
+## Learn more
+
+- [Query your data with JSON:API](/json-api/queries/index.mdx)
+- [Filter query results](/json-api/queries/filters.mdx)
+- [Include relationships](/json-api/queries/relationships.mdx)
+- [Sort query results](/json-api/queries/sorting.mdx)
+- [Paginate through results](/json-api/queries/pagination.mdx)

@@ -1,0 +1,57 @@
+---
+sidebar_label: ddn model show
+sidebar_position: 70
+description: Show diff between the model and its corresponding ndc collection using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_model_show"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn model show
+---
+
+# DDN CLI: ddn model show
+
+Show diff between the model and its corresponding ndc collection.
+
+## Synopsis
+
+Show diff between the model and its corresponding ndc collection
+
+```bash
+ddn model show <model-name> [flags]
+```
+
+## Examples
+
+```bash
+# Show diff between the 'Carts' model and its corresponding ndc collection
+ ddn model show Carts
+
+# Show diff between models and their corresponding ndc collections for all models matching glob pattern 'User*'
+ ddn model show "User*"
+```
+
+## Options
+
+```sass
+    --ci                Disables the use of context
+-c, --context string    Name of the context to use. (default <current_context>)
+-h, --help              help for show
+    --pattern string    Pattern to detect targets. Can be 'glob' or 'literal'. (default "glob")
+    --subgraph string   Path to Subgraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn model](/reference/cli/commands/ddn_model) - Perform Model-related operations

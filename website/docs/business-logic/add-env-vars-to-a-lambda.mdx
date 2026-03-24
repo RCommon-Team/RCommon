@@ -1,0 +1,42 @@
+---
+sidebar_position: 4
+sidebar_label: Add custom environment variables
+description: "Learn how to add and access custom environment variables to your lambda connector."
+keywords:
+  - hasura
+  - hasura ddn
+  - cicd
+  - api deployment
+  - business logic
+---
+
+# Add Custom Environment Variables
+
+## Introduction
+
+Custom environment variables allow you to define configuration values specific to your deployment. These variables can
+be used to set API keys, connection strings, or other parameters that your application or connectors need. When you run
+the `ddn connector env add` command, it automatically updates multiple files to ensure the environment variables are
+available across your project:
+
+- **`.env`**: Adds the variable to the [current context's](/reference/cli/commands/ddn_context.mdx) environment
+  configuration file for easy access during development.
+- **`connector.yaml`**: Updates the connector's configuration to include the variable for deployment.
+- **`compose.yaml`**: Ensures the variable is included in the Docker Compose configuration for runtime.
+
+## Add an environment variable
+
+```sh title="From a project directory, run:"
+ddn connector env add <connector_name> --env FOO=bar
+```
+
+Repeat these steps for each additional variable.
+
+## Use an environment variable
+
+After creating a new build and running your connector, you can access your environment variable(s) via whatever
+conventions your language of choice prefers. For detailed instructions, refer to the following resources:
+
+- **Node.js**: Using [dotenv](https://github.com/motdotla/dotenv#readme)
+- **Python**: Using [python-dotenv](https://pypi.org/project/python-dotenv/)
+- **Go**: Using [godotenv](https://github.com/joho/godotenv)

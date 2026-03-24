@@ -1,0 +1,741 @@
+---
+sidebar_label: AuthConfig
+description: "Configure the authentication configuration used by the API server in Hasura."
+seoFrontMatterUpdated: true
+toc_max_heading_level: 4
+sidebar_position: 14
+canonicalUrl: "https://promptql.io/docs/reference/metadata-reference/auth-config/"
+---
+
+# AuthConfig
+
+## Introduction
+
+The `AuthConfig` object is used to define the authentication configuration used by the API. With Hasura, you can utilize
+either webhooks or JWTs for authentication. **The AuthConfig object belongs to the supergraph** and can be defined
+**once** across your supergraph in **any subgraph** of your choice using one of the following modes:
+
+| Mode                | Description                                                                                                                            |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| [noAuth](#noAuth)   | This is enabled by default and allows you to connect to your API without any authentication. **It is not recommended for production.** |
+| [JWT](#jwt)         | This allows you to use JWTs for authentication.                                                                                        |
+| [Webhook](#webhook) | This allows you to use a custom webhook for authentication.                                                                            |
+
+You can learn more about Hasura's approach to using existing authentication systems in the
+[auth section](/auth/overview.mdx).
+
+## How AuthConfig works
+
+### Lifecycle
+
+By default, all projects are created with an `AuthConfig` object in the **globals** subgraph in a `noAuth` mode that
+doesn't use any auth service and doesn't allow setting session variables with API requests. Meaning that your API is, by
+default, fully public and exposed if deployed live.
+
+However, you would want update the `AuthConfig` to use a custom webhook or JWT service for authentication to restrict
+access to your API and make use of Hasura's powerful [authorization](/auth/overview.mdx) features. The metadata examples
+below can help you configure your `AuthConfig` object to use your own custom webhook or JWT service.
+
+An AuthConfig object is required to be defined in the supergraph metadata. If not defined, any attempted builds will not
+be successful.
+
+To make an update AuthConfig available in your supergraph, after updating your metadata, you'll need to
+[create a new build](/reference/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
+Each example below offers numerous customizations. However, we've provided a basic example for each mode to get you
+started. Check the reference table for more information on each field.
+
+#### noAuth {#noAuth}
+
+```yaml title="An AuthConfig for noAuth mode:"
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    noAuth:
+      role: admin
+      sessionVariables: {}
+```
+
+| **Field**          | **Description**                                                                                                                                                                                                                  | **Reference**                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `role`             | The role to be assumed while running the engine in `noAuth` mode.                                                                                                                                                                | [Role](#authconfig-role)                         |
+| `sessionVariables` | Static session variables that will be used while running the engine without authentication. This is helpful when you want to test requests using particular session variables, such as `x-hasura-user-id` with a non-admin role. | [SessionVariables](#authconfig-sessionvariables) |
+
+#### JWT
+
+```yaml title="An AuthConfig for JWT mode:"
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: HS256
+          key:
+            valueFromEnv: AUTH_SECRET
+```
+
+| **Field**       | **Description**                                                                                                                                                                                                                                                                     | **Reference**                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `claimsConfig`  | Configuration to describe how and where the engine should look for the claims within the decoded token. You can vary the format and location of the claims.                                                                                                                         | [JWTClaimsConfig](#authconfig-jwtclaimsconfig)   |
+| `tokenLocation` | Specifies the source of the JWT authentication token and how it should be parsed.                                                                                                                                                                                                   | [JWTTokenLocation](#authconfig-jwttokenlocation) |
+| `key`           | Configuration for the JWT key, specifying how the incoming JWT will be verified and decoded. In this example, we've used a fixed key that's stored as an environment variable in our root-level `.env` file that is also mapped to the `subgraph.yaml` in our `/globals` directory. | [JWTKey](#authconfig-jwtkey)                     |
+
+#### Webhook
+
+```yaml title="An AuthConfig for Webhook mode:"
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    webhook:
+      url:
+        value: http://auth_hook:3050/validate-request
+      method: POST
+      customHeadersConfig:
+        body:
+          headers:
+            forward:
+              - authorization
+              - content-type
+        headers:
+          additional:
+            user-agent: "Hasura DDN"
+```
+
+| **Field**             | **Description**                                                                                                                                                           | **Reference**                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `url`                 | The URL of the authentication webhook that will be called to validate authentication. This can be a static URL or an environment variable.                                | [EnvironmentValue](#authconfig-environmentvalue)                       |
+| `method`              | The HTTP method (`GET` or `POST`) that will be used to make the request to the auth hook.                                                                                 | [AuthHookConfigV3](#authconfig-authhookconfigv3)                       |
+| `customHeadersConfig` | Configuration for the headers and body to be sent to the auth hook. This can be used to forward headers from the client request or add additional headers to the request. | [AuthHookConfigV3POSTHeaders](#authconfig-authhookconfigv3postheaders) |
+
+---
+
+## Metadata structure
+
+
+#### AuthConfig {#authconfig-authconfig}
+
+Definition of the authentication configuration used by the API server.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [AuthConfigV1](#authconfig-authconfigv1) | Definition of the authentication configuration v1, used by the API server. |
+| [AuthConfigV2](#authconfig-authconfigv2) | Definition of the authentication configuration v2, used by the API server. |
+| [AuthConfigV3](#authconfig-authconfigv3) |  |
+| [AuthConfigV4](#authconfig-authconfigv4) |  |
+
+
+
+#### AuthConfigV4 {#authconfig-authconfigv4}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `AuthConfig` | true |  |
+| `version` | `v4` | true |  |
+| `definition` | [AuthConfig (V4)](#authconfig-authconfig-(v4)) | true | Definition of the authentication configuration v4, used by the API server. |
+
+
+
+#### AuthConfig (V4) {#authconfig-authconfig-(v4)}
+
+Definition of the authentication configuration v4, used by the API server.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `mode` | [AuthModeConfigV3](#authconfig-authmodeconfigv3) | true |  |
+| `alternativeModes` | [[AlternativeMode](#authconfig-alternativemode)] / null | false |  |
+
+
+
+#### AlternativeMode {#authconfig-alternativemode}
+
+Alternative Authentication Modes
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `identifier` | string | true |  |
+| `config` | [AuthModeConfigV3](#authconfig-authmodeconfigv3) | true |  |
+
+
+
+#### AuthConfigV3 {#authconfig-authconfigv3}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `AuthConfig` | true |  |
+| `version` | `v3` | true |  |
+| `definition` | [AuthConfig (V3)](#authconfig-authconfig-(v3)) | true | Definition of the authentication configuration v3, used by the API server. |
+
+
+
+#### AuthConfig (V3) {#authconfig-authconfig-(v3)}
+
+Definition of the authentication configuration v3, used by the API server.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `mode` | [AuthModeConfigV3](#authconfig-authmodeconfigv3) | true | The configuration for the authentication mode to use - webhook, JWT or NoAuth. |
+
+
+
+#### AuthModeConfigV3 {#authconfig-authmodeconfigv3}
+
+The configuration for the authentication mode to use - webhook, JWT or NoAuth.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `webhook` | [AuthHookConfigV3](#authconfig-authhookconfigv3) | false | The configuration of the authentication webhook. |
+| `jwt` | [JWTConfig](#authconfig-jwtconfig) | false |  |
+| `noAuth` | [NoAuthConfig](#authconfig-noauthconfig) | false |  |
+
+
+
+#### AuthHookConfigV3 {#authconfig-authhookconfigv3}
+
+The configuration of the authentication webhook.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [AuthHookConfigV3GET](#authconfig-authhookconfigv3get) | The configuration of the GET authentication webhook. |
+| [AuthHookConfigV3POST](#authconfig-authhookconfigv3post) | The configuration of the POST authentication webhook. |
+
+ **Example:**
+
+```yaml
+method: GET
+url:
+  value: http://auth_hook:3050/validate-request
+customHeadersConfig:
+  headers:
+    forward:
+      - Authorization
+    additional:
+      user-agent: hasura-ddn
+```
+
+
+#### AuthHookConfigV3POST {#authconfig-authhookconfigv3post}
+
+The configuration of the POST authentication webhook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `method` | `POST` | true |  |
+| `url` | [EnvironmentValue](#authconfig-environmentvalue) | true | The URL of the POST authentication webhook. |
+| `customHeadersConfig` | [AuthHookConfigV3POSTHeaders](#authconfig-authhookconfigv3postheaders) / null | false | The configuration for the headers to be sent to the POST auth hook. |
+
+ **Example:**
+
+```yaml
+url:
+  value: http://auth_hook:3050/validate-request
+customHeadersConfig:
+  headers:
+    forward: '*'
+    additional:
+      user-agent: hasura-ddn
+  body:
+    headers:
+      forward:
+        - Authorization
+      additional: {}
+```
+
+
+#### AuthHookConfigV3POSTHeaders {#authconfig-authhookconfigv3postheaders}
+
+The configuration for the headers and body to be sent to the POST auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `headers` | [AuthHookConfigV3Headers](#authconfig-authhookconfigv3headers) / null | false | The configuration for the headers to be sent to the POST auth hook. |
+| `body` | [AuthHookConfigV3Body](#authconfig-authhookconfigv3body) / null | false | The configuration for the body to be sent to the POST auth hook. |
+
+ **Example:**
+
+```yaml
+headers:
+  forward: '*'
+  additional:
+    user-agent: hasura-ddn
+body:
+  headers:
+    forward:
+      - Authorization
+    additional: {}
+```
+
+
+#### AuthHookConfigV3Body {#authconfig-authhookconfigv3body}
+
+The configuration for the body to be sent to the POST auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `headers` | [AuthHookConfigV3Headers](#authconfig-authhookconfigv3headers) / null | false | The configuration for the headers to be sent as part of the body to the POST auth hook. |
+
+ **Example:**
+
+```yaml
+headers:
+  forward:
+    - Authorization
+  additional: {}
+```
+
+
+#### AuthHookConfigV3GET {#authconfig-authhookconfigv3get}
+
+The configuration of the GET authentication webhook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `method` | `GET` | true |  |
+| `url` | [EnvironmentValue](#authconfig-environmentvalue) | true | The URL of the GET authentication webhook. |
+| `customHeadersConfig` | [AuthHookConfigV3GETHeaders](#authconfig-authhookconfigv3getheaders) / null | false | The configuration for the headers to be sent to the GET auth hook. |
+
+ **Example:**
+
+```yaml
+url:
+  value: http://auth_hook:3050/validate-request
+customHeadersConfig:
+  headers:
+    forward:
+      - Authorization
+    additional:
+      user-agent: hasura-ddn
+```
+
+
+#### AuthHookConfigV3GETHeaders {#authconfig-authhookconfigv3getheaders}
+
+The configuration for the headers to be sent to the GET auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `headers` | [AuthHookConfigV3Headers](#authconfig-authhookconfigv3headers) / null | false |  |
+
+ **Example:**
+
+```yaml
+headers:
+  forward:
+    - Authorization
+  additional:
+    user-agent: hasura-ddn
+```
+
+
+#### AuthHookConfigV3Headers {#authconfig-authhookconfigv3headers}
+
+The configuration for the headers to be sent to the auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `forward` | [AllOrList](#authconfig-allorlist) | false | The headers to be forwarded from the client request. |
+| `additional` | [AdditionalHeaders](#authconfig-additionalheaders) | false | The additional headers to be sent to the auth hook. |
+
+ **Example:**
+
+```yaml
+forward:
+  - Authorization
+additional:
+  user-agent: hasura-ddn
+```
+
+
+#### AdditionalHeaders {#authconfig-additionalheaders}
+
+The additional headers to be sent to the auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | string | false |  |
+
+
+
+#### AllOrList {#authconfig-allorlist}
+
+A list of items or a wildcard.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [All](#authconfig-all) | Wildcard: match all items |
+| [string] |  |
+
+ **Example:**
+
+```yaml
+'*'
+```
+
+
+#### All {#authconfig-all}
+
+Wildcard: match all items
+
+
+**Value:** `*`
+
+
+#### AuthConfigV2 {#authconfig-authconfigv2}
+
+Definition of the authentication configuration v2, used by the API server.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `AuthConfig` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [AuthConfig (V2)](#authconfig-authconfig-(v2)) | true | Definition of the authentication configuration v2, used by the API server. |
+
+
+
+#### AuthConfig (V2) {#authconfig-authconfig-(v2)}
+
+Definition of the authentication configuration v2, used by the API server.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `mode` | [AuthModeConfig](#authconfig-authmodeconfig) | true |  |
+
+
+
+#### AuthConfigV1 {#authconfig-authconfigv1}
+
+Definition of the authentication configuration v1, used by the API server.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `AuthConfig` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [AuthConfig (V1)](#authconfig-authconfig-(v1)) | true | Definition of the authentication configuration v1, used by the API server. |
+
+
+
+#### AuthConfig (V1) {#authconfig-authconfig-(v1)}
+
+Definition of the authentication configuration v1, used by the API server.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `allowRoleEmulationBy` | [Role](#authconfig-role) / null | false |  |
+| `mode` | [AuthModeConfig](#authconfig-authmodeconfig) | true | The configuration for the authentication mode to use - webhook, JWT or NoAuth. |
+
+
+
+#### AuthModeConfig {#authconfig-authmodeconfig}
+
+The configuration for the authentication mode to use - webhook, JWT or NoAuth.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `webhook` | [AuthHookConfig](#authconfig-authhookconfig) | false | The configuration of the authentication webhook. |
+| `jwt` | [JWTConfig](#authconfig-jwtconfig) | false | JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims. |
+| `noAuth` | [NoAuthConfig](#authconfig-noauthconfig) | false | Configuration used when running engine without authentication |
+
+
+
+#### NoAuthConfig {#authconfig-noauthconfig}
+
+Configuration used when running engine without authentication
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `role` | [Role](#authconfig-role) | true | role to assume whilst running the engine |
+| `sessionVariables` | [SessionVariables](#authconfig-sessionvariables) | true | static session variables to use whilst running the engine |
+
+ **Example:**
+
+```yaml
+role: admin
+sessionVariables:
+  x-hasura-user-id: '100'
+```
+
+
+#### SessionVariables {#authconfig-sessionvariables}
+
+static session variables to use whilst running the engine
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` |  | false | JSON value of a session variable |
+
+
+
+#### JWTConfig {#authconfig-jwtconfig}
+
+JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `audience` | [string] / null | false | Optional validation to check that the `aud` field is a member of the `audience` received, otherwise will throw error. |
+| `issuer` | string / null | false | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error. |
+| `allowedSkew` | integer / null | false | Allowed leeway (in seconds) to the `exp` validation to account for clock skew. |
+| `claimsConfig` | [JWTClaimsConfig](#authconfig-jwtclaimsconfig) | true | Claims config. Either specified via `claims_mappings` or `claims_namespace_path` |
+| `tokenLocation` | [JWTTokenLocation](#authconfig-jwttokenlocation) | true | Source of the JWT authentication token. |
+| `key` | [JWTKey](#authconfig-jwtkey) | true | Mode according to which the JWT auth is configured. |
+
+ **Example:**
+
+```yaml
+audience: null
+issuer: null
+allowedSkew: null
+claimsConfig:
+  namespace:
+    claimsFormat: Json
+    location: /claims.jwt.hasura.io
+tokenLocation:
+  type: BearerAuthorization
+key:
+  fixed:
+    algorithm: HS256
+    key:
+      value: token
+```
+
+
+#### JWTKey {#authconfig-jwtkey}
+
+JWT key configuration according to which the incoming JWT will be decoded.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `fixed` | [JWTKeyConfig](#authconfig-jwtkeyconfig) | false | JWT Secret config according to which the incoming JWT will be decoded. |
+| `jwkFromUrl` | string | false |  |
+
+
+
+#### JWTKeyConfig {#authconfig-jwtkeyconfig}
+
+JWT Secret config according to which the incoming JWT will be decoded.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `algorithm` | [JWTAlgorithm](#authconfig-jwtalgorithm) | true | The algorithm used to decode the JWT. |
+| `key` | [EnvironmentValue](#authconfig-environmentvalue) | true | The key to use for decoding the JWT. |
+
+
+
+#### EnvironmentValue {#authconfig-environmentvalue}
+
+Either a literal string or a reference to a Hasura secret
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `value` | string | false |  |
+| `valueFromEnv` | string | false |  |
+
+
+
+#### JWTAlgorithm {#authconfig-jwtalgorithm}
+
+The algorithm used to decode the JWT.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| `HS256` | HMAC using SHA-256 |
+| `HS384` | HMAC using SHA-384 |
+| `HS512` | HMAC using SHA-512 |
+| `ES256` | ECDSA using SHA-256 |
+| `ES384` | ECDSA using SHA-384 |
+| `RS256` | RSASSA-PKCS1-v1_5 using SHA-256 |
+| `RS384` | RSASSA-PKCS1-v1_5 using SHA-384 |
+| `RS512` | RSASSA-PKCS1-v1_5 using SHA-512 |
+| `PS256` | RSASSA-PSS using SHA-256 |
+| `PS384` | RSASSA-PSS using SHA-384 |
+| `PS512` | RSASSA-PSS using SHA-512 |
+| `EdDSA` | Edwards-curve Digital Signature Algorithm (EdDSA) |
+
+
+
+#### JWTTokenLocation {#authconfig-jwttokenlocation}
+
+Source of the Authorization token
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [JWTBearerAuthorizationLocation](#authconfig-jwtbearerauthorizationlocation) | Get the bearer token from the `Authorization` header. |
+| [JWTCookieLocation](#authconfig-jwtcookielocation) | Get the token from the Cookie header under the specified cookie name. |
+| [JWTHeaderLocation](#authconfig-jwtheaderlocation) | Custom header from where the header should be parsed from. |
+
+
+
+#### JWTHeaderLocation {#authconfig-jwtheaderlocation}
+
+Custom header from where the header should be parsed from.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `type` | `Header` | true |  |
+| `name` | string | true |  |
+
+
+
+#### JWTCookieLocation {#authconfig-jwtcookielocation}
+
+Get the token from the Cookie header under the specified cookie name.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `type` | `Cookie` | true |  |
+| `name` | string | true |  |
+
+
+
+#### JWTBearerAuthorizationLocation {#authconfig-jwtbearerauthorizationlocation}
+
+Get the bearer token from the `Authorization` header.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `type` | `BearerAuthorization` | true |  |
+
+
+
+#### JWTClaimsConfig {#authconfig-jwtclaimsconfig}
+
+Config to describe how/where the engine should look for the claims within the decoded token.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `locations` | [JWTClaimsMap](#authconfig-jwtclaimsmap) | false | Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value. |
+| `namespace` | [JWTClaimsNamespace](#authconfig-jwtclaimsnamespace) | false | Used when all of the Hasura claims are present in a single object within the decoded JWT. |
+
+
+
+#### JWTClaimsNamespace {#authconfig-jwtclaimsnamespace}
+
+Used when all of the Hasura claims are present in a single object within the decoded JWT.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `claimsFormat` | [JWTClaimsFormat](#authconfig-jwtclaimsformat) | true | Format in which the Hasura claims will be present. |
+| `location` | string | true | Pointer to lookup the Hasura claims within the decoded claims. |
+
+
+
+#### JWTClaimsFormat {#authconfig-jwtclaimsformat}
+
+Format in which the Hasura claims will be present.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| `Json` | Claims will be in the JSON format. |
+| `StringifiedJson` | Claims will be in the Stringified JSON format. |
+
+
+
+#### JWTClaimsMap {#authconfig-jwtclaimsmap}
+
+Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `x-hasura-default-role` | [JWTClaimsMappingEntry](#authconfig-jwtclaimsmappingentry) | true | JSON pointer to lookup the default role within the decoded JWT. |
+| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#authconfig-jwtclaimsmappingentry) | true | JSON pointer to lookup the allowed roles within the decoded JWT. |
+| `<customKey>` | [JWTClaimsMappingEntry](#authconfig-jwtclaimsmappingentry) | false |  |
+
+
+
+#### JWTClaimsMappingEntry {#authconfig-jwtclaimsmappingentry}
+
+JSON pointer to lookup the default role within the decoded JWT.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `literal` | [Role](#authconfig-role) | false |  |
+| `path` | [JWTClaimsMappingPathEntry](#authconfig-jwtclaimsmappingpathentry) | false | Entry to lookup the Hasura claims at the specified JSON Pointer |
+
+
+
+#### JWTClaimsMappingPathEntry {#authconfig-jwtclaimsmappingpathentry}
+
+Entry to lookup the Hasura claims at the specified JSON Pointer
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `path` | string | true | JSON pointer to find the particular claim in the decoded JWT token. |
+| `default` | [Role](#authconfig-role) / null | false | Default value to be used when no value is found when looking up the value using the `path`. |
+
+
+
+#### AuthHookConfig {#authconfig-authhookconfig}
+
+The configuration of the authentication webhook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `url` | string | true | The URL of the authentication webhook. |
+| `method` | [AuthHookMethod](#authconfig-authhookmethod) | true | The HTTP method to be used to make the request to the auth hook. |
+
+ **Example:**
+
+```yaml
+url: http://auth_hook:3050/validate-request
+method: Post
+```
+
+
+#### AuthHookMethod {#authconfig-authhookmethod}
+
+The HTTP method to be used to make the request to the auth hook.
+
+
+**Value:** `Get` / `Post`
+
+
+#### Role {#authconfig-role}
+
+
+**Value:** string

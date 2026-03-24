@@ -1,0 +1,53 @@
+---
+sidebar_label: ddn supergraph build diff
+sidebar_position: 108
+description: See changes made to the GraphQL schema from one build version to another. using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_supergraph_build_diff"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn supergraph build diff
+---
+
+# DDN CLI: ddn supergraph build diff
+
+See changes made to the GraphQL schema from one build version to another..
+
+## Synopsis
+
+See changes made to the GraphQL schema from one build version to another.
+
+```bash
+ddn supergraph build diff <build-version-1> <build-version-2> [flags]
+```
+
+## Examples
+
+```bash
+# Compare changes made to the GraphQL schema from build version "qfrr5e5jyw" to "g6v6nh73h0" for Project "pet-lion-2649"
+ ddn supergraph build diff qfrr5e5jyw g6v6nh73h0 --project pet-lion-2649
+```
+
+## Options
+
+```sass
+    --ci               Disables the use of context
+-c, --context string   Name of the context to use. (default <current_context>)
+-h, --help             help for diff
+-p, --project string   DDN Project name
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn supergraph build](/reference/cli/commands/ddn_supergraph_build) - Perform SupergraphBuild-related operations

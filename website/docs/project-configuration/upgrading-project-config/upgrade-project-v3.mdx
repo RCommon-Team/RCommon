@@ -1,0 +1,495 @@
+---
+sidebar_position: 3
+sidebar_label: Upgrade to project config v3
+description: "Guide to migrate local projects created by CLI versions < v2.0.0"
+keywords:
+  - hasura ddn
+  - data delivery network
+  - hasura cli
+  - project configuration
+  - hasura metadata management
+  - yaml configuration
+  - api development
+  - hasura build profiles
+  - hasura subgraphs
+  - hasura project management
+toc_max_heading_level: 4
+---
+
+import InstallTheCli from "@site/docs/_install-the-cli.mdx";
+
+# Upgrading to project config v3
+
+## What has happened?
+
+A new revision (**v2.x.x**) of the [DDN CLI](/reference/cli/installation.mdx) has been released with some changes to the
+project directory structure and CLI commands. With this release, local project directory structures created by CLI
+versions **\< v2.0.0** are now deprecated.
+
+## What has changed?
+
+- The project config version defined in `hasura.yaml` is bumped from `v2` to `v3`.
+- The `Connector` object is upgraded from `v1` to `v2`.
+- The `Subgraph` object is upgraded from `v1` to `v2`.
+
+### Named contexts
+
+Named contexts are introduced. You can now create multiple contexts to easily switch between different deployment
+scenarios. e.g.
+
+```bash
+ddn supergraph build create --context staging  # will use cloudEnvFile from staging context, e.g. .env.stg
+ddn supergraph build create --context prod  # will use cloudEnvFile from prod context, e.g. .env.prod
+```
+
+### Top-level env files
+
+To simplify the management of environment variables across connectors and subgraphs in your supergraph, the CLI now
+defaults to using a common top-level `.env` file instead of generating separate `.env` files for each subgraph and
+connector.
+
+You can set environment files for local development and cloud builds using the `localEnvFile` and `cloudEnvFile` keys in
+the context. **If you're using a shared supergraph config file for both local and cloud environments**, you can specify
+both environment files in your context to manage local and cloud deployments within the same context.
+
+```bash title="In project root with single top-level env files:"
+ddn context set localEnvFile .env
+ddn context set cloudEnvFile .env.cloud
+```
+
+You can then run supergraph build command for both local and DDN using the same context.
+
+```bash
+ddn supergraph build local  # will use localEnvFile from context, i.e. .env
+ddn supergraph build create  # will use cloudEnvFile from context, i.e. .env.cloud
+```
+
+### Default naming convention for GraphQL types/fields
+
+The default naming convention for GraphQL types and fields has changed. The CLI no longer adds the subgraph name as a
+prefix to the generated GraphQL types and fields by default.
+
+You can configure these yourself by [customizing prefixes](#step-42-add-metadata-generator-prefix).
+
+### Subgraph and Connector config env mapping
+
+The environment variables expected by a connector or subgraph now need to be explicitly defined in an `envMapping`
+property in their config files.
+
+The `envMapping` field defines how any provided environment variables are mapped to the environment variables expected
+by the connector / subgraph.
+
+### Simplified workflows using connector mapping
+
+The mapping between connectors in the subgraph and their corresponding connector links can now be defined in the
+subgraph config to simplify connector update and supergraph build operations.
+
+- You can now introspect a connector and update its corresponding connector link using a single command.
+- You can now create a supergraph build on Hasura DDN along with its dependent connector builds using a single command.
+
+:::info Check out the quickstart
+
+We recommend you go through our [new quickstart guide](/quickstart.mdx) to check the simplified workflow to develop your
+API.
+
+:::
+
+### Connector build secure tokens
+
+Any connector build created on Hasura DDN will now be secured with a token. The token needs to be sent as a Bearer token
+in all requests that go to the connector build.
+
+### Command behavior
+
+The behavior, arguments and flags of certain CLI commands have a few changes. Some major changes are listed below:
+
+- `ddn supergraph init`
+  - Takes directory as an argument. `--dir` flag is deprecated.
+  - Also creates a subgraph `app` in the supergraph by default.
+  - Generates a top-level `.env` file for local development.
+  - Sets the `supergraph`, `subgraph` and `localEnvFile` keys in the context.
+- `ddn connector init`
+  - Introduces an interactive flag (`-i`) to simplify choosing the connector type and providing any required env
+    variables.
+  - Writes the required env variables to a `target-env` file.
+  - Also creates the corresponding [data connector link](/reference/metadata-reference/data-connector-links.mdx) for the
+    connector by default.
+- `ddn connector introspect`
+  - Also updates the schema of the corresponding data connector link for the connector by default.
+- `ddn connector build create`
+  - the `region-env` flag has now been deprecated.
+- `ddn supergraph build local`
+  - the `subgraph-env` flag has now been deprecated.
+  - now outputs the build artifacts to the `/engine/build` directory without the need for the `--output-dir` flag.
+  - uses the `localEnvFile` from the context for the build by default.
+- `ddn supergraph build create`
+  - the `subgraph-env` flag has now been deprecated.
+  - uses the `cloudEnvFile` from the context for the build by default.
+
+:::info No changes to existing DDN projects
+
+Note that this is a CLI-only change and does not impact Hasura DDN projects. You can continue using existing DDN
+projects and builds and also be able to create new builds on them with both the new and old CLI revisions.
+
+Though, we strongly recommend updating to the latest version of the CLI and project structure by following the steps
+below.
+
+:::
+
+## Migrate an existing local project
+
+Below are steps to convert a local project created with the DDN CLI versions `< 2.0.0` to the new project structure.
+
+### Step 1: Get the new CLI
+
+<InstallTheCli revision="v4" />
+
+Also, update your Hasura VS Code extension to `v2.x.x` if not done automatically.
+
+:::info Need the previous CLI revision?
+
+Note that the above will overwrite your current DDN CLI revision. You can re-install the previous revision by replacing
+`/ddn/cli/v4/` with `/ddn/cli/v3/` in the above download command.
+
+:::
+
+### Step 2: Run the codemod command
+
+You can update your existing local project by running the following in your project directory:
+
+```bash title="in project root directory, run:"
+ddn codemod upgrade-project-config-v2-to-v3 --dir .
+```
+
+This command will guide you through a series of transformations to update your project to the latest format.
+
+### Step 3: Verify the migration
+
+Create a new local supergraph build using:
+
+```bash
+# set context with local supergraph config e.g. local
+ddn context set-current-context local
+ddn supergraph build local --output-dir engine
+```
+
+Run your local supergraph and verify the generated API is the same as what you had earlier.
+
+Create a new supergraph build on Hasura DDN using:
+
+```bash
+# use context with cloud supergraph config e.g. cloud
+ddn supergraph build create --context cloud
+```
+
+On build completion, the build version, API endpoint, and console URLs will be returned in the response.
+
+You can now head to your project console using the console URL returned in the previous step and verify the API
+generated with the above build is the same as what you had earlier.
+
+### Step 4: Make optional changes
+
+#### Step 4.1: Update engine build dir
+
+As mentioned above, the `ddn supergraph build local` now outputs the build artifacts to the `/engine/build` directory
+without the need for the `--output-dir` flag. To avoid having to provide the flag in the future, you can move your build
+assets to this directory and update the engine compose file to use this directory instead.
+
+##### Step 4.1.1: Move engine build assets
+
+```bash title="in project root directory, run:"
+mkdir engine/build
+mv engine/*.json engine/build
+```
+
+##### Step 4.1.2: Update engine compose file
+
+```yaml title="e.g. compose.yaml"
+services:
+  ...
+  engine:
+    ...
+    build:
+      context: engine
+      dockerfile_inline: |-
+        FROM ghcr.io/hasura/v3-engine
+        #highlight-start
+        # update to the following
+        COPY ./build /md/
+        #highlight-end
+    develop:
+      watch:
+        - action: sync+restart
+          #highlight-start
+          # update to the following
+          path: engine/build
+          #highlight-end
+          target: /md/
+    env_file:
+      - engine/.env.engine
+    ...
+  ...
+```
+
+As the engine build directory contains your local build assets, it can be ignored from you version control. You can
+choose to do so by adding it to a `.gitignore` file.
+
+#### Step 4.2: Add metadata generator prefix
+
+As the CLI now doesn't add the subgraph name as a prefix to the generated GraphQL types and fields by default. You can
+keep the earlier behavior by updating the generator config in your Subgraph configs.
+
+```yaml title="For example, my_subgraph/subgraph.yaml"
+kind: Subgraph
+version: v2
+definition:
+  #highlight-start
+  name: my_subgraph
+  #highlight-end
+  generator:
+    rootPath: .
+    #highlight-start
+    graphqlRootFieldPrefix: my_subgraph_
+    graphqlTypeNamePrefix: My_subgraph_
+    #highlight-end
+  envFile: .env.my_subgraph.local
+  ...
+```
+
+## Things to remember
+
+### Adding new connectors
+
+While adding new connectors, remember to:
+
+- Add the required env vars for the connector to all env files e.g. `.env.cloud`. By default, it will be added to only
+  the env file set as localEnvFile in the current context, e.g. `.env` or the one provided via flag.
+- Add the connectorMapping and envMapping for the new connector URLs and Authorization headers to all subgraph config
+  files. By default, it will be added to only the subgraph config set in the current context or provided via flag.
+
+## Need help?
+
+If you need help migrating your project or have any other questions please reach out to us on our
+[Discord](https://hasura.io/discord).
+
+## Legacy project structure
+
+<details>
+    <summary>
+        See the legacy project structure before this update below.
+    </summary>
+
+```bash
+.
+├── .devcontainer
+│  └── devcontainer.json
+├── .hasura
+│  └── context.yaml
+├── .vscode
+│  ├── extensions.json
+│  ├── launch.json
+│  └── tasks.json
+├── engine
+│  ├── .env.engine
+│  ├── auth_config.json
+│  ├── metadata.json
+│  └── open_dd.json
+├── globals
+│  ├── .env.globals.cloud
+│  ├── .env.globals.local
+│  ├── subgraph.cloud.yaml
+│  ├── subgraph.local.yaml
+│  ├── auth-config.cloud.hml
+│  ├── auth-config.local.hml
+│  ├── compatibility-config.hml
+│  └── graphql-config.hml
+├── app
+│  ├── .env.app.cloud
+│  ├── .env.app.local
+│  └── subgraph.yaml
+├── .gitattributes
+├── compose.yaml
+├── hasura.yaml
+├── otel-collector-config.yaml
+├── supergraph.cloud.yaml
+└── supergraph.local.yaml
+```
+
+| File type                                 | Description                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`hasura.yaml`](#hasurayaml)              | The file that denotes the root of a Hasura project.                                        |
+| [`.env.*`](#envfiles)                     | Files that store environment variables.                                                    |
+| [`supergraph.*.yaml`](#supergraph-config) | Files that describe how to build the supergraph.                                           |
+| [`subgraph.*.yaml`](#subgraph-config)     | Files that describe how to build a subgraph.                                               |
+| [`connector.*.yaml`](#connector-config)   | Files that describe how to build a data connector.                                         |
+| `*.hml`                                   | Hasura metadata files for a project.                                                       |
+| [`.hasura/context.yaml`](#context-file)   | File that stores certain default values of a project.                                      |
+| `compose.yaml`                            | Docker Compose files for local development.                                                |
+| [`engine`](#engine)                       | Files mounted to the engine container for local development.                               |
+| [`globals`](#globals)                     | Directory containing files for the **globals** subgraph.                                   |
+| `otel-collector-config.yaml`              | Configuration for OpenTelemetry Collector used for seeing traces during local development. |
+
+##### hasura.yaml {#hasurayaml}
+
+`hasura.yaml` appears at the root of a Hasura project.
+
+For example:
+
+```yaml
+version: v2
+```
+
+- `version` specifies the version of the project directory structure.
+
+##### .env.\* {#envfiles}
+
+This file is used to store environment variables. The file should be in the format:
+
+```.env
+ENV1=val1
+ENV2=val2
+```
+
+These files are referenced inside:
+
+- Docker Compose files: Docker Compose files use \*.env files to specify environment variables needed for containers.
+- Subgraph files: Subgraph files use \*.env files to specify environment variables. This is needed by `globals` and
+  other subgraphs. Each subgraph can have its own .env file.
+- Connector files (such as `connector.yaml`): Connector files use \*.env files to specify environment variables needed
+  for building the connector.
+
+##### supergraph.\*.yaml {#supergraph-config}
+
+These config files tell Hasura DDN how to construct your supergraph. It will contain information such as which subgraph
+config files to use for building the supergraph
+
+For example:
+
+```yaml
+kind: Supergraph
+version: v2
+definition:
+  subgraphs:
+    - globals/subgraph.cloud.yaml
+    - app/subgraph.yaml
+```
+
+- `version` is the version of the supergraph object
+- `subgraphs` specifies paths to all the subgraph config files. These are then read recursively to construct the
+  metadata for the supergraph.
+
+By default, the CLI generates two files - `supergraph.cloud.yaml` and `supergraph.local.yaml` but any number of
+supergraph config files can be created and referenced in CLI commands.
+
+##### subgraph.\*.yaml {#subgraph-config}
+
+These config files tell Hasura DDN how to construct your subgraph. It will contain information such as which metadata
+resources to use for the build.
+
+For example:
+
+```yaml
+kind: Subgraph
+version: v1
+definition:
+  name: app
+  generator:
+    rootPath: .
+  includePaths:
+    - metadata
+```
+
+- `version` is the version of the subgraph object
+- `includePaths` specifies the directories and files where metadata for the subgraph can be found. If a directory is
+  specified, all the \*.hml files inside the directory and its subdirectories will be used to construct the metadata.
+- `generator.rootPath` specifies the directory into which any new files will be generated.
+
+By default, the CLI generates a file called `subgraph.yaml` for a new subgraph but any number of subgraph config files
+can be created and referenced in CLI commands.
+
+##### connector.\*.yaml {#connector-config}
+
+These config files tell Hasura DDN how to build your connector. It will contain information such as the type of
+connector and the location to the context files needed to build the connector.
+
+For example:
+
+```yaml
+kind: Connector
+version: v1
+definition:
+  name: mypg
+  source: hasura/postgres:v0.7.0
+  context: .
+  envFile: .env.local
+```
+
+- `version` is the version of the connector object
+- `name` is a name given to the connector
+- `source` is the connector to use specific to the data source
+- `context` specifies the connector directory
+- `envFile` specifies the connector specific environment variables to use for introspecting and building the connector.
+  If you are deploying your connector on DDN cloud, you also need to specify `subgraph`. Value of this field is name of
+  the subgraph you want to deploy your connector to.
+
+By default, the CLI generates two files - `connector.cloud.yaml` and `connector.local.yaml` but any number of connector
+config files can be created and referenced in CLI commands.
+
+##### .hasura/context.yaml {#context-file}
+
+This specifies the default DDN project and supergraph file path. The default values are used by all commands that accept
+`--supergraph` flag, `--subgraph` flag and `--project` flag. The flags can be used to override the default values.
+
+```yaml
+context:
+  project: emerging-stag-9129
+  supergraph: ../supergraph.cloud.yaml
+  subgraph: ../app/subgraph.yaml
+```
+
+This file is configured by the `ddn context set` command.
+
+##### Engine {#engine}
+
+The `engine` directory contains the files required for Hasura v3 engine container. This directory has the following
+structure:
+
+```bash
+├── .env.engine
+├── auth_config.json
+├── metadata.json
+└── open_dd.json
+```
+
+The `.env.engine` file specifies environment variables required by the Hasura v3 engine container.
+
+The `auth_config.json`, `metadata.json` and `open_dd.json` are generated as a result of `ddn supergraph build local`
+command and do not need to be edited by the user.
+
+##### Globals {#globals}
+
+The `globals` directory contains the files for the **globals** subgraph which is generated by default to hold the
+supergraph-level metadata objects, i.e. `AuthConfig`, `GraphqlConfig` and `CompatibilityConfig`.
+
+For example:
+
+```bash
+├── .env.globals.cloud
+├── .env.globals.local
+├── auth-config.cloud.hml
+├── auth-config.local.hml
+├── compatibility-config.hml
+├── graphql-config.hml
+├── subgraph.cloud.yaml
+└── subgraph.local.yaml
+```
+
+- `auth-config.cloud.hml` and `auth-config.local.hml` files contain the `AuthConfig` object which define the
+  authentication configuration for the supergraph for cloud and local deployments respectively.
+- `compatibility-config.hml` file contains the compatibility date configuration for the supergraph.
+- `graphql-config.hml` file contains the GraphQL configuration for the supergraph, which allows you to customize the
+  available query and mutation capabilities along with the schema.
+- `.env.globals.cloud` and `.env.globals.local` files contain all the environment variables, if any, which are required
+  by the **globals** subgraph's metadata objects for cloud and local deployments respectively.
+
+</details>

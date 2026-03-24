@@ -1,0 +1,54 @@
+---
+sidebar_label: ddn supergraph build set-self-hosted-engine-url
+sidebar_position: 113
+description: Set the engine's URL for a build for a project in a self hosted data plane. using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_supergraph_build_set-self-hosted-engine-url"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn supergraph build set-self-hosted-engine-url
+---
+
+# DDN CLI: ddn supergraph build set-self-hosted-engine-url
+
+Set the engine's URL for a build for a project in a self hosted data plane..
+
+## Synopsis
+
+Set the engine's URL for a build for a project in a self hosted data plane.
+
+```bash
+ddn supergraph build set-self-hosted-engine-url <url> --build-version <build-version> [flags]
+```
+
+## Examples
+
+```bash
+# Set build URL to "example.com:3000" for project "pet-lion-2649"
+ ddn supergraph build set-self-hosted-engine-url example.com:3000 --build-version <build-version> --project pet-lion-2649
+```
+
+## Options
+
+```sass
+    --build-version string   SupergraphBuild version (required)
+    --ci                     Disables the use of context
+-c, --context string         Name of the context to use. (default <current_context>)
+-h, --help                   help for set-self-hosted-engine-url
+-p, --project string         DDN Project name
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn supergraph build](/reference/cli/commands/ddn_supergraph_build) - Perform SupergraphBuild-related operations

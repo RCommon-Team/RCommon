@@ -1,0 +1,361 @@
+---
+sidebar_position: 13
+sidebar_label: With Qdrant
+description: "Learn the basics of Hasura DDN and how to get started with a Qdrant-hosted vector database."
+custom_props:
+  connector-ids:
+    - qdrant
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - qdrant
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and Qdrant
+
+## Overview
+
+This tutorial takes about twenty minutes to complete. You'll learn how to:
+
+- Set up a new Hasura DDN project
+- Connect it to a Qdrant-hosted vector database
+- Generate Hasura metadata
+- Create a build
+- Run your first query
+- Mutate data
+
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+
+This tutorial assumes you're starting from scratch; you'll connect a hosted Qdrant instance to Hasura, but you can
+easily follow the steps if you already have data seeded. Hasura will never modify your source schema.
+
+<Prereqs />
+
+## Tutorial
+
+### Step 1. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
+acknowledge your login, giving you access to Hasura Cloud resources.
+
+### Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
+
+### Step 3. Create and seed a new Qdrant database
+
+Head to [Qdrant](https://cloud.qdrant.io) and create an account if you don't already have one. Then, create a new
+cluster.
+
+Qdrant will share an API key immediately after the cluster is provisioned; go ahead and copy this down as you'll need it
+in the following steps.
+
+From your cluster's dashboard, choose the `Load Sample Data` option. Follow the steps outlined by Qdrant which allow you
+to execute and insert data directly via their UI. You’ll finish setup when you've gotten through the instructions for
+implementing multitenancy. This will give you upwards of eight collections to play with.
+
+### Step 4. Initialize your Qdrant connector
+
+```sh title="In your project directory, run:"
+ddn connector init my_qdrant -i
+```
+
+From the dropdown, select `hasura/qdrant` (you can type to filter the list), then hit enter to accept the default of all
+the options.
+
+You'll be prompted for two environment variables:
+
+| Variable         | Description                                                                                                                                          | Example                                       |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `QDRANT_URL`     | The connection string for the Qdrant database, including the port. You can generate this by selecting `Connect` under the Cluster in your dashboard. | `https://<cluster-id>.<region>.<host>:<port>` |
+| `QDRANT_API_KEY` | The Qdrant API key presented to you when the cluster was provisioned.                                                                                | `eyJ...`                                      |
+
+### Step 5. Introspect your Qdrant database
+
+```sh title="Next, use the CLI to introspect your Qdrant database:"
+ddn connector introspect my_qdrant
+```
+
+After running this, you should see a representation of your database's schema in the
+`app/connector/my_qdrant/config.json` file; you can view this using `cat` or open the file in your editor.
+
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources my_qdrant
+```
+
+If you run this command, you'll see there are several models from the sample data available; additionally, we'll see a
+set of commands.
+
+### Step 6. Add your first model
+
+```sh title="Let's track the terraforming collection as a model:"
+ddn model add my_qdrant terraforming
+```
+
+Open the `app/metadata` directory and you'll find a newly-generated file: `Terraforming.hml`. The DDN CLI will use this
+Hasura Metadata Language file to represent the `terraforming` collection from Qdrant in your API as a
+[model](/reference/metadata-reference/models.mdx).
+
+### Step 7. Create a new build
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+### Step 8. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and Qdrant connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+### Step 9. Run your first query
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query GET_TERRAFORMING_DATA {
+  terraforming(args: {}) {
+    id
+    land
+    color
+    humidity
+    life
+    vector
+  }
+}
+```
+
+```json title="You'll get the following response:"
+{
+  "data": {
+    "terraforming": [
+      {
+        "id": 1,
+        "land": "forest",
+        "color": "green",
+        "humidity": 40,
+        "life": true,
+        "vector": [0.1, 0.2, 0.3, 0.4]
+      },
+      {
+        "id": 2,
+        "land": "lake",
+        "color": "blue",
+        "humidity": 100,
+        "life": true,
+        "vector": [0.2, 0.3, 0.4, 0.5]
+      },
+      {
+        "id": 3,
+        "land": "steppe",
+        "color": "green",
+        "humidity": 25,
+        "life": false,
+        "vector": [0.3, 0.4, 0.5, 0.6]
+      },
+      {
+        "id": 4,
+        "land": "desert",
+        "color": "red",
+        "humidity": 5,
+        "life": false,
+        "vector": [0.4, 0.5, 0.6, 0.7]
+      },
+      {
+        "id": 5,
+        "land": "marsh",
+        "color": "black",
+        "humidity": 90,
+        "life": true,
+        "vector": [0.5, 0.6, 0.7, 0.8]
+      },
+      {
+        "id": 6,
+        "land": "cavern",
+        "color": "black",
+        "humidity": 15,
+        "life": false,
+        "vector": [0.6, 0.7, 0.8, 0.9]
+      }
+    ]
+  }
+}
+```
+
+You can also utilize vectors to perform similarity searches and even limit the number of results.
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query GET_TERRAFORMING_DATA_BASED_ON_VECTORS {
+  terraforming(args: { search: { vector: [0.5, 0.6, 0.7, 0.8], scoreThreshold: 0.1 } }, limit: 2) {
+    id
+    land
+    color
+    humidity
+    life
+    vector
+  }
+}
+```
+
+```json title="You'll get the following response:"
+{
+  "data": {
+    "terraforming": [
+      {
+        "id": 6,
+        "land": "cavern",
+        "color": "black",
+        "humidity": 15,
+        "life": false,
+        "vector": [0.6, 0.7, 0.8, 0.9]
+      },
+      {
+        "id": 5,
+        "land": "marsh",
+        "color": "black",
+        "humidity": 90,
+        "life": true,
+        "vector": [0.5, 0.6, 0.7, 0.8]
+      }
+    ]
+  }
+}
+```
+
+### Step 10. Iterate on your API
+
+#### Step 10.1. Add more resources
+
+Our sample data set contains a number of different collections; let's add them all.
+
+```sh title="Add the remaining collections as models:"
+ddn model add my_qdrant "*"
+```
+
+#### Step 10.2. Create a new build
+
+```sh title="Next, create a new build:"
+ddn supergraph build local
+```
+
+#### Step 10.3. Restart your services
+
+```sh title="Bring down the services by pressing CTRL+C and start them back up:"
+ddn run docker-start
+```
+
+### Step 11. Query your new build
+
+```graphql title="Head back to your console and query the dinosaurs model:"
+query GET_JOHN_HAMMOND {
+  dinosaurs(args: {}) {
+    id
+    dinosaur
+    diet
+  }
+}
+```
+
+```json title="You'll get a response like this:"
+{
+  "data": {
+    "dinosaurs": [
+      {
+        "id": 1,
+        "dinosaur": "t-rex",
+        "diet": [
+          {
+            "food": "leaves",
+            "likes": false
+          },
+          {
+            "food": "meat",
+            "likes": true
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "dinosaur": "diplodocus",
+        "diet": [
+          {
+            "food": "leaves",
+            "likes": true
+          },
+          {
+            "food": "meat",
+            "likes": false
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Step 12. Add all commands
+
+We'll track the available operations — for inserting, updating, and deleting — on our collections as commands.
+
+```sh title="Add all available commands:"
+ddn command add my_qdrant "*"
+```
+
+You'll see newly-generated metadata files in the `metadata` directory for your connector that represent insert, update,
+and delete operations.
+
+```sh title="As your metadata has changed, create a new build:"
+ddn supergraph build local
+```
+
+```sh title="Bring down the services by pressing CTRL+C and start them back up:"
+ddn run docker-start
+```
+
+### Step 13. Update existing data
+
+```graphql title="Let's update the t-rex listing:"
+mutation MAKE_HIM_KING {
+  updateDinosaursOne(object: { id: 1, vector: [0.1, 0.2, 0.3, 0.4], dinosaur: "T-Rex" })
+}
+```
+
+You should see a response that alerts you to the operation being completed successfully.
+
+## Next steps
+
+Congratulations on completing your first Hasura DDN project with Qdrant! 🎉
+
+Here's what you just accomplished:
+
+- You started with a fresh project and connected it to a local Qdrant database.
+- You set up metadata to represent your collections, which acts as the blueprint for your API.
+- Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
+  GraphQL queries to fetch data.
+- Along the way, you learned how to iterate on your API and refresh your metadata to reflect changes.
+- Finally, we looked at how to enable mutations and modify data using your new API.
+
+Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
+
+Take a look at our Qdrant docs to learn more about how to use Hasura DDN with
+[Qdrant](https://qdrant.tech/documentation/). Or, if you're ready, get started with adding
+[permissions](/auth/permissions/index.mdx) to control access to your API.

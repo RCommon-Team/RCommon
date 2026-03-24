@@ -1,0 +1,63 @@
+---
+sidebar_label: ddn codemod rename-graphql-prefixes
+sidebar_position: 15
+description: Rename GraphQL root field and type name prefixes in metadata using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_codemod_rename-graphql-prefixes"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn codemod rename-graphql-prefixes
+---
+
+# DDN CLI: ddn codemod rename-graphql-prefixes
+
+Rename GraphQL root field and type name prefixes in metadata.
+
+## Synopsis
+
+Rename GraphQL root field and type name prefixes in metadata. The from prefix will be stripped if provided, and the new prefix will be added. If the new prefix is already present, it will not be reapplied.
+
+By default, subgraph.yaml is updated with the new prefixes.
+
+```bash
+ddn codemod rename-graphql-prefixes [flags]
+```
+
+## Examples
+
+```bash
+# Add root field and type name prefixes to the subgraph set in the context
+ ddn codemod rename-graphql-prefixes --graphql-root-field 'app_' --graphql-type-name 'App_'
+
+# Change the root field prefix for the specified subgraph without modifying subgraph.yaml
+ ddn codemod rename-graphql-prefixes --subgraph app/subgraph.yaml --graphql-root-field 'foo_' --from-graphql-root-field 'app_' --no-update-subgraph-config
+```
+
+## Options
+
+```sass
+    --ci                               Disables the use of context
+-c, --context string                   Name of the context to use. (default <current_context>)
+    --from-graphql-root-field string   The previous GraphQL root field prefix
+    --from-graphql-type-name string    The previous GraphQL type name prefix
+    --graphql-root-field string        The new GraphQL root field prefix
+    --graphql-type-name string         The new GraphQL type name prefix
+-h, --help                             help for rename-graphql-prefixes
+    --no-update-subgraph-config        Do not update the subgraph config with the new prefixes
+    --subgraph string                  Path to Subgraph config file
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn codemod](/reference/cli/commands/ddn_codemod) - Perform transformations on your Hasura project directory

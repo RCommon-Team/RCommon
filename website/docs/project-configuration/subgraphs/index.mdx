@@ -1,0 +1,39 @@
+---
+sidebar_position: 1
+description: "Learn what a subgraph is, what components make it up, and how it works."
+keywords:
+  - hasura
+  - hasura ddn
+  - project
+  - subgraph
+---
+
+# Subgraphs
+
+## Introduction
+
+A subgraph is a focused component of your overall supergraph, typically organized around specific data domains or
+business functions.
+
+Subgraphs are often team-specific, aligning with the responsibilities and expertise of individual teams. This structure
+not only enables efficient development but also makes it easier to onboard new teams as your unified supergraph evolves.
+By defining clear boundaries and responsibilities, subgraphs allow new teams to integrate seamlessly without impacting
+existing functionality, fostering a scalable and collaborative development environment.
+
+## Organization
+
+Subgraphs provide flexibility and modularity in API development. A single project can include one or more subgraphs,
+depending on its complexity and the distribution of responsibilities among teams. Subgraphs are designed to be iterated
+on and developed independently, allowing teams to work at their own pace and with their own preferred tools and
+languages without interfering with the broader system.
+
+In setups with multiple repositories, subgraphs also enhance governance by limiting access. Individual developers or
+teams are only granted permissions to their specific subgraph, ensuring they cannot modify or disrupt other parts of the
+API. This separation not only protects the integrity of the overall system but also enables streamlined collaboration
+across teams by maintaining a well-defined scope of access.
+
+## Next steps
+
+- [Learn how to create a subgraph](/project-configuration/subgraphs/create-a-subgraph.mdx)
+- [Learn how to establish relationships across subgraphs to unify your data](/project-configuration/subgraphs/working-with-multiple-subgraphs.mdx)
+- [Learn how to split subgraphs across repositories to enable decentralized development](/project-configuration/subgraphs/working-with-multiple-repositories.mdx)

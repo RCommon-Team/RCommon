@@ -1,0 +1,7 @@
+{
+  "baseUrl": "https://hasura.io",
+  "entryPoint": "https://hasura.io/docs/3.0",
+  "requiredDirs": ["cli", "supergraph-modeling"],
+  "outputDir": "./pdf_output/reference-docs.pdf",
+  "customStyles": "table { max-width: 3500px !important }"
+}

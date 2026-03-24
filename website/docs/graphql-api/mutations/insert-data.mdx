@@ -1,0 +1,124 @@
+---
+sidebar_label: Insert data
+sidebar_position: 1
+description: "Learn how to insert data using your Hasura DDN API."
+keywords:
+  - graphql mutations
+  - hasura graphql api
+  - api mutations
+  - insert data
+---
+
+import GraphiQLIDE from "@site/src/components/GraphiQLIDE";
+
+# Insert Data
+
+## Auto-generated insert mutation schema
+
+Depending on your connector, you'll have a range of insert mutations available to mutate data via your API.
+
+### Insert a single object
+
+Insert a single object of a type by passing the object as an argument to the mutation, including the fields you want to
+insert.
+
+<GraphiQLIDE
+  query={`mutation InsertUser {
+  insertUsers(objects: {name: "Martin", age: 40}) {
+    returning {
+      id
+      name
+      age
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "insertUsers": {
+      "returning": [
+        {
+          "id": 4,
+          "name": "Martin",
+          "age": 40
+        }
+      ]
+    }
+  }
+}`}
+/>
+
+### Insert multiple objects of the same type
+
+Insert multiple objects of a type by passing an array of objects as an argument to the mutation.
+
+<GraphiQLIDE
+  query={`mutation InsertMultipleUsers {
+  insertUsers(objects: [{name: "Josh", age: 38}, {name: "Victoria", age: 28}]) {
+    returning {
+      id
+      name
+      age
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "insertUsers": {
+      "returning": [
+        {
+          "id": 5,
+          "name": "Josh",
+          "age": 38
+        },
+        {
+          "id": 6,
+          "name": "Victoria",
+          "age": 28
+        }
+      ]
+    }
+  }
+}`}
+/>
+
+### Insert an object and return a nested response
+
+Insert an object and return a nested response by querying nested fields in the response.
+
+<GraphiQLIDE
+  query={`mutation InsertPost {
+  insertPosts(objects: {content: "A little bit more information.", title: "A New Post", userId: "1"}) {
+    returning {
+      id
+      title
+      user {
+        id
+        name
+      }
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "insertPosts": {
+      "returning": [
+        {
+          "id": 6,
+          "title": "A New Post",
+          "user": {
+            "id": 1,
+            "name": "Alice"
+          }
+        }
+      ]
+    }
+  }
+}`}
+/>
+
+## Custom insert mutations
+
+For connectors that support native mutations, you can also create custom insert mutations to insert data into your data
+source. This allows you to write any custom logic you need to insert data using your data source's native capabilities.
+
+Learn more in your [connector's reference documentation](/reference/connectors/index.mdx).

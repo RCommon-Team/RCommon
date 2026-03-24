@@ -1,0 +1,30 @@
+{
+  "name": "generate-metadata-docs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --outDir dist",
+    "start": "npx ts-node src/index.ts",
+    "watch": "tsc -w & nodemon --ignore auto-generated.json --no-deprecation dist/index.js",
+    "test": "jest --watchAll --verbose --silent",
+    "format": "npx prettier . --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "@babel/preset-typescript": "^7.23.3",
+    "@types/jest": "^29.5.12",
+    "@types/js-yaml": "^4.0.9",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0"
+  },
+  "dependencies": {
+    "@apidevtools/json-schema-ref-parser": "^11.1.0",
+    "js-yaml": "^4.1.0"
+  }
+}

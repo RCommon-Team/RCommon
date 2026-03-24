@@ -1,0 +1,766 @@
+---
+description:
+  "Comprehensive guide on configuring JSON Web Tokens (JWT) for Hasura DDN, including payload definitions, claim
+  descriptions, and configuration examples."
+keywords:
+  - hasura keywords
+  - more
+  - JWT
+  - JSON Web Token
+  - Hasura DDN
+  - JWT configuration
+  - JWT claims
+sidebar_position: 2
+---
+
+# JWT Configuration
+
+This section describes the JSON Web Token (JWT) configuration options available in Hasura DDN.
+
+## Payload Definition
+
+Example JSON Web Token (JWT) payload configuration definition:
+
+```yaml title="globals/metadata/auth-config.hml"
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: HS256
+          key:
+            value: ultra-secret-very-secret-super-secret-key
+      audience: ["myapp-1234", "myapp-6789"]
+      allowedSkew: 60
+      issuer: https://my-auth-server.com
+```
+
+As a minimum, either the `claimsConfig`, `tokenLocation`, **and** `key` values **have to be present**.
+
+## Example Decoded Payload
+
+```json
+{
+  "iat": 1735916718,
+  "exp": 1796916677,
+  "claims.jwt.hasura.io": {
+    "x-hasura-default-role": "user",
+    "x-hasura-allowed-roles": ["user", "admin"],
+    "x-hasura-user-id": "123",
+    "x-hasura-org-id": "456",
+    "x-hasura-custom": "custom-value"
+  }
+}
+```
+
+## Example Encoded JWT
+
+```text
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiY2xhaW1zLmp3dC5oYXN1cmEuaW8iOnsieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoidXNlciIsIngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsidXNlciIsImFkbWluIl0sIngtaGFzdXJhLXVzZXItaWQiOiIxMjMiLCJ4LWhhc3VyYS1vcmctaWQiOiI0NTYiLCJ4LWhhc3VyYS1jdXN0b20iOiJjdXN0b20tdmFsdWUifX0.5bwSMgxsyULY1uhCJxYd-sO35rCdznRCZ4YMLwDD5u8
+```
+
+**Note:** `x-hasura-default-role` and `x-hasura-allowed-roles` are mandatory, while the rest of the claims are optional.
+
+[See here for the JWT debugger](https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiY2xhaW1zLmp3dC5oYXN1cmEuaW8iOnsieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoidXNlciIsIngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsidXNlciIsImFkbWluIl0sIngtaGFzdXJhLXVzZXItaWQiOiIxMjMiLCJ4LWhhc3VyYS1vcmctaWQiOiI0NTYiLCJ4LWhhc3VyYS1jdXN0b20iOiJjdXN0b20tdmFsdWUifX0.5bwSMgxsyULY1uhCJxYd-sO35rCdznRCZ4YMLwDD5u8)
+of this example JWT token. The signature secret to verify this token with the HS256 algorithm is
+`ultra-secret-very-secret-super-secret-key`.
+
+## Hasura JWT format
+
+The `x-hasura-role` value can be sent as a plain **header** in the request to indicate the role which should be used.
+
+When your auth server generates the JWT, the custom claims in the JWT **must contain the following** in a custom
+namespace. This namespace can be any string you choose, as long as it matches the `namespace.location` defined in your
+AuthConfig. Using `claims.jwt.hasura.io` will match our examples.
+
+1.  A `x-hasura-default-role` field. The role that will be used when the optional `x-hasura-role` _header_ is **not
+    passed**.
+2.  A `x-hasura-allowed-roles` field. A list of allowed roles for the user i.e. acceptable values of the optional
+    `x-hasura-role` _header_.
+3.  Add any other optional `x-hasura-*` claim fields (required as per your defined permissions) to the custom namespace.
+
+To summarize, `x-hasura-allowed-roles` session variable contains a list of all the roles that the user can assume and
+the `x-hasura-role` header tells the Hasura Engine which role to use for the request, and if that is missing then the
+`x-hasura-default-role` session variable will be used.
+
+This setup makes it more convenient for a JWT to only need to be issued once with a list of allowed roles for the user,
+and then allow the client to decide which of those roles to actually use for a request. This prevents the user needing
+to log in again or unnecessary JWT re-issuance.
+
+If, for example, your app will not need to switch user roles and the user only needs one role, for instance: `user`, you
+can just issue a JWT with `x-hasura-default-role` set to `user` and `x-hasura-allowed-roles` set to `["user"]` and not
+send the `x-hasura-role` header in the request.
+
+This setup is designed so that there is one authoritative way to construct your JWT token for the Hasura Engine which
+can cover a wide range of use cases.
+
+## Hasura JWT Claim Description
+
+### x-hasura-default-role
+
+The `x-hasura-default-role` will be the role that the user falls back to when no `x-hasura-role` value is specified in
+the header of the request. Usually, this will be the role with the least privileges and can be overridden by the
+`x-hasura-role` header when making a request.
+
+### x-hasura-allowed-roles
+
+The `x-hasura-allowed-roles` list can contain all the roles which a particular user can assume, eg:
+`[ "user", "manager", "owner" ]`. Usually, these will have varying degrees of access to your data as specified in
+Permissions and by specifying this list it lets the Hasura Engine know that this user can assume any of them.
+
+### x-hasura-\*
+
+The JWT can have other user-defined `x-hasura-*` fields and their values can only be strings (they will be converted to
+the right type automatically). You can use these `x-hasura-*` values in your permission rules.
+
+The JWT will normally also contain standard (`sub`, `iat` etc.) and custom (`name`, `admin` etc.) claims depending on
+your auth provider.
+
+## JWT Notes
+
+- JWT claim fields eg: `x-hasura-default-role` are case-insensitive.
+- Hasura Engine only has access to headers and JWT claims which are prefixed with `x-hasura-`.
+- Hasura Engine only has access to JWT claims in namespace defined in the `AuthConfig` object in metadata.
+- All `x-hasura-*` values should be of type `String`, they will be converted to the right type automatically.
+
+## Hasura JWT configuration options
+
+### claimsConfig
+
+You can specify where the engine should look for the claims within the decoded token either with one of `namespace` and `locations` options.
+
+#### namespace {#jwt-claims-config-namespace}
+
+The `namespace` option is used when all of the Hasura claims are present in a single object within the decoded JWT. 
+Our example uses `claims.jwt.hasura.io` in the [Example Decoded Payload](#example-decoded-payload).
+
+```yaml
+claimsConfig:
+  namespace:
+    claimsFormat: Json
+    location: /claims.jwt.hasura.io
+```
+
+The `location` field indicates the location of the namespace object that uses [RFC 6901 JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901) string syntax.
+
+The `claimsFormat` field indicates whether the Hasura-specific claims are a regular JSON object or a stringified JSON. The following possible values are allowed: `Json`, `StringifiedJson`.
+
+This is required because providers like AWS Cognito only allow strings in the JWT claims.
+[See #1176](https://github.com/hasura/graphql-engine/issues/1176).
+
+**Example**:
+
+If `claimsFormat` is `Json` then the JWT claims should look like:
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022,
+  "claims.jwt.hasura.io": {
+    "x-hasura-allowed-roles": ["editor", "user", "mod"],
+    "x-hasura-default-role": "user",
+    "x-hasura-user-id": "1234567890",
+    "x-hasura-org-id": "123",
+    "x-hasura-custom": "custom-value"
+  }
+}
+```
+
+If `claimsFormat` is `StringifiedJson` then the JWT claims should look like:
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022,
+  "claims.jwt.hasura.io": "{\"x-hasura-allowed-roles\":[\"editor\",\"user\",\"mod\"],\"x-hasura-default-role\":\"user\",\"x-hasura-user-id\":\"1234567890\",\"x-hasura-org-id\":\"123\",\"x-hasura-custom\":\"custom-value\"}"
+}
+```
+
+#### locations {#jwt-claims-config-locations}
+
+This `locations` option can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT. 
+In this option, you can indicate:
+- a literal value. 
+- or a JSON pointer path for individual claims and an optional default value if the claim doesn't exist.
+
+`x-hasura-default-role` and `x-hasura-allowed-roles` claims are required. Other custom claims are optionally configured. 
+
+The literal values should be of type `String`, except for the `x-hasura-allowed-roles` claim which expects a string
+array.
+
+**Example: JWT config with JSON path values**
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022,
+  "user": {
+    "id": "ujdh739kd"
+  },
+  "hasura": {
+    "all_roles": ["user", "editor"]
+  }
+}
+```
+
+The mapping for `x-hasura-allowed-roles`, `x-hasura-default-role` and `x-hasura-user-id` session variables can be
+specified in the `locations` configuration as follows:
+
+```yaml
+claimsConfig: 
+  locations:
+    x-hasura-default-role: 
+      path:
+        path: /hasura/all_roles/0
+    x-hasura-allowed-roles: 
+      path:
+        path: /hasura/all_roles
+    x-hasura-user-id:
+      path:
+        path: /user/id
+```
+
+**Example: JWT config with JSON path values and default values**
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022,
+  "hasura": {
+    "all_roles": ["user", "editor"]
+  }
+}
+```
+
+```yaml
+claimsConfig: 
+  locations:
+    x-hasura-default-role: 
+      path:
+        path: /hasura/all_roles/0
+    x-hasura-allowed-roles: 
+      path:
+        path: /hasura/all_roles
+    x-hasura-user-id:
+      path:
+        path: /user/id
+        default: ujdh739kd
+```
+
+In the above case, since the `/user/id` doesn't exist in the JWT token, the default value of the `x-hasura-user-id` i.e
+`ujdh739kd` will be used
+
+**Example: JWT config containing literal values**
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022,
+  "user": {
+    "id": "ujdh739kd"
+  }
+}
+```
+
+The corresponding JWT config should be:
+
+```yaml
+claimsConfig: 
+  locations:
+    x-hasura-default-role: 
+      literal: user
+    x-hasura-allowed-roles: 
+      literal: ["user", "editor"]
+    x-hasura-user-id:
+      path:
+        path: /user/id
+```
+
+In the above example, the `x-hasura-allowed-roles` and `x-hasura-default-role` values are set in the JWT config and the
+value of the `x-hasura-user-id` is a JSON path to the value in the JWT token.
+
+### tokenLocation
+
+Indicates the token location where request header to read the JWT from. 
+
+The following are the possible values:
+
+#### BearerAuthorization
+
+In this mode, Hasura expects an `Authorization` header with a `Bearer` token.
+
+```yaml
+tokenLocation: 
+  type: BearerAuthorization
+```
+
+The JWT header should look like:
+
+```none
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI...
+```
+
+#### Cookie
+
+In the cookie mode, Hasura will try to parse the cookie header with the given cookie name. The value of the cookie
+should be the exact JWT.
+
+```yaml
+tokenLocation: 
+  type: Cookie
+  name: cookie_name
+```
+
+The JWT header should look like:
+
+```none
+Cookie: cookie_name=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI...
+```
+
+#### Header
+
+In the custom header mode, Hasura expects a `header_name` header with the exact JWT token value.
+
+```yaml
+tokenLocation: 
+  type: Header
+  name: header_name
+```
+
+The JWT header should look like:
+
+```none
+header_name: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI...
+```
+
+### key {#jwt-json-key}
+
+This field specifies the JWT key configuration according to which the incoming JWT will be decoded. 
+You can configure either a `fixed` algorithm key or a remote JWK URL.
+
+#### fixed {#jwt-json-key-fixed}
+
+In this option, you must indicate a JWT key and its algorithm so the engine can decode and verify the JWT token. 
+
+```yaml
+key:
+  fixed:
+    algorithm: HS256
+    key:
+      value: ultra-secret-very-secret-super-secret-key
+      # valueFromEnv: AUTH_JWT_KEY
+```
+
+The `algorithm` field specifies the cryptographic signing algorithm which is used to sign the JWTs. Valid values are: `HS256`, `HS384`,
+`HS512`, `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, `PS256`, `PS384`, `PS512`, `EdDSA`.
+
+The `key` field can be a literal value or an environment variable name. 
+
+- In the case of a symmetric key (i.e. a HMAC-based key), just the key as is. (e.g. -"abcdef..."). The key must be long
+  enough for the chosen algorithm, (e.g. for HS256 it must be at least 32 characters long).
+- In the case of an asymmetric key (RSA, EdDSA, ECDSA etc.), only the **public** key, in a PEM-encoded string or as an
+  X509 certificate.
+
+#### jwkFromUrl {#jwt-json-jwk_url}
+
+An URL where a provider publishes their JWKs (JSON Web Keys - which are used for signing the JWTs). The URL **must**
+publish the JWKs in the standard format as described [here](https://tools.ietf.org/html/rfc7517).
+
+For example:
+
+- Auth0 publishes their JWK url at: `https://<YOUR_AUTH0_DOMAIN>.auth0.com`.
+- Firebase publishes their JWK url at:
+  `https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com`.
+
+```yaml
+key: 
+  jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+```
+
+The JWTs must be signed by the JWK published at the given URL. They can be signed by any algorithm that is compatible
+with the key (eg. `RS256`, `RS384`, `RS512` algorithms require a JWK with an RSA key).
+
+DDN does not currently support rotating JWKs.
+
+### audience
+
+This is an optional field. Certain providers might set a claim which indicates the intended audience for the JWT. This
+must be checked by setting this field.
+
+When this field is set, during the verification process of the JWT, the `aud` claim in the JWT will be checked to see
+whether it is equal to the `audience` field given in the configuration. If they are not equal then the JWT will be
+rejected.
+
+See the [RFC](https://tools.ietf.org/html/rfc7519#section-4.1.3) for more details.
+
+:::warning
+
+If your [Compatibility Config date](/reference/metadata-reference/compatibility-config.mdx) is set to `2025-03-11` or
+newer, you _must_ set the `audience` field if your JWTs will contain an `aud` claim. If you do not, the JWT will be
+rejected as invalid and authentication will fail.
+
+:::
+
+This field must be a list of strings.
+
+Examples:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition: 
+  mode: 
+    jwt:
+      # ...
+      audience: ["myapp-1234", "myapp-6789"]
+```
+
+:::danger Audience Security Vulnerability
+
+Certain JWT providers share JWKs between multiple tenants. They use the `aud` claim of the JWT to specify the intended
+audience. Setting the `audience` field in the Hasura JWT configuration will make sure that the `aud` claim from the JWT
+is also checked during verification. Not doing this check will allow JWTs issued for other tenants to be valid as well.
+
+In these cases, you **MUST** set the `audience` field to the appropriate value. Failing to do so is a **major security
+vulnerability**.
+
+:::
+
+### issuer
+
+This is an optional field. It takes a string value.
+
+When this field is set, during the verification process of the JWT, the `iss` claim in the JWT will be checked to see
+whether it is equal to the `issuer` field given in the configuration. If they are not equal then the JWT will be
+rejected.
+
+See [RFC](https://tools.ietf.org/html/rfc7519#section-4.1.1) for more details.
+
+Examples:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition: 
+  mode: 
+    jwt:
+      # ...
+      issuer: https://my-auth-server.com
+```
+
+#### Issuer Notes
+
+- Certain providers require you to verify the `iss` claim on the JWT. To do that you can set this field to the
+  appropriate value.
+- A JWT configuration without an issuer will match any issuer field present in an incoming JWT.
+- An incoming JWT without an issuer specified will match a configuration even if it specifies an issuer.
+
+### allowed_skew
+
+`allowedSkew` is an optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry
+time. This field expects an integer value which will be the number of seconds of the skew value.
+
+### Hasura JWT Config Examples
+
+#### HMAC-SHA based
+
+Your auth server is using HMAC-SHA algorithms to sign JWTs, and is using a 256-bit key. In this case, the JWT config
+will look like:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: HS256
+          key:
+            value: 3EK6FD+o0+c7tzBNVfjpMkNDi2yARAAKzQlk8O2IKoxQu4nF7EdAh8s3TwpHwrdWT6R
+```
+
+The `key` is the actual shared secret, which is used by Hasura and the external auth server.
+
+#### RSA based
+
+If your auth server is using the RSA algorithm to sign JWTs, and is using a 512-bit key, the JWT config only needs to
+have the public key.
+
+**Example 1**: public key in PEM format (not OpenSSH format):
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: RS512
+          key:
+            value: '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n'
+```
+
+**Example 2**: public key as X509 certificate:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: RS512
+          key:
+            value: '-----BEGIN CERTIFICATE-----\nMIIDHDCCAgSgAwIBAgIINw9gva8BPPIwDQYJKoZIhvcNAQEFBQAwMTEvMC0GA1UE\nAxMmc2VjdXJldG9rZW4uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20wHhcNMTgQt7dIsMTIU9k1SUrFviZOGnmHWtIAw\nmtYBcM9I0f9/ka45JIRp5Y1NKpAMFSShs7Wv0m1JS1kXQHdJsPSmjmDKcwnBe3R/\nTU3foRRywR/3AJRM15FNjTqvUm7TeaW16LkkRoECAwEAAaM4MDYwDAYDVR0TAQH/\nBAIwADAOBgNVHQ8BAf8EBAMCB4AwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwIwDQYJ\nKoZIhvcNAQEFBQADggEBADfY2DEmc2gb8/pqMNWHYq/nTYfJPpK4VA9A0lFTNeoq\nzmnbGwhKj24X+Nw8trsvkrKxHvCI1alDgBaCyzjGGvgOrh8X0wLtymp1yj6PWwee\nR2ZPdUaB62TCzO0iRv7W6o39ey+mU/FyYRtxF0ecxG2a0KNsIyFkciXUAeC5UVDo\nBNp678/SDDx9Ltuxc6h56a/hpBGf9Yzhr0RvYy3DmjBs6eopiGFmjnOKNxQrZ5t2\n339JWR+yiGEAtoHqk/fINMf1An6Rung1xYowrm4guhCIVi5unAvQ89fq0I6mzPg6\nLhTpeP0o+mVYrBmtYVpDpv0e71cfYowSJCCkod/9YbY=\n-----END CERTIFICATE-----'
+```
+
+**Example 3**: public key published as JWKs:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+```
+
+#### EdDSA based
+
+If your auth server is using EdDSA to sign JWTs, and is using the Ed25519 variant key, the JWT config only needs to have
+the public key.
+
+**Example 1**: public key in PEM format (not OpenSSH format):
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: Ed25519
+          key:
+            value: '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAG9I+toAAJicilbPt36tiC4wi7E1Dp9rMmfnwdKyVXi0=\n-----END PUBLIC KEY-----'
+```
+
+**Example 2**: public key as X509 certificate:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: Ed25519
+          key:
+            value: '-----BEGIN CERTIFICATE REQUEST-----\nMIIBAzCBtgIBADAnMQswCQYDVQQGEwJERTEYMBYGA1UEAwwPd3d3LmV4YW1wbGUu\nY29tMCowBQYDK2VwAyEA/9DV/InajW02Q0tC/tyr9mCSbSnNP1txICXVJrTGKDSg\nXDBaBgkqhkiG9w0BCQ4xTTBLMAsGA1UdDwQEAwIEMDATBgNVHSUEDDAKBggrBgEF\nBQcDATAnBgNVHREEIDAegg93d3cuZXhhbXBsZS5jb22CC2V4YW1wbGUuY29tMAUG\nAytlcANBAKbTqnTyPcf4ZkVuq2tC108pBGY19VgyoI+PP2wD2KaRz4QAO7Bjd+7S\nljyJoN83UDdtdtgb7aFgb611gx9W4go=\n-----END CERTIFICATE REQUEST-----'
+```
+
+#### EC based
+
+If your auth server is using ECDSA to sign JWTs, and is using the ES variant with a 256-bit key, the JWT config only
+needs to have the public key.
+
+**Example 1**: public key in PEM format (not OpenSSH format):
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: ES256
+          key:
+            value: '-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEVs/o5+uQbTjL3chynL4wXgUg2R9\nq9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==\n-----END PUBLIC KEY-----'
+```
+
+**Example 2**: public key as X509 certificate:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        fixed:
+          algorithm: ES256
+          key:
+            value: '"-----BEGIN CERTIFICATE-----\nMIIBbjCCARWgAwIBAgIUGn02F6Y6s88dDGmIfwiNxWxDjhswCgYIKoZIzj0EAwIw\nDTELMAkGA1UEBhMCSU4wHhcNMjMwNTI0MTAzNTI4WhcNMjgwNTIyMTAzNTI4WjAN\nMQswCQYDVQQGEwJJTjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBFbP6OfrkG0\n4y93Icpy+MF4FINkfavVFPCOZhKL1H/OkGe5DgSIycKp8w9aJmoHhB1sB3QTugfn\nRWm5nU/TzsajUzBRMB0GA1UdDgQWBBSaqFjzps1qG+x2DPISjaXTWsTOdDAfBgNV\nHSMEGDAWgBSaqFjzps1qG+x2DPISjaXTWsTOdDAPBgNVHRMBAf8EBTADAQH/MAoG\nCCqGSM49BAMCA0cAMEQCIBDHHWa/uLAVdGFEk82auTmw995+MsRwv52VXLw2Z+ji\nAiAXzOWIcGN8p25uhUN/7v9gEcADGIS4yUiv8gsn/Jk2ow==\n-----END CERTIFICATE-----'
+```
+
+**Example 3**: public key published as JWKs:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        jwkFromUrl: https://www.gstatic.com/iap/verify/public_key-jwk
+```
+
+## Security considerations
+
+### Setting audience check
+
+Certain JWT providers share JWKs between multiple tenants (like Firebase). They use the `aud` claim of JWT to specify
+the intended tenant for the JWT. Setting the `audience` field in the Hasura JWT configuration will make sure that the
+`aud` claim from the JWT is also checked during verification. Not doing this check will allow JWTs issued for other
+tenants to be valid as well.
+
+In these cases, you **MUST** set the `audience` field to appropriate value. **Failing to do so is a major security
+vulnerability**.
+
+## JWT with the WebSocket protocol
+
+When executing a subscription (or query or mutation) over the WebSocket protocol, the authentication step is executed on
+`connection_init` when the websocket is connected to Hasura Engine and is valid until the expiry of the JWT when in JWT
+mode.
+
+Once authenticated, all operations are allowed without further check, until the authentication expires.
+
+## Popular providers and known issues
+
+### AWS Cognito
+
+AWS Cognito and ELB (Elastic Load Balancer) has a known issue where it adds additional padding (using = characters) to
+the JWT token that is generated from Cognito.
+
+This is a known issue and is documented by AWS in
+[their docs](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html#user-claims-encoding):
+
+> Standard libraries are not compatible with the padding that is included in the Application Load Balancer
+> authentication token in JWT format.
+
+Currently, there is no workaround possible in Hasura. Even if Hasura strips the additional padding the signature
+verification of the token would fail (as Hasura had to tamper the token).
+
+### Firebase
+
+Firebase publishes the JWKs at:
+
+[https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com](https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com)
+
+If you are using Firebase and Hasura, use this config:
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: Header
+        name: Authorization
+      key:
+        jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+      issuer: https://securetoken.google.com/<firebase-project-id>
+      audience: <firebase-project-id>
+```
+
+### Auth0 {#auth0-issues}
+
+Refer to the [Auth0 JWT tutorial](/auth/jwt/tutorials/integrations/1-auth0.mdx) for a detailed guide on integrating
+Auth0 with Hasura.
+
+### Clerk
+
+Clerk integrates with Hasura GraphQL Engine using JWTs.
+
+Clerk publishes their JWK under: `https://<YOUR_CLERK_FRONTEND_API>/.well-known/jwks.json`
+
+Refer to the [Clerk JWT tutorial](/auth/jwt/tutorials/integrations/4-clerk.mdx) to set up authenticated requests to
+Hasura with Clerk.
+
+### Keycloak
+
+By default, Keycloak uses the `RSA-OAEP` algorithm, which the Hasura DDN engine doesn't support. Remove the algorithm in
+the `Realm Settings -> Keys -> Add Providers` tab.

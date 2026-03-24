@@ -1,0 +1,359 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura SQL Server connector, including connection URI details,
+  and native queries."
+keywords:
+  - sqlserver
+  - connector
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration defines how the Hasura SQL Server connector interacts with your database. It specifies:
+
+- Database connection details
+- Tables and views to expose
+- Custom queries and mutations
+- Available functions and procedures
+
+The configuration remains static during the connector's runtime. When your database schema changes, you'll need to
+update the configuration through [introspection](#updating-with-introspection).
+
+## Configuration Structure
+
+The configuration is a JSON object with the following structure:
+
+```json
+{
+  "version": 1,
+  "mssql_connection_string": {
+    "variable": "CONNECTION_URI"
+  },
+  "metadata": {
+    "tables": {},
+    "nativeQueries": {},
+    "nativeMutations": {},
+    "aggregateFunctions": {},
+    "comparisonOperators": {},
+    "storedProcedures": {}
+  }
+}
+```
+
+### Property: Version
+
+Version of the configuration file used in the project.
+
+### Property: MSSQL Connection String
+
+The `connectionUri` field indicates the uri of the database which the connector will be querying. This can be given
+either as a literal value, or sourced from an environment variable (to help with sound credentials storage for
+instance).
+
+**Examples:**
+
+```yaml
+"connectionUri": "Server=<Hostname>,<port>;Uid=<username>;Database=<databasename>;Pwd=<password>"
+```
+
+```yaml
+"connectionUri": { "variable": "CONNECTION_URI" }
+```
+
+## Property: Metadata
+
+The metadata section collects declarations of all the database entities that are known to the data connector.
+
+### `tables`
+
+The `tables` field collects all the tables and views, and the collection name that will be used for each of them.
+
+Consult the [json schema reference][Configuration JSON Schema] for details.
+
+**Example**
+
+```yaml
+"tables":
+  {
+    "Album": // Exposed collection name
+      {
+         "schemaName": "dbo",
+        "tableName": "Album", // The actual name of the table in the database
+        "columns":
+          {
+            "AlbumId": // The exposed field name
+              {
+                "name": "AlbumId", // The actual name of the column in the table
+                "type": "int",
+                "nullable": "nonNullable",
+                "description": null,
+              },
+            "ArtistId":
+              {
+                "name": "ArtistId",
+                "type": "int",
+                "nullable": "nonNullable",
+                "description": null,
+              },
+            "Title":
+              {
+                "name": "Title",
+                "type": "nvarchar",
+                "nullable": "nonNullable",
+                "description": null,
+              },
+          },
+        "uniquenessConstraints": { "PK_Album": ["AlbumId"] },
+        "foreignRelations":
+          {
+            "FK_AlbumArtistId":
+              {
+                "foreignTable": "Artist",
+                "columnMapping": {
+                    "ArtistId": "ArtistId" // Column of this table : Column of the referenced table
+                }
+              },
+          },
+        "description": null,
+      },
+  }
+```
+
+### `nativeQueries`
+
+Native Queries collect user-specified SQL queries that that may become either queryable collections in the generated
+connector schema.
+
+This is a JSON object containing key-value pairs of Native Queries to be used in the data connector.
+
+Example:
+
+```json
+{
+  "native_query_inline": {
+    "sql": {
+      "parts": [
+        {
+          "type": "text",
+          "value": "SELECT 1 AS result FROM DUAL"
+        }
+      ]
+    },
+    "columns": {
+      "result": {
+        "type": "named",
+        "name": "INT"
+      }
+    },
+    "arguments": {},
+    "description": ""
+  },
+  "ArtistById_parameterized": {
+    "sql": {
+      "parts": [
+        {
+          "type": "text",
+          "value": "SELECT * FROM CHINOOK.ARTIST WHERE ARTISTID = "
+        },
+        {
+          "type": "parameter",
+          "value": "ARTISTID"
+        }
+      ]
+    },
+    "columns": {
+      "ARTISTID": {
+        "type": "named",
+        "name": "INT"
+      },
+      "NAME": {
+        "type": "nullable",
+        "underlying_type": {
+          "type": "named",
+          "name": "STRING"
+        }
+      }
+    },
+    "arguments": {
+      "ARTISTID": {
+        "description": null,
+        "type": {
+          "type": "named",
+          "name": "INT"
+        }
+      }
+    },
+    "description": null,
+    "isProcedure": false
+  }
+}
+```
+
+### `nativeMutations`
+
+Native Mutations collect user-specified SQL queries that that may become mutations in the generated connector schema.
+
+This is a JSON object containing key-value pairs of Native Mutations to be used in the data connector.
+
+```
+{
+  "nativeMutations": {
+    "insert_artist_and_return_id": {
+      "sql": "INSERT INTO [dbo].[Artist] (ArtistId, Name) OUTPUT inserted.*  VALUES ({{ArtistId}}, {{Name}})",
+      "columns": {
+        "ArtistId": {
+          "name": "ArtistId",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
+        },
+        "Name": {
+          "name": "Name",
+          "type": "varchar",
+          "nullable": "nullable",
+          "description": null,
+          "castAs": "varchar(100)"
+        }
+      },
+      "arguments": {
+        "ArtistId": {
+          "name": "ArtistId",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
+        },
+        "Name": {
+          "name": "Name",
+          "type": "varchar",
+          "nullable": "nullable",
+          "description": null
+        }
+      },
+      "description": null
+    }
+  }
+}
+```
+
+### `aggregateFunctions`
+
+The `aggregateFunctions` field captures the aggregate funtions associated with the scalar types present in the data
+connector schema.
+
+The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
+input argument appear in the metadata.
+
+**Example**
+
+```yaml
+"aggregateFunctions":
+  {
+    "bigint":
+      {
+        "APPROX_COUNT_DISTINCT": { "returnType": "bigint" },
+        "AVG": { "returnType": "bigint" },
+        "COUNT": { "returnType": "int" },
+        "COUNT_BIG": { "returnType": "bigint" },
+        "MAX": { "returnType": "bigint" },
+        "MIN": { "returnType": "bigint" },
+        "STDEV": { "returnType": "float" },
+        "STDEVP": { "returnType": "float" },
+        "SUM": { "returnType": "bigint" },
+        "VAR": { "returnType": "float" },
+        "VARP": { "returnType": "float" },
+      },
+  }
+```
+
+### `comparisonOperators`
+
+The `comparisonOperators` field captures the comparision operators associated with the scalar types present in the data
+connector schema.
+
+The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
+input argument appear in the metadata.
+
+**Example**
+
+```yaml
+"comparisonOperators":
+  {
+    "bigint":
+      {
+        "_eq": { "operatorName": "=", "argumentType": "bigint", "operatorKind": "equal" },
+        "_gt": { "operatorName": ">", "argumentType": "bigint", "operatorKind": "custom" },
+        "_gte": { "operatorName": ">=", "argumentType": "bigint", "operatorKind": "custom" },
+        "_in": { "operatorName": "IN", "argumentType": "bigint", "operatorKind": "in" },
+        "_lt": { "operatorName": "<", "argumentType": "bigint", "operatorKind": "custom" },
+        "_lte": { "operatorName": "<=", "argumentType": "bigint", "operatorKind": "custom" },
+        "_neq": { "operatorName": "!=", "argumentType": "bigint", "operatorKind": "custom" },
+      },
+  }
+```
+
+A comparison operator is any function that takes two arguments and returns a `bool` value. An operator is recorded under
+the scalar type declaration of its first argument.
+
+### `storedProcedures`
+
+This is a JSON object containing key-value pairs of Stored Procedures to be used in the data connector.
+
+Example
+
+```
+{
+  "storedProcedures": {
+    "GetArtistsByName": {
+      "name": "GetArtistsByName",
+      "schema": "dbo",
+      "arguments": {
+        "Name": {
+          "name": "Name",
+          "type": "varchar",
+          "nullable": "nullable",
+          "isOutput": false,
+          "description": null
+        }
+      },
+      "returns": {
+        "CustomerId": {
+          "name": "CustomerId",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
+        },
+        "Phone": {
+          "name": "Phone",
+          "type": "varchar",
+          "nullable": "nonNullable",
+          "description": null
+        },
+        "TotalPurchases": {
+          "name": "TotalPurchases",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
+        }
+      },
+      "description": null
+    }
+  }
+}
+```
+
+## Updating with introspection
+
+Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
+reflect those changes.
+
+Running `update` in a configuration directory will do the following:
+
+- Connect to the database with the specified `mssql_connection_string`, and then overwrite all data in the `tables`
+  field
+
+- Fill in default values for any fields absent from the configuration

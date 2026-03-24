@@ -1,0 +1,347 @@
+---
+sidebar_position: 7
+sidebar_label: HTTP Header Forwarding
+description: "Learn how to configure Hasura DDN to forward HTTP headers to a lambda connector"
+custom_props:
+  connector-ids:
+    - typescript
+    - python
+    - go
+keywords:
+  - hasura
+  - hasura ddn
+  - custom business logic
+  - http headers
+  - guide
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# HTTP Header Forwarding
+
+## Introduction
+
+Hasura DDN can be configured to forward HTTP request headers to functions implemented in a lambda connector. It can also
+be configured to respond to HTTP requests involving the lambda connector with HTTP headers returned by functions in the
+lambda connector.
+
+:::info Prerequisites
+
+Before continuing, ensure you have:
+
+- A [local Hasura DDN project](/quickstart.mdx).
+- A [lambda connector](/business-logic/overview.mdx) added to your project.
+
+:::
+
+## Recipe - Receiving HTTP request headers
+
+To configure your functions to receive HTTP request headers, perform the following steps:
+
+### Step 1. Add a `headers` function parameter
+
+First, you should modify all functions that you want to receive HTTP request headers and add a `headers` function
+parameter, like so:
+
+<Tabs className="language-tabs">
+  <TabItem value="ts" label="TypeScript">
+    ```typescript title="An example hello function in your functions.ts, updated with a headers parameter"
+    import * as sdk from "@hasura/ndc-lambda-sdk";
+
+    /** @readonly */
+    export function hello(headers: sdk.JSONValue, name?: string): string {
+      const headersMap = headers.value as Record<string, string>;
+      return `hello ${name ?? "world"}`;
+    }
+    ```
+
+    The `headers` function parameter will be passed as a JSON object that represents the HTTP request headers. To extract it, we cast the `headers.value` property to the `Record<string, string>` type.
+
+  </TabItem>
+  <TabItem value="go" label="Go">
+    ```go title="An example hello function in your functions.go, updated with a headers parameter"
+    type HelloArguments struct {
+      Headers map[string]string `json:"headers,omitempty"`
+      Name    string            `json:"name"`
+    }
+
+    func FunctionHello(ctx context.Context, state *types.State, arguments *HelloArguments) (string, error) {
+      log.Printf("request headers: %v", arguments.Headers)
+      name := arguments.Name
+      if name == "" {
+        name = "world"
+      }
+      return "hello " + name, nil
+    }
+    ```
+
+  </TabItem>
+  <TabItem value="python" label="Python">
+    Support coming soon!
+  </TabItem>
+</Tabs>
+
+:::note
+
+You don't need to call the function parameter `headers`. You can use any name you wish, but it must be the same name
+across all functions and it must always be used to receive HTTP headers.
+
+:::
+
+### Step 2. Update the metadata
+
+Next, we need to re-introspect the connector given that we just changed the definition of our functions.
+
+```bash title="Introspect the connector"
+ddn connector introspect my_ts
+```
+
+Then, we need to open the HML file that contains the `DataConnectorLink` metadata object for the connector (usually
+found in `<subgraph name>/metadata/<connector name>.hml`) and edit it.
+
+:::note
+
+From CLI v2.18.0, you can use the codemod `ddn codemod configure-header-forwarding` to configure the `DataConnectorLink`
+to forward headers to the connector.
+
+:::
+
+We use
+[argument presets](/reference/metadata-reference/data-connector-links.mdx#dataconnectorlink-dataconnectorargumentpreset)
+to automatically set our `headers` function parameters with the HTTP request headers. Below is an example where we
+forward the `X-Test-Header` header to the connector. **Keep in mind that only headers listed here are forwarded to the
+connector.**
+
+```yaml title=my_ts.hml
+kind: DataConnectorLink
+version: v1
+definition:
+  name: my_ts
+  url:
+    readWriteUrls:
+      read:
+        valueFromEnv: MY_SUBGRAPH_MY_TS_READ_URL
+      write:
+        valueFromEnv: MY_SUBGRAPH_MY_TS_WRITE_URL
+  headers:
+    Authorization:
+      valueFromEnv: MY_SUBGRAPH_MY_TS_AUTHORIZATION_HEADER
+  # highlight-start
+  argumentPresets:
+    - argument: headers
+      value:
+        httpHeaders:
+          forward:
+            - X-Test-Header
+          additional: {}
+  # highlight-end
+  schema: ...
+```
+
+### Step 3. Create a new API build and test
+
+Now, we can rebuild the supergraph and test our changes:
+
+```bash title="Run:"
+ddn supergraph build local
+```
+
+:::warning `headers` already mapped error
+
+If you get a build error saying "the argument headers is mapped to the data connector argument headers which is already
+used as an argument preset in the DataConnectorLink" then you need to open HML file containing the `Command` mentioned
+in the error and remove the headers argument from the `Command`'s `arguments` list and from the `argumentMapping`, if it
+exists.
+
+This is because when you preset arguments in your `DataConnectorLink`, they are automatically set by the DDN engine and
+therefore are not defined on the `Command` as arguments that API users can set.
+
+:::
+
+:::tip Start your engines!
+
+Don't forget to start your GraphQL engine using the following command.
+
+```bash title="From the root of your project, run:"
+ddn run docker-start
+```
+
+This reads the `docker-start` script from the context config at `.hasura/context.yaml` and starts your Hasura engine,
+any connectors, and observability tools.
+
+:::
+
+Launch the Hasura console to see and test your GraphQL API using:
+
+```bash title="Run:"
+ddn console --local
+```
+
+## Recipe - Returning HTTP response headers
+
+To configure your lambda connector to return HTTP response headers, perform the following steps:
+
+### Step 1. Modify the function return type
+
+First, you should add a helper type that you can re-use that will contain your headers as well as the actual value you
+want to return from your function:
+
+<Tabs className="language-tabs">
+  <TabItem value="ts" label="TypeScript">
+    ```typescript title="In your functions.ts, add the following"
+    type HeadersResponse<T> = {
+      headers: sdk.JSONValue
+      response: T
+    }
+    ```
+  </TabItem>
+    <TabItem value="go" label="Go">
+    ```go title="In your functions.go, add the following"
+    type HeadersResponse[T any] struct {
+      Headers  map[string]string `json:"headers"`
+      Response T                 `json:"response"`
+    }
+    ```
+  </TabItem>
+  <TabItem value="python" label="Python">
+    Support coming soon!
+  </TabItem>
+
+</Tabs>
+
+Then, you can modify your function return value to use this type. In the following example, we take the headers received
+in the previous section and add an additional header `X-Test-ResponseHeader` to be returned on the response. We then
+return that, as well as our response string, inside our new `HeadersResponse` object.
+
+<Tabs className="language-tabs">
+  <TabItem value="ts" label="TypeScript">
+    ```typescript title="An example hello function in your functions.ts, updated to return a HeadersResponse type"
+    /** @readonly */
+    export function hello(headers: sdk.JSONValue, name?: string): HeadersResponse<string> {
+      const headersMap = headers.value as Record<string, string>;
+      headersMap["X-Test-ResponseHeader"] = "I set this in the code";
+      return {
+        headers: new sdk.JSONValue(headersMap),
+        response: `hello ${name ?? "world"}`
+      };
+    }
+    ```
+  </TabItem>
+    <TabItem value="go" label="Go">
+    ```go title="An example hello function in your functions.go, updated to return a HeadersResponse type"
+    func FunctionHello(ctx context.Context, state *State, arguments *HelloArguments) (HeadersResponse[string], error) {
+      headersMap := arguments.Headers
+      if headersMap == nil {
+        headersMap = map[string]string{}
+      }
+      headersMap["X-Test-ResponseHeader"] = "I set this in the code"
+
+      name := arguments.Name
+      if name == "" {
+        name = "world"
+      }
+
+      return HeadersResponse[string]{
+        Headers:  headersMap,
+        Response: "hello " + name,
+      }, nil
+    }
+    ```
+
+  </TabItem>
+  <TabItem value="python" label="Python">
+    Support coming soon!
+  </TabItem>
+
+</Tabs>
+
+### Step 2. Update the metadata
+
+Next, we need to re-introspect the connector given that we just changed the definition of our functions.
+
+```bash title="Introspect the connector"
+ddn connector introspect my_ts
+```
+
+Then, we need to open the HML file that contains the `DataConnectorLink` metadata object for the connector (usually
+found in `<subgraph name>/metadata/<connector name>.hml`) and edit it.
+
+We will be using the
+[`responseHeaders` configuration property](/reference/metadata-reference/data-connector-links.mdx#dataconnectorlink-responseheaders)
+to configure which headers returned by our connector functions we want returned as a part of our HTTP response headers.
+In the below example, the `X-Test-Header` and `X-Test-ResponseHeader` headers are listed under `forwardHeaders` to
+ensure they are added to the HTTP response if they are returned by the connector function. We also set the
+`headersField` and `resultField` properties to the two property names we defined on the `HeadersResponse` type we
+defined earlier.
+
+```yml title=my_ts.hml
+kind: DataConnectorLink
+version: v1
+definition:
+  name: my_ts
+  url:
+    readWriteUrls:
+      read:
+        valueFromEnv: MY_SUBGRAPH_MY_TS_READ_URL
+      write:
+        valueFromEnv: MY_SUBGRAPH_MY_TS_WRITE_URL
+  headers:
+    Authorization:
+      valueFromEnv: MY_SUBGRAPH_MY_TS_AUTHORIZATION_HEADER
+  argumentPresets:
+    - argument: headers
+      value:
+        httpHeaders:
+          forward:
+            - X-Test-Header
+          additional: {}
+  # highlight-start
+  responseHeaders:
+    headersField: headers
+    resultField: response
+    forwardHeaders:
+      - X-Test-Header
+      - X-Test-ResponseHeader
+  # highlight-end
+  schema: ...
+```
+
+### Step 3. Create a new API build and test
+
+Now, we can rebuild the supergraph and test our changes:
+
+```bash title="Run:"
+ddn supergraph build local
+```
+
+:::warning type is not defined in the agent schema error
+
+The [`outputType`](/reference/metadata-reference/commands.mdx#command-commandv1) of `Command`s that represent our
+functions should be the [OpenDD Scalar Type](/reference/metadata-reference/types.mdx) used to represent type of the
+`HeadersResponse.response` property, not the `HeadersResponse` type itself.
+
+So, using our above example, the `Hello` `Command`'s `outputType` should be `String!`, not `HeaderResponseString!`. If
+it is incorrectly configured, you may get a build error such as "NDC validation error: type String is not defined in the
+agent schema".
+
+:::
+
+:::tip Start your engines!
+
+Don't forget to start your GraphQL engine using the following command.
+
+```bash title="From the root of your project, run:"
+ddn run docker-start
+```
+
+This reads the `docker-start` script from the context config at `.hasura/context.yaml` and starts your Hasura engine,
+any connectors, and observability tools.
+
+:::
+
+Launch the Hasura console to see and test your GraphQL API using:
+
+```bash title="Run:"
+ddn console --local
+```

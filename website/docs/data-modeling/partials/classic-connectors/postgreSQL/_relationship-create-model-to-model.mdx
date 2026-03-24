@@ -1,0 +1,81 @@
+Following on from the [PostgreSQL tutorial in the How to Build with DDN](/how-to-build-with-ddn/with-postgresql.mdx)
+section, you can create a relationship between two models which already have a foreign key relationship defined in the
+database.
+
+In the tutorial, we created a `posts` to `users` relationship. Let's now add the inverse, detected automatically by the
+same foreign key as a relationship between the `Users` to `Posts` models.
+
+```bash title="View the available resources from the data connector:"
+ddn connector show-resources my_pg
+```
+
+Add the users realtionship which was found automatically due to the foreign key.
+
+```bash title="Add the relationship:"
+ddn relationship add my_pg users
+```
+
+Now, you can build your supergraph API, serve it, and query your data.
+
+```bash title="Build your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now you can query your data with your relationship in the console get users and their posts.
+
+```bash title="Query your data:"
+ddn console --local
+```
+
+```graphql
+query UsersWithPosts {
+  users {
+    id
+    posts {
+      title
+    }
+    name
+  }
+}
+```
+
+```json
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Alice"
+        "posts": [
+          {
+            "title": "My First Post"
+          },
+          {
+            "title": "Another Post"
+          }
+        ],
+      },
+      {
+        "id": 2,
+        "name": "Bob"
+        "posts": [
+          {
+            "title": "Bob's Post"
+          }
+        ],
+
+      },
+      {
+        "id": 3,
+        "name": "Charlie"
+        "posts": [
+          {
+            "title": "Hello World"
+          }
+        ],
+      }
+    ]
+  }
+}
+```

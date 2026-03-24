@@ -1,0 +1,65 @@
+---
+sidebar_label: ddn connector remove
+sidebar_position: 42
+description: Remove a Connector, its corresponding DataConnectorLink and all its associated metadata objects using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector_remove"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector remove
+---
+
+# DDN CLI: ddn connector remove
+
+Remove a Connector, its corresponding DataConnectorLink and all its associated metadata objects.
+
+## Synopsis
+
+Remove a Connector, its corresponding DataConnectorLink and all its associated metadata objects
+
+```bash
+ddn connector remove <connector-name> [flags]
+```
+
+**Alias:** rm
+
+## Examples
+
+```bash
+# Remove Connector my_db and associated DataConnectorLink from the default subgraph
+ ddn connector remove my_db
+
+# Remove Connector my_db from Subgraph located at ./foo/subgraph.yaml and associated DataConnectorLink
+ ddn connector remove my_db --subgraph ./foo/subgraph.yaml
+
+# Remove Connector located at ./foo/my_db/connector.yaml with DataConnectorLink given by app/subgraph.yaml and name my_db
+ ddn connector remove --connector ./foo/my_db/connector.yaml --subgraph app/subgraph.yaml --connector-link my_db
+```
+
+## Options
+
+```sass
+    --ci                                Disables the use of context
+    --connector string                  Path to Connector YAML config file
+    --connector-link string             DataConnectorLink corresponding to the Connector
+-c, --context string                    Name of the context to use. (default <current_context>)
+-h, --help                              help for remove
+    --remove-from-compose-file string   The compose file to include the generated connector compose file
+    --subgraph string                   SubgraphConfig file to remove the Connector from
+    --target-env-file stringArray       Paths to the .env files
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector](/reference/cli/commands/ddn_connector) - Perform Connector related operations

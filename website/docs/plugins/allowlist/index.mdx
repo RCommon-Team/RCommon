@@ -1,0 +1,32 @@
+---
+title: Allowlist Plugin
+sidebar_position: 1
+description: "Learn more about the Allowlist Plugin for Hasura DDN."
+keywords:
+  - hasura plugins
+  - allowlist plugin
+  - plugins architecture
+  - engine plugins
+---
+
+# Allowlist Plugin
+
+## Introduction
+
+The [Allowlist Plugin](https://github.com/hasura/engine-plugin-allowlist) provides a mechanism to restrict access to
+your supergraph by defining specific queries or mutations that are allowed. This adds an extra layer of security by
+ensuring that only predefined operations can be executed.
+
+The plugin integrates with Hasura DDN as a **pre-parse plugin** and can be deployed as an HTTP service using tools like
+Cloudflare Workers or similar services.
+
+Key benefits of the allowlist plugin include:
+
+- **Enhanced security:** Restrict operations to a predefined set.
+- **Flexibility:** Supports dynamic configuration through environment variables.
+- **Integration:** Works as a pre-parse plugin, ensuring only allowed queries or mutations are processed.
+
+## Next steps
+
+To get started with configuring and deploying the Allowlist Plugin, refer to the [guide](/plugins/allowlist/how-to.mdx),
+which walks you through the process of setting up, configuring, and deploying the plugin.

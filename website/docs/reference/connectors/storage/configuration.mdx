@@ -1,0 +1,298 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description: "Reference documentation for the setup process for the Storage connector with various providers."
+keywords:
+  - storage
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+As the schema for this connector is mapped to file conventions and interactions for S3-compatible storage solutions, the
+connector does not generate any local configuration files. Instead, when you introspect your data source,
+[this JSON schema](https://raw.githubusercontent.com/hasura/ndc-storage/refs/heads/main/jsonschema/configuration.schema.json)
+is used to generate a [`DataConnectorLink`](/reference/metadata-reference/data-connector-links.mdx) in your subgraph's
+metadata, complete with all the resources available via a file system's API.
+
+To explore this file, [try out the how-to guide for Storage](/how-to-build-with-ddn/with-storage.mdx) and — after
+introspecting — grep through the generated HML file for any endpoint you desire.
+
+Below, you can find configuration information for various compatible providers.
+
+## General settings
+
+The configuration file `configuration.yaml` contains a list of storage clients. Every client has common settings:
+
+- `id`: the unique identity of the client. This setting is optional unless there are many configured clients.
+- `type`: type of the storage provider. Accept one of `s3`, `gcs`, and `azblob`.
+- `defaultBucket`: the default bucket name.
+- `authentication`: the authentication setting.
+- `endpoint`: the base endpoint of the storage server. Required for other S3 compatible services such as MinIO,
+  Cloudflare R2, DigitalOcean Spaces, etc...
+- `publicHost`: is used to configure the public host for pre-signed URL generation if the connector communicates
+  privately with the storage server through an internal DNS. If this setting isn't set the host of the generated URL
+  will be a private DNS that isn't accessible from the internet.
+- `region`: (optional) region of the bucket going to be created.
+- `maxRetries`: maximum number of retry times. Default 10.
+- `defaultPresignedExpiry`: the default expiry for pre-signed URL generation in duration format. The maximum expiry is 7
+  days \(`168h`\) and minimum is 1 second \(`1s`\).
+- `trailingHeaders` indicates server support for trailing headers. Only supported for v4 signatures.
+- `allowedBuckets`: the list of allowed bucket names. This setting prevents users from getting buckets and objects
+  outside the list. However, it's recommended that permissions for the IAM credentials be restricted. This setting is
+  useful to let the connector know which buckets belong to this client. The empty value means all buckets are allowed.
+  The storage server will handle the validation.
+
+## S3-Compatible client
+
+### Authentication
+
+#### Static credentials
+
+Configure the authentication type `static` with `accessKeyId` and `secretAccessKey`. `sessionToken` is also supported
+for [temporary access](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html) but for
+testing only.
+
+```yaml
+clients:
+  - type: s3
+    authentication:
+      type: static
+      accessKeyId:
+        env: ACCESS_KEY_ID
+      secretAccessKey:
+        env: SECRET_ACCESS_KEY
+```
+
+#### IAM
+
+The IAM authentication retrieves credentials from the AWS EC2, ECS, or EKS service, and keeps track if those credentials
+are expired. This authentication method can be used only if the connector is hosted in the AWS ecosystem.
+
+The following settings are supported:
+
+- `iamAuthEndpoint`: the optional custom endpoint to fetch IAM role credentials. The client can automatically identify
+  the endpoint if not set.
+
+## Azure Blob Storage
+
+### Authentication
+
+### Shared key
+
+Authorize with an immutable SharedKeyCredential containing the storage account's name and either its primary or
+secondary key. See
+[Manage storage account access keys](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal)
+in Azure Storage docs.
+
+```yaml
+clients:
+  - type: azblob
+    authentication:
+      type: sharedKey
+      accountName:
+        env: AZURE_STORAGE_ACCOUNT_NAME
+      accountKey:
+        env: AZURE_STORAGE_ACCOUNT_KEY
+```
+
+### Connection string
+
+The connector uses the `endpoint` to authorize for your Azure storage account. See
+[Azure Storage docs](https://learn.microsoft.com/en-us/azure/storage/common/storage-configure-connection-string?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&bc=%2Fazure%2Fstorage%2Fblobs%2Fbreadcrumb%2Ftoc.json#configure-a-connection-string-for-an-azure-storage-account)
+for more context.
+
+```yaml
+clients:
+  - type: azblob
+    endpoint: DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=<account-key>
+    authentication:
+      type: connectionString
+```
+
+#### Microsoft Entra (or Azure Active Directory)
+
+The `entra` type supports Microsoft Entra (or Azure Active Directory) that authenticates a service principal with a
+secret, certificate, user-password, or Azure workload identity. You can configure multiple credentials. They can be
+chained together.
+
+```yaml
+clients:
+  - type: azblob
+    defaultBucket:
+      env: AZURE_STORAGE_DEFAULT_BUCKET
+    authentication:
+      type: entra
+      tenantId:
+        env: AZURE_TENANT_ID
+      clientId:
+        env: AZURE_CLIENT_ID
+      clientSecret:
+        env: AZURE_CLIENT_SECRET
+      username:
+        env: AZURE_USERNAME
+      password:
+        env: AZURE_PASSWORD
+      clientCertificate:
+        env: AZURE_CLIENT_CERTIFICATE
+      clientCertificatePath:
+        env: AZURE_CLIENT_CERTIFICATE_PATH
+      clientCertificatePassword:
+        env: AZURE_CLIENT_CERTIFICATE_PASSWORD
+      tokenFilePath:
+        env: AZURE_FEDERATED_TOKEN_FILE
+      sendCertificateChain: false
+      disableInstanceDiscovery: false
+      additionallyAllowedTenants:
+        - <tenant-id>
+```
+
+#### Anonymous access
+
+```yaml
+clients:
+  - type: azblob
+    endpoint: https://azurestoragesamples.blob.core.windows.net/samples/cloud.jpg
+    authentication:
+      type: anonymous
+```
+
+## Google Cloud Storage
+
+### Authentication
+
+#### Access credentials
+
+Authorize to Google Cloud Storage with a service account credential in JSON format. The connector supports either an
+inline value or a file path.
+
+```yaml
+clients:
+  - type: gcs
+    projectId:
+      env: GOOGLE_PROJECT_ID
+    authentication:
+      type: credentials
+      # inline credentials
+      credentials:
+        value: '{"type": "service_account", ... }' # json string
+      # or a file path
+      # credentialsFile:
+      #   env: GOOGLE_STORAGE_CREDENTIALS_FILE
+```
+
+#### HMAC
+
+You must use the `s3` client instead. [Generate HMAC key](https://cloud.google.com/storage/docs/authentication/hmackeys)
+to configure the Access Key ID and Secret Access Key.
+
+```yaml
+clients:
+  - type: s3
+    defaultBucket:
+      env: DEFAULT_BUCKET
+    authentication:
+      type: static
+      accessKeyId:
+        env: ACCESS_KEY_ID
+      secretAccessKey:
+        env: SECRET_ACCESS_KEY
+```
+
+#### Anonymous
+
+Use this authentication if the client accesses public buckets and objects only.
+
+```yaml
+clients:
+  - type: gcs
+    authentication:
+      type: anonymous
+```
+
+## Examples
+
+See full configuration examples at
+[here](https://github.com/hasura/ndc-storage/blob/main/tests/configuration/configuration.yaml).
+
+### AWS S3
+
+Create [a user access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/access-keys-admin-managed.html) with S3
+permissions to configure the Access Key ID and Secret Access Key.
+
+```yaml
+clients:
+  - id: s3
+    type: s3
+    defaultBucket:
+      env: DEFAULT_BUCKET
+    authentication:
+      type: static
+      accessKeyId:
+        env: ACCESS_KEY_ID
+      secretAccessKey:
+        env: SECRET_ACCESS_KEY
+```
+
+### Other S3 compatible services
+
+You must configure the endpoint URL along with Access Key ID and Secret Access Key.
+
+```yaml
+clients:
+  - id: minio
+    type: s3
+    endpoint:
+      env: STORAGE_ENDPOINT
+    defaultBucket:
+      env: DEFAULT_BUCKET
+    authentication:
+      type: static
+      accessKeyId:
+        env: ACCESS_KEY_ID
+      secretAccessKey:
+        env: SECRET_ACCESS_KEY
+```
+
+### Cloudflare R2
+
+You must configure the endpoint URL along with
+[Access Key ID and Secret Access Key](https://developers.cloudflare.com/r2/api/s3/tokens/#get-s3-api-credentials-from-an-api-token).
+See [Cloudflare docs](https://developers.cloudflare.com/r2/api/s3/api/) for more context.
+
+### DigitalOcean Spaces
+
+See [Spaces API Reference Documentation](https://docs.digitalocean.com/reference/api/spaces-api/).
+
+### File System
+
+The storage provider manages files and directories in local file system. The bucket will be the root directory. Only the
+mounted volume to `/home/nonroot/data` is writable. All other paths are read-only.
+
+```yaml
+clients:
+  - id: fs
+    type: fs
+    defaultDirectory:
+      value: /home/nonroot/data
+    # allowedDirectories:
+    #   - /data
+    #   - /foo/bar
+```
+
+## Runtime settings
+
+| Name                 | Description                                                                                             | Default |
+| -------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
+| `maxDownloadSizeMBs` | Limit the max download size in MBs for `downloadStorageObject*` functions                               | `20`    |
+| `maxUploadSizeMBs`   | Limit the max upload size in MBs for `uploadStorageObject*` functions                                   | `20`    |
+| `http`               | Default transport setting for the default HTTP client that is used for uploading or dynamic credentials |         |
+
+## Concurrency settings
+
+| Name       | Description                                                                   | Default |
+| ---------- | ----------------------------------------------------------------------------- | ------- |
+| `query`    | Max number of concurrent threads when fetching remote relationships in query  | `5`     |
+| `mutation` | Max number of concurrent commands if the mutation request has many operations | `1`     |

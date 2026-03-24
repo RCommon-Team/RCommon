@@ -1,0 +1,219 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura MySQL connector, including connection URI details, and
+  native queries."
+keywords:
+  - mysql
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration is a metadata object that lists all the database entities — such as tables — that the data connector
+has to know about in order to serve queries. It never changes during the lifetime of the data connector service
+instance. When your database schema changes you will have to update the configuration accordingly, see
+[updating with introspection](#updating-with-introspection).
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "jdbcUrl": "",
+  "jdbcProperties": {},
+  "schemas": [],
+  "tables": [],
+  "functions": [],
+  "nativeQueries": {}
+}
+```
+
+### Property: JDBC URL
+
+The JDBC connection URL to connect to the MySQL database. This is a required field.
+
+The value can either be a literal string, or a reference to an environment variable:
+
+```json
+{
+  "jdbcUrl": "jdbc:MySQL:thin:@//localhost:1521/xe?user=foo&password=bar",
+  "jdbcUrl": { "variable": "MYSQL_JDBC_URL" }
+}
+```
+
+### Property: JDBC Properties
+
+This is a JSON object containing key-value pairs of additional properties to be passed to the JDBC driver. For example,
+with MySQL to enable running multiple statements in a given query:
+
+```json
+{
+  "jdbcProperties": { "allowMultiQueries": "true" }
+}
+```
+
+### Property: Schemas
+
+This is an optional array of schema names to include in the introspection process. If not provided, all schemas will be
+included.
+
+Example:
+
+```json
+{
+  "schemas": ["public", "other_schema"]
+}
+```
+
+### Property: Tables
+
+This is an array of table definitions, generated automatically during introspection.
+
+Example:
+
+```json
+{
+  "tableName": "Album",
+  "tableType": "TABLE",
+  "description": "",
+  "columns": [
+    {
+      "name": "AlbumId",
+      "description": "",
+      "type": "int",
+      "numeric_scale": 0,
+      "nullable": false,
+      "auto_increment": true,
+      "is_primarykey": true
+    },
+    {
+      "name": "Title",
+      "description": "",
+      "type": "varchar",
+      "numeric_scale": null,
+      "nullable": false,
+      "auto_increment": false,
+      "is_primarykey": false
+    },
+    {
+      "name": "ArtistId",
+      "description": "",
+      "type": "int",
+      "numeric_scale": 0,
+      "nullable": false,
+      "auto_increment": false,
+      "is_primarykey": false
+    }
+  ],
+  "pks": ["AlbumId"],
+  "fks": {
+    "FK_AlbumArtistId": {
+      "foreign_collection": "Artist",
+      "column_mapping": {
+        "ArtistId": "ArtistId"
+      }
+    }
+  }
+}
+```
+
+### Property: Functions
+
+This is an array of function definitions.
+
+Example:
+
+```json
+{
+  "function_catalog": "public",
+  "function_schema": "public",
+  "function_name": "add",
+  "argument_signature": "(N NUMBER, M NUMBER)",
+  "data_type": "TABLE (N NUMBER, M NUMBER)",
+  "comment": "Adds two numbers"
+}
+```
+
+### Property: Native Queries
+
+This is a JSON object containing key-value pairs of Native Queries to be used in the data connector.
+
+Two types of Native Queries are supported: **Inline** and **Parameterized**.
+
+Example:
+
+```json
+{
+  "native_query_inline": {
+    "sql": {
+      "parts": [
+        {
+          "type": "text",
+          "value": "SELECT 1 AS result FROM DUAL"
+        }
+      ]
+    },
+    "columns": {
+      "result": {
+        "type": "named",
+        "name": "INT"
+      }
+    },
+    "arguments": {},
+    "description": ""
+  },
+  "ArtistById_parameterized": {
+    "sql": {
+      "parts": [
+        {
+          "type": "text",
+          "value": "SELECT * FROM CHINOOK.ARTIST WHERE ARTISTID = "
+        },
+        {
+          "type": "parameter",
+          "value": "ARTISTID"
+        }
+      ]
+    },
+    "columns": {
+      "ARTISTID": {
+        "type": "named",
+        "name": "INT"
+      },
+      "NAME": {
+        "type": "nullable",
+        "underlying_type": {
+          "type": "named",
+          "name": "STRING"
+        }
+      }
+    },
+    "arguments": {
+      "ARTISTID": {
+        "description": null,
+        "type": {
+          "type": "named",
+          "name": "INT"
+        }
+      }
+    },
+    "description": null,
+    "isProcedure": false
+  }
+```
+
+## Updating with introspection
+
+Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
+reflect those changes.
+
+Running `update` in a configuration directory will do the following:
+
+- Connect to the database with the specified `jdbcUrl`, and then overwrite all data in the `tables` field
+
+- Fill in default values for any fields absent from the configuration

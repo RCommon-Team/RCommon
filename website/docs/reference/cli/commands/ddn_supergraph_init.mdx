@@ -1,0 +1,64 @@
+---
+sidebar_label: ddn supergraph init
+sidebar_position: 114
+description: Initialize a new Supergraph project directory using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_supergraph_init"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn supergraph init
+---
+
+# DDN CLI: ddn supergraph init
+
+Initialize a new Supergraph project directory.
+
+## Synopsis
+
+This command is most often the first run with a new project. Use this to create a new supergraph directory and then begin to create your API. To learn more, check out the quickstart: https://hasura.io/docs/3.0/quickstart
+
+```bash
+ddn supergraph init <path-to-project-dir> [flags]
+```
+
+## Examples
+
+```bash
+# Initialize a new Supergraph project directory with a default subgraph 'app'
+ ddn supergraph init <path-to-project-dir>
+
+# Initialize a new Supergraph project directory with a subgraph 'mysg'
+ ddn supergraph init <path-to-project-dir> --create-subgraph mysg
+```
+
+## Options
+
+```sass
+    --create-project                      Create a project while initializing the supergraph
+    --create-subgraph string              The default subgraph to add (default "app")
+    --globals-subgraph string             Name of the globals subgraph (default "globals")
+-h, --help                                help for init
+    --no-globals-subgraph                 Do not add a globals subgraph
+    --no-subgraph                         Do not add a default subgraph
+    --project-data-plane-id uuid          The DDN instance where the Project should be hosted, only used with --create-project flag or --with-promptql flag
+    --project-name string                 Create a new project with this name, only used with --create-project flag or --with-promptql flag
+    --project-plan string                 DDN Project plan, only used with --create-project flag or --with-promptql flag
+    --subgraph-naming-convention string   Naming convention for the subgraph. Can be 'graphql', 'snake_case', 'snake_case_v2' or 'none'.
+    --with-project string                 Use an existing project instead of creating a new one, only used with --create-project flag or --with-promptql flag
+    --with-promptql                       Initialize with PromptQL support, this also initializes a project with PromptQL enabled. (alpha)
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn supergraph](/reference/cli/commands/ddn_supergraph) - Perform Supergraph-related operations

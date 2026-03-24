@@ -1,0 +1,62 @@
+---
+sidebar_label: ddn connector build logs
+sidebar_position: 35
+description: Get logs of a ConnectorBuild from Hasura DDN using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector_build_logs"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector build logs
+---
+
+# DDN CLI: ddn connector build logs
+
+Get logs of a ConnectorBuild from Hasura DDN.
+
+## Synopsis
+
+Get logs of a ConnectorBuild from Hasura DDN
+
+```bash
+ddn connector build logs <connector-build-id> [flags]
+```
+
+## Examples
+
+```bash
+# Get running deploy logs
+ ddn connector build logs <connector-build-id>
+
+# Get running deploy logs and keep following
+ ddn connector build logs <connector-build-id> --follow
+
+# Get running deploy logs and keep following since a specified time duration
+ ddn connector build logs <connector-build-id> --follow --since 10m
+
+# Get build logs of a ConnectorBuild
+ ddn connector build logs <connector-build-id> --build
+```
+
+## Options
+
+```sass
+    --build          Specifies whether to show the build logs. (default: false)
+    --follow         Specifies whether to continuously follow the deployment logs. (default: false)
+-h, --help           help for logs
+    --since string   Specifies the starting time for log retrieval. Can be in ISO format (e.g. 2024-03-26T11:05:15Z) or a duration (e.g. 5m for 5 minutes ago). (By default, prints the entire available logs).
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector build](/reference/cli/commands/ddn_connector_build) - Perform ConnectorBuild-related operations

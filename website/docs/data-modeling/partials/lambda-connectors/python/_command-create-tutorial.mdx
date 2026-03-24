@@ -1,0 +1,51 @@
+```sh title="Initalize a new connector and select hasura/python from the list:"
+ddn connector init my_python -i
+```
+
+```python title="Replace the functions.py contents with the following:"
+from hasura_ndc import start
+from hasura_ndc.function_connector import FunctionConnector
+
+connector = FunctionConnector()
+
+@connector.register_query
+def shout_name(name: str) -> str:
+  return name.upper()
+
+if __name__ == "__main__":
+  start(connector)
+```
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_python
+```
+
+```bash title="Track the function:"
+ddn command add my_python shout_name
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your expanded table with the transformed name:"
+query ShoutTheName {
+  shoutName(name: "Alice")
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "shoutName": "ALICE"
+  }
+}
+```

@@ -1,0 +1,38 @@
+---
+title: Snowflake
+sidebar_position: 1
+description:
+  "Learn how to configure the Snowflake connector and utilize native operations to extend your API's capability."
+sidebar_label: Snowflake
+keywords:
+  - snowflake
+  - configuration
+  - connector
+seoFrontMatterUpdated: false
+---
+
+# Snowflake
+
+## Introduction
+
+Hasura DDN includes a Native Data Connector for Snowflake, providing integration with Snowflake instances. This
+connector allows you to leverage Snowflake’s powerful capabilities while taking advantage of Hasura’s metadata-driven
+approach. Here, we’ll explore the key features of the Snowflake connector and walk through the configuration process
+within a Hasura DDN project.
+
+:::info Important Considerations for Using Hasura DDN with Snowflake
+
+Snowflake is an analytical data source optimized for large-scale data analysis and complex queries. When integrating
+Snowflake with Hasura DDN, it’s essential to recognize that the performance of your API will be directly influenced by
+the query performance of Snowflake. As a result, response times may vary depending on the complexity and volume of the
+queries executed. **Use this connector and Snowflake for scenarios where analytical query performance is acceptable.**
+
+Snowflake is not designed for transactional use cases that require low-latency operations, high-frequency updates, or
+real-time responses. **Avoid using Hasura DDN with Snowflake for applications that require rapid transactional
+processing.**
+
+:::
+
+## Snowflake docs
+
+- [Connector configuration](/reference/connectors/snowflake/configuration.mdx)

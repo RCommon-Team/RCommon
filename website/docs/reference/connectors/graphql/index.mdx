@@ -1,0 +1,46 @@
+---
+title: GraphQL
+sidebar_position: 1
+description: "Learn how to configure the GraphQL connector and integrate any existing GraphQL API into your supergraph."
+sidebar_label: GraphQL
+keywords:
+  - graphql
+  - graphql connector
+  - configuration
+  - connector
+seoFrontMatterUpdated: false
+---
+
+# GraphQL
+
+## Introduction
+
+The GraphQL connector enables you to connect existing GraphQL APIs to your Hasura DDN API. Here we'll provide an
+overview of the features offered by the connector and guide you through the configuration process within a Hasura DDN
+project.
+
+Below, you'll find a matrix of all supported features for the GraphQL connector:
+
+| Feature            | Supported | Notes                                               |
+| ------------------ | --------- | --------------------------------------------------- |
+| Queries            | ✅        | All features that the DDN engine currently supports |
+| Mutations          | ✅        |                                                     |
+| Header Passthrough | ✅        | Entire headers can be forwarded                     |
+| Subscriptions      | ❌        |                                                     |
+| Unions             | ❌        | Can be brought in via scalar types                  |
+| Interfaces         | ❌        |                                                     |
+| Relay API          | ❌        |                                                     |
+| Directives         | ❌        | `@cached`, Apollo directives                        |
+
+:::tip Looking to get started?
+
+If you've ended up here and aren't concerned about tweaking your configuration, and rather are looking to get started
+with the GraphQL connector and Hasura DDN as quickly as possible, check out our
+[GraphQL tutorial](/how-to-build-with-ddn/with-graphql.mdx) or
+[learn how to connect](/data-sources/connect-to-a-source.mdx) to an existing GraphQL API.
+
+:::
+
+## GraphQL connector docs
+
+- [Connector configuration](/reference/connectors/graphql/configuration.mdx)

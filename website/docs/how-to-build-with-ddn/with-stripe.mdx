@@ -1,0 +1,260 @@
+---
+sidebar_position: 17
+sidebar_label: With Stripe
+description: "Learn the basics of Hasura DDN and how to get started with a Stripe account."
+custom_props:
+  connector-ids:
+    - stripe
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - stripe
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and Stripe
+
+## Overview
+
+This tutorial takes about ten minutes to complete. You'll learn how to:
+
+- Set up a new Hasura DDN project
+- Connect it to a Stripe account
+- Generate Hasura metadata
+- Create a build
+- Run your first query
+
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+
+This tutorial assumes you're starting with an existing [Stripe account](https://stripe.com/) which has some
+[products](https://docs.stripe.com/api/products) and [checkout sessions](https://docs.stripe.com/api/checkout/sessions).
+Though, by the end, you'll be able to query any information stored in Stripe.
+
+Hasura will never modify your source schema.
+
+<Prereqs />
+
+## Tutorial
+
+### Step 1. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
+acknowledge your login, giving you access to Hasura Cloud resources.
+
+### Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
+
+### Step 3. Initialize your Stripe connector
+
+```sh title="In your project directory, run:"
+ddn connector init my_stripe -i
+```
+
+From the dropdown, select `hasura/stripe` (you can type to filter the list), then hit enter to accept the default of all
+the options.
+
+You'll be prompted for an environment variable:
+
+| Variable                   | Description                                                                                                                         | Example                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `STRIPE_BEARER_AUTH_TOKEN` | A **secret** key for your account, retrievable from your [API Keys dashboard in Stripe](https://dashboard.stripe.com/test/apikeys). | `sk_<test\|prod>_<unique_identifier>` |
+
+### Step 4. Introspect your Stripe account
+
+```sh title="Next, use the CLI to introspect your Stripe account:"
+ddn connector introspect my_stripe
+```
+
+After running this, you should see a representation of the Stripe API's schema in the `app/metadata/my_stripe.hml` file;
+you can view this using `cat` or open the file in your editor.
+
+Under the hood, the Stripe connector utilizes the [`ndc-http` connector](https://github.com/hasura/ndc-http) via
+[Stripe's OpenAPI spec](https://github.com/stripe/openapi). This ensures you can incorporate any resources available via
+Stripe's REST API into your supergraph.
+
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources my_stripe
+```
+
+### Step 5. Add your command
+
+```sh title="Let's start by tracking the GetProducts endpoint from Stripe's API:"
+ddn command add my_stripe GetProducts
+```
+
+Open the `app/metadata` directory and you'll find a newly-generated file: `GetProducts.hml`. The DDN CLI will use this
+Hasura Metadata Language file to represent the `GetProducts` endpoint from Stripe in your API as a
+[command](/reference/metadata-reference/commands.mdx).
+
+### Step 6. Create a new build
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+### Step 7. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and Stripe connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+### Step 8. Run your first query
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query GET_ALL_PRODUCTS {
+  getProducts {
+    data {
+      id
+      name
+      description
+    }
+  }
+}
+```
+
+```json title="You'll get a response listing all of your products. For example:"
+{
+  "data": {
+    "getProducts": {
+      "data": [
+        {
+          "id": "3bef8a40-3c33-11ee-bb29-070df467ec94",
+          "name": "Tee",
+          "description": "A great t-shirt!"
+        },
+        {
+          "id": "e0a70b16-65b6-11ed-8788-8fa2504d64a3",
+          "name": "Sticker Sheet",
+          "description": "Who doesn't love stickers??"
+        },
+        {
+          "id": "a44eda7c-65b6-11ed-997b-53b5bdb7117e",
+          "name": "Hasuras in The Cloud Tee",
+          "description": "The cloud for your cloud."
+        },
+        {
+          "id": "8aa93f86-65b6-11ed-901c-f320d4e17bb2",
+          "name": "Dark Furry Logo Tee",
+          "description": "Furry for furries."
+        }
+      ]
+    }
+  }
+}
+```
+
+### Step 9. Add another command
+
+```sh title="Add the GetCheckoutSessions command:"
+ddn command add my_stripe GetCheckoutSessions
+```
+
+In `app/metadata` you'll find a newly-generated file: `GetCheckoutSessions.hml`. This will be used to expose customer
+checkout sessions and their related information via your supergraph API.
+
+### Step 10. Rebuild your project
+
+```sh title="Next, create a new build:"
+ddn supergraph build local
+```
+
+```sh title="Bring down the services by pressing CTRL+C and start them back up:"
+ddn run docker-start
+```
+
+### Step 11. Query your new build
+
+```graphql title="Head back to your console and query the GetCheckoutSessions endpoint:"
+query GET_CHECKOUT_SESSIONS {
+  getCheckoutSessions {
+    data {
+      id
+      amountTotal
+      customerDetails {
+        name
+        email
+      }
+    }
+  }
+}
+```
+
+```json title="Because of the schema of Stripe's API, you'll see results like this, which contain nested information, such as customer details:"
+{
+  "data": {
+    "getCheckoutSessions": {
+      "data": [
+        {
+          "id": "cs_test_<unique_identifier>",
+          "amountTotal": 1000,
+          "customerDetails": {
+            "name": "Rob",
+            "email": "robdemo@hasura.io"
+          }
+        },
+        {
+          "id": "cs_test_<unique_identifier>",
+          "amountTotal": 1000,
+          "customerDetails": {
+            "name": "Sandeep",
+            "email": "sandeepdemo@hasura.io"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+:::info create relationships to your own data
+
+You can create relationships between resources in your Stripe account and data living in other data sources.
+
+As an example, you may have a PostgreSQL database with a `users` model exposed and which contains an `email` field. This
+field can be used to create a [relationship](/reference/metadata-reference/relationships.mdx) between the `users` model
+and a `CheckoutSession` (or any other resource that utilizes a unique `email`) to return information across your sources
+in a single query.
+
+:::
+
+## Next steps
+
+Congratulations on completing your first Hasura DDN project with Stripe! 🎉
+
+Here's what you just accomplished:
+
+- You started with a fresh project and connected it to an existing Stripe account.
+- You set up metadata to represent the various endpoints on Stripe's API, which acts as the blueprint for your API.
+- Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
+  GraphQL queries to fetch data.
+- Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
+
+Now, you're equipped to connect and expose your data Stripe data to other data sources, empowering you to iterate and
+scale with confidence. Great work!
+
+The Stripe connector also supports mutations; you can create, update, or delete products; create new checkout sessions;
+refund payments; etc.
+
+Take a look at our Stripe docs to learn more about how to use Hasura DDN with [Stripe](https://docs.stripe.com/). Or, if
+you're ready, get started with adding [permissions](/auth/permissions/index.mdx) to control access to your API.

@@ -1,0 +1,51 @@
+---
+sidebar_label: ddn codemod fix-traces-env-var
+sidebar_position: 14
+description: Fix env var used for configuring traces for connectors using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_codemod_fix-traces-env-var"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn codemod fix-traces-env-var
+---
+
+# DDN CLI: ddn codemod fix-traces-env-var
+
+Fix env var used for configuring traces for connectors.
+
+## Synopsis
+
+Fix env var used for configuring traces for connectors
+
+```bash
+ddn codemod fix-traces-env-var --dir <project-dir> [flags]
+```
+
+## Examples
+
+```bash
+# Fix env var used for configuring traces for connector
+ ddn codemod fix-traces-env-var --dir .
+```
+
+## Options
+
+```sass
+    --dir string   The Hasura project directory (required)
+-h, --help         help for fix-traces-env-var
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn codemod](/reference/cli/commands/ddn_codemod) - Perform transformations on your Hasura project directory

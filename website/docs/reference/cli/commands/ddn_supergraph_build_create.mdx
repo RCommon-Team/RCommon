@@ -1,0 +1,82 @@
+---
+sidebar_label: ddn supergraph build create
+sidebar_position: 106
+description: Create a SupergraphBuild on Hasura DDN using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_supergraph_build_create"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn supergraph build create
+---
+
+# DDN CLI: ddn supergraph build create
+
+Create a SupergraphBuild on Hasura DDN.
+
+## Synopsis
+
+Create a SupergraphBuild on Hasura DDN
+
+```bash
+ddn supergraph build create [flags]
+```
+
+## Examples
+
+```bash
+# Build the Connectors and the Supergraph
+ ddn supergraph build create --supergraph supergraph.yaml --project pet-lion-2649 --env-file .env.cloud
+
+# Build the Supergraph without building the Connectors
+ ddn supergraph build create --supergraph supergraph.yaml --project pet-lion-2649 --no-build-connectors
+
+# Build the Supergraph and update the link schema and target env file
+ ddn supergraph build create --supergraph supergraph.yaml --project pet-lion-2649 --update-connector-link-schema --target-env-file .env.cloud
+
+# Build a composed Supergraph using Subgraphs with build versions and using the applied Supergraph Build as the base Supergraph (Advanced plan only)
+ ddn supergraph build create --subgraph-version globals:c15b0b4031 --subgraph-version my_subgraph:c15b0b4031 --base-supergraph-on-applied
+
+# Build a composed Supergraph using Subgraphs with build versions and base Supergraph version (Advanced plan only)
+ ddn supergraph build create --subgraph-version globals:c15b0b4031 --subgraph-version my_subgraph:c15b0b4031 --base-supergraph-version c15b0b4871
+
+# Build the Supergraph and also apply the build
+ ddn supergraph build create --supergraph supergraph.yaml --project pet-lion-2649 --apply
+```
+
+## Options
+
+```sass
+    --apply                            Apply the build created after it is completed
+    --base-supergraph-on-applied       Use the applied Supergraph as the base supergraph
+    --base-supergraph-version string   Base Supergraph version for the compose build
+    --ci                               Disables the use of context
+-c, --context string                   Name of the context to use. (default <current_context>)
+-d, --description string               (Optional) description of the build
+-e, --env stringArray                  Environment variable, e.g. key=val. Can be repeated to provide multiple env vars
+    --env-file stringArray             Path to .env file. Can be repeated to provide multiple env files
+-h, --help                             help for create
+    --no-build-connectors              Do not recursively build all connectors in all subgraphs and use their URLs for supergraph build. (default: false)
+    --no-diff                          Do not do a GraphQL schema diff against the applied build
+    --output-dir string                Path to the directory to output the build artifacts
+-p, --project string                   DDN Project name
+    --self-hosted-data-plane           Is the data plane self hosted?
+    --subgraph-version stringArray     Subgraph(s) with build version to compose
+    --supergraph string                Path to Supergraph config file
+    --target-env-file string           Env file to write the connector build URLs to.
+    --update-connector-link-schema     Update DataConnectorLink schema with the NDC schema of the connectors built recursively. (default: false)
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn supergraph build](/reference/cli/commands/ddn_supergraph_build) - Perform SupergraphBuild-related operations

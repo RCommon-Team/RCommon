@@ -1,0 +1,45 @@
+---
+sidebar_label: ddn changelog
+sidebar_position: 8
+description: Manage changelogs for applied supergraph builds using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_changelog"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn changelog
+---
+
+# DDN CLI: ddn changelog
+
+Manage changelogs for applied supergraph builds.
+
+## Synopsis
+
+Manage changelogs for applied supergraph builds. Use this command to view and edit changelog entries for supergraph builds that have been applied to your project.
+
+## Available operations
+
+- [ddn changelog add](/reference/cli/commands/ddn_changelog_add) - Update version number for existing changelog entries
+- [ddn changelog edit](/reference/cli/commands/ddn_changelog_edit) - Edit an existing changelog entry by version number
+- [ddn changelog list](/reference/cli/commands/ddn_changelog_list) - Show all changelog entries for supergraph builds
+
+## Options
+
+```sass
+-h, --help   help for changelog
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn](/reference/cli/commands/ddn) - DDN Command Line Interface

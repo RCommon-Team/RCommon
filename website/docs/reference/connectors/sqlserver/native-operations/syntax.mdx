@@ -1,0 +1,95 @@
+---
+sidebar_position: 2
+sidebar_label: Syntax
+description: Learn how to write Native Operations with the proper syntax in Hasura.
+keywords:
+  - hasura
+  - native operations
+  - troubleshooting
+  - sql
+  - gotchas
+seoFrontMatterUpdated: false
+---
+
+# Native Operations SQL Syntax
+
+There are a few requirements for writing valid Hasura DDN Native Operations SQL:
+
+## Schema
+
+A native mutation can be defined using the following fields:
+
+### Native Mutation Object
+
+| Field name    | Type                                                                                                    | Required | Notes                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
+| `sql`         | [Native query SQL Syntax](https://hasura.io/docs/3.0/connectors/sqlserver/native-operations/syntax.mdx) | Yes      | Parameterized SQL query that needs to be run.                              |
+| `columns`     | JSON Object \<K: Identifier of the column, V: [ColumnObject](#column-object)>                           | Yes      | Schema of the response that will be obtained after the `sql` query is run. |
+| `arguments`   | JSON Object \<K: Identifier of the column, V: [ArgumentObject](#argument-object)>                       | Yes      | Schema of the arguments that will be passed to the `sql` query.            |
+| `description` | String                                                                                                  | No       | Description of the native mutation.                                        |
+
+### Column Object
+
+| Field name    | Type   | Required | Notes                                                                                                                                                            |
+| ------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | String | Yes      | Name of the column that will be returned in the SQL query's response                                                                                             |
+| `type`        | String | Yes      | Type of the column.                                                                                                                                              |
+| `nullable`    | String | Yes      | Nullability of the column.                                                                                                                                       |
+| `description` | String | No       | Description of the column.                                                                                                                                       |
+| `castAs`      | String | No       | If set, the column will be parsed into this type, otherwise would be parsed as `type`. For example, if you have a                                                |
+|               |        |          | field called `Name` with type `VARCHAR(100)`, then the `type` should be `varchar` and `castAs` should be set as `VARCHAR(100)` to get the correct response. This |
+|               |        |          | field can also be useful when you return a type as a string from the SQL query, but you want to cast it as some other type while selecting the field.            |
+
+### Argument Object
+
+| Field name    | Type   | Required | Notes                        |
+| ------------- | ------ | -------- | ---------------------------- |
+| `name`        | String | Yes      | Name of the argument.        |
+| `type`        | String | Yes      | Type of the argument.        |
+| `nullable`    | String | Yes      | Nullability of the argument. |
+| `description` | String | No       | Description of the argument. |
+
+## Arguments are defined in double curly braces
+
+Arguments are specified with double curly braces as variables in your statement, like `{{id}}`, `{{name}}`, etc. These
+are placeholders for the actual values.
+
+## Arguments as scalar values only
+
+The arguments are not interpolated, but are translated to parameters of parameterized queries (arguments like `{{id}}`
+and `{{name}}` are translated to `$1`, `$2`, etc.) and passed as data, and therefore can only be used in place of scalar
+values, not table names, column names, or other arbitrary SQL.
+
+## No quoting of string arguments
+
+Since the arguments are translated to parameters of parameterized queries, they are passed as data and do not need to be
+quoted. For example, use `{{name}}` instead of `'{{name}}'`.
+
+## Single statements only
+
+The SQL of a Native Operation should be a single SQL statement that returns a result and **should not contain a
+semicolon** at the end, as the SQL is used inside another SQL query.
+
+## String value arguments in patterns using concatenation
+
+Since you can't directly interpolate arguments (like variables) into your SQL statements in the same way you might in
+other contexts, in order to use a string argument inside a pattern, such as in a `LIKE` predicate, the argument can be
+concatenated with the relevant pattern parts.
+
+For example:
+
+```sql
+SELECT * FROM "Artist" WHERE "Name" LIKE '%John%'
+```
+
+can be written as
+
+```sql
+SELECT * FROM "Artist" WHERE "Name" LIKE '%' + {{name}} + '%'
+```
+
+using the `+` concatenation operator to concatenate the parts of the pattern with the argument variable.
+
+## No "hasura\_" prefixed arguments
+
+Argument names that begin with the prefix `hasura_` are reserved for internal use.

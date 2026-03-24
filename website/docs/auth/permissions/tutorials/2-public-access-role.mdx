@@ -1,0 +1,140 @@
+---
+sidebar_position: 3
+sidebar_label: Public access
+description: "Learn how to create a public-access role that can view data without authentication."
+keywords:
+  - hasura
+  - hasura ddn
+  - authorization
+  - public
+  - open
+  - tutorial
+  - guide
+seoFrontMatterUpdated: false
+---
+
+# Public Access
+
+## Introduction
+
+In this tutorial, you'll learn how to configure [permissions](/reference/metadata-reference/permissions.mdx) to allow
+for unauthenticated access to data in your supergraph. This can be done by creating a role and setting the `filter`
+field to `null`.
+
+:::warning A word of caution
+
+Any requests made to your supergraph with the configuration demonstrated below will have unauthenticated access to
+whatever resources you allow. Use with caution!
+
+:::
+
+:::info Prerequisites
+
+Before continuing, ensure you have:
+
+- A local Hasura DDN project.
+- Either JWT or Webhook mode enabled in your [AuthConfig](/reference/metadata-reference/auth-config.mdx).
+
+:::
+
+## Tutorial
+
+### Step 1. Create the claims
+
+In your authentication server, you can provide a claims map that identifies the default role as `public`. This can be
+any name you wish, so long as it's not a role (such as `admin`) that already exists.
+
+```json title="E.g., a JWT claims configuration in an authentication service"
+
+  "claims.jwt.hasura.io": {
+    "x-hasura-default-role": "public",
+    "x-hasura-allowed-roles": ["public"],
+  }
+```
+
+### Step 2. Update ModelPermissions {#step-two}
+
+For whatever [models](/reference/metadata-reference/models.mdx) you'd like to publicly expose, add a
+[ModelPermissions](/reference/metadata-reference/permissions.mdx#modelpermissions-modelpermissions) rule for the public
+role.
+
+```yaml title="Example ModelPermission for an Events Model"
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Events
+  permissions:
+    - role: admin
+      select:
+        filter: null
+    #highlight-start
+    - role: public
+      select:
+        filter: null
+    #highlight-end
+```
+
+### Step 3. Update TypePermissions
+
+Then, determine which [types](/reference/metadata-reference/types.mdx) you'd like to publicly expose by updating
+[TypePermissions](/reference/metadata-reference/permissions.mdx#typepermissions-typepermissions). Hasura DDN gives you
+the ability to granularly determine which fields from each Model are available to each role.
+
+```yaml title="Example TypePermissions for an Events Model"
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Events
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - id
+          - owner_id
+          - created_at
+          - updated_at
+          - is_live
+          - title
+          - date
+          - description
+    #highlight-start
+    - role: public
+      output:
+        allowedFields:
+          - id
+          - is_live
+          - title
+          - date
+          - description
+    #highlight-end
+```
+
+### Step 4. Test your permissions
+
+Create a new build of your supergraph:
+
+```sh
+ddn supergraph build local
+```
+
+Then, in a request, pass a header with the [role](#step-two) you identified earlier according to your authentication
+configuration. You should see a schema limited to whatever ModelPermissions you defined for your new role and — when
+executing a query — only see data meeting the filtering rule you included in the first step.
+
+## Wrapping up
+
+In this guide, you learned how to expose data in your supergraph to users without any authentication. This is valuable
+for any public-facing resources clients may need to access.
+
+As you continue building out your supergraph, keep in mind that authentication and authorization are crucial components.
+Always validate your configuration and regularly test your setup to ensure it functions as expected across different
+roles and environments.
+
+## Learn more about permissions and auth
+
+- [Permissions](/auth/permissions/index.mdx) with Hasura DDN
+- [Auth](/auth/overview.mdx) with Hasura DDN
+
+## Similar tutorials
+
+- [Authorization tutorials](/auth/permissions/tutorials/index.mdx)

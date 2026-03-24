@@ -1,0 +1,72 @@
+---
+sidebar_label: ddn connector build get
+sidebar_position: 34
+description: List ConnectorBuilds or get details of a specific one from Hasura DDN using the DDN CLI
+canonicalUrl: "https://promptql.io/docs/reference/cli/commands/ddn_connector_build_get"
+keywords:
+  - hasura
+  - DDN
+  - docs
+  - CLI
+  - ddn connector build get
+---
+
+# DDN CLI: ddn connector build get
+
+List ConnectorBuilds or get details of a specific one from Hasura DDN.
+
+## Synopsis
+
+List ConnectorBuilds or get details of a specific one from Hasura DDN
+
+```bash
+ddn connector build get [connector-build-id] [flags]
+```
+
+## Examples
+
+```bash
+# Get details of a ConnectorBuild
+ ddn connector build get 1d4f4831-54a2-4ded-b680-07d00510a522
+
+# Get details of all ConnectorBuilds for Connector "mydb" for a Project and Subgraph
+ ddn connector build get --connector-name mydb --project myproject --subgraph-name myapp
+
+# Get details of all ConnectorBuilds for Connector defined in a Connector config file
+ ddn connector build get --connector ./myapp/connector/connector.cloud.yaml
+
+# Get details of all ConnectorBuilds for a Project
+ ddn connector build get --project myproject
+
+# Get details of all ConnectorBuilds for a Subgraph in a Project
+ ddn connector build get --project myproject --subgraph-name myapp
+
+# Get NDC Schema of a ConnectorBuild
+ ddn connector build get 1d4f4831-54a2-4ded-b680-07d00510a522 --schema
+```
+
+## Options
+
+```sass
+    --ci                      Disables the use of context
+    --connector string        Path to Connector YAML config file
+    --connector-name string   Connector name
+-c, --context string          Name of the context to use. (default <current_context>)
+-h, --help                    help for get
+-p, --project string          DDN Project name
+    --schema                  Get NDC schema of ConnectorBuild
+    --subgraph-name string    Subgraph name
+```
+
+## Options inherited from parent operations
+
+```sass
+--log-level string   Log level. Can be DEBUG, WARN, INFO, ERROR, or FATAL. (default "INFO")
+--no-prompt          Do not prompt for required but missing flags
+--out string         Output format. Can be table, json or yaml. (default "table")
+--timeout int        Request timeout in seconds [env: HASURA_DDN_TIMEOUT] (default 100)
+```
+
+## Parent operation
+
+- [ddn connector build](/reference/cli/commands/ddn_connector_build) - Perform ConnectorBuild-related operations

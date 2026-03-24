@@ -1,0 +1,58 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
+For each PostgreSQL connector in a project, follow the steps below.
+
+<Thumbnail src="/img/get-started/ERD/deploy-connector.png" alt="Deploy a connector to Hasura DDN" width="1000px" />
+
+## Steps
+
+:::tip Required
+
+- [DDN CLI](/quickstart.mdx)
+- A new or existing [supergraph](/quickstart.mdx)
+- A new or existing [subgraph](/quickstart.mdx)
+- A new or existing [data connector](/quickstart.mdx)
+- A new or existing [project](/deployment/hasura-ddn/tutorial/01-create-a-project.mdx)
+- A new or existing [subgraph on Hasura DDN](/deployment/hasura-ddn/tutorial/02-create-a-subgraph.mdx)
+
+:::
+
+### Step 1. Update the root `.env.cloud`
+
+We need to update the root `env.cloud` file with the connection URI we need for the cloud hosted connector to be able to
+communicate with the PostgreSQL data source.
+
+For example, you may have used a development database while iterating locally. You can now replace that value with your
+staging or production database, depending on your needs.
+
+If you've been running a local PostgreSQL instance, you can replace the connection string with a cloud instance
+connection string or set up an [ngrok](https://ngrok.com/) tunnel to a local instance.
+
+```env title="For example, ./.env.cloud"
+CONNECTION_URI=<postgres-connection-uri>
+```
+
+### Step 2. Build and deploy your cloud connector
+
+At this stage, you can now build and deploy your connector on Hasura DDN. Simply run the following replacing the
+directory names with those that reflect your project.
+
+```bash title="Taking care to update the path to your connector's configuration file, run:"
+ddn connector build create --connector ./my_subgraph/connector/my_pg/connector.yaml
+```
+
+The CLI will respond with read and write URLs for your deployed connector.
+
+In this command we're passing the `--connector` argument, which specifies the path to the connector's configuration file
+which we want to build.
+
+## What did this do?
+
+The steps above built and deployed your PostgreSQL connector to Hasura DDN. So long as the connection URI you provided
+is reachable by DDN, your connector will be able to communicate between your API and your data source.
+
+## Next steps
+
+If you have other connectors needed for a supergraph, repeat these steps for each connector. Otherwise, you're ready to
+[create a new build of your supergraph](/deployment/hasura-ddn/tutorial/04-deploy-your-supergraph.mdx) and deploy it to
+Hasura DDN!
