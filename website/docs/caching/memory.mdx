@@ -3,6 +3,154 @@ title: Memory Cache
 sidebar_position: 2
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Memory Cache
 
-*Documentation coming soon.*
+`RCommon.MemoryCache` provides two in-process caching implementations behind the `ICacheService` abstraction:
+
+- **`InMemoryCacheService`** — backed by `Microsoft.Extensions.Caching.Memory.IMemoryCache`
+- **`DistributedMemoryCacheService`** — backed by `Microsoft.Extensions.Caching.Distributed.IDistributedCache` using an in-memory store
+
+Both serve single-process applications. Use `DistributedMemoryCacheService` when your service registration already relies on `IDistributedCache` and you do not yet need a real distributed store.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.MemoryCache" />
+
+## In-memory cache setup
+
+Register the in-process memory cache with `WithMemoryCaching<InMemoryCachingBuilder>`:
+
+```csharp
+using RCommon;
+using RCommon.MemoryCache;
+
+builder.Services.AddRCommon()
+    .WithMemoryCaching<InMemoryCachingBuilder>(cache =>
+    {
+        // Optional: configure MemoryCacheOptions
+        cache.Configure(options =>
+        {
+            options.SizeLimit = 1024;
+            options.CompactionPercentage = 0.25;
+        });
+    });
+```
+
+This registers `IMemoryCache` (via `AddMemoryCache`) and makes `InMemoryCacheService` available as `ICacheService`.
+
+### Minimal setup
+
+If you only want the default options, omit the configuration delegate:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithMemoryCaching<InMemoryCachingBuilder>();
+```
+
+## Distributed memory cache setup
+
+Use `DistributedMemoryCacheBuilder` when you want the `IDistributedCache` abstraction backed by an in-process store. This is useful during development or for services that share the `IDistributedCache` interface with a Redis implementation in production:
+
+```csharp
+using RCommon;
+using RCommon.MemoryCache;
+
+builder.Services.AddRCommon()
+    .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
+    {
+        cache.Configure(options =>
+        {
+            options.SizeLimit = 512 * 1024 * 1024; // 512 MB
+        });
+    });
+```
+
+This registers `IDistributedCache` via `AddDistributedMemoryCache` and makes `DistributedMemoryCacheService` available as `ICacheService`. Data is serialized to JSON before storage.
+
+## Expression caching
+
+RCommon uses `ICacheService` internally to cache compiled LINQ expression trees and reflection results. Call `CacheDynamicallyCompiledExpressions` to activate this optimization:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithMemoryCaching<InMemoryCachingBuilder>(cache =>
+    {
+        cache.CacheDynamicallyCompiledExpressions();
+    });
+```
+
+This is the recommended minimum caching configuration for applications that use the persistence layer. It enables:
+
+- `ICacheService` registered as `InMemoryCacheService`
+- `CachingOptions` with `CachingEnabled = true` and `CacheDynamicallyCompiledExpressions = true`
+- A `Func<ExpressionCachingStrategy, ICacheService>` factory for strategy-based cache resolution
+
+The same method is available on `DistributedMemoryCacheBuilder`:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithDistributedCaching<DistributedMemoryCacheBuilder>(cache =>
+    {
+        cache.CacheDynamicallyCompiledExpressions();
+    });
+```
+
+## Using ICacheService directly
+
+Inject `ICacheService` wherever you need caching. The get-or-create pattern eliminates the need for manual null checks:
+
+```csharp
+public class ProductCatalogService
+{
+    private readonly ICacheService _cache;
+    private readonly IProductRepository _repository;
+
+    public ProductCatalogService(ICacheService cache, IProductRepository repository)
+    {
+        _cache = cache;
+        _repository = repository;
+    }
+
+    public async Task<IReadOnlyList<Product>> GetActiveProductsAsync(CancellationToken ct)
+    {
+        var key = CacheKey.With(typeof(ProductCatalogService), "active-products");
+
+        return await _cache.GetOrCreateAsync(key, () =>
+        {
+            return _repository.FindAsync(p => p.IsActive).Result;
+        });
+    }
+}
+```
+
+## Eviction policies
+
+Eviction is controlled through `MemoryCacheOptions` when calling `.Configure(options => ...)`:
+
+| Option | Description |
+|--------|-------------|
+| `SizeLimit` | Maximum number of cache entries (requires each entry to set a size) |
+| `CompactionPercentage` | Fraction of entries removed when the cache exceeds `SizeLimit` (default 0.05) |
+| `ExpirationScanFrequency` | How often the cache scans for expired entries (default 1 minute) |
+| `TrackStatistics` | Enables hit/miss statistics via `IMemoryCache.GetCurrentStatistics()` |
+
+Individual entry expiration is configured through the `IMemoryCache.GetOrCreate` callback (the underlying `ICacheEntry` object). `InMemoryCacheService` delegates directly to `IMemoryCache.GetOrCreate`, so you can wrap it to set per-entry options if required.
+
+## API summary
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `InMemoryCachingBuilder` | `RCommon.MemoryCache` | Concrete builder for `IMemoryCache`-backed caching |
+| `IInMemoryCachingBuilder` | `RCommon.MemoryCache` | Marker interface extending `IMemoryCachingBuilder` |
+| `InMemoryCacheService` | `RCommon.MemoryCache` | `ICacheService` implementation backed by `IMemoryCache` |
+| `DistributedMemoryCacheBuilder` | `RCommon.MemoryCache` | Concrete builder for in-process `IDistributedCache`-backed caching |
+| `IDistributedMemoryCachingBuilder` | `RCommon.MemoryCache` | Marker interface extending `IDistributedCachingBuilder` |
+| `DistributedMemoryCacheService` | `RCommon.MemoryCache` | `ICacheService` implementation backed by `IDistributedCache` with JSON serialization |
+| `Configure(options)` | `RCommon.MemoryCache` | Extension on `IInMemoryCachingBuilder`; configures `MemoryCacheOptions` |
+| `CacheDynamicallyCompiledExpressions()` | `RCommon.MemoryCache` | Extension enabling expression caching optimization |
+| `ICacheService` | `RCommon.Caching` | Core abstraction for get-or-create caching |
+| `CacheKey` | `RCommon.Caching` | Strongly-typed cache key with factory methods |
+| `WithMemoryCaching<T>()` | `RCommon.Caching` | Extension method on `IRCommonBuilder` |
+| `WithDistributedCaching<T>()` | `RCommon.Caching` | Extension method on `IRCommonBuilder` |

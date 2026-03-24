@@ -3,6 +3,164 @@ title: Redis Cache
 sidebar_position: 3
 ---
 
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
 # Redis Cache
 
-*Documentation coming soon.*
+`RCommon.RedisCache` implements `ICacheService` using StackExchange.Redis through the `Microsoft.Extensions.Caching.StackExchangeRedis` provider. It is the recommended caching backend for applications deployed across multiple instances or hosts.
+
+## Installation
+
+<NuGetInstall packageName="RCommon.RedisCache" />
+
+## Configuration
+
+Register Redis caching with `WithDistributedCaching<RedisCachingBuilder>`:
+
+```csharp
+using RCommon;
+using RCommon.RedisCache;
+
+builder.Services.AddRCommon()
+    .WithDistributedCaching<RedisCachingBuilder>(cache =>
+    {
+        cache.Configure(options =>
+        {
+            options.Configuration = "localhost:6379";
+            options.InstanceName = "MyApp:";
+        });
+    });
+```
+
+`Configure` calls `AddStackExchangeRedisCache` on the underlying `IServiceCollection`, registering `IDistributedCache` with the Redis provider. `RedisCacheService` is then available as `ICacheService`.
+
+### Minimal setup
+
+```csharp
+builder.Services.AddRCommon()
+    .WithDistributedCaching<RedisCachingBuilder>(cache =>
+    {
+        cache.Configure(options =>
+        {
+            options.Configuration = "localhost:6379";
+        });
+    });
+```
+
+## Connection configuration
+
+The `RedisCacheOptions` object (from `Microsoft.Extensions.Caching.StackExchangeRedis`) exposes the following commonly used settings:
+
+| Option | Description |
+|--------|-------------|
+| `Configuration` | Redis connection string, e.g. `"localhost:6379"` or a full StackExchange.Redis connection string |
+| `InstanceName` | Optional key prefix applied to all cache keys, e.g. `"MyApp:"` |
+| `ConfigurationOptions` | Full `StackExchange.Redis.ConfigurationOptions` for advanced scenarios (SSL, auth, retry policy) |
+
+For production use with authentication and TLS:
+
+```csharp
+cache.Configure(options =>
+{
+    options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions
+    {
+        EndPoints = { "my-redis.cache.windows.net:6380" },
+        Password = "your-access-key",
+        Ssl = true,
+        AbortOnConnectFail = false
+    };
+    options.InstanceName = "MyApp:";
+});
+```
+
+## Expression caching
+
+Enable RCommon's internal expression caching optimization by calling `CacheDynamicallyCompiledExpressions`:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithDistributedCaching<RedisCachingBuilder>(cache =>
+    {
+        cache.Configure(options =>
+        {
+            options.Configuration = "localhost:6379";
+        });
+        cache.CacheDynamicallyCompiledExpressions();
+    });
+```
+
+This registers:
+
+- `ICacheService` as `RedisCacheService`
+- `CachingOptions` with `CachingEnabled = true` and `CacheDynamicallyCompiledExpressions = true`
+- A `Func<ExpressionCachingStrategy, ICacheService>` factory for strategy-based resolution
+
+Note: the MassTransit documentation recommends using in-memory caching for expression caching because Redis introduces network overhead. Consider using `RCommon.MemoryCache` for expression caching alongside Redis for application-level caching if performance is critical.
+
+## Using ICacheService
+
+Inject `ICacheService` and use the get-or-create pattern. `RedisCacheService` serializes values to JSON using `IJsonSerializer` before storing them in Redis:
+
+```csharp
+public class ProductCatalogService
+{
+    private readonly ICacheService _cache;
+    private readonly IProductRepository _repository;
+
+    public ProductCatalogService(ICacheService cache, IProductRepository repository)
+    {
+        _cache = cache;
+        _repository = repository;
+    }
+
+    public async Task<IReadOnlyList<Product>> GetActiveProductsAsync(CancellationToken ct)
+    {
+        var key = CacheKey.With(typeof(ProductCatalogService), "active-products");
+
+        return await _cache.GetOrCreateAsync(key, () =>
+        {
+            // This runs only on a cache miss
+            return _repository.FindAsync(p => p.IsActive).Result;
+        });
+    }
+}
+```
+
+## How RedisCacheService works
+
+`RedisCacheService` implements the get-or-create pattern against `IDistributedCache`:
+
+1. The key is converted to a string via `.ToString()`.
+2. `GetStringAsync(key)` is called. If the result is non-null, the JSON string is deserialized and returned.
+3. On a cache miss, the factory delegate is invoked, the result is serialized to JSON via `IJsonSerializer`, stored with `SetStringAsync`, and returned.
+
+There is no built-in expiration set at the `ICacheService` level; all entries are stored without a TTL by default. For expiration control, wrap `IDistributedCache` directly and set `DistributedCacheEntryOptions`.
+
+## JSON serialization dependency
+
+`RedisCacheService` depends on `IJsonSerializer` from `RCommon.Core`. Ensure a JSON serialization provider is registered before configuring Redis caching:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithJsonSerialization<SystemTextJsonSerializer>()   // or NewtonsoftJsonSerializer
+    .WithDistributedCaching<RedisCachingBuilder>(cache =>
+    {
+        cache.Configure(options =>
+        {
+            options.Configuration = "localhost:6379";
+        });
+    });
+```
+
+## API summary
+
+| Type | Package | Description |
+|------|---------|-------------|
+| `RedisCachingBuilder` | `RCommon.RedisCache` | Concrete builder for Redis-backed distributed caching |
+| `IRedisCachingBuilder` | `RCommon.RedisCache` | Marker interface extending `IDistributedCachingBuilder` |
+| `RedisCacheService` | `RCommon.RedisCache` | `ICacheService` implementation backed by `IDistributedCache` (Redis) with JSON serialization |
+| `Configure(options)` | `RCommon.RedisCache` | Extension on `IRedisCachingBuilder`; configures `RedisCacheOptions` via `AddStackExchangeRedisCache` |
+| `CacheDynamicallyCompiledExpressions()` | `RCommon.RedisCache` | Extension enabling expression caching optimization using `RedisCacheService` |
+| `ICacheService` | `RCommon.Caching` | Core abstraction for get-or-create caching |
+| `CacheKey` | `RCommon.Caching` | Strongly-typed cache key with factory methods |
+| `WithDistributedCaching<T>()` | `RCommon.Caching` | Extension method on `IRCommonBuilder` |
