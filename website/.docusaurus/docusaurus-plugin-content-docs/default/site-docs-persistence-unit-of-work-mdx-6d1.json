@@ -1,7 +1,7 @@
 {
   "id": "persistence/unit-of-work",
   "title": "Unit of Work",
-  "description": "Overview",
+  "description": "Coordinate writes across multiple repositories in a single TransactionScope using RCommon's IUnitOfWorkFactory, with MediatR and Wolverine pipeline integration support.",
   "source": "@site/docs/persistence/unit-of-work.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/unit-of-work",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Unit of Work",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "Coordinate writes across multiple repositories in a single TransactionScope using RCommon's IUnitOfWorkFactory, with MediatR and Wolverine pipeline integration support."
   },
   "sidebar": "docsSidebar",
   "previous": {

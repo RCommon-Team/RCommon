@@ -1,7 +1,7 @@
 {
   "id": "event-handling/overview",
   "title": "Overview",
-  "description": "RCommon provides a unified event handling abstraction that works across multiple transport backends. The same ISubscriber interface is used whether events are dispatched in-process via the built-in event bus, fanned out through MediatR notifications, or routed over a message broker using MassTransit or Wolverine.",
+  "description": "Understand RCommon's unified event handling pipeline — IEventBus, IEventProducer, IEventRouter, and ISubscriber — and how to choose between in-process and broker transports.",
   "source": "@site/docs/event-handling/overview.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/overview",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "Overview",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "Understand RCommon's unified event handling pipeline — IEventBus, IEventProducer, IEventRouter, and ISubscriber — and how to choose between in-process and broker transports."
   },
   "sidebar": "docsSidebar",
   "previous": {

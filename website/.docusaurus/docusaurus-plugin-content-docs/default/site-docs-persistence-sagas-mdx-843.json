@@ -1,7 +1,7 @@
 {
   "id": "persistence/sagas",
   "title": "Sagas",
-  "description": "RCommon includes a saga orchestration framework that coordinates multi-step business processes with automatic compensation on failure. The saga pattern manages long-running transactions that span multiple services or aggregates, using state machines to drive transitions and persistent stores to track progress.",
+  "description": "Orchestrate long-running business processes with RCommon's saga framework using state machines, durable SagaState persistence, correlation IDs, and automatic compensation.",
   "source": "@site/docs/persistence/sagas.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/sagas",
@@ -14,7 +14,8 @@
   "sidebarPosition": 8,
   "frontMatter": {
     "title": "Sagas",
-    "sidebar_position": 8
+    "sidebar_position": 8,
+    "description": "Orchestrate long-running business processes with RCommon's saga framework using state machines, durable SagaState persistence, correlation IDs, and automatic compensation."
   },
   "sidebar": "docsSidebar",
   "previous": {

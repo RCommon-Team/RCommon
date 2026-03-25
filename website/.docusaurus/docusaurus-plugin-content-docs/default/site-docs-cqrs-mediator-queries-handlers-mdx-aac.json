@@ -1,7 +1,7 @@
 {
   "id": "cqrs-mediator/queries-handlers",
   "title": "Queries & Handlers",
-  "description": "Overview",
+  "description": "Define read-only IQuery classes, implement IQueryHandler, register via assembly scan or explicit registration, and optionally validate queries before dispatch.",
   "source": "@site/docs/cqrs-mediator/queries-handlers.mdx",
   "sourceDirName": "cqrs-mediator",
   "slug": "/cqrs-mediator/queries-handlers",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Queries & Handlers",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "Define read-only IQuery classes, implement IQueryHandler, register via assembly scan or explicit registration, and optionally validate queries before dispatch."
   },
   "sidebar": "docsSidebar",
   "previous": {

@@ -1,7 +1,7 @@
 {
   "id": "messaging/overview",
   "title": "Overview",
-  "description": "RCommon's messaging layer sits on top of the event handling infrastructure and provides transport-backed, cross-service message delivery. It reuses the same ISubscriber interface as in-process event handling, so handler code is portable across transports.",
+  "description": "Overview of RCommon's broker-backed messaging layer built on IEventRouter and IEventProducer, comparing MassTransit and Wolverine transports for cross-service delivery.",
   "source": "@site/docs/messaging/overview.mdx",
   "sourceDirName": "messaging",
   "slug": "/messaging/overview",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "Overview",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "Overview of RCommon's broker-backed messaging layer built on IEventRouter and IEventProducer, comparing MassTransit and Wolverine transports for cross-service delivery."
   },
   "sidebar": "docsSidebar",
   "previous": {

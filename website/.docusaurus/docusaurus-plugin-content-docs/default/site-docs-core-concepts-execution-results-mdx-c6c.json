@@ -1,7 +1,7 @@
 {
   "id": "core-concepts/execution-results",
   "title": "Execution Results & Models",
-  "description": "Overview",
+  "description": "Return success or failure using RCommon's ExecutionResult pattern, and paginate data with PagedResult and PaginatedListModel — structured results without exceptions.",
   "source": "@site/docs/core-concepts/execution-results.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/execution-results",
@@ -14,7 +14,8 @@
   "sidebarPosition": 5,
   "frontMatter": {
     "title": "Execution Results & Models",
-    "sidebar_position": 5
+    "sidebar_position": 5,
+    "description": "Return success or failure using RCommon's ExecutionResult pattern, and paginate data with PagedResult and PaginatedListModel — structured results without exceptions."
   },
   "sidebar": "docsSidebar",
   "previous": {

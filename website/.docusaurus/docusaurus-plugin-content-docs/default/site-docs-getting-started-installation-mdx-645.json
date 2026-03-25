@@ -1,7 +1,7 @@
 {
   "id": "getting-started/installation",
   "title": "Installation",
-  "description": "RCommon is distributed as a family of focused NuGet packages. Install only the ones relevant to your application — you are not forced to take every dependency.",
+  "description": "Install RCommon NuGet packages for .NET 8, 9, or 10. Pick only what you need — persistence, CQRS, messaging, caching, validation, blob storage, and more.",
   "source": "@site/docs/getting-started/installation.mdx",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/installation",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Installation",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Install RCommon NuGet packages for .NET 8, 9, or 10. Pick only what you need — persistence, CQRS, messaging, caching, validation, blob storage, and more."
   },
   "sidebar": "docsSidebar",
   "previous": {

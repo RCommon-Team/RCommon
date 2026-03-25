@@ -1,7 +1,7 @@
 {
   "id": "event-handling/mediatr",
   "title": "MediatR",
-  "description": "RCommon integrates with MediatR to route events through the MediatR notification pipeline. Each event is wrapped in a MediatRNotification and published to all registered INotificationHandler instances. From the application's perspective, handlers still implement ISubscriber — the MediatR plumbing is hidden behind the abstraction.",
+  "description": "Route RCommon events through MediatR's notification pipeline using MediatREventHandlingBuilder, with ISubscriber handlers unaware of MediatR internals.",
   "source": "@site/docs/event-handling/mediatr.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/mediatr",
@@ -14,7 +14,8 @@
   "sidebarPosition": 5,
   "frontMatter": {
     "title": "MediatR",
-    "sidebar_position": 5
+    "sidebar_position": 5,
+    "description": "Route RCommon events through MediatR's notification pipeline using MediatREventHandlingBuilder, with ISubscriber handlers unaware of MediatR internals."
   },
   "sidebar": "docsSidebar",
   "previous": {

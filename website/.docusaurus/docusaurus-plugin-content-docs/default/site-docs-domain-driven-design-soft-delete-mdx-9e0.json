@@ -1,7 +1,7 @@
 {
   "id": "domain-driven-design/soft-delete",
   "title": "Soft Delete",
-  "description": "Soft delete is the practice of marking a record as deleted rather than physically removing it from the database. The record remains in the data store with IsDeleted = true, allowing you to audit what was deleted, restore records if needed, and avoid referential integrity problems caused by physical deletes.",
+  "description": "Mark records as deleted instead of removing them physically using RCommon's ISoftDelete interface, with automatic query filtering and explicit delete mode overrides.",
   "source": "@site/docs/domain-driven-design/soft-delete.mdx",
   "sourceDirName": "domain-driven-design",
   "slug": "/domain-driven-design/soft-delete",
@@ -14,7 +14,8 @@
   "sidebarPosition": 5,
   "frontMatter": {
     "title": "Soft Delete",
-    "sidebar_position": 5
+    "sidebar_position": 5,
+    "description": "Mark records as deleted instead of removing them physically using RCommon's ISoftDelete interface, with automatic query filtering and explicit delete mode overrides."
   },
   "sidebar": "docsSidebar",
   "previous": {

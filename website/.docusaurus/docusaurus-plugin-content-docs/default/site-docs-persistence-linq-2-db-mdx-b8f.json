@@ -1,7 +1,7 @@
 {
   "id": "persistence/linq2db",
   "title": "Linq2Db",
-  "description": "Overview",
+  "description": "Wire up RCommon's Linq2Db provider for ILinqRepository support with LINQ queries, paging, eager loading via LoadWith, and multi-database connection management without EF Core.",
   "source": "@site/docs/persistence/linq2db.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/linq2db",
@@ -14,7 +14,8 @@
   "sidebarPosition": 6,
   "frontMatter": {
     "title": "Linq2Db",
-    "sidebar_position": 6
+    "sidebar_position": 6,
+    "description": "Wire up RCommon's Linq2Db provider for ILinqRepository support with LINQ queries, paging, eager loading via LoadWith, and multi-database connection management without EF Core."
   },
   "sidebar": "docsSidebar",
   "previous": {

@@ -1,7 +1,7 @@
 {
   "id": "security-web/web-utilities",
   "title": "Web Utilities",
-  "description": "Overview",
+  "description": "RCommon.Web bridges ASP.NET Core's HttpContext.User to ICurrentPrincipalAccessor, replacing the thread-based default for correct identity resolution in web apps.",
   "source": "@site/docs/security-web/web-utilities.mdx",
   "sourceDirName": "security-web",
   "slug": "/security-web/web-utilities",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Web Utilities",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "RCommon.Web bridges ASP.NET Core's HttpContext.User to ICurrentPrincipalAccessor, replacing the thread-based default for correct identity resolution in web apps."
   },
   "sidebar": "docsSidebar",
   "previous": {

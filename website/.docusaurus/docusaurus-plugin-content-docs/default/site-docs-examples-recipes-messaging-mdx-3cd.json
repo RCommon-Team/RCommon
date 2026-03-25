@@ -1,7 +1,7 @@
 {
   "id": "examples-recipes/messaging",
   "title": "Messaging Examples",
-  "description": "This page walks through the messaging examples included with RCommon. These examples show how to use MassTransit and Wolverine as the event transport, and how to isolate event subscriptions between multiple publishers.",
+  "description": "Messaging examples for RCommon showing MassTransit and Wolverine transports, subscription isolation between multiple builders, and in-process vs distributed routing.",
   "source": "@site/docs/examples-recipes/messaging.mdx",
   "sourceDirName": "examples-recipes",
   "slug": "/examples-recipes/messaging",
@@ -14,7 +14,8 @@
   "sidebarPosition": 4,
   "frontMatter": {
     "title": "Messaging Examples",
-    "sidebar_position": 4
+    "sidebar_position": 4,
+    "description": "Messaging examples for RCommon showing MassTransit and Wolverine transports, subscription isolation between multiple builders, and in-process vs distributed routing."
   },
   "sidebar": "docsSidebar",
   "previous": {

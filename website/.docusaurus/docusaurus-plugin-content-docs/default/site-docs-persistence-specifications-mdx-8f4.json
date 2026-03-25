@@ -1,7 +1,7 @@
 {
   "id": "persistence/specifications",
   "title": "Specifications",
-  "description": "Overview",
+  "description": "Encapsulate reusable query predicates as named Specification objects, compose them with &amp; and | operators, and pass them directly to any RCommon repository method.",
   "source": "@site/docs/persistence/specifications.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/specifications",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Specifications",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Encapsulate reusable query predicates as named Specification objects, compose them with &amp; and | operators, and pass them directly to any RCommon repository method."
   },
   "sidebar": "docsSidebar",
   "previous": {

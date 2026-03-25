@@ -1,7 +1,7 @@
 {
   "id": "event-handling/distributed",
   "title": "Distributed Events",
-  "description": "Distributed event handling extends the in-process model to message brokers, enabling events to cross service boundaries. RCommon integrates with MassTransit and Wolverine as transport backends while keeping the application handler code identical to the in-memory case: every handler implements the same ISubscriber interface.",
+  "description": "Extend RCommon event handling to message brokers with MassTransit or Wolverine, mixing transports in one app while keeping ISubscriber handler code broker-agnostic.",
   "source": "@site/docs/event-handling/distributed.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/distributed",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Distributed Events",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "Extend RCommon event handling to message brokers with MassTransit or Wolverine, mixing transports in one app while keeping ISubscriber handler code broker-agnostic."
   },
   "sidebar": "docsSidebar",
   "previous": {

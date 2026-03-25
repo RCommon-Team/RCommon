@@ -3,7 +3,7 @@ export const language = ["en"];
 export const removeDefaultStopWordFilter = false;
 export const removeDefaultStemmer = false;
 export { default as Mark } from "C:\\Users\\jason.webb\\source\\repos\\RCommon\\website\\node_modules\\.pnpm\\mark.js@8.11.1\\node_modules\\mark.js\\dist\\mark.js"
-export const searchIndexUrl = "search-index{dir}.json?_=19a8d846";
+export const searchIndexUrl = "search-index{dir}.json?_=46f308b2";
 export const searchResultLimits = 8;
 export const searchResultContextMaxLength = 50;
 export const explicitSearchResultPath = true;

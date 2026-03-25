@@ -1,0 +1,46 @@
+# RCommon
+
+> Open-source .NET infrastructure library providing battle-tested abstractions for persistence, CQRS, event handling, messaging, caching, and more. Swap providers (EF Core, Dapper, MediatR, MassTransit, Wolverine, Redis) without touching your domain code.
+
+## Key Facts
+
+- License: Apache 2.0
+- Targets: .NET 8, .NET 9, .NET 10
+- 37+ NuGet packages with pluggable provider model
+- Fluent DI-first configuration via single AddRCommon() builder chain
+- GitHub: https://github.com/RCommon-Team/RCommon
+- NuGet: https://www.nuget.org/profiles/RCommon
+
+## Core Abstractions
+
+- [Persistence](https://rcommon.com/docs/category/persistence): Repository pattern, Unit of Work, Specifications — EF Core, Dapper, Linq2Db providers
+- [CQRS & Mediator](https://rcommon.com/docs/category/cqrs--mediator): Command/Query Bus with MediatR and Wolverine implementations
+- [Event Handling](https://rcommon.com/docs/category/event-handling): In-memory and distributed events with transactional outbox support
+- [Messaging](https://rcommon.com/docs/category/messaging): Message bus with MassTransit and Wolverine, state machines
+- [Caching](https://rcommon.com/docs/category/caching): Unified caching abstraction with Memory and Redis providers
+- [Domain-Driven Design](https://rcommon.com/docs/category/domain-driven-design): Entities, Aggregates, Domain Events, Value Objects, Auditing, Soft Delete
+- [Blob Storage](https://rcommon.com/docs/category/blob-storage): Azure Blob Storage and Amazon S3 behind a unified abstraction
+- [Multi-Tenancy](https://rcommon.com/docs/category/multi-tenancy): Tenant resolution and isolation with Finbuckle integration
+- [Serialization](https://rcommon.com/docs/category/serialization): Newtonsoft.Json and System.Text.Json behind a common interface
+- [Validation](https://rcommon.com/docs/validation/fluent-validation): FluentValidation integration
+- [Email](https://rcommon.com/docs/category/email): SMTP and SendGrid providers
+- [State Machines](https://rcommon.com/docs/category/state-machines): Stateless library integration
+
+## Getting Started
+
+- [Overview](https://rcommon.com/docs/getting-started/overview): What RCommon provides and its philosophy
+- [Installation](https://rcommon.com/docs/getting-started/installation): NuGet package installation
+- [Quick Start](https://rcommon.com/docs/getting-started/quick-start): Get running in minutes
+- [Configuration](https://rcommon.com/docs/getting-started/configuration): Fluent builder API reference
+
+## Architecture Guides
+
+- [Clean Architecture](https://rcommon.com/docs/architecture-guides/clean-architecture): Layer boundaries and dependency rules
+- [Microservices](https://rcommon.com/docs/architecture-guides/microservices): Distributed systems patterns
+- [Event-Driven](https://rcommon.com/docs/architecture-guides/event-driven): Domain events across bounded contexts
+
+## Full Documentation
+
+For comprehensive documentation suitable for RAG and detailed reference:
+- [Full docs (text)](https://rcommon.com/llms-full.txt)
+- [Website](https://rcommon.com/docs)

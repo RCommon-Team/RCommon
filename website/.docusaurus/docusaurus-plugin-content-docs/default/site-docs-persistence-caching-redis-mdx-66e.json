@@ -1,7 +1,7 @@
 {
   "id": "persistence/caching-redis",
   "title": "Caching with Redis",
-  "description": "Overview",
+  "description": "Back RCommon's repository caching decorators with Redis via RedisCacheService for a distributed, out-of-process cache shared across multiple service instances and restarts.",
   "source": "@site/docs/persistence/caching-redis.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/caching-redis",
@@ -14,7 +14,8 @@
   "sidebarPosition": 8,
   "frontMatter": {
     "title": "Caching with Redis",
-    "sidebar_position": 8
+    "sidebar_position": 8,
+    "description": "Back RCommon's repository caching decorators with Redis via RedisCacheService for a distributed, out-of-process cache shared across multiple service instances and restarts."
   },
   "sidebar": "docsSidebar",
   "previous": {

@@ -1,7 +1,7 @@
 {
   "id": "getting-started/quick-start",
   "title": "Quick Start Guide",
-  "description": "This guide walks through the minimum steps to create a new .NET web API, add RCommon, and run a repository query against a SQL Server database using Entity Framework Core.",
+  "description": "Build a .NET web API with RCommon in minutes — define entities, configure EF Core persistence, and query via ILinqRepository using a single fluent builder chain.",
   "source": "@site/docs/getting-started/quick-start.mdx",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/quick-start",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Quick Start Guide",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "Build a .NET web API with RCommon in minutes — define entities, configure EF Core persistence, and query via ILinqRepository using a single fluent builder chain."
   },
   "sidebar": "docsSidebar",
   "previous": {

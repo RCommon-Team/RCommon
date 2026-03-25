@@ -1,7 +1,7 @@
 {
   "id": "architecture-guides/microservices",
   "title": "Microservices",
-  "description": "Microservices decompose a system into independently deployable services that communicate over a network. RCommon provides the abstractions and integrations that make this communication consistent, testable, and swappable across a distributed system.",
+  "description": "Build .NET microservices with RCommon using MassTransit or Wolverine for messaging, per-service persistence, and transport-agnostic IEventProducer abstractions.",
   "source": "@site/docs/architecture-guides/microservices.mdx",
   "sourceDirName": "architecture-guides",
   "slug": "/architecture-guides/microservices",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Microservices",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Build .NET microservices with RCommon using MassTransit or Wolverine for messaging, per-service persistence, and transport-agnostic IEventProducer abstractions."
   },
   "sidebar": "docsSidebar",
   "previous": {

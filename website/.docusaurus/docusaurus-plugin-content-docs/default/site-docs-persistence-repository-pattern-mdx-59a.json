@@ -1,7 +1,7 @@
 {
   "id": "persistence/repository-pattern",
   "title": "Repository Pattern",
-  "description": "Overview",
+  "description": "Use RCommon's provider-agnostic repository interfaces for async CRUD, paging, eager loading, and soft delete across EF Core, Dapper, and Linq2Db without coupling to a specific ORM.",
   "source": "@site/docs/persistence/repository-pattern.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/repository-pattern",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "Repository Pattern",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "Use RCommon's provider-agnostic repository interfaces for async CRUD, paging, eager loading, and soft delete across EF Core, Dapper, and Linq2Db without coupling to a specific ORM."
   },
   "sidebar": "docsSidebar",
   "previous": {

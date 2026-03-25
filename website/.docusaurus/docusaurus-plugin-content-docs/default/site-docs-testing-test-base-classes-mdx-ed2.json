@@ -1,7 +1,7 @@
 {
   "id": "testing/test-base-classes",
   "title": "Test Base Classes",
-  "description": "RCommon provides three test support packages that reduce boilerplate across unit and integration tests: RCommon.TestBase, RCommon.TestBase.XUnit, and RCommon.TestBase.Data. These packages are internal test utilities — they are not published as NuGet packages — but their patterns are representative of how to structure your own test helpers.",
+  "description": "Reference guide for RCommon.TestBase, TestBootstrapper, TestFixture for xUnit, TestRepository for EF Core integration tests, and TestDataActions fake data generation.",
   "source": "@site/docs/testing/test-base-classes.mdx",
   "sourceDirName": "testing",
   "slug": "/testing/test-base-classes",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Test Base Classes",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Reference guide for RCommon.TestBase, TestBootstrapper, TestFixture for xUnit, TestRepository for EF Core integration tests, and TestDataActions fake data generation."
   },
   "sidebar": "docsSidebar",
   "previous": {

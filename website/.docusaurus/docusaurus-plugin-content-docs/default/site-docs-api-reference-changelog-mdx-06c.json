@@ -1,7 +1,7 @@
 {
   "id": "api-reference/changelog",
   "title": "Changelog",
-  "description": "The authoritative release history for all RCommon packages is maintained on GitHub Releases.",
+  "description": "RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags.",
   "source": "@site/docs/api-reference/changelog.mdx",
   "sourceDirName": "api-reference",
   "slug": "/api-reference/changelog",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Changelog",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags."
   },
   "sidebar": "docsSidebar",
   "previous": {

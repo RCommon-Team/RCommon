@@ -1,7 +1,7 @@
 {
   "id": "event-handling/masstransit",
   "title": "MassTransit",
-  "description": "RCommon integrates with MassTransit to deliver events to consumers across service boundaries. The integration uses MassTransitEventHandler as a MassTransit IConsumer that delegates to the application's ISubscriber implementation. Application handler code has no dependency on MassTransit types.",
+  "description": "Deliver RCommon events across service boundaries via MassTransit consumers, with fan-out publish or point-to-point send and transport-agnostic ISubscriber handlers.",
   "source": "@site/docs/event-handling/masstransit.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/masstransit",
@@ -14,7 +14,8 @@
   "sidebarPosition": 6,
   "frontMatter": {
     "title": "MassTransit",
-    "sidebar_position": 6
+    "sidebar_position": 6,
+    "description": "Deliver RCommon events across service boundaries via MassTransit consumers, with fan-out publish or point-to-point send and transport-agnostic ISubscriber handlers."
   },
   "sidebar": "docsSidebar",
   "previous": {
