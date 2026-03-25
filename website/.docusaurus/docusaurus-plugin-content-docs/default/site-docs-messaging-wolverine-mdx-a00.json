@@ -1,7 +1,7 @@
 {
   "id": "messaging/wolverine",
   "title": "Wolverine",
-  "description": "RCommon integrates with Wolverine to deliver events both in-process and across service boundaries. The integration registers WolverineEventHandler as a Wolverine IWolverineHandler that delegates to the application's ISubscriber. Handler code has no dependency on Wolverine types.",
+  "description": "Configure Wolverine as RCommon's messaging transport with durable delivery, fan-out publish or point-to-point send, and ISubscriber handlers free of Wolverine dependencies.",
   "source": "@site/docs/messaging/wolverine.mdx",
   "sourceDirName": "messaging",
   "slug": "/messaging/wolverine",
@@ -14,7 +14,8 @@
   "sidebarPosition": 5,
   "frontMatter": {
     "title": "Wolverine",
-    "sidebar_position": 5
+    "sidebar_position": 5,
+    "description": "Configure Wolverine as RCommon's messaging transport with durable delivery, fan-out publish or point-to-point send, and ISubscriber handlers free of Wolverine dependencies."
   },
   "sidebar": "docsSidebar",
   "previous": {

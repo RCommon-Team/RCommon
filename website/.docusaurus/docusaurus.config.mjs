@@ -22,6 +22,15 @@ export default {
     "path": "i18n",
     "localeConfigs": {}
   },
+  "headTags": [
+    {
+      "tagName": "meta",
+      "attributes": {
+        "name": "google-site-verification",
+        "content": "YOUR_VERIFICATION_CODE"
+      }
+    }
+  ],
   "presets": [
     [
       "classic",
@@ -33,6 +42,18 @@ export default {
         "blog": false,
         "theme": {
           "customCss": "./src/css/custom.css"
+        },
+        "gtag": {
+          "trackingID": "G-XXXXXXXXXX",
+          "anonymizeIP": true
+        },
+        "sitemap": {
+          "changefreq": "weekly",
+          "priority": 0.5,
+          "ignorePatterns": [
+            "/tags/**"
+          ],
+          "filename": "sitemap.xml"
         }
       }
     ]
@@ -378,6 +399,7 @@ export default {
     }
   },
   "plugins": [
+    null,
     null
   ],
   "baseUrlIssueBanner": true,
@@ -395,7 +417,6 @@ export default {
   ],
   "customFields": {},
   "scripts": [],
-  "headTags": [],
   "stylesheets": [],
   "clientModules": [],
   "titleDelimiter": "|",

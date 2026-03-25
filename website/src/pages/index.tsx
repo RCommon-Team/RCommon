@@ -129,7 +129,10 @@ function ArchitectureSection() {
 export default function Home(): JSX.Element {
   const {siteConfig} = useDocusaurusContext();
   return (
-    <Layout title={siteConfig.title} description={siteConfig.tagline}>
+    <Layout
+      title="RCommon — Open Source .NET Infrastructure Library"
+      description="RCommon provides pluggable .NET abstractions for persistence, CQRS, event handling, messaging, caching, and more. EF Core, MediatR, MassTransit, Wolverine, Redis — swap providers without touching your domain code."
+    >
       <main>
         <HeroSection />
         <StatsSection />

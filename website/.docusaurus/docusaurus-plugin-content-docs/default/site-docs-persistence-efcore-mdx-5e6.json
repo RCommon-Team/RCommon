@@ -1,7 +1,7 @@
 {
   "id": "persistence/efcore",
   "title": "Entity Framework Core",
-  "description": "Overview",
+  "description": "Configure RCommon's EF Core provider to register named DbContexts, inject IGraphRepository with full LINQ support, eager loading, soft delete, and change-tracking control.",
   "source": "@site/docs/persistence/efcore.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/efcore",
@@ -14,7 +14,8 @@
   "sidebarPosition": 4,
   "frontMatter": {
     "title": "Entity Framework Core",
-    "sidebar_position": 4
+    "sidebar_position": 4,
+    "description": "Configure RCommon's EF Core provider to register named DbContexts, inject IGraphRepository with full LINQ support, eager loading, soft delete, and change-tracking control."
   },
   "sidebar": "docsSidebar",
   "previous": {

@@ -1,7 +1,7 @@
 {
   "id": "api-reference/migration-guide",
   "title": "Migration Guide",
-  "description": "This guide covers the patterns and steps required when upgrading between RCommon versions. Because RCommon follows semantic versioning, breaking changes only appear in major version increments.",
+  "description": "Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades.",
   "source": "@site/docs/api-reference/migration-guide.mdx",
   "sourceDirName": "api-reference",
   "slug": "/api-reference/migration-guide",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Migration Guide",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades."
   },
   "sidebar": "docsSidebar",
   "previous": {

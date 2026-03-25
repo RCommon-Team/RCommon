@@ -1,7 +1,7 @@
 {
   "id": "cqrs-mediator/commands-handlers",
   "title": "Commands & Handlers",
-  "description": "Overview",
+  "description": "Define ICommand classes, implement ICommandHandler, register handlers individually or by assembly scan, and add FluentValidation before dispatch.",
   "source": "@site/docs/cqrs-mediator/commands-handlers.mdx",
   "sourceDirName": "cqrs-mediator",
   "slug": "/cqrs-mediator/commands-handlers",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Commands & Handlers",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Define ICommand classes, implement ICommandHandler, register handlers individually or by assembly scan, and add FluentValidation before dispatch."
   },
   "sidebar": "docsSidebar",
   "previous": {

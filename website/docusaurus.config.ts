@@ -1,6 +1,7 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import seoStructuredDataPlugin from './plugins/seo-structured-data';
 
 const config: Config = {
   title: 'RCommon',
@@ -19,6 +20,16 @@ const config: Config = {
     locales: ['en'],
   },
 
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'google-site-verification',
+        content: 'YOUR_VERIFICATION_CODE', // TODO: Replace with real Search Console verification code
+      },
+    },
+  ],
+
   presets: [
     [
       'classic',
@@ -30,6 +41,16 @@ const config: Config = {
         blog: false,
         theme: {
           customCss: './src/css/custom.css',
+        },
+        gtag: {
+          trackingID: 'G-XXXXXXXXXX', // TODO: Replace with real GA4 Measurement ID
+          anonymizeIP: true,
+        },
+        sitemap: {
+          changefreq: 'weekly',
+          priority: 0.5,
+          ignorePatterns: ['/tags/**'],
+          filename: 'sitemap.xml',
         },
       } satisfies Preset.Options,
     ],
@@ -134,6 +155,7 @@ const config: Config = {
         },
       };
     },
+    seoStructuredDataPlugin,
   ],
 };
 

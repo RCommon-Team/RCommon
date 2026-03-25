@@ -1,7 +1,7 @@
 {
   "id": "getting-started/dependency-injection",
   "title": "Dependency Injection",
-  "description": "RCommon is built entirely on Microsoft.Extensions.DependencyInjection. It does not introduce its own container or wrap the standard one. Every service RCommon registers follows the same lifetime conventions you already know from ASP.NET Core.",
+  "description": "How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores.",
   "source": "@site/docs/getting-started/dependency-injection.mdx",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/dependency-injection",
@@ -14,7 +14,8 @@
   "sidebarPosition": 5,
   "frontMatter": {
     "title": "Dependency Injection",
-    "sidebar_position": 5
+    "sidebar_position": 5,
+    "description": "How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores."
   },
   "sidebar": "docsSidebar",
   "previous": {

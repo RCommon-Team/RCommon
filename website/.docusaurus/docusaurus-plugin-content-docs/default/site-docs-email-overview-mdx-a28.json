@@ -1,7 +1,7 @@
 {
   "id": "email/overview",
   "title": "Overview",
-  "description": "Overview",
+  "description": "Provider-agnostic email abstraction for .NET with IEmailService, built-in SMTP support via SmtpClient, HTML bodies, attachments, and an EmailSent event.",
   "source": "@site/docs/email/overview.mdx",
   "sourceDirName": "email",
   "slug": "/email/overview",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "Overview",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "Provider-agnostic email abstraction for .NET with IEmailService, built-in SMTP support via SmtpClient, HTML bodies, attachments, and an EmailSent event."
   },
   "sidebar": "docsSidebar",
   "previous": {

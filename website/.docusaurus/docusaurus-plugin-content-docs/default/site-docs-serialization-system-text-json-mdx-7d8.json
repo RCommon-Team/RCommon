@@ -1,7 +1,7 @@
 {
   "id": "serialization/system-text-json",
   "title": "System.Text.Json",
-  "description": "Overview",
+  "description": "RCommon.SystemTextJson wraps System.Text.Json behind IJsonSerializer with full JsonSerializerOptions access and built-in integer and byte enum converters.",
   "source": "@site/docs/serialization/system-text-json.mdx",
   "sourceDirName": "serialization",
   "slug": "/serialization/system-text-json",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "System.Text.Json",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "RCommon.SystemTextJson wraps System.Text.Json behind IJsonSerializer with full JsonSerializerOptions access and built-in integer and byte enum converters."
   },
   "sidebar": "docsSidebar",
   "previous": {

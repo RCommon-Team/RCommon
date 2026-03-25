@@ -1,7 +1,7 @@
 {
   "id": "examples-recipes/caching",
   "title": "Caching Examples",
-  "description": "This page walks through the three caching examples included with RCommon: in-process memory cache, distributed memory cache, Redis distributed cache, and the persistence caching layer that caches repository query results.",
+  "description": "Practical RCommon caching examples covering IMemoryCache, distributed memory cache, Redis, and ICachingGraphRepository for caching EF Core repository query results.",
   "source": "@site/docs/examples-recipes/caching.mdx",
   "sourceDirName": "examples-recipes",
   "slug": "/examples-recipes/caching",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Caching Examples",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "Practical RCommon caching examples covering IMemoryCache, distributed memory cache, Redis, and ICachingGraphRepository for caching EF Core repository query results."
   },
   "sidebar": "docsSidebar",
   "previous": {

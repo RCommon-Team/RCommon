@@ -1,7 +1,7 @@
 {
   "id": "caching/redis",
   "title": "Redis Cache",
-  "description": "RCommon.RedisCache implements ICacheService using StackExchange.Redis through the Microsoft.Extensions.Caching.StackExchangeRedis provider. It is the recommended caching backend for applications deployed across multiple instances or hosts.",
+  "description": "RCommon.RedisCache implements ICacheService using StackExchange.Redis for distributed caching across multiple app instances, with JSON serialization support.",
   "source": "@site/docs/caching/redis.mdx",
   "sourceDirName": "caching",
   "slug": "/caching/redis",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Redis Cache",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "RCommon.RedisCache implements ICacheService using StackExchange.Redis for distributed caching across multiple app instances, with JSON serialization support."
   },
   "sidebar": "docsSidebar",
   "previous": {

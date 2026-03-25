@@ -1,7 +1,7 @@
 {
   "id": "examples-recipes/hr-leave-management",
   "title": "HR Leave Management Sample",
-  "description": "The HR Leave Management sample is the reference application included with RCommon. It demonstrates Clean Architecture, CQRS with MediatR, EF Core persistence, FluentValidation, JWT authentication, and SendGrid email — all wired together through RCommon's fluent builder. This walkthrough explains how each piece fits together.",
+  "description": "Explore RCommon's HR Leave Management reference app demonstrating Clean Architecture, CQRS, EF Core, FluentValidation, JWT auth, and SendGrid email integration.",
   "source": "@site/docs/examples-recipes/hr-leave-management.mdx",
   "sourceDirName": "examples-recipes",
   "slug": "/examples-recipes/hr-leave-management",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "HR Leave Management Sample",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "Explore RCommon's HR Leave Management reference app demonstrating Clean Architecture, CQRS, EF Core, FluentValidation, JWT auth, and SendGrid email integration."
   },
   "sidebar": "docsSidebar",
   "previous": {

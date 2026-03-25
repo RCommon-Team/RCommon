@@ -1,7 +1,7 @@
 {
   "id": "core-concepts/fluent-configuration",
   "title": "Fluent Configuration",
-  "description": "Overview",
+  "description": "Deep dive into RCommon's fluent configuration API — IRCommonBuilder, With* extension methods, custom builder extensions, and double-registration protection.",
   "source": "@site/docs/core-concepts/fluent-configuration.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/fluent-configuration",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "Fluent Configuration",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "Deep dive into RCommon's fluent configuration API — IRCommonBuilder, With* extension methods, custom builder extensions, and double-registration protection."
   },
   "sidebar": "docsSidebar",
   "previous": {

@@ -1,7 +1,7 @@
 {
   "id": "event-handling/in-memory",
   "title": "In-Memory Events",
-  "description": "The in-memory event bus provides local publish/subscribe within a single process. Events are dispatched synchronously to all registered ISubscriber handlers within the same DI scope. No external infrastructure is required.",
+  "description": "Configure RCommon's in-process event bus with InMemoryEventBusBuilder, implement ISubscriber handlers, and publish events via IEventRouter or IEventBus directly.",
   "source": "@site/docs/event-handling/in-memory.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/in-memory",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "In-Memory Events",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Configure RCommon's in-process event bus with InMemoryEventBusBuilder, implement ISubscriber handlers, and publish events via IEventRouter or IEventBus directly."
   },
   "sidebar": "docsSidebar",
   "previous": {

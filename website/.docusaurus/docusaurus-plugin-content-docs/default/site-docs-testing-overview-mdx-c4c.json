@@ -1,7 +1,7 @@
 {
   "id": "testing/overview",
   "title": "Overview",
-  "description": "RCommon is designed with testability as a first-class concern. Because RCommon wraps infrastructure concerns — persistence, messaging, caching, emailing — behind clean abstractions, you can substitute real implementations with mocks or in-memory alternatives in your test suite without changing your application code.",
+  "description": "Learn how to test .NET applications built on RCommon using mocks, EF Core InMemory, and xUnit or NUnit base classes for unit and integration test strategies.",
   "source": "@site/docs/testing/overview.mdx",
   "sourceDirName": "testing",
   "slug": "/testing/overview",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "Overview",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "Learn how to test .NET applications built on RCommon using mocks, EF Core InMemory, and xUnit or NUnit base classes for unit and integration test strategies."
   },
   "sidebar": "docsSidebar",
   "previous": {

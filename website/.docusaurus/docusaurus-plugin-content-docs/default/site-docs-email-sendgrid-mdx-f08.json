@@ -1,7 +1,7 @@
 {
   "id": "email/sendgrid",
   "title": "SendGrid",
-  "description": "Overview",
+  "description": "RCommon.SendGrid implements IEmailService via the SendGrid API, converting MailMessage objects to SendGrid calls with attachment and multi-recipient support.",
   "source": "@site/docs/email/sendgrid.mdx",
   "sourceDirName": "email",
   "slug": "/email/sendgrid",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "SendGrid",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "RCommon.SendGrid implements IEmailService via the SendGrid API, converting MailMessage objects to SendGrid calls with attachment and multi-recipient support."
   },
   "sidebar": "docsSidebar",
   "previous": {

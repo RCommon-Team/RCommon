@@ -1,7 +1,7 @@
 {
   "id": "core-concepts/guid-generation",
   "title": "GUID Generation",
-  "description": "Overview",
+  "description": "RCommon's IGuidGenerator abstraction for testable GUID creation — sequential GUIDs for SQL Server, MySQL, PostgreSQL, and Oracle to reduce index fragmentation.",
   "source": "@site/docs/core-concepts/guid-generation.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/guid-generation",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "GUID Generation",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "RCommon's IGuidGenerator abstraction for testable GUID creation — sequential GUIDs for SQL Server, MySQL, PostgreSQL, and Oracle to reduce index fragmentation."
   },
   "sidebar": "docsSidebar",
   "previous": {

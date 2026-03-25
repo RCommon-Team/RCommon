@@ -1,7 +1,7 @@
 {
   "id": "architecture-guides/event-driven",
   "title": "Event-Driven Architecture",
-  "description": "Event-driven architecture decouples components by having them communicate through events rather than direct calls. Producers emit events without knowing which consumers exist. Consumers react to events without knowing which producer emitted them. RCommon provides a consistent IEventProducer / ISubscriber abstraction over in-process buses (InMemoryEventBus, MediatR) and distributed brokers (MassTransit, Wolverine).",
+  "description": "Implement event-driven .NET apps with RCommon using IEventProducer and ISubscriber across in-memory, MediatR, MassTransit, and Wolverine providers.",
   "source": "@site/docs/architecture-guides/event-driven.mdx",
   "sourceDirName": "architecture-guides",
   "slug": "/architecture-guides/event-driven",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Event-Driven Architecture",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "Implement event-driven .NET apps with RCommon using IEventProducer and ISubscriber across in-memory, MediatR, MassTransit, and Wolverine providers."
   },
   "sidebar": "docsSidebar",
   "previous": {

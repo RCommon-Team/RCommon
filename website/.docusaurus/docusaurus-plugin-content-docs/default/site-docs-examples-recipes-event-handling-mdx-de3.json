@@ -1,7 +1,7 @@
 {
   "id": "examples-recipes/event-handling",
   "title": "Event Handling Examples",
-  "description": "This page walks through the event handling examples included with RCommon. Each example is a self-contained console application showing a different event handling provider.",
+  "description": "Step-by-step event handling examples for RCommon using InMemoryEventBus and MediatR providers with ISyncEvent, IEventProducer, and ISubscriber patterns.",
   "source": "@site/docs/examples-recipes/event-handling.mdx",
   "sourceDirName": "examples-recipes",
   "slug": "/examples-recipes/event-handling",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Event Handling Examples",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Step-by-step event handling examples for RCommon using InMemoryEventBus and MediatR providers with ISyncEvent, IEventProducer, and ISubscriber patterns."
   },
   "sidebar": "docsSidebar",
   "previous": {

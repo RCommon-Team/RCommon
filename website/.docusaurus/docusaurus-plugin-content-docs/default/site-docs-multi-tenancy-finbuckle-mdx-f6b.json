@@ -1,7 +1,7 @@
 {
   "id": "multi-tenancy/finbuckle",
   "title": "Finbuckle",
-  "description": "Overview",
+  "description": "RCommon.Finbuckle integrates Finbuckle.MultiTenant with RCommon's persistence layer, automatically scoping queries and entity writes to the request-resolved tenant.",
   "source": "@site/docs/multi-tenancy/finbuckle.mdx",
   "sourceDirName": "multi-tenancy",
   "slug": "/multi-tenancy/finbuckle",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Finbuckle",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "RCommon.Finbuckle integrates Finbuckle.MultiTenant with RCommon's persistence layer, automatically scoping queries and entity writes to the request-resolved tenant."
   },
   "sidebar": "docsSidebar",
   "previous": {

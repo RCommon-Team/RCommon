@@ -1,7 +1,7 @@
 {
   "id": "cqrs-mediator/wolverine",
   "title": "Wolverine",
-  "description": "Overview",
+  "description": "Integrate WolverineFx as a distributed event producer in RCommon, supporting fan-out publish and point-to-point send via ISubscriber without Wolverine-specific handler code.",
   "source": "@site/docs/cqrs-mediator/wolverine.mdx",
   "sourceDirName": "cqrs-mediator",
   "slug": "/cqrs-mediator/wolverine",
@@ -14,7 +14,8 @@
   "sidebarPosition": 5,
   "frontMatter": {
     "title": "Wolverine",
-    "sidebar_position": 5
+    "sidebar_position": 5,
+    "description": "Integrate WolverineFx as a distributed event producer in RCommon, supporting fan-out publish and point-to-point send via ISubscriber without Wolverine-specific handler code."
   },
   "sidebar": "docsSidebar",
   "previous": {

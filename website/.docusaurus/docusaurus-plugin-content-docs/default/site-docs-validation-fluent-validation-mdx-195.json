@@ -1,7 +1,7 @@
 {
   "id": "validation/fluent-validation",
   "title": "FluentValidation",
-  "description": "Overview",
+  "description": "RCommon.FluentValidation integrates FluentValidation with the CQRS pipeline for automatic command and query validation, with manual IValidationService support.",
   "source": "@site/docs/validation/fluent-validation.mdx",
   "sourceDirName": "validation",
   "slug": "/validation/fluent-validation",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "FluentValidation",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "RCommon.FluentValidation integrates FluentValidation with the CQRS pipeline for automatic command and query validation, with manual IValidationService support."
   },
   "sidebar": "docsSidebar",
   "previous": {

@@ -1,7 +1,7 @@
 {
   "id": "core-concepts/guards",
   "title": "Guards & Validation",
-  "description": "Overview",
+  "description": "Use RCommon Guard clauses for defensive programming — null checks, string, GUID, numeric, date, collection, type, and custom condition validation in .NET.",
   "source": "@site/docs/core-concepts/guards.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/guards",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Guards & Validation",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Use RCommon Guard clauses for defensive programming — null checks, string, GUID, numeric, date, collection, type, and custom condition validation in .NET."
   },
   "sidebar": "docsSidebar",
   "previous": {

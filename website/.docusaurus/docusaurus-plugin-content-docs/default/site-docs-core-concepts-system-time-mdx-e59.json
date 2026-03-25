@@ -1,7 +1,7 @@
 {
   "id": "core-concepts/system-time",
   "title": "System Time Abstraction",
-  "description": "Overview",
+  "description": "Use ISystemTime to abstract DateTime.Now for testable time-dependent code — configure UTC or local time, normalize incoming dates, and substitute clocks in tests.",
   "source": "@site/docs/core-concepts/system-time.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/system-time",
@@ -14,7 +14,8 @@
   "sidebarPosition": 4,
   "frontMatter": {
     "title": "System Time Abstraction",
-    "sidebar_position": 4
+    "sidebar_position": 4,
+    "description": "Use ISystemTime to abstract DateTime.Now for testable time-dependent code — configure UTC or local time, normalize incoming dates, and substitute clocks in tests."
   },
   "sidebar": "docsSidebar",
   "previous": {

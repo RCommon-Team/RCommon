@@ -1,7 +1,7 @@
 {
   "id": "domain-driven-design/domain-events",
   "title": "Domain Events",
-  "description": "Domain events represent something meaningful that happened within your domain. They are raised by aggregate roots when state changes occur, then dispatched after the unit of work commits. This keeps side effects (sending emails, updating read models, publishing to message brokers) decoupled from the core business logic.",
+  "description": "Raise, accumulate, and dispatch domain events in RCommon using the DomainEvent base record, ISubscriber handlers, and the post-persistence event routing pipeline.",
   "source": "@site/docs/domain-driven-design/domain-events.mdx",
   "sourceDirName": "domain-driven-design",
   "slug": "/domain-driven-design/domain-events",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Domain Events",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "Raise, accumulate, and dispatch domain events in RCommon using the DomainEvent base record, ISubscriber handlers, and the post-persistence event routing pipeline."
   },
   "sidebar": "docsSidebar",
   "previous": {

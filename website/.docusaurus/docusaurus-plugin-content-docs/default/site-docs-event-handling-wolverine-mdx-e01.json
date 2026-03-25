@@ -1,7 +1,7 @@
 {
   "id": "event-handling/wolverine",
   "title": "Wolverine",
-  "description": "RCommon integrates with Wolverine to deliver events both in-process and across service boundaries. The integration registers WolverineEventHandler as a Wolverine IWolverineHandler that delegates to the application's ISubscriber. Application handler code has no dependency on Wolverine types.",
+  "description": "Use Wolverine as an event transport in RCommon's event handling pipeline, registering ISubscriber handlers and choosing between fan-out publish or point-to-point send.",
   "source": "@site/docs/event-handling/wolverine.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/wolverine",
@@ -14,7 +14,8 @@
   "sidebarPosition": 7,
   "frontMatter": {
     "title": "Wolverine",
-    "sidebar_position": 7
+    "sidebar_position": 7,
+    "description": "Use Wolverine as an event transport in RCommon's event handling pipeline, registering ISubscriber handlers and choosing between fan-out publish or point-to-point send."
   },
   "sidebar": "docsSidebar",
   "previous": {

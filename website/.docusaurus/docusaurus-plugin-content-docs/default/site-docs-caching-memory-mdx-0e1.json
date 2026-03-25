@@ -1,7 +1,7 @@
 {
   "id": "caching/memory",
   "title": "Memory Cache",
-  "description": "RCommon.MemoryCache provides two in-process caching implementations behind the ICacheService abstraction:",
+  "description": "RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backed caching with get-or-create patterns and LINQ expression caching optimization.",
   "source": "@site/docs/caching/memory.mdx",
   "sourceDirName": "caching",
   "slug": "/caching/memory",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Memory Cache",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backed caching with get-or-create patterns and LINQ expression caching optimization."
   },
   "sidebar": "docsSidebar",
   "previous": {

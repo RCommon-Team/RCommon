@@ -6,7 +6,8 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "generate:llms": "tsx scripts/generate-llms-full.ts",
+    "build": "pnpm generate:llms && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -37,6 +38,7 @@
     "@docusaurus/tsconfig": "3.4.0",
     "@docusaurus/types": "3.4.0",
     "dotenv": "^16.3.1",
+    "tsx": "^4.21.0",
     "typescript": "~5.2.2"
   },
   "browserslist": {

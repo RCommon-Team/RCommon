@@ -1,7 +1,7 @@
 {
   "id": "domain-driven-design/auditing",
   "title": "Auditing",
-  "description": "Audit tracking records who created an entity, when it was created, who last modified it, and when. RCommon provides IAuditedEntity and AuditedEntity to standardize these fields across your domain model, making it straightforward to capture audit information in any persistence layer.",
+  "description": "Capture who created and last modified an entity using RCommon's IAuditedEntity interface and AuditedEntity base classes with generic user identifier types.",
   "source": "@site/docs/domain-driven-design/auditing.mdx",
   "sourceDirName": "domain-driven-design",
   "slug": "/domain-driven-design/auditing",
@@ -14,7 +14,8 @@
   "sidebarPosition": 4,
   "frontMatter": {
     "title": "Auditing",
-    "sidebar_position": 4
+    "sidebar_position": 4,
+    "description": "Capture who created and last modified an entity using RCommon's IAuditedEntity interface and AuditedEntity base classes with generic user identifier types."
   },
   "sidebar": "docsSidebar",
   "previous": {

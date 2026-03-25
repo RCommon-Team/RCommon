@@ -1,7 +1,7 @@
 {
   "id": "messaging/masstransit",
   "title": "MassTransit",
-  "description": "RCommon integrates with MassTransit to deliver events to consumers across service boundaries. The integration registers MassTransitEventHandler as a MassTransit IConsumer that delegates to the application's ISubscriber. Handler code has no dependency on MassTransit types.",
+  "description": "Configure MassTransit as RCommon's messaging transport, register consumers and producers, choose RabbitMQ or Azure Service Bus, and keep handler code broker-free.",
   "source": "@site/docs/messaging/masstransit.mdx",
   "sourceDirName": "messaging",
   "slug": "/messaging/masstransit",
@@ -14,7 +14,8 @@
   "sidebarPosition": 4,
   "frontMatter": {
     "title": "MassTransit",
-    "sidebar_position": 4
+    "sidebar_position": 4,
+    "description": "Configure MassTransit as RCommon's messaging transport, register consumers and producers, choose RabbitMQ or Azure Service Bus, and keep handler code broker-free."
   },
   "sidebar": "docsSidebar",
   "previous": {

@@ -1,7 +1,7 @@
 {
   "id": "getting-started/configuration",
   "title": "Configuration & Bootstrapping",
-  "description": "RCommon uses a single fluent builder entry point. All configuration happens at application startup before the DI container is built.",
+  "description": "Configure RCommon with AddRCommon() — fluent builder methods for GUID generation, system time, persistence, unit of work, mediator, and event handling.",
   "source": "@site/docs/getting-started/configuration.mdx",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/configuration",
@@ -14,7 +14,8 @@
   "sidebarPosition": 4,
   "frontMatter": {
     "title": "Configuration & Bootstrapping",
-    "sidebar_position": 4
+    "sidebar_position": 4,
+    "description": "Configure RCommon with AddRCommon() — fluent builder methods for GUID generation, system time, persistence, unit of work, mediator, and event handling."
   },
   "sidebar": "docsSidebar",
   "previous": {

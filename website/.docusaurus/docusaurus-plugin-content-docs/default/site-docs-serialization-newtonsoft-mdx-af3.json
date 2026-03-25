@@ -1,7 +1,7 @@
 {
   "id": "serialization/newtonsoft",
   "title": "Newtonsoft.Json",
-  "description": "Overview",
+  "description": "RCommon.JsonNet wraps Newtonsoft.Json behind IJsonSerializer with full JsonSerializerSettings access, custom converters, and camelCase or indented output options.",
   "source": "@site/docs/serialization/newtonsoft.mdx",
   "sourceDirName": "serialization",
   "slug": "/serialization/newtonsoft",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Newtonsoft.Json",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "RCommon.JsonNet wraps Newtonsoft.Json behind IJsonSerializer with full JsonSerializerSettings access, custom converters, and camelCase or indented output options."
   },
   "sidebar": "docsSidebar",
   "previous": {

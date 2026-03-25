@@ -1,7 +1,7 @@
 {
   "id": "getting-started/overview",
   "title": "Overview & Philosophy",
-  "description": "RCommon is a .NET infrastructure library that provides battle-tested abstractions for the concerns common to every production application: persistence, CQRS/mediator, event handling, caching, validation, emailing, and more.",
+  "description": "Learn what RCommon provides — pluggable .NET abstractions for persistence, CQRS, domain events, messaging, and caching with a fluent DI-first configuration API.",
   "source": "@site/docs/getting-started/overview.mdx",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/overview",
@@ -14,7 +14,8 @@
   "sidebarPosition": 1,
   "frontMatter": {
     "title": "Overview & Philosophy",
-    "sidebar_position": 1
+    "sidebar_position": 1,
+    "description": "Learn what RCommon provides — pluggable .NET abstractions for persistence, CQRS, domain events, messaging, and caching with a fluent DI-first configuration API."
   },
   "sidebar": "docsSidebar",
   "previous": {

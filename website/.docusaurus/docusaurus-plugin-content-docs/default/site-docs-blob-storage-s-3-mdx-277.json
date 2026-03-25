@@ -1,7 +1,7 @@
 {
   "id": "blob-storage/s3",
   "title": "Amazon S3",
-  "description": "Overview",
+  "description": "RCommon.Amazon.S3Objects wraps the AWS SDK behind IBlobStorageService, supporting explicit credentials, named profiles, IAM instance roles, and S3-compatible stores.",
   "source": "@site/docs/blob-storage/s3.mdx",
   "sourceDirName": "blob-storage",
   "slug": "/blob-storage/s3",
@@ -14,7 +14,8 @@
   "sidebarPosition": 3,
   "frontMatter": {
     "title": "Amazon S3",
-    "sidebar_position": 3
+    "sidebar_position": 3,
+    "description": "RCommon.Amazon.S3Objects wraps the AWS SDK behind IBlobStorageService, supporting explicit credentials, named profiles, IAM instance roles, and S3-compatible stores."
   },
   "sidebar": "docsSidebar",
   "previous": {

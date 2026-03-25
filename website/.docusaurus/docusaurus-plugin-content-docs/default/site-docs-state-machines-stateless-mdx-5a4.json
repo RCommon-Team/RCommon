@@ -1,7 +1,7 @@
 {
   "id": "state-machines/stateless",
   "title": "Stateless",
-  "description": "RCommon.Stateless wraps the popular Stateless library behind the RCommon IStateMachineConfigurator abstraction. Application code works only with the RCommon interfaces; the Stateless library is an implementation detail.",
+  "description": "RCommon.Stateless wraps the Stateless library behind IStateMachineConfigurator, supporting guarded transitions, parameterized triggers, and async entry/exit actions.",
   "source": "@site/docs/state-machines/stateless.mdx",
   "sourceDirName": "state-machines",
   "slug": "/state-machines/stateless",
@@ -14,7 +14,8 @@
   "sidebarPosition": 2,
   "frontMatter": {
     "title": "Stateless",
-    "sidebar_position": 2
+    "sidebar_position": 2,
+    "description": "RCommon.Stateless wraps the Stateless library behind IStateMachineConfigurator, supporting guarded transitions, parameterized triggers, and async entry/exit actions."
   },
   "sidebar": "docsSidebar",
   "previous": {
