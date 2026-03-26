@@ -44,7 +44,7 @@ export default {
           "customCss": "./src/css/custom.css"
         },
         "gtag": {
-          "trackingID": "G-XXXXXXXXXX",
+          "trackingID": "G-LXEZV2X7W3",
           "anonymizeIP": true
         },
         "sitemap": {
@@ -378,13 +378,6 @@ export default {
       "disableSwitch": false,
       "respectPrefersColorScheme": true
     },
-    "mermaid": {
-      "theme": {
-        "dark": "dark",
-        "light": "default"
-      },
-      "options": {}
-    },
     "docs": {
       "versionPersistence": "localStorage",
       "sidebar": {
@@ -396,6 +389,13 @@ export default {
     "tableOfContents": {
       "minHeadingLevel": 2,
       "maxHeadingLevel": 3
+    },
+    "mermaid": {
+      "theme": {
+        "dark": "dark",
+        "light": "default"
+      },
+      "options": {}
     }
   },
   "plugins": [

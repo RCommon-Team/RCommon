@@ -5,7 +5,7 @@
     "baseUrl": ".",
     "paths": {
       "@site/*": ["./*"]
-    }
-  },
-  "noImplicitAny": true
+    },
+    "noImplicitAny": true
+  }
 }
