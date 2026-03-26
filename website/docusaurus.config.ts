@@ -20,6 +20,14 @@ const config: Config = {
     locales: ['en'],
   },
 
+  scripts: [
+    {
+      src: 'https://context7.com/widget.js',
+      'data-library': '/rcommon-team/rcommon',
+      async: true,
+    },
+  ],
+
   headTags: [
     {
       tagName: 'meta',
