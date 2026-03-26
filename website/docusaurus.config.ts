@@ -43,7 +43,7 @@ const config: Config = {
           customCss: './src/css/custom.css',
         },
         gtag: {
-          trackingID: 'G-XXXXXXXXXX', // TODO: Replace with real GA4 Measurement ID
+          trackingID: 'G-LXEZV2X7W3',
           anonymizeIP: true,
         },
         sitemap: {
