@@ -1,56 +1,76 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RCommon.Security.Claims
 {
     /// <summary>
-    /// Provides configurable constants for standard claim type URIs used throughout the security subsystem.
-    /// Each property defaults to the corresponding <see cref="ClaimTypes"/> value and can be overridden at startup.
+    /// Provides claim type URI constants used throughout the security subsystem.
+    /// Call <see cref="Configure"/> once at startup to override defaults.
+    /// After configuration (or first property access), values are frozen.
     /// </summary>
     public static class ClaimTypesConst
     {
-        /// <summary>
-        /// Default: <see cref="ClaimTypes.Name"/>
-        /// </summary>
-        public static string UserName { get; set; } = ClaimTypes.Name;
+        private static ClaimTypesOptions? _options;
+        private static bool _frozen;
+        private static readonly object _lock = new();
+
+        public static string UserName => GetOptions().UserName;
+        public static string Name => GetOptions().Name;
+        public static string SurName => GetOptions().SurName;
+        public static string UserId => GetOptions().UserId;
+        public static string Role => GetOptions().Role;
+        public static string Email => GetOptions().Email;
+        public static string TenantId => GetOptions().TenantId;
+        public static string ClientId => GetOptions().ClientId;
 
         /// <summary>
-        /// Default: <see cref="ClaimTypes.GivenName"/>
+        /// Configures claim type mappings. May only be called once, before any property is accessed.
         /// </summary>
-        public static string Name { get; set; } = ClaimTypes.GivenName;
+        public static void Configure(Action<ClaimTypesOptions> configure)
+        {
+            Guard.IsNotNull(configure, nameof(configure));
+
+            lock (_lock)
+            {
+                if (_frozen)
+                {
+                    throw new InvalidOperationException(
+                        "ClaimTypesConst has already been configured or accessed. Configure may only be called once, before any property is read.");
+                }
+
+                var options = new ClaimTypesOptions();
+                configure(options);
+                _options = options;
+                _frozen = true;
+            }
+        }
+
+        private static ClaimTypesOptions GetOptions()
+        {
+            if (_options != null)
+                return _options;
+
+            lock (_lock)
+            {
+                if (_options != null)
+                    return _options;
+
+                _options = new ClaimTypesOptions();
+                _frozen = true;
+                return _options;
+            }
+        }
 
         /// <summary>
-        /// Default: <see cref="ClaimTypes.Surname"/>
+        /// Resets configuration to allow reconfiguration. Internal — for test isolation only.
         /// </summary>
-        public static string SurName { get; set; } = ClaimTypes.Surname;
-
-        /// <summary>
-        /// Default: <see cref="ClaimTypes.NameIdentifier"/>
-        /// </summary>
-        public static string UserId { get; set; } = ClaimTypes.NameIdentifier;
-
-        /// <summary>
-        /// Default: <see cref="ClaimTypes.Role"/>
-        /// </summary>
-        public static string Role { get; set; } = ClaimTypes.Role;
-
-        /// <summary>
-        /// Default: <see cref="ClaimTypes.Email"/>
-        /// </summary>
-        public static string Email { get; set; } = ClaimTypes.Email;
-
-        /// <summary>
-        /// Default: "tenantid".
-        /// </summary>
-        public static string TenantId { get; set; } = "tenantid";
-
-        /// <summary>
-        /// Default: "client_id".
-        /// </summary>
-        public static string ClientId { get; set; } = "client_id";
+        internal static void Reset()
+        {
+            lock (_lock)
+            {
+                _options = null;
+                _frozen = false;
+            }
+        }
     }
 }

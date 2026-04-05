@@ -16,11 +16,11 @@ namespace RCommon.Security
     public static class ClaimsIdentityExtensions
     {
         /// <summary>
-        /// Extracts the user identifier from the principal's claims as a <see cref="Guid"/>.
+        /// Extracts the user identifier from the principal's claims as a raw string value.
         /// </summary>
         /// <param name="principal">The claims principal to search.</param>
-        /// <returns>The parsed user ID, or <c>null</c> if the claim is missing or not a valid GUID.</returns>
-        public static Guid? FindUserId(this ClaimsPrincipal principal)
+        /// <returns>The user ID string, or <c>null</c> if the claim is missing or empty.</returns>
+        public static string? FindUserId(this ClaimsPrincipal principal)
         {
             Guard.IsNotNull(principal, nameof(principal));
 
@@ -30,20 +30,15 @@ namespace RCommon.Security
                 return null;
             }
 
-            if (Guid.TryParse(userIdOrNull.Value, out Guid guid))
-            {
-                return guid;
-            }
-
-            return null;
+            return userIdOrNull.Value;
         }
 
         /// <summary>
-        /// Extracts the user identifier from the identity's claims as a <see cref="Guid"/>.
+        /// Extracts the user identifier from the identity's claims as a raw string value.
         /// </summary>
         /// <param name="identity">The identity to search. Must be castable to <see cref="ClaimsIdentity"/>.</param>
-        /// <returns>The parsed user ID, or <c>null</c> if the claim is missing or not a valid GUID.</returns>
-        public static Guid? FindUserId(this IIdentity identity)
+        /// <returns>The user ID string, or <c>null</c> if the claim is missing or empty.</returns>
+        public static string? FindUserId(this IIdentity identity)
         {
             Guard.IsNotNull(identity, nameof(identity));
 
@@ -55,12 +50,7 @@ namespace RCommon.Security
                 return null;
             }
 
-            if (Guid.TryParse(userIdOrNull.Value, out var guid))
-            {
-                return guid;
-            }
-
-            return null;
+            return userIdOrNull.Value;
         }
 
         /// <summary>

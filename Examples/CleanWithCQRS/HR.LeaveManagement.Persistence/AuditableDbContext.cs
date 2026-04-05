@@ -35,7 +35,7 @@ namespace HR.LeaveManagement.Persistence
             foreach (var entry in base.ChangeTracker.Entries<BaseDomainEntity>()
                 .Where(q => q.State == EntityState.Added || q.State == EntityState.Modified))
             {
-                string userId = (_currentUser == null || _currentUser.Id == null ? "System" : _currentUser.Id.ToString());
+                string userId = _currentUser?.Id ?? "System";
 
                 entry.Entity.DateLastModified = _systemTime.Now;
                 entry.Entity.LastModifiedBy = userId;

@@ -1,11 +1,4 @@
-﻿using RCommon.Security.Claims;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace RCommon.Security.Users
 {
@@ -27,37 +20,15 @@ namespace RCommon.Security.Users
         }
 
         /// <summary>
-        /// Finds a claim of the specified type and converts its value to <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The target value type to convert the claim value to.</typeparam>
-        /// <param name="currentUser">The current user instance.</param>
-        /// <param name="claimType">The claim type URI to search for.</param>
-        /// <returns>The converted claim value, or <c>default</c> if the claim is not found.</returns>
-        /// <remarks>Uses <see cref="Convert.ChangeType(object, Type, IFormatProvider)"/> with <see cref="CultureInfo.InvariantCulture"/>.</remarks>
-        public static T FindClaimValue<T>(this ICurrentUser currentUser, string claimType)
-            where T : struct
-        {
-            var value = currentUser.FindClaimValue(claimType);
-            if (value == null)
-            {
-                return default;
-            }
-            return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
-        }
-
-        /// <summary>
         /// Gets the current user's ID, asserting that it is not <c>null</c>.
         /// </summary>
         /// <param name="currentUser">The current user instance.</param>
-        /// <returns>The user's <see cref="Guid"/> identifier.</returns>
+        /// <returns>The user's string identifier.</returns>
         /// <exception cref="InvalidOperationException">Thrown if <see cref="ICurrentUser.Id"/> is <c>null</c>.</exception>
-        public static Guid GetId(this ICurrentUser currentUser)
+        public static string GetId(this ICurrentUser currentUser)
         {
-            Debug.Assert(currentUser.Id != null, "currentUser.Id != null");
-
-            return currentUser.Id.Value;
+            return currentUser.Id
+                ?? throw new InvalidOperationException("The current user ID is null. Ensure the user is authenticated and has a NameIdentifier claim.");
         }
-
-        
     }
 }

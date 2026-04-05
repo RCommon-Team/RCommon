@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 
 namespace RCommon.Security.Users
 {
@@ -11,10 +10,10 @@ namespace RCommon.Security.Users
         /// <summary>
         /// Gets the unique identifier of the current user, or <c>null</c> if no user is authenticated.
         /// </summary>
-        Guid? Id { get; }
+        string? Id { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the current user is authenticated (i.e., <see cref="Id"/> is not <c>null</c>).
+        /// Gets a value indicating whether the current user is authenticated, as reported by the underlying <see cref="System.Security.Principal.IIdentity"/>.
         /// </summary>
         bool IsAuthenticated { get; }
 

@@ -31,10 +31,10 @@ namespace RCommon.Security.Users
         }
 
         /// <inheritdoc />
-        public virtual bool IsAuthenticated => Id.HasValue;
+        public virtual bool IsAuthenticated => _principalAccessor.Principal?.Identity?.IsAuthenticated ?? false;
 
         /// <inheritdoc />
-        public virtual Guid? Id => _principalAccessor.Principal?.FindUserId();
+        public virtual string? Id => _principalAccessor.Principal?.FindUserId();
 
         /// <inheritdoc />
         public virtual string? TenantId => _principalAccessor.Principal?.FindTenantId();
