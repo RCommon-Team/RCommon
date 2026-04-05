@@ -32,7 +32,7 @@ public class CurrentUserTests
     }
 
     [Fact]
-    public void IsAuthenticated_WhenIdIsNull_ReturnsFalse()
+    public void IsAuthenticated_WhenPrincipalIsNull_ReturnsFalse()
     {
         // Arrange
         _mockPrincipalAccessor.Setup(x => x.Principal).Returns((ClaimsPrincipal?)null);
@@ -46,12 +46,11 @@ public class CurrentUserTests
     }
 
     [Fact]
-    public void IsAuthenticated_WhenIdHasValue_ReturnsTrue()
+    public void IsAuthenticated_WhenIdentityIsAuthenticated_ReturnsTrue()
     {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, userId.ToString()) };
-        var identity = new ClaimsIdentity(claims, "test");
+        // Arrange - identity with AuthenticationType set (makes IsAuthenticated true)
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-42") };
+        var identity = new ClaimsIdentity(claims, "Bearer");
         var principal = new ClaimsPrincipal(identity);
         _mockPrincipalAccessor.Setup(x => x.Principal).Returns(principal);
         var currentUser = CreateCurrentUser();
@@ -61,6 +60,40 @@ public class CurrentUserTests
 
         // Assert
         result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsAuthenticated_WhenAuthenticatedButNoNameIdentifier_ReturnsTrue()
+    {
+        // Arrange - authenticated identity with roles but no NameIdentifier
+        var claims = new[] { new Claim(ClaimTypes.Role, "Admin") };
+        var identity = new ClaimsIdentity(claims, "Bearer");
+        var principal = new ClaimsPrincipal(identity);
+        _mockPrincipalAccessor.Setup(x => x.Principal).Returns(principal);
+        var currentUser = CreateCurrentUser();
+
+        // Act
+        var result = currentUser.IsAuthenticated;
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsAuthenticated_WhenIdentityNotAuthenticated_ReturnsFalse()
+    {
+        // Arrange - identity without AuthenticationType (unauthenticated)
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-42") };
+        var identity = new ClaimsIdentity(claims); // no authenticationType
+        var principal = new ClaimsPrincipal(identity);
+        _mockPrincipalAccessor.Setup(x => x.Principal).Returns(principal);
+        var currentUser = CreateCurrentUser();
+
+        // Act
+        var result = currentUser.IsAuthenticated;
+
+        // Assert
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -75,6 +108,41 @@ public class CurrentUserTests
 
         // Assert
         result.Should().BeNull();
+    }
+
+    [Fact]
+    public void Id_WithStringIdentifier_ReturnsRawString()
+    {
+        // Arrange
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "auth0|abc123") };
+        var identity = new ClaimsIdentity(claims, "test");
+        var principal = new ClaimsPrincipal(identity);
+        _mockPrincipalAccessor.Setup(x => x.Principal).Returns(principal);
+        var currentUser = CreateCurrentUser();
+
+        // Act
+        var result = currentUser.Id;
+
+        // Assert
+        result.Should().Be("auth0|abc123");
+    }
+
+    [Fact]
+    public void Id_WithGuidIdentifier_ReturnsGuidAsString()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, userId.ToString()) };
+        var identity = new ClaimsIdentity(claims, "test");
+        var principal = new ClaimsPrincipal(identity);
+        _mockPrincipalAccessor.Setup(x => x.Principal).Returns(principal);
+        var currentUser = CreateCurrentUser();
+
+        // Act
+        var result = currentUser.Id;
+
+        // Assert
+        result.Should().Be(userId.ToString());
     }
 
     [Fact]
@@ -285,6 +353,37 @@ public class CurrentUserTests
 
         // Assert
         result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetId_WhenIdIsPresent_ReturnsId()
+    {
+        // Arrange
+        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-42") };
+        var identity = new ClaimsIdentity(claims, "test");
+        var principal = new ClaimsPrincipal(identity);
+        _mockPrincipalAccessor.Setup(x => x.Principal).Returns(principal);
+        var currentUser = CreateCurrentUser();
+
+        // Act
+        var result = currentUser.GetId();
+
+        // Assert
+        result.Should().Be("user-42");
+    }
+
+    [Fact]
+    public void GetId_WhenIdIsNull_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        _mockPrincipalAccessor.Setup(x => x.Principal).Returns((ClaimsPrincipal?)null);
+        var currentUser = CreateCurrentUser();
+
+        // Act
+        var action = () => currentUser.GetId();
+
+        // Assert
+        action.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]

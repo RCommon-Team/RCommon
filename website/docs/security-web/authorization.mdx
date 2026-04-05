@@ -83,11 +83,15 @@ If your identity provider uses non-standard claim type URIs, override the static
 using RCommon.Security.Claims;
 
 // Map to the short claim names issued by your OIDC provider.
-ClaimTypesConst.UserId   = "sub";
-ClaimTypesConst.Role     = "roles";
-ClaimTypesConst.Email    = "email";
-ClaimTypesConst.TenantId = "tenant_id";
-ClaimTypesConst.ClientId = "client_id";
+// Configure must be called once at startup, before any property is accessed.
+ClaimTypesConst.Configure(options =>
+{
+    options.UserId   = "sub";
+    options.Role     = "roles";
+    options.Email    = "email";
+    options.TenantId = "tenant_id";
+    options.ClientId = "client_id";
+});
 ```
 
 ### Swashbuckle operation filters
@@ -146,7 +150,7 @@ public class OrderCommandHandler
 
         var order = new Order
         {
-            CustomerId   = _currentUser.Id!.Value,
+            CustomerId   = _currentUser.Id!,
             CustomerName = _currentUser.FindClaimValue(ClaimTypes.GivenName) ?? "Unknown",
             Total        = command.Total
         };
@@ -176,9 +180,6 @@ Claim[] allDeptClaims = _currentUser.FindClaims("custom:department");
 
 // Find a claim value as a string.
 string? department = _currentUser.FindClaimValue("custom:department");
-
-// Find a claim value converted to a specific struct type.
-int employeeNumber = _currentUser.FindClaimValue<int>("custom:employee_number");
 ```
 
 ### Accessing the current client
@@ -280,7 +281,7 @@ principal.AddIdentityIfNotContains(new ClaimsIdentity(claims, "Cookie"));
 Extract well-known values directly from a `ClaimsPrincipal`:
 
 ```csharp
-Guid? userId   = principal.FindUserId();    // parses ClaimTypesConst.UserId as Guid
+string? userId = principal.FindUserId();    // reads ClaimTypesConst.UserId
 string? tenant = principal.FindTenantId();  // reads ClaimTypesConst.TenantId
 string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
 ```
@@ -295,10 +296,10 @@ string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
 | `CurrentPrincipalAccessorExtensions` | `RCommon.Security` | `Change(Claim)`, `Change(IEnumerable<Claim>)`, `Change(ClaimsIdentity)` overloads |
 | `ICurrentUser` | `RCommon.Security` | Exposes `Id`, `IsAuthenticated`, `Roles`, `TenantId`, `FindClaim`, `FindClaims`, `GetAllClaims` |
 | `CurrentUser` | `RCommon.Security` | Default `ICurrentUser` implementation backed by `ICurrentPrincipalAccessor` |
-| `CurrentUserExtensions` | `RCommon.Security` | `FindClaimValue(string)`, `FindClaimValue<T>(string)`, `GetId()` |
+| `CurrentUserExtensions` | `RCommon.Security` | `FindClaimValue(string)`, `GetId()` |
 | `ICurrentClient` | `RCommon.Security` | Exposes `Id` and `IsAuthenticated` for OAuth client identities |
 | `CurrentClient` | `RCommon.Security` | Default `ICurrentClient` backed by `ICurrentPrincipalAccessor` |
-| `ClaimTypesConst` | `RCommon.Security` | Configurable claim type URIs: `UserName`, `Name`, `SurName`, `UserId`, `Role`, `Email`, `TenantId`, `ClientId` |
+| `ClaimTypesConst` | `RCommon.Security` | Configure-once claim type URIs via `Configure(Action<ClaimTypesOptions>)`: `UserName`, `Name`, `SurName`, `UserId`, `Role`, `Email`, `TenantId`, `ClientId` |
 | `ClaimsIdentityExtensions` | `RCommon.Security` | `FindUserId`, `FindTenantId`, `FindClientId`, `AddIfNotContains`, `AddOrReplace`, `AddIdentityIfNotContains` |
 | `AuthorizationException` | `RCommon.Security` | Application-layer exception for access-denied scenarios; carries `Code`, `LogLevel`, and fluent `WithData()` |
 | `AuthorizeCheckOperationFilter` | `RCommon.Authorization.Web` | Swashbuckle filter: adds 401/403 responses and OAuth2 security requirement to `[Authorize]`-decorated operations |

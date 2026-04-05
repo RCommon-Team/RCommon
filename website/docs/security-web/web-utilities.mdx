@@ -136,7 +136,7 @@ public class RequestAuditMiddleware
     {
         if (currentUser.IsAuthenticated)
         {
-            var userId = currentUser.Id?.ToString() ?? "anonymous";
+            var userId = currentUser.Id ?? "anonymous";
             context.Items["AuditUserId"] = userId;
         }
 
