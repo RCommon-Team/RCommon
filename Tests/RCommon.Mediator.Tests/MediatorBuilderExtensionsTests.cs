@@ -317,6 +317,12 @@ public class MediatorBuilderExtensionsTests
         {
             return this;
         }
+
+        public TSubBuilder GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder> factory)
+            where TSubBuilder : class
+        {
+            return factory();
+        }
     }
 
     #endregion
