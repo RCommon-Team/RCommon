@@ -56,7 +56,12 @@ namespace RCommon
         public static void AddProducer<T>(this IEventHandlingBuilder builder)
             where T : class, IEventProducer
         {
-            builder.Services.AddSingleton<IEventProducer, T>();
+            var alreadyRegistered = builder.Services.Any(d =>
+                d.ServiceType == typeof(IEventProducer) && d.ImplementationType == typeof(T));
+            if (!alreadyRegistered)
+            {
+                builder.Services.AddSingleton<IEventProducer, T>();
+            }
 
             // Track which producer type is associated with this builder type
             var subscriptionManager = builder.Services.GetSubscriptionManager();
@@ -73,10 +78,17 @@ namespace RCommon
         public static void AddProducer<T>(this IEventHandlingBuilder builder, Func<IServiceProvider, T> getProducer)
             where T : class, IEventProducer
         {
-            builder.Services.AddSingleton(getProducer);
+            // Factory descriptors set ImplementationFactory, not ImplementationType, so descriptor
+            // scanning won't reliably dedupe. Gate on the subscription manager's set-based tracking.
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            var alreadyTracked = subscriptionManager?.HasProducerForBuilder(builder.GetType(), typeof(T)) ?? false;
+
+            if (!alreadyTracked)
+            {
+                builder.Services.AddSingleton(getProducer);
+            }
 
             // Track which producer type is associated with this builder type
-            var subscriptionManager = builder.Services.GetSubscriptionManager();
             subscriptionManager?.AddProducerForBuilder(builder.GetType(), typeof(T));
         }
 

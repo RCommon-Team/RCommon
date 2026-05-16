@@ -34,6 +34,21 @@ namespace RCommon.EventHandling.Producers
         }
 
         /// <summary>
+        /// Returns true if the given producer type has already been registered through the given builder type.
+        /// </summary>
+        public bool HasProducerForBuilder(Type builderType, Type producerType)
+        {
+            if (_builderProducerMap.TryGetValue(builderType, out var producers))
+            {
+                lock (producers)
+                {
+                    return producers.Contains(producerType);
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Records that an event type should be handled by all producers registered on a specific builder.
         /// Called during <c>AddSubscriber</c> configuration.
         /// </summary>
