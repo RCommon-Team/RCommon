@@ -16,8 +16,8 @@ namespace RCommon
         /// <inheritdoc />
         public IServiceCollection Services { get; }
 
-        private bool _guidConfigured = false;
-        private bool _dateTimeConfigured = false;
+        private SingletonRegistration _guidRegistration;
+        private SingletonRegistration _dateTimeRegistration;
         private readonly Dictionary<Type, object> _subBuilderCache = new();
 
         /// <summary>
@@ -46,37 +46,66 @@ namespace RCommon
         }
 
         /// <inheritdoc />
-        /// <exception cref="RCommonBuilderException">Thrown if a GUID generator has already been configured.</exception>
+        /// <exception cref="RCommonBuilderException">Thrown if a different GUID generator implementation has already been configured.</exception>
         public IRCommonBuilder WithSequentialGuidGenerator(Action<SequentialGuidGeneratorOptions> actions)
         {
-            Guard.Against<RCommonBuilderException>(this._guidConfigured,
-                "Guid Generator has already been configured once. You cannot configure multiple times");
+            if (_guidRegistration.Configured)
+            {
+                if (_guidRegistration.ImplementationType == typeof(SequentialGuidGenerator))
+                {
+                    // Same impl re-registered: idempotent; just append the options delegate
+                    this.Services.Configure<SequentialGuidGeneratorOptions>(actions);
+                    return this;
+                }
+                throw new RCommonBuilderException(
+                    $"IGuidGenerator already configured as '{_guidRegistration.ImplementationType?.FullName}'; " +
+                    $"cannot reconfigure as '{typeof(SequentialGuidGenerator).FullName}'. " +
+                    "To configure multiple modules consistently, ensure all modules agree on the same IGuidGenerator implementation, " +
+                    "or designate a single composition root that performs this registration.");
+            }
+
             this.Services.Configure<SequentialGuidGeneratorOptions>(actions);
             this.Services.AddTransient<IGuidGenerator, SequentialGuidGenerator>();
-            this._guidConfigured = true;
+            _guidRegistration = new SingletonRegistration { Configured = true, ImplementationType = typeof(SequentialGuidGenerator) };
             return this;
         }
 
         /// <inheritdoc />
-        /// <exception cref="RCommonBuilderException">Thrown if a GUID generator has already been configured.</exception>
+        /// <exception cref="RCommonBuilderException">Thrown if a different GUID generator implementation has already been configured.</exception>
         public IRCommonBuilder WithSimpleGuidGenerator()
         {
-            Guard.Against<RCommonBuilderException>(this._guidConfigured,
-                "Guid Generator has already been configured once. You cannot configure multiple times");
+            if (_guidRegistration.Configured)
+            {
+                if (_guidRegistration.ImplementationType == typeof(SimpleGuidGenerator))
+                {
+                    return this;
+                }
+                throw new RCommonBuilderException(
+                    $"IGuidGenerator already configured as '{_guidRegistration.ImplementationType?.FullName}'; " +
+                    $"cannot reconfigure as '{typeof(SimpleGuidGenerator).FullName}'. " +
+                    "To configure multiple modules consistently, ensure all modules agree on the same IGuidGenerator implementation, " +
+                    "or designate a single composition root that performs this registration.");
+            }
+
             this.Services.AddScoped<IGuidGenerator, SimpleGuidGenerator>();
-            this._guidConfigured = true;
+            _guidRegistration = new SingletonRegistration { Configured = true, ImplementationType = typeof(SimpleGuidGenerator) };
             return this;
         }
 
         /// <inheritdoc />
-        /// <exception cref="RCommonBuilderException">Thrown if the date/time system has already been configured.</exception>
         public IRCommonBuilder WithDateTimeSystem(Action<SystemTimeOptions> actions)
         {
-            Guard.Against<RCommonBuilderException>(this._dateTimeConfigured,
-                "Date/Time System has already been configured once. You cannot configure multiple times");
+            if (_dateTimeRegistration.Configured)
+            {
+                // Only one impl type exists; always idempotent. Still append the options delegate so
+                // additional configuration accumulates per Options pattern.
+                this.Services.Configure<SystemTimeOptions>(actions);
+                return this;
+            }
+
             this.Services.Configure<SystemTimeOptions>(actions);
             this.Services.AddTransient<ISystemTime, SystemTime>();
-            this._dateTimeConfigured = true;
+            _dateTimeRegistration = new SingletonRegistration { Configured = true, ImplementationType = typeof(SystemTime) };
             return this;
         }
 

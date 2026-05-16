@@ -132,21 +132,6 @@ public class RCommonBuilderTests
     }
 
     [Fact]
-    public void WithSequentialGuidGenerator_CalledTwice_ThrowsRCommonBuilderException()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var builder = new RCommonBuilder(services);
-        builder.WithSequentialGuidGenerator(options => { });
-
-        // Act
-        var act = () => builder.WithSequentialGuidGenerator(options => { });
-
-        // Assert
-        act.Should().Throw<RCommonBuilderException>();
-    }
-
-    [Fact]
     public void WithSequentialGuidGenerator_ReturnsBuilder_ForFluentChaining()
     {
         // Arrange
@@ -180,21 +165,6 @@ public class RCommonBuilderTests
         var guidGenerator = scope.ServiceProvider.GetService<IGuidGenerator>();
         guidGenerator.Should().NotBeNull();
         guidGenerator.Should().BeOfType<SimpleGuidGenerator>();
-    }
-
-    [Fact]
-    public void WithSimpleGuidGenerator_CalledTwice_ThrowsRCommonBuilderException()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var builder = new RCommonBuilder(services);
-        builder.WithSimpleGuidGenerator();
-
-        // Act
-        var act = () => builder.WithSimpleGuidGenerator();
-
-        // Assert
-        act.Should().Throw<RCommonBuilderException>();
     }
 
     [Fact]
@@ -268,21 +238,6 @@ public class RCommonBuilderTests
         // Assert
         options.Should().NotBeNull();
         options!.Value.Kind.Should().Be(DateTimeKind.Utc);
-    }
-
-    [Fact]
-    public void WithDateTimeSystem_CalledTwice_ThrowsRCommonBuilderException()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var builder = new RCommonBuilder(services);
-        builder.WithDateTimeSystem(options => { });
-
-        // Act
-        var act = () => builder.WithDateTimeSystem(options => { });
-
-        // Assert
-        act.Should().Throw<RCommonBuilderException>();
     }
 
     [Fact]
