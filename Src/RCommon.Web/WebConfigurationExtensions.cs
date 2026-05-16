@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.Security.Claims;
 using RCommon.Security.Clients;
 using RCommon.Security.Users;
@@ -27,10 +28,10 @@ namespace RCommon
         public static IRCommonBuilder WithClaimsAndPrincipalAccessorForWeb(this IRCommonBuilder config)
         {
             config.Services.AddHttpContextAccessor();
-            config.Services.AddTransient<ICurrentPrincipalAccessor, HttpContextCurrentPrincipalAccessor>();
-            config.Services.AddTransient<ICurrentClient, CurrentClient>();
-            config.Services.AddTransient<ICurrentUser, CurrentUser>();
-            config.Services.AddTransient<ITenantIdAccessor, ClaimsTenantIdAccessor>();
+            config.Services.TryAddTransient<ICurrentPrincipalAccessor, HttpContextCurrentPrincipalAccessor>();
+            config.Services.TryAddTransient<ICurrentClient, CurrentClient>();
+            config.Services.TryAddTransient<ICurrentUser, CurrentUser>();
+            config.Services.TryAddTransient<ITenantIdAccessor, ClaimsTenantIdAccessor>();
             return config;
         }
     }
