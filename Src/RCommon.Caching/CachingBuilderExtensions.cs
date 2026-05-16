@@ -20,7 +20,7 @@ namespace RCommon.Caching
         /// <param name="builder">The RCommon builder instance.</param>
         /// <returns>The same <see cref="IRCommonBuilder"/> for chaining.</returns>
         public static IRCommonBuilder WithMemoryCaching<T>(this IRCommonBuilder builder)
-            where T : IMemoryCachingBuilder
+            where T : class, IMemoryCachingBuilder
         {
             return WithMemoryCaching<T>(builder, x => { });
         }
@@ -37,12 +37,14 @@ namespace RCommon.Caching
         /// and must have a constructor that accepts an <see cref="IRCommonBuilder"/>.
         /// </remarks>
         public static IRCommonBuilder WithMemoryCaching<T>(this IRCommonBuilder builder, Action<T> actions)
-            where T : IMemoryCachingBuilder
+            where T : class, IMemoryCachingBuilder
         {
             Guard.IsNotNull(actions, nameof(actions));
-            // Create the builder via reflection, passing the IRCommonBuilder to its constructor
-            var cachingConfig = (T)(Activator.CreateInstance(typeof(T), new object[] { builder })
-                ?? throw new InvalidOperationException($"Failed to create instance of {typeof(T).Name}."));
+            // Create the builder via reflection, passing the IRCommonBuilder to its constructor.
+            // Routed through GetOrAddBuilder so repeated WithMemoryCaching<T> calls reuse the cached sub-builder.
+            var cachingConfig = builder.GetOrAddBuilder<T>(
+                () => (T)(Activator.CreateInstance(typeof(T), new object[] { builder })
+                    ?? throw new InvalidOperationException($"Failed to create instance of {typeof(T).Name}.")));
             actions(cachingConfig);
             return builder;
         }
@@ -54,7 +56,7 @@ namespace RCommon.Caching
         /// <param name="builder">The RCommon builder instance.</param>
         /// <returns>The same <see cref="IRCommonBuilder"/> for chaining.</returns>
         public static IRCommonBuilder WithDistributedCaching<T>(this IRCommonBuilder builder)
-            where T : IDistributedCachingBuilder
+            where T : class, IDistributedCachingBuilder
         {
             return WithDistributedCaching<T>(builder, x => { });
         }
@@ -71,12 +73,14 @@ namespace RCommon.Caching
         /// and must have a constructor that accepts an <see cref="IRCommonBuilder"/>.
         /// </remarks>
         public static IRCommonBuilder WithDistributedCaching<T>(this IRCommonBuilder builder, Action<T> actions)
-            where T : IDistributedCachingBuilder
+            where T : class, IDistributedCachingBuilder
         {
             Guard.IsNotNull(actions, nameof(actions));
-            // Create the builder via reflection, passing the IRCommonBuilder to its constructor
-            var cachingConfig = (T)(Activator.CreateInstance(typeof(T), new object[] { builder })
-                ?? throw new InvalidOperationException($"Failed to create instance of {typeof(T).Name}."));
+            // Create the builder via reflection, passing the IRCommonBuilder to its constructor.
+            // Routed through GetOrAddBuilder so repeated WithDistributedCaching<T> calls reuse the cached sub-builder.
+            var cachingConfig = builder.GetOrAddBuilder<T>(
+                () => (T)(Activator.CreateInstance(typeof(T), new object[] { builder })
+                    ?? throw new InvalidOperationException($"Failed to create instance of {typeof(T).Name}.")));
             actions(cachingConfig);
             return builder;
         }

@@ -290,7 +290,7 @@ public class CachingBuilderExtensionsTests
     #region Builder Instance Creation Tests
 
     [Fact]
-    public void WithMemoryCaching_CreatesNewBuilderInstanceEachTime()
+    public void WithMemoryCaching_ReusesCachedBuilderForRepeatedCalls()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -303,13 +303,15 @@ public class CachingBuilderExtensionsTests
         rcommonBuilder.WithMemoryCaching<TestMemoryCachingBuilder>(builder => secondBuilder = builder);
 
         // Assert
+        // The action delegate still runs each call, but the sub-builder is cached
+        // via IRCommonBuilder.GetOrAddBuilder so both invocations see the same instance.
         firstBuilder.Should().NotBeNull();
         secondBuilder.Should().NotBeNull();
-        firstBuilder.Should().NotBeSameAs(secondBuilder);
+        firstBuilder.Should().BeSameAs(secondBuilder);
     }
 
     [Fact]
-    public void WithDistributedCaching_CreatesNewBuilderInstanceEachTime()
+    public void WithDistributedCaching_ReusesCachedBuilderForRepeatedCalls()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -322,9 +324,11 @@ public class CachingBuilderExtensionsTests
         rcommonBuilder.WithDistributedCaching<TestDistributedCachingBuilder>(builder => secondBuilder = builder);
 
         // Assert
+        // The action delegate still runs each call, but the sub-builder is cached
+        // via IRCommonBuilder.GetOrAddBuilder so both invocations see the same instance.
         firstBuilder.Should().NotBeNull();
         secondBuilder.Should().NotBeNull();
-        firstBuilder.Should().NotBeSameAs(secondBuilder);
+        firstBuilder.Should().BeSameAs(secondBuilder);
     }
 
     #endregion
