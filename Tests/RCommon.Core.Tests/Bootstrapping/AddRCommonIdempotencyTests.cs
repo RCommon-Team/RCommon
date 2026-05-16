@@ -53,7 +53,7 @@ public class AddRCommonIdempotencyTests
     }
 
     [Fact]
-    public void AddRCommon_CalledOnce_HasIdenticalDescriptorCountToCalledOnce()
+    public void AddRCommon_CalledTwice_HasIdenticalDescriptorCountToCalledOnce()
     {
         var servicesA = new ServiceCollection();
         var servicesB = new ServiceCollection();
