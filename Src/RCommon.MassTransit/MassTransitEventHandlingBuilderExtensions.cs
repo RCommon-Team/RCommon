@@ -33,7 +33,8 @@ namespace RCommon
         /// <param name="configure">Optional configuration action for <see cref="IMassTransitEventHandlingBuilder"/>.</param>
         /// <returns>The <see cref="IServiceCollection"/> for further chaining.</returns>
         /// <exception cref="ConfigurationException">Thrown if MassTransit has already been registered in this container.</exception>
-        private static IServiceCollection AddMassTransit(this IRCommonBuilder builder, Action<IMassTransitEventHandlingBuilder>? configure = null)
+        private static IServiceCollection AddMassTransit<T>(this IRCommonBuilder builder, Action<IMassTransitEventHandlingBuilder>? configure = null)
+            where T : class, IMassTransitEventHandlingBuilder
         {
             if (builder.Services.Any(d => d.ServiceType == typeof(IBus)))
             {
@@ -43,10 +44,17 @@ namespace RCommon
 
             AddHostedService(builder.Services);
             AddInstrumentation(builder.Services);
-            
-            var configurator = new MassTransitEventHandlingBuilder(builder);
+
+            // Routed through GetOrAddBuilder so repeated WithEventHandling<T> calls reuse the cached sub-builder.
+            var configurator = builder.GetOrAddBuilder<T>(
+                () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
             configure?.Invoke(configurator);
-            configurator.Complete();
+
+            // Complete() must run on the concrete MassTransit base type to finalize bus registration.
+            if (configurator is MassTransitEventHandlingBuilder mtBuilder)
+            {
+                mtBuilder.Complete();
+            }
 
             return builder.Services;
         }
@@ -84,7 +92,7 @@ namespace RCommon
         /// <param name="builder">The RCommon builder.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder)
-            where T : IMassTransitEventHandlingBuilder
+            where T : class, IMassTransitEventHandlingBuilder
         {
             return WithEventHandling<T>(builder, x => { });
         }
@@ -99,13 +107,13 @@ namespace RCommon
         /// <param name="actions">Configuration delegate for MassTransit event handling.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<IMassTransitEventHandlingBuilder> actions)
-            where T : IMassTransitEventHandlingBuilder
+            where T : class, IMassTransitEventHandlingBuilder
         {
-            
+
             // MassTransit Event Bus
             builder.Services.AddScoped(typeof(IMassTransitEventHandler<>), typeof(MassTransitEventHandler<>));
             builder.Services.AddScoped(typeof(MassTransitEventHandler<>));
-            builder.AddMassTransit(actions);
+            builder.AddMassTransit<T>(actions);
 
             return builder;
         }
