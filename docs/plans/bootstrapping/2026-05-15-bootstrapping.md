@@ -216,7 +216,7 @@ public static IRCommonBuilder AddRCommon(this IServiceCollection services)
 
     var config = new RCommonBuilder(services);
     services.AddSingleton<IRCommonBuilder>(config);
-    config.Configure();
+    config.Configure(); // No-op in the base class (just returns Services); preserved for consistency with the existing API shape and in case a subclass overrides it.
     return config;
 }
 ```
@@ -656,6 +656,9 @@ git commit -m "feat(bootstrapping): same-type idempotent, different-type throw f
 - [ ] **Step 7.1: Create test file**
 
 ```csharp
+using System;
+using System.Data.Common;
+using System.Threading.Tasks;
 using FluentAssertions;
 using RCommon.Persistence;
 using Xunit;
@@ -669,8 +672,8 @@ public class DataStoreFactoryOptionsRegisterTests
     {
         var options = new DataStoreFactoryOptions();
 
-        options.Register<IFakeBase, FakeConcreteA>("DataStoreA");
-        Action secondCall = () => options.Register<IFakeBase, FakeConcreteA>("DataStoreA");
+        options.Register<FakeBase, FakeConcreteA>("DataStoreA");
+        Action secondCall = () => options.Register<FakeBase, FakeConcreteA>("DataStoreA");
 
         secondCall.Should().NotThrow();
         options.Values.Should().HaveCount(1);
@@ -680,9 +683,9 @@ public class DataStoreFactoryOptionsRegisterTests
     public void Register_SameName_SameBase_DifferentConcrete_Throws()
     {
         var options = new DataStoreFactoryOptions();
-        options.Register<IFakeBase, FakeConcreteA>("DataStoreA");
+        options.Register<FakeBase, FakeConcreteA>("DataStoreA");
 
-        Action act = () => options.Register<IFakeBase, FakeConcreteB>("DataStoreA");
+        Action act = () => options.Register<FakeBase, FakeConcreteB>("DataStoreA");
 
         act.Should().Throw<UnsupportedDataStoreException>()
             .WithMessage("*DataStoreA*FakeConcreteA*FakeConcreteB*");
@@ -693,15 +696,21 @@ public class DataStoreFactoryOptionsRegisterTests
     {
         var options = new DataStoreFactoryOptions();
 
-        options.Register<IFakeBase, FakeConcreteA>("DataStoreA");
-        options.Register<IFakeBase, FakeConcreteB>("DataStoreB");
+        options.Register<FakeBase, FakeConcreteA>("DataStoreA");
+        options.Register<FakeBase, FakeConcreteB>("DataStoreB");
 
         options.Values.Should().HaveCount(2);
     }
 
-    public interface IFakeBase : IDataStore { }
-    public class FakeConcreteA : IFakeBase { }
-    public class FakeConcreteB : IFakeBase { }
+    // DataStoreValue's constructor validates concreteType.BaseType == baseType (CLR base class,
+    // not implemented interface), so fakes must inherit through a concrete abstract class.
+    public abstract class FakeBase : IDataStore
+    {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        public DbConnection GetDbConnection() => throw new NotSupportedException("Test fake");
+    }
+    public class FakeConcreteA : FakeBase { }
+    public class FakeConcreteB : FakeBase { }
 }
 ```
 
@@ -734,18 +743,18 @@ public void Register<B, C>(string name)
         return;
     }
 
-    if (existing.ImplementationType == typeof(C))
+    if (existing.ConcreteType == typeof(C))
     {
         return;
     }
 
     throw new UnsupportedDataStoreException(
         $"Data store '{name}' for base type '{typeof(B).GetGenericTypeName()}' is already registered with concrete type " +
-        $"'{existing.ImplementationType.GetGenericTypeName()}'; cannot reconfigure as '{typeof(C).GetGenericTypeName()}'.");
+        $"'{existing.ConcreteType.GetGenericTypeName()}'; cannot reconfigure as '{typeof(C).GetGenericTypeName()}'.");
 }
 ```
 
-If `DataStoreValue` doesn't expose `ImplementationType`, check the actual property name on the class and adjust. (Likely it's `ImplementationType` or `ConcreteType` — read the file at the start of the task to confirm.)
+`DataStoreValue` exposes the concrete type via the `ConcreteType` property (see `Src/RCommon.Persistence/DataStoreValue.cs:50`).
 
 - [ ] **Step 8.2: Run tests, verify pass**
 
@@ -780,10 +789,13 @@ git commit -m "feat(persistence): allow idempotent re-registration of identical 
 - [ ] **Step 9.1: Create test file**
 
 ```csharp
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
+using RCommon.Models.Events;
 using Xunit;
 
 namespace RCommon.Core.Tests.Bootstrapping;
@@ -831,19 +843,19 @@ public class EventProducerDedupTests
 
     public class TestProducer : IEventProducer
     {
-        public Task ProduceEventAsync<T>(T eventMessage, System.Threading.CancellationToken cancellationToken = default) where T : ISerializableEvent
-            => Task.CompletedTask;
+        public Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
+            where TEvent : ISerializableEvent => Task.CompletedTask;
     }
 
     public class OtherTestProducer : IEventProducer
     {
-        public Task ProduceEventAsync<T>(T eventMessage, System.Threading.CancellationToken cancellationToken = default) where T : ISerializableEvent
-            => Task.CompletedTask;
+        public Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
+            where TEvent : ISerializableEvent => Task.CompletedTask;
     }
 }
 ```
 
-> Note: confirm the exact `IEventProducer` interface signature by reading `Src/RCommon.Core/EventHandling/Producers/IEventProducer.cs` before writing this test. Adjust the test-producer signatures to match.
+> The `IEventProducer` signature is verified from `Src/RCommon.Core/EventHandling/Producers/IEventProducer.cs`: `Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default) where TEvent : ISerializableEvent`.
 
 - [ ] **Step 9.2: Run, verify failure**
 
@@ -880,7 +892,7 @@ public static void AddProducer<T>(this IEventHandlingBuilder builder)
 
 - [ ] **Step 10.2: Update `AddProducer<T>(Func<IServiceProvider, T>)` (factory overload)**
 
-For the factory overload, descriptor inspection by `ImplementationType` doesn't work (factory descriptors set `ImplementationFactory`, not `ImplementationType`). Instead, gate on the existing subscription manager's tracking:
+For the factory overload, descriptor inspection by `ImplementationType` doesn't work (factory descriptors set `ImplementationFactory`, not `ImplementationType`). Instead, gate on the existing `EventSubscriptionManager`'s tracking — its `AddProducerForBuilder` already uses a `HashSet<Type>` per builder type (verified in `Src/RCommon.Core/EventHandling/Producers/EventSubscriptionManager.cs:27-34`), so we just need a `HasProducerForBuilder` lookup method.
 
 ```csharp
 public static void AddProducer<T>(this IEventHandlingBuilder builder, Func<IServiceProvider, T> getProducer)
@@ -898,18 +910,26 @@ public static void AddProducer<T>(this IEventHandlingBuilder builder, Func<IServ
 }
 ```
 
-This requires adding `HasProducerForBuilder(Type, Type)` to `EventSubscriptionManager`. Check `Src/RCommon.Core/EventHandling/EventSubscriptionManager.cs` and add the method:
+Add a new method to `Src/RCommon.Core/EventHandling/Producers/EventSubscriptionManager.cs`:
 
 ```csharp
+/// <summary>
+/// Returns true if the given producer type has already been registered through the given builder type.
+/// </summary>
 public bool HasProducerForBuilder(Type builderType, Type producerType)
 {
-    // Implementation depends on the existing data structure. Use the existing _producersByBuilder
-    // dictionary (or whatever it's named) and return true iff the (builderType, producerType) pair
-    // is already tracked.
+    if (_builderProducerMap.TryGetValue(builderType, out var producers))
+    {
+        lock (producers)
+        {
+            return producers.Contains(producerType);
+        }
+    }
+    return false;
 }
 ```
 
-Also confirm `AddProducerForBuilder` is set-based (idempotent on re-add). If it's currently list-based, change the backing collection to `HashSet<Type>` per builder type.
+(`AddProducerForBuilder` is already set-based, so calling it twice with the same pair is naturally idempotent — no further change needed there.)
 
 - [ ] **Step 10.3: Update `AddProducer<T>(T producer)` (instance overload)**
 
@@ -953,7 +973,7 @@ Expected: All tests PASS.
 - [ ] **Step 10.6: Commit**
 
 ```bash
-git add Src/RCommon.Core/EventHandling/EventHandlingBuilderExtensions.cs Src/RCommon.Core/EventHandling/EventSubscriptionManager.cs Tests/RCommon.Core.Tests/Bootstrapping/EventProducerDedupTests.cs
+git add Src/RCommon.Core/EventHandling/EventHandlingBuilderExtensions.cs Src/RCommon.Core/EventHandling/Producers/EventSubscriptionManager.cs Tests/RCommon.Core.Tests/Bootstrapping/EventProducerDedupTests.cs
 git commit -m "feat(event-handling): descriptor-scan dedup for AddProducer<T>"
 ```
 
@@ -1206,7 +1226,10 @@ public static IRCommonBuilder WithJsonSerialization<T>(this IRCommonBuilder buil
     }
 
     builder.Services.Configure<JsonSerializeOptions>(serializeOptions);
-    builder.Services.Configure<JsonDeserializeOptions>(deSerializeOptions);
+    // NOTE: deSerializeOptions is intentionally not wired up here. The existing implementation
+    // (Src/RCommon.Json/JsonBuilderExtensions.cs:112) also does not call Configure<JsonDeserializeOptions>.
+    // Preserving that pre-existing behavior keeps this change scope-limited to the singleton-style
+    // migration; the missing wiring is tracked separately (or in a follow-up).
 
     var jsonConfig = builder.GetOrAddBuilder<T>(
         () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
@@ -1739,9 +1762,12 @@ git commit -m "test(efcore): multi-module integration covering merge, idempotent
 Skeleton (adjust types based on actual MediatR builder API in `Src/RCommon.Mediatr/`):
 
 ```csharp
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using RCommon.EventHandling.Producers;
+using RCommon.Models.Events;
 using Xunit;
 
 namespace RCommon.Mediatr.Tests.Bootstrapping;
@@ -1776,8 +1802,17 @@ public class MultiModuleMediatRTests
             .Should().Be(1);
     }
 
-    public class TestProducerA : IEventProducer { /* minimal stub */ }
-    public class TestProducerB : IEventProducer { /* minimal stub */ }
+    public class TestProducerA : IEventProducer
+    {
+        public Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
+            where TEvent : ISerializableEvent => Task.CompletedTask;
+    }
+
+    public class TestProducerB : IEventProducer
+    {
+        public Task ProduceEventAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
+            where TEvent : ISerializableEvent => Task.CompletedTask;
+    }
 }
 ```
 
