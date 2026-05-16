@@ -26,7 +26,7 @@ namespace RCommon
         /// <param name="builder">The RCommon builder instance.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for method chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder)
-            where T : IEventHandlingBuilder
+            where T : class, IEventHandlingBuilder
         {
             return WithEventHandling<T>(builder, x => { });
         }
@@ -39,10 +39,10 @@ namespace RCommon
         /// <param name="actions">An action to configure the event handling builder.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for method chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<T> actions)
-            where T : IEventHandlingBuilder
+            where T : class, IEventHandlingBuilder
         {
-            // Event Handling Configurations
-            var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder })!;
+            var eventHandlingConfig = builder.GetOrAddBuilder<T>(
+                () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
             actions(eventHandlingConfig);
             return builder;
         }

@@ -28,7 +28,7 @@ namespace RCommon
         /// <param name="builder">The RCommon builder instance.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for fluent chaining.</returns>
         public static IRCommonBuilder WithPersistence<TObjectAccess>(this IRCommonBuilder builder)
-            where TObjectAccess : IPersistenceBuilder
+            where TObjectAccess : class, IPersistenceBuilder
         {
             return WithPersistence<TObjectAccess>(builder, x => { });
         }
@@ -41,13 +41,13 @@ namespace RCommon
         /// <param name="objectAccessActions">An action to configure the persistence provider (e.g., register data stores).</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for fluent chaining.</returns>
         public static IRCommonBuilder WithPersistence<TObjectAccess>(this IRCommonBuilder builder, Action<TObjectAccess> objectAccessActions)
-            where TObjectAccess : IPersistenceBuilder
+            where TObjectAccess : class, IPersistenceBuilder
         {
             // Register NullTenantIdAccessor as default; concrete multitenancy packages override this
             builder.Services.TryAddTransient<ITenantIdAccessor, NullTenantIdAccessor>();
 
-            // Create the persistence builder via Activator since the concrete type is not known at compile time
-            var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services })!;
+            var dataConfiguration = builder.GetOrAddBuilder<TObjectAccess>(
+                () => (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services })!);
             objectAccessActions(dataConfiguration);
             builder = WithEventTracking(builder);
             return builder;
@@ -61,9 +61,10 @@ namespace RCommon
         /// <param name="unitOfWorkActions">An action to configure the unit of work (e.g., set isolation level, auto-complete).</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for fluent chaining.</returns>
         public static IRCommonBuilder WithUnitOfWork<TUnitOfWork>(this IRCommonBuilder builder, Action<TUnitOfWork> unitOfWorkActions)
-            where TUnitOfWork : IUnitOfWorkBuilder
+            where TUnitOfWork : class, IUnitOfWorkBuilder
         {
-            var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services })!;
+            var unitOfWorkConfiguration = builder.GetOrAddBuilder<TUnitOfWork>(
+                () => (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services })!);
             unitOfWorkActions(unitOfWorkConfiguration);
             return builder;
         }
@@ -76,8 +77,8 @@ namespace RCommon
         /// <returns>Updated instance of <see cref="IRCommonBuilder"/>RCommon Configuration</returns>
         private static IRCommonBuilder WithEventTracking(this IRCommonBuilder builder)
         {
-            builder.Services.AddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
-            builder.Services.AddScoped<IEntityEventTracker, InMemoryEntityEventTracker>();
+            builder.Services.TryAddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
+            builder.Services.TryAddScoped<IEntityEventTracker, InMemoryEntityEventTracker>();
             return builder;
         }
 
@@ -92,8 +93,8 @@ namespace RCommon
         /// <returns></returns>
         [Obsolete("This is deprecated as peristence is decoupled from unit of work.")]
         public static IRCommonBuilder WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonBuilder builder) 
-            where TObjectAccess: IPersistenceBuilder
-            where TUnitOfWork : IUnitOfWorkBuilder
+            where TObjectAccess : class, IPersistenceBuilder
+            where TUnitOfWork : class, IUnitOfWorkBuilder
         {
             return WithPersistence<TObjectAccess, TUnitOfWork>(builder, x => { }, x => { });
         }
@@ -110,8 +111,8 @@ namespace RCommon
         [Obsolete("This is deprecated as peristence is decoupled from unit of work.")]
         public static IRCommonBuilder WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonBuilder builder,
             Action<TObjectAccess> objectAccessActions)
-            where TObjectAccess : IPersistenceBuilder
-            where TUnitOfWork : IUnitOfWorkBuilder
+            where TObjectAccess : class, IPersistenceBuilder
+            where TUnitOfWork : class, IUnitOfWorkBuilder
         {
             return WithPersistence<TObjectAccess, TUnitOfWork>(builder, objectAccessActions, x => { });
         }
@@ -128,8 +129,8 @@ namespace RCommon
         [Obsolete("This is deprecated as peristence is decoupled from unit of work.")]
         public static IRCommonBuilder WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonBuilder builder,
             Action<TUnitOfWork> uniOfWorkActions)
-            where TObjectAccess : IPersistenceBuilder
-            where TUnitOfWork : IUnitOfWorkBuilder
+            where TObjectAccess : class, IPersistenceBuilder
+            where TUnitOfWork : class, IUnitOfWorkBuilder
         {
             return WithPersistence<TObjectAccess, TUnitOfWork>(builder, x => { }, uniOfWorkActions);
         }
@@ -145,14 +146,16 @@ namespace RCommon
         /// <param name="unitOfWorkActions"></param>
         /// <returns></returns>
         [Obsolete("This is deprecated as peristence is decoupled from unit of work.")]
-        public static IRCommonBuilder WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonBuilder builder, 
+        public static IRCommonBuilder WithPersistence<TObjectAccess, TUnitOfWork>(this IRCommonBuilder builder,
             Action<TObjectAccess> objectAccessActions, Action<TUnitOfWork> unitOfWorkActions)
-            where TObjectAccess : IPersistenceBuilder
-            where TUnitOfWork : IUnitOfWorkBuilder
+            where TObjectAccess : class, IPersistenceBuilder
+            where TUnitOfWork : class, IUnitOfWorkBuilder
         {
-            var dataConfiguration = (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services })!;
+            var dataConfiguration = builder.GetOrAddBuilder<TObjectAccess>(
+                () => (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services })!);
             objectAccessActions(dataConfiguration);
-            var unitOfWorkConfiguration = (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services })!;
+            var unitOfWorkConfiguration = builder.GetOrAddBuilder<TUnitOfWork>(
+                () => (TUnitOfWork)Activator.CreateInstance(typeof(TUnitOfWork), new object[] { builder.Services })!);
             unitOfWorkActions(unitOfWorkConfiguration);
             builder = WithEventTracking(builder);
             return builder;
