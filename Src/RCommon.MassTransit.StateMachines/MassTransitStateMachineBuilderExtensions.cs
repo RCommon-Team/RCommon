@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.MassTransit.StateMachines;
 using RCommon.StateMachines;
 
@@ -18,7 +19,7 @@ public static class MassTransitStateMachineBuilderExtensions
     /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
     public static IRCommonBuilder WithMassTransitStateMachine(this IRCommonBuilder builder)
     {
-        builder.Services.AddTransient(typeof(IStateMachineConfigurator<,>), typeof(MassTransitStateMachineConfigurator<,>));
+        builder.Services.TryAddTransient(typeof(IStateMachineConfigurator<,>), typeof(MassTransitStateMachineConfigurator<,>));
         return builder;
     }
 }
