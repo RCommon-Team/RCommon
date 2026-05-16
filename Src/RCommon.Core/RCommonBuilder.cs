@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using RCommon.EventHandling;
@@ -17,6 +18,7 @@ namespace RCommon
 
         private bool _guidConfigured = false;
         private bool _dateTimeConfigured = false;
+        private readonly Dictionary<Type, object> _subBuilderCache = new();
 
         /// <summary>
         /// Initializes a new instance of <see cref="RCommonBuilder"/> and registers core framework services
@@ -93,6 +95,20 @@ namespace RCommon
         public virtual IServiceCollection Configure()
         {
             return this.Services;
+        }
+
+        /// <inheritdoc />
+        public TSubBuilder GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder> factory)
+            where TSubBuilder : class
+        {
+            if (_subBuilderCache.TryGetValue(typeof(TSubBuilder), out var cached))
+            {
+                return (TSubBuilder)cached;
+            }
+
+            var built = factory();
+            _subBuilderCache[typeof(TSubBuilder)] = built;
+            return built;
         }
     }
 }
