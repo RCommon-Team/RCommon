@@ -25,8 +25,16 @@ namespace RCommon.Persistence
         /// <typeparam name="B">The base data store type (e.g., a provider-specific DbContext base).</typeparam>
         /// <typeparam name="C">The concrete data store type that implements <typeparamref name="B"/>.</typeparam>
         /// <param name="name">A unique name identifying the data store registration.</param>
+        /// <remarks>
+        /// Re-registering the exact same <c>(name, base, concrete)</c> triple is a no-op so modules can
+        /// safely declare the same data store independently. A conflicting registration (same
+        /// <paramref name="name"/> and base <typeparamref name="B"/> but a different concrete
+        /// <typeparamref name="C"/>) throws.
+        /// </remarks>
         /// <exception cref="UnsupportedDataStoreException">
-        /// Thrown when a data store with the same <paramref name="name"/> and base type <typeparamref name="B"/> is already registered.
+        /// Thrown when a data store with the same <paramref name="name"/> and base type
+        /// <typeparamref name="B"/> is already registered with a different concrete type than
+        /// <typeparamref name="C"/>.
         /// </exception>
         public void Register<B, C>(string name)
             where B : IDataStore
