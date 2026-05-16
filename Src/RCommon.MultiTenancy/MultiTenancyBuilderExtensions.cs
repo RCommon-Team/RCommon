@@ -16,9 +16,12 @@ namespace RCommon.MultiTenancy
         /// <param name="actions">An action to configure the multitenancy provider.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for fluent chaining.</returns>
         public static IRCommonBuilder WithMultiTenancy<TBuilder>(this IRCommonBuilder builder, Action<TBuilder> actions)
-            where TBuilder : IMultiTenantBuilder
+            where TBuilder : class, IMultiTenantBuilder
         {
-            var multiTenantBuilder = (TBuilder)Activator.CreateInstance(typeof(TBuilder), new object[] { builder.Services })!;
+            // Routed through GetOrAddBuilder so repeated WithMultiTenancy<TBuilder> calls for the same
+            // provider type reuse the cached sub-builder rather than constructing a fresh one each call.
+            var multiTenantBuilder = builder.GetOrAddBuilder<TBuilder>(
+                () => (TBuilder)Activator.CreateInstance(typeof(TBuilder), new object[] { builder.Services })!);
             actions(multiTenantBuilder);
             return builder;
         }
