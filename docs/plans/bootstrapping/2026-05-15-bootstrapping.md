@@ -1048,9 +1048,9 @@ private static IRCommonBuilder WithEventTracking(this IRCommonBuilder builder)
 }
 ```
 
-- [ ] **Step 11.5: Update the three deprecated `WithPersistence<T,U>` overloads**
+- [ ] **Step 11.5: Update the four deprecated `WithPersistence<T,U>` overloads**
 
-Apply the same `GetOrAddBuilder` routing to the `[Obsolete]` overloads so legacy users don't regress.
+Apply the same `GetOrAddBuilder` routing to all four `[Obsolete]` overloads (at `Src/RCommon.Persistence/PersistenceBuilderExtensions.cs` lines 94, 111, 129, 148) so legacy users don't regress.
 
 - [ ] **Step 11.6: Build the solution to surface any consumers that broke**
 
@@ -1904,7 +1904,7 @@ EOF
 
 ## Open Items for the Engineer to Resolve at Implementation Time
 
-- **Exact `DataStoreValue.ImplementationType` property name** — confirmed by reading `Src/RCommon.Persistence/DataStoreFactoryOptions.cs` and the `DataStoreValue` definition before Task 8.
+- **`DataStoreValue.ConcreteType` property** — confirmed at `Src/RCommon.Persistence/DataStoreValue.cs:50`; Task 8 uses this name.
 - **Exact `IEventProducer` method signature** — confirmed by reading `Src/RCommon.Core/EventHandling/Producers/IEventProducer.cs` before Task 9.
 - **Wolverine `WithEventHandling<WolverineEventHandlingBuilder>` already routed via core** — no separate provider migration task needed for Wolverine.
 - **`EventSubscriptionManager.HasProducerForBuilder` may already exist** under another name — read the file before Task 10 step 10.2 and reuse if possible.
