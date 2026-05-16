@@ -32,15 +32,21 @@ namespace RCommon.Persistence
             where B : IDataStore
             where C : IDataStore
         {
-            // Prevent duplicate registrations with the same name and base type
-            if (!Values.Any(x => x.Name == name && x.BaseType == typeof(B)))
+            var existing = Values.FirstOrDefault(x => x.Name == name && x.BaseType == typeof(B));
+            if (existing is null)
             {
                 Values.Add(new DataStoreValue(name, typeof(B), typeof(C)));
+                return;
             }
-            else
+
+            if (existing.ConcreteType == typeof(C))
             {
-                throw new UnsupportedDataStoreException($"You cannot register a data store with the same name of {name} as an existing one with the same base type of {typeof(B).GetGenericTypeName()}");
+                return;
             }
+
+            throw new UnsupportedDataStoreException(
+                $"Data store '{name}' for base type '{typeof(B).GetGenericTypeName()}' is already registered with concrete type " +
+                $"'{existing.ConcreteType.GetGenericTypeName()}'; cannot reconfigure as '{typeof(C).GetGenericTypeName()}'.");
         }
     }
 }
