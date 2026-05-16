@@ -32,6 +32,15 @@ namespace RCommon
             var config = new RCommonBuilder(services);
             services.AddSingleton<IRCommonBuilder>(config);
             config.Configure(); // No-op in the base class (just returns Services); preserved for consistency with the existing API shape and in case a subclass overrides it.
+
+            // Register finalize diagnostics hosted service exactly once (first AddRCommon call only).
+            // The cached-return branch above ensures subsequent AddRCommon calls do not re-register.
+            services.AddSingleton<IHostedService>(sp =>
+                new RCommonBootstrapDiagnosticsHostedService(
+                    services,
+                    sp.GetRequiredService<IRCommonBuilder>(),
+                    sp.GetService<ILoggerFactory>()));
+
             return config;
         }
 

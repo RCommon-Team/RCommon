@@ -19,6 +19,8 @@ namespace RCommon
         private SingletonRegistration _guidRegistration;
         private SingletonRegistration _dateTimeRegistration;
         private readonly Dictionary<Type, object> _subBuilderCache = new();
+        private bool _diagnosticsRun;
+        private string _bootstrapDiagnostics = string.Empty;
 
         /// <summary>
         /// Initializes a new instance of <see cref="RCommonBuilder"/> and registers core framework services
@@ -159,5 +161,27 @@ namespace RCommon
             }
             return null;
         }
+
+        /// <summary>
+        /// Atomically marks the diagnostics scanner as having run. Returns <c>true</c> on first call,
+        /// <c>false</c> thereafter. Used by <see cref="RCommonBootstrapDiagnosticsHostedService"/> to
+        /// ensure the duplicate-registration scan executes at most once per builder instance.
+        /// </summary>
+        internal bool TrySetDiagnosticsRun()
+        {
+            if (_diagnosticsRun) return false;
+            _diagnosticsRun = true;
+            return true;
+        }
+
+        /// <summary>
+        /// Stashes the soft-duplicate diagnostic report so it can be retrieved later via
+        /// <see cref="GetBootstrapDiagnostics"/> when no <see cref="Microsoft.Extensions.Logging.ILoggerFactory"/>
+        /// was available to log the warning directly.
+        /// </summary>
+        internal void StashDiagnostics(string message) => _bootstrapDiagnostics = message;
+
+        /// <inheritdoc />
+        public string GetBootstrapDiagnostics() => _bootstrapDiagnostics;
     }
 }

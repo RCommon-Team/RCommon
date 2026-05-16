@@ -64,5 +64,11 @@ namespace RCommon
         /// requires — typically <c>builder.Services</c> or <c>builder</c> itself.</param>
         TSubBuilder GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder> factory)
             where TSubBuilder : class;
+
+        /// <summary>
+        /// Returns soft-duplicate diagnostic output stashed at finalize when no <see cref="Microsoft.Extensions.Logging.ILoggerFactory"/>
+        /// was available. Empty string if no duplicates were detected.
+        /// </summary>
+        string GetBootstrapDiagnostics();
     }
 }
