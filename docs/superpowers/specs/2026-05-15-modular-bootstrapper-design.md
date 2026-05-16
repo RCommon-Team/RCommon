@@ -197,15 +197,13 @@ No structured error metadata beyond the message. Stack trace identifies the offe
 
 ### Diagnostics
 
-The existing [`GeneratePossibleDuplicatesServiceDescriptorsString`](../../Src/RCommon.Core/Extensions/ServiceCollectionExtensions.cs#L86-L123) scanner is wired to run automatically at finalize:
-- `IRCommonBuilder.Configure()` invocation, or
-- First resolve of `IRCommonBuilder` from the built provider (hooked via an internal `IHostedService` or `IPostConfigureOptions`).
+The existing [`GeneratePossibleDuplicatesServiceDescriptorsString`](../../Src/RCommon.Core/Extensions/ServiceCollectionExtensions.cs#L86-L123) scanner is wired to run automatically via the finalize `IHostedService` described in the Finalize flow above. `IRCommonBuilder.Configure()` does **not** trigger the scanner.
 
 Emission:
 - `ILoggerFactory` resolvable → single `LogLevel.Warning` containing the report.
 - Not resolvable → message stashed; `builder.GetBootstrapDiagnostics()` returns it.
 
-The scanner runs at most once per builder instance.
+The scanner runs at most once per builder instance, guarded by the `_diagnosticsRun` flag.
 
 ## Migration & backward compatibility
 
