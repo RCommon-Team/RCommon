@@ -336,6 +336,8 @@ public class MediatorBuilderExtensionsTests
             _subBuilderCache[typeof(TSubBuilder)] = created;
             return created;
         }
+
+        public string GetBootstrapDiagnostics() => string.Empty;
     }
 
     #endregion

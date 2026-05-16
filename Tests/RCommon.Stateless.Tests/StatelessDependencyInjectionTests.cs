@@ -20,6 +20,7 @@ public class StatelessDependencyInjectionTests
             where TImplementation : class, TService => this;
         public TSubBuilder GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder> factory)
             where TSubBuilder : class => factory();
+        public string GetBootstrapDiagnostics() => string.Empty;
     }
 
     [Fact]
