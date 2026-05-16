@@ -139,5 +139,25 @@ namespace RCommon
             _subBuilderCache[typeof(TSubBuilder)] = built;
             return built;
         }
+
+        /// <summary>
+        /// Walks the sub-builder cache and returns the first cached concrete type that is assignable
+        /// to <paramref name="interfaceType"/>, or <c>null</c> if no such cached builder exists.
+        /// </summary>
+        /// <remarks>
+        /// Used by singleton-style WithX verbs defined outside RCommon.Core to detect "different T"
+        /// configuration conflicts before delegating to <see cref="GetOrAddBuilder{TSubBuilder}(Func{TSubBuilder})"/>.
+        /// </remarks>
+        internal Type? TryGetCachedSubBuilderImplementing(Type interfaceType)
+        {
+            foreach (var key in _subBuilderCache.Keys)
+            {
+                if (interfaceType.IsAssignableFrom(key))
+                {
+                    return key;
+                }
+            }
+            return null;
+        }
     }
 }

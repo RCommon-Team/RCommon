@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Src\RCommon.JsonNet\RCommon.JsonNet.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.SystemTextJson\RCommon.SystemTextJson.csproj" />
     <ProjectReference Include="..\RCommon.TestBase.XUnit\RCommon.TestBase.XUnit.csproj" />
   </ItemGroup>
 
