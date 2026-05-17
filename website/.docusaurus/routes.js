@@ -9,15 +9,15 @@ export default [
   },
   {
     path: '/docs',
-    component: ComponentCreator('/docs', '62c'),
+    component: ComponentCreator('/docs', '732'),
     routes: [
       {
         path: '/docs/next',
-        component: ComponentCreator('/docs/next', 'f3e'),
+        component: ComponentCreator('/docs/next', '1a8'),
         routes: [
           {
             path: '/docs/next',
-            component: ComponentCreator('/docs/next', 'a23'),
+            component: ComponentCreator('/docs/next', 'bf6'),
             routes: [
               {
                 path: '/docs/next',
@@ -231,6 +231,12 @@ export default [
               {
                 path: '/docs/next/core-concepts/guid-generation',
                 component: ComponentCreator('/docs/next/core-concepts/guid-generation', 'df6'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/next/core-concepts/modular-composition',
+                component: ComponentCreator('/docs/next/core-concepts/modular-composition', '40a'),
                 exact: true,
                 sidebar: "docsSidebar"
               },

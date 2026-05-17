@@ -6,13 +6,9 @@
 
 ---
 
-## changelog
+## Changelog
 Source: https://rcommon.com/docs/api-reference/changelog
----
-title: Changelog
-sidebar_position: 2
-description: RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags.
----
+RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags.
 
 # Changelog
 
@@ -21,6 +17,32 @@ The authoritative release history for all RCommon packages is maintained on GitH
 **Full release notes:** [https://github.com/RCommon-Team/RCommon/releases](https://github.com/RCommon-Team/RCommon/releases)
 
 ## Recent Changes
+
+### Modular Composition (Unreleased)
+
+Added support for calling `services.AddRCommon()` from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement.
+
+**Added**
+
+- **Modular composition support** — `services.AddRCommon()` can now be called from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement. See [Modular Composition](../core-concepts/modular-composition.mdx).
+- New public API: `IRCommonBuilder.GetOrAddBuilder(Func)` — third-party `WithX<T>` extensions opt into sub-builder caching.
+- New public API: `IRCommonBuilder.GetBootstrapDiagnostics()` — retrieve the soft-duplicate report stashed at host startup.
+- New public API: `IServiceCollection.IsRCommonInitialized()` — true iff `AddRCommon()` has been called.
+- New internal `IHostedService` runs the duplicate-descriptor scanner at host startup and emits a single warning on soft duplicates.
+
+**Changed**
+
+- `AddRCommon()` is now idempotent: subsequent calls return the cached `IRCommonBuilder`.
+- Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) are now idempotent on same-type re-registration. Different-type conflicts throw `RCommonBuilderException` with diagnostic messages.
+- `DataStoreFactoryOptions.Register<,>` is now idempotent for identical `(name, base, concrete)` triples. Conflicts (same `(name, base)` with different concrete) throw `UnsupportedDataStoreException` (exception type preserved).
+- `AddProducer<T>` now deduplicates by concrete producer type via descriptor scan — distinct producer types still coexist.
+- All sub-builder `WithX<T>` extensions route through `GetOrAddBuilder<T>`; generic constraints tightened to `where T : class, ...`.
+
+**Notes**
+
+- Strictly additive public API surface. No method or interface signature removals.
+- No exception types changed on existing APIs.
+- See `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable demonstration.
 
 ### Blob Storage Abstractions
 
@@ -84,16 +106,9 @@ Found a bug or missing a feature? Please open an issue on GitHub:
 
 ---
 
-## migration-guide
+## Migration Guide
 Source: https://rcommon.com/docs/api-reference/migration-guide
----
-title: Migration Guide
-sidebar_position: 3
-description: Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades.
----
-
-
-
+Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades.
 
 # Migration Guide
 
@@ -117,11 +132,50 @@ Update all `RCommon.*` packages in your project files at once. Because all packa
 
 ```xml
 
-
-
-
 <!-- All RCommon.* packages should share the same version -->
 ```
+
+## Upgrading to Modular Composition
+
+This release introduces modular composition of `AddRCommon()`. **No source changes are required.** Existing single-call apps continue to compile and behave identically.
+
+### What changed
+
+If you previously relied on `WithSequentialGuidGenerator`, `WithSimpleGuidGenerator`, or `WithDateTimeSystem` throwing `RCommonBuilderException` on a second call, that behavior is now relaxed:
+
+- **Same implementation type**, repeated → idempotent no-op.
+- **Different implementation type** → still throws `RCommonBuilderException` (with both type names in the message).
+
+Likewise, `DataStoreFactoryOptions.Register<B,C>(name)` now accepts identical re-registrations:
+
+- **Same `(name, B, C)` triple** → idempotent no-op.
+- **Same `(name, B)` with different `C`** → still throws `UnsupportedDataStoreException`.
+
+### What you can now do
+
+Modules can independently configure RCommon features:
+
+```csharp
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services) =>
+        services.AddRCommon()
+            .WithPersistence(ef =>
+                ef.AddDbContext("Ordering", o => o.UseInMemoryDatabase("ord")));
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services) =>
+        services.AddRCommon()
+            .WithPersistence(ef =>
+                ef.AddDbContext("Inventory", o => o.UseInMemoryDatabase("inv")));
+}
+```
+
+Both modules call `AddRCommon()` and `WithPersistence`. The persistence sub-builder's constructor runs exactly once; both `AddDbContext` calls accumulate registrations.
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and new helper APIs.
 
 ## Breaking Change Patterns
 
@@ -540,16 +594,9 @@ RCommon.Security
 
 ---
 
-## clean-architecture
+## Clean Architecture
 Source: https://rcommon.com/docs/architecture-guides/clean-architecture
----
-title: Clean Architecture
-sidebar_position: 1
-description: Build .NET apps with Clean Architecture using RCommon. Layer domain, application, and infrastructure with testable CQRS handlers and swappable persistence providers.
----
-
-
-
+Build .NET apps with Clean Architecture using RCommon. Layer domain, application, and infrastructure with testable CQRS handlers and swappable persistence providers.
 
 # Clean Architecture with RCommon
 
@@ -826,6 +873,10 @@ public class LeaveManagementDbContext : AuditableDbContext
 
 All layers are wired together in `Program.cs` using RCommon's fluent builder. This is the only place where concrete implementations are named:
 
+:::tip Modular composition
+A single `Program.cs` is the easiest pattern, but it is not the only one. RCommon's bootstrapper is cache-aware: each layer (or feature folder) can expose its own static `Add*ModuleServices(IServiceCollection)` method that calls `services.AddRCommon().With...(...)` independently, and the registrations merge predictably. Layer-owned wiring lets the Application layer register handlers and validators while the Infrastructure layer registers the `DbContext` and SendGrid — without coordinating through one giant `Program.cs`. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full contract.
+:::
+
 ```csharp
 builder.Services.AddRCommon()
     .WithClaimsAndPrincipalAccessor()
@@ -987,16 +1038,9 @@ public class CreateLeaveTypeCommandHandlerTests
 
 ---
 
-## event-driven
+## Event-Driven Architecture
 Source: https://rcommon.com/docs/architecture-guides/event-driven
----
-title: Event-Driven Architecture
-sidebar_position: 3
-description: Implement event-driven .NET apps with RCommon using IEventProducer and ISubscriber across in-memory, MediatR, MassTransit, and Wolverine providers.
----
-
-
-
+Implement event-driven .NET apps with RCommon using IEventProducer and ISubscriber across in-memory, MediatR, MassTransit, and Wolverine providers.
 
 # Event-Driven Architecture with RCommon
 
@@ -1109,6 +1153,10 @@ public class SendApprovalEmailHandler : ISubscriber
 ## Event Handling Providers
 
 RCommon ships with four event handling providers. You choose one (or more) at startup via the fluent builder.
+
+:::tip Modular composition
+`WithEventHandling<T>` is cache-aware. In a modular codebase, each feature module can call `services.AddRCommon().WithEventHandling(eh => eh.AddSubscriber())` independently — the cached `InMemoryEventBusBuilder` is reused across modules and subscriber/producer registrations accumulate. `AddProducer<T>` deduplicates by concrete producer type, so the same producer registered from two modules yields exactly one descriptor. This pattern works for `InMemoryEventBusBuilder`, `MediatREventHandlingBuilder`, and `WolverineEventHandlingBuilder`; `MassTransitEventHandlingBuilder` has a known cross-module limitation documented on its [MassTransit page](../event-handling/masstransit.mdx#configuration). See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ### In-Memory Event Bus
 
@@ -1333,16 +1381,9 @@ public async Task SendApprovalEmailHandler_Sends_Email_On_Approval()
 
 ---
 
-## microservices
+## Microservices
 Source: https://rcommon.com/docs/architecture-guides/microservices
----
-title: Microservices
-sidebar_position: 2
-description: Build .NET microservices with RCommon using MassTransit or Wolverine for messaging, per-service persistence, and transport-agnostic IEventProducer abstractions.
----
-
-
-
+Build .NET microservices with RCommon using MassTransit or Wolverine for messaging, per-service persistence, and transport-agnostic IEventProducer abstractions.
 
 # Microservices with RCommon
 
@@ -1367,7 +1408,9 @@ RCommon supports three primary patterns that are essential in microservice envir
 
 ## Setting Up a Service with Messaging
 
-Each microservice calls `AddRCommon()` independently. The following shows how a service is configured to publish and receive messages via MassTransit:
+Each microservice calls `AddRCommon()` independently. Inside a single service, feature-folder modules can each call `AddRCommon().With...(...)` again — the bootstrapper caches the builder and merges registrations across calls. This lets a service's internal modules wire their own subscribers, validators, and DbContexts without funneling everything through one static initializer. See [Modular Composition](../core-concepts/modular-composition.mdx) for the contract that makes this safe.
+
+The following shows how a service is configured to publish and receive messages via MassTransit:
 
 ```csharp
 // Program.cs — Order Service
@@ -1828,15 +1871,9 @@ If neither combination is supplied, the store throws an `InvalidOperationExcepti
 
 ---
 
-## overview
+## Overview
 Source: https://rcommon.com/docs/blob-storage/overview
----
-title: Overview
-sidebar_position: 1
-description: Provider-agnostic blob storage abstraction for .NET covering upload, download, metadata, presigned URLs, and named multi-store registration via IBlobStoreFactory.
----
-
-
+Provider-agnostic blob storage abstraction for .NET covering upload, download, metadata, presigned URLs, and named multi-store registration via IBlobStoreFactory.
 
 # Blob Storage Overview
 
@@ -1870,15 +1907,9 @@ Applications that need more than one storage backend register each store under a
 
 Install the core abstractions package:
 
-
-
 Then install the provider package that matches your storage backend:
 
-
-
 or
-
-
 
 ## Configuration
 
@@ -1918,6 +1949,10 @@ builder.Services.AddRCommon()
         });
     });
 ```
+
+:::tip Modular composition
+`WithBlobStorage<T>` is a cache-aware sub-builder verb. When multiple modules call `WithBlobStorage` (or any single concrete builder), the cached builder is reused and each module's `AddBlobStore(name, ...)` calls accumulate on the same instance — store names from every module are visible through `IBlobStoreFactory`. Different concrete builder types (e.g. one module using `AzureBlobStorageBuilder` and another using `AmazonS3ObjectsBuilder`) coexist side by side, exactly as the chained example above shows; calling the same builder type twice with the same store name is idempotent for that name's options. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Usage
 
@@ -2264,15 +2299,9 @@ Credential resolution priority:
 
 ---
 
-## memory
+## Memory Cache
 Source: https://rcommon.com/docs/caching/memory
----
-title: Memory Cache
-sidebar_position: 2
-description: RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backed caching with get-or-create patterns and LINQ expression caching optimization.
----
-
-
+RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backed caching with get-or-create patterns and LINQ expression caching optimization.
 
 # Memory Cache
 
@@ -2284,8 +2313,6 @@ description: RCommon.MemoryCache provides in-process IMemoryCache and IDistribut
 Both serve single-process applications. Use `DistributedMemoryCacheService` when your service registration already relies on `IDistributedCache` and you do not yet need a real distributed store.
 
 ## Installation
-
-
 
 ## In-memory cache setup
 
@@ -2337,6 +2364,10 @@ builder.Services.AddRCommon()
 ```
 
 This registers `IDistributedCache` via `AddDistributedMemoryCache` and makes `DistributedMemoryCacheService` available as `ICacheService`. Data is serialized to JSON before storage.
+
+:::tip Modular composition
+`WithMemoryCaching` and `WithDistributedCaching` are cache-aware sub-builder verbs. When multiple modules call the same verb with the same builder type, the cached sub-builder is reused and each module's `Configure(...)` and `CacheDynamicallyCompiledExpressions()` calls accumulate against one instance. This lets an "infrastructure" module enable expression caching while a "feature" module separately tunes `MemoryCacheOptions`. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Expression caching
 
@@ -2426,13 +2457,9 @@ Individual entry expiration is configured through the `IMemoryCache.GetOrCreate`
 
 ---
 
-## overview
+## Overview
 Source: https://rcommon.com/docs/caching/overview
----
-title: Overview
-sidebar_position: 1
-description: Provider-agnostic caching abstraction for .NET with ICacheService, strongly-typed CacheKey, and support for in-memory, distributed, and Redis backends.
----
+Provider-agnostic caching abstraction for .NET with ICacheService, strongly-typed CacheKey, and support for in-memory, distributed, and Redis backends.
 
 # Caching Overview
 
@@ -2517,6 +2544,10 @@ IRCommonBuilder
 
 `IMemoryCachingBuilder` and `IDistributedCachingBuilder` are marker interfaces. Provider packages implement them with concrete builder types (`InMemoryCachingBuilder`, `DistributedMemoryCacheBuilder`, `RedisCachingBuilder`) that expose provider-specific extension methods.
 
+:::tip Modular composition
+Both `WithMemoryCaching<T>` and `WithDistributedCaching<T>` are cache-aware sub-builder verbs. When two modules call `WithMemoryCaching` (or `WithDistributedCaching`) with the same concrete builder type, the cached sub-builder is reused and each module's configuration delegate runs against the same instance — `Configure(...)` and `CacheDynamicallyCompiledExpressions()` registrations accumulate. Different concrete builder types coexist side by side (e.g. `WithMemoryCaching` and `WithDistributedCaching` register independently). See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ## Section contents
 
 - [Memory Cache](./memory.mdx) — In-process memory caching setup, configuration options, eviction, and expression caching
@@ -2524,23 +2555,15 @@ IRCommonBuilder
 
 ---
 
-## redis
+## Redis Cache
 Source: https://rcommon.com/docs/caching/redis
----
-title: Redis Cache
-sidebar_position: 3
-description: RCommon.RedisCache implements ICacheService using StackExchange.Redis for distributed caching across multiple app instances, with JSON serialization support.
----
-
-
+RCommon.RedisCache implements ICacheService using StackExchange.Redis for distributed caching across multiple app instances, with JSON serialization support.
 
 # Redis Cache
 
 `RCommon.RedisCache` implements `ICacheService` using StackExchange.Redis through the `Microsoft.Extensions.Caching.StackExchangeRedis` provider. It is the recommended caching backend for applications deployed across multiple instances or hosts.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -2562,6 +2585,10 @@ builder.Services.AddRCommon()
 ```
 
 `Configure` calls `AddStackExchangeRedisCache` on the underlying `IServiceCollection`, registering `IDistributedCache` with the Redis provider. `RedisCacheService` is then available as `ICacheService`.
+
+:::tip Modular composition
+`WithDistributedCaching` is a cache-aware sub-builder verb. When multiple modules call it, the cached `RedisCachingBuilder` is reused and each module's `Configure(...)` and `CacheDynamicallyCompiledExpressions()` calls accumulate on the same instance. Configuration delegates run in the order modules invoke them, so the last `Configure(...)` wins for `RedisCacheOptions` values that are simple scalar assignments — coordinate connection-string ownership in a single module. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ### Minimal setup
 
@@ -2923,15 +2950,9 @@ public record OrderListModel : PaginatedListModel
 
 ---
 
-## fluent-configuration
+## Fluent Configuration
 Source: https://rcommon.com/docs/core-concepts/fluent-configuration
----
-title: Fluent Configuration
-sidebar_position: 1
-description: "Deep dive into RCommon's fluent configuration API — IRCommonBuilder, With* extension methods, custom builder extensions, and double-registration protection."
----
-
-
+Deep dive into RCommon's fluent configuration API — IRCommonBuilder, With* extension methods, custom builder extensions, and double-registration protection.
 
 # Fluent Configuration Builder
 
@@ -2942,8 +2963,6 @@ RCommon uses a fluent builder pattern to configure framework services during app
 This approach keeps all RCommon configuration in one place, makes dependencies explicit, and prevents double-registration of the same service.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -3042,9 +3061,9 @@ builder.Services.AddRCommon()
 | `WithCommonFactory()` | Registers a service/implementation pair together with an `ICommonFactory`. |
 | `Configure()` | Finalizes configuration and returns the `IServiceCollection`. Called internally by `AddRCommon()`. |
 
-### Guard against double registration
+### Behavior on repeated calls
 
-The builder tracks whether a GUID generator or date/time system has already been configured. Calling the same `With*` method twice throws an `RCommonBuilderException`, preventing accidental duplicate registrations.
+Calling the same `With*<T>` method twice with the same `T` is now idempotent — the sub-builder is cached on the underlying `IServiceCollection` and any configuration action delegates accumulate against the cached instance. Singleton-style verbs (e.g., `WithSimpleGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`) are idempotent on same-type re-registration but throw `RCommonBuilderException` on different-type conflicts. See [Modular Composition](./modular-composition.mdx) for the full conflict matrix and modular usage patterns.
 
 ---
 
@@ -3237,15 +3256,9 @@ Guard.IsEqual(expectedVersion, actualVersion,
 
 ---
 
-## guid-generation
+## GUID Generation
 Source: https://rcommon.com/docs/core-concepts/guid-generation
----
-title: GUID Generation
-sidebar_position: 3
-description: "RCommon's IGuidGenerator abstraction for testable GUID creation — sequential GUIDs for SQL Server, MySQL, PostgreSQL, and Oracle to reduce index fragmentation."
----
-
-
+RCommon's IGuidGenerator abstraction for testable GUID creation — sequential GUIDs for SQL Server, MySQL, PostgreSQL, and Oracle to reduce index fragmentation.
 
 # GUID Generation
 
@@ -3256,11 +3269,9 @@ RCommon abstracts GUID generation behind an `IGuidGenerator` interface for two r
 1. **Testability.** Code that calls `Guid.NewGuid()` directly cannot be controlled in unit tests. Injecting `IGuidGenerator` lets tests substitute a predictable implementation.
 2. **Database performance.** Standard random GUIDs cause index fragmentation in clustered indexes because their values are not monotonically increasing. Sequential GUIDs embed a timestamp in the byte layout so new rows are always appended at the end of the index.
 
-RCommon ships two implementations out of the box: `SimpleGuidGenerator` and `SequentialGuidGenerator`. You pick one during application configuration; only one generator may be registered per application.
+RCommon ships two implementations out of the box: `SimpleGuidGenerator` and `SequentialGuidGenerator`. You pick one during application configuration; see [Behavior on repeated calls](#behavior-on-repeated-calls) below for what happens when more than one module configures GUID generation.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -3294,6 +3305,10 @@ builder.Services.AddRCommon()
 ```
 
 When `DefaultSequentialGuidType` is left `null`, the generator defaults to `SequentialAtEnd`.
+
+### Behavior on repeated calls
+
+GUID generator verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`) now follow singleton-style modular composition: calling the same generator twice is an idempotent no-op, while calling a different generator after one is already configured throws `RCommonBuilderException`. The exception message names both impl types and offers a remediation hint. See [Modular Composition](./modular-composition.mdx) for the full conflict matrix.
 
 ## Usage
 
@@ -3387,15 +3402,201 @@ Registered by `WithSequentialGuidGenerator(...)`. Transient lifetime. Generates 
 
 ---
 
-## system-time
+## Modular Composition
+Source: https://rcommon.com/docs/core-concepts/modular-composition
+Compose AddRCommon across multiple modules in a single process — registrations merge, never duplicate or throw on agreement.
+
+# Modular Composition
+
+## Overview
+
+RCommon's bootstrapper supports modular composition: any number of modules in the same process can independently call `services.AddRCommon().WithX(...)` and the registrations merge predictably. Sub-builders are cached by concrete type, singleton-style verbs are idempotent on same-type re-registration, and conflicts (different impls competing for the same slot) throw with a diagnostic message that names both types.
+
+This page documents the contract. For the underlying builder API itself, see [Fluent Configuration](./fluent-configuration.mdx).
+
+## The problem
+
+Before modular composition, `AddRCommon()` assumed a single composition root. Applications that organized startup around feature-folders or per-module wiring could not safely invoke `AddRCommon()` from more than one place:
+
+- Calling `AddRCommon()` twice double-registered `IEventBus`, `EventSubscriptionManager`, and `IEventRouter`.
+- Internal guard flags on the builder reset on the second call, masking subsequent conflicts.
+- `DataStoreFactoryOptions` accepted duplicate `(name, base)` mappings and silently overwrote earlier ones.
+- Singleton-style verbs such as `WithSimpleGuidGenerator` and `WithDateTimeSystem` threw on every second call — even when the second call agreed with the first.
+
+The net effect: modular apps had to funnel all RCommon wiring through a single static method, which defeated the purpose of modular composition.
+
+## The solution
+
+`AddRCommon()` is now idempotent. The first call constructs an `IRCommonBuilder` and stashes it on `IServiceCollection`; subsequent calls return the same cached instance. Sub-builders are cached by concrete builder type, so a second `WithPersistence(ef => ...)` reuses the same `EFCorePerisistenceBuilder` and the new action delegate runs against it. Singleton-style verbs record the impl type they registered; same-type re-registration is a no-op, different-type calls throw `RCommonBuilderException` with both type names in the message.
+
+Conflict semantics are predictable across the entire surface — see the matrix below.
+
+## A two-module example
+
+Define a minimal module contract and let each module configure RCommon independently:
+
+```csharp
+public interface IServiceModule
+{
+    void Configure(IServiceCollection services);
+}
+
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()
+            .WithPersistence(ef =>
+                ef.AddDbContext(
+                    "Ordering",
+                    o => o.UseInMemoryDatabase("ordering")))
+            .WithEventHandling(eh =>
+                eh.AddProducer());
+    }
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()          // Same impl as Ordering — idempotent no-op.
+            .WithPersistence(ef =>
+                ef.AddDbContext(
+                    "Inventory",
+                    o => o.UseInMemoryDatabase("inventory")))
+            .WithMemoryCaching();
+    }
+}
+```
+
+Compose them inside `Host.CreateDefaultBuilder`:
+
+```csharp
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        IServiceModule[] modules =
+        {
+            new OrderingModule(),
+            new InventoryModule(),
+        };
+
+        foreach (var module in modules)
+        {
+            module.Configure(services);
+        }
+    })
+    .Build();
+```
+
+What happens at runtime:
+
+- `AddRCommon()` runs twice but returns the same builder on the second call.
+- `WithSimpleGuidGenerator()` runs twice; the second call detects the impl is already registered and is a no-op.
+- `WithPersistence` runs twice; the same persistence sub-builder is reused and `AddDbContext` accumulates both `"Ordering"` and `"Inventory"` data stores.
+- Only the modules that opt in to event handling and caching pay the cost.
+
+A runnable three-module version of this example — including a producer registered twice and deduplicated — lives under `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/`.
+
+## Conflict semantics
+
+The table below documents every verb category and what happens when it is called more than once.
+
+| Verb category | Same impl re-registered | Different impl |
+|---|---|---|
+| `AddRCommon()` | Returns the cached `IRCommonBuilder`. | n/a |
+| Sub-builder verbs (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, `WithCQRS<T>`, `WithValidation<T>`, `WithBlobStorage<T>`, `WithMultiTenancy<T>`, `WithUnitOfWork<T>`, `WithMemoryCaching<T>`, `WithDistributedCaching<T>`) | Cached sub-builder is reused; the supplied `Action<T>` runs against the same instance, so registrations accumulate. | Both sub-builders register side by side (e.g. `WithPersistence` + `WithPersistence`). |
+| Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) | Idempotent no-op. | Throws `RCommonBuilderException` with both impl type names and a remediation hint. |
+| `AddDbContext(name, ...)` | Idempotent for the same `(name, TDbContext)` pair. | Throws `UnsupportedDataStoreException` when the same `name` is re-bound to a different `TDbContext`. |
+| `AddProducer<T>` | Same `T` is registered exactly once via descriptor scan. | Distinct `T` types coexist. |
+| Parameterless verbs (`WithStatelessStateMachine`, `WithMassTransitStateMachine`, `WithClaimsAndPrincipalAccessor`) | `TryAdd`-hardened — idempotent. | n/a |
+
+The "Same impl" column is what makes modular composition usable: modules can independently declare their requirements without coordinating with other modules.
+
+## New helper APIs
+
+### `IServiceCollection.IsRCommonInitialized()`
+
+Returns `true` if any module in the process has already called `AddRCommon()`. Useful when a module's behavior depends on whether RCommon is in play:
+
+```csharp
+if (!services.IsRCommonInitialized())
+{
+    // First module to wire RCommon — set up shared infrastructure once.
+}
+services.AddRCommon().WithSimpleGuidGenerator();
+```
+
+You rarely need to call this guard in normal usage because `AddRCommon()` is idempotent. It is most valuable in libraries that want to skip optional wiring entirely when RCommon is absent.
+
+### `IRCommonBuilder.GetOrAddBuilder(Func)`
+
+The hook that third-party `WithX<T>` extensions use to opt into sub-builder caching. The factory is invoked at most once per `TSubBuilder` per process:
+
+```csharp
+public static IRCommonBuilder WithMyFeature(
+    this IRCommonBuilder builder,
+    Action configure)
+    where TBuilder : class, IMyFeatureBuilder, new()
+{
+    var sub = builder.GetOrAddBuilder(() => new TBuilder { Services = builder.Services });
+    configure(sub);
+    return builder;
+}
+```
+
+When two modules call `WithMyFeature(...)`, only the first call constructs `MyBuilder`. The second call retrieves the cached instance and runs its `configure` delegate against it.
+
+### `IRCommonBuilder.GetBootstrapDiagnostics()`
+
+After the host starts, an internal `IHostedService` scans the registered descriptors for soft duplicates and stashes a human-readable report on the builder. Retrieve it like this:
+
+```csharp
+var host = builder.Build();
+await host.StartAsync();
+
+var rcommon = host.Services.GetRequiredService();
+var report = rcommon.GetBootstrapDiagnostics();
+if (!string.IsNullOrEmpty(report))
+{
+    Console.WriteLine("Bootstrap diagnostics:");
+    Console.WriteLine(report);
+}
+```
+
+When the descriptor scan finds nothing suspicious, `GetBootstrapDiagnostics()` returns `string.Empty`. The same report is also emitted as a single warning via `ILoggerFactory` during host startup.
+
+## Diagnostics at startup
+
+The duplicate-descriptor scanner runs once when the host starts. It is registered automatically by `AddRCommon()` as a hosted service and:
+
+1. Walks `IServiceCollection` after all modules have configured services.
+2. Groups descriptors by `(ServiceType, ImplementationType, Lifetime)`.
+3. Emits a single warning through `ILoggerFactory` when duplicates are present.
+4. Stashes the same report on the builder so application code can read it via `GetBootstrapDiagnostics()`.
+
+"Soft duplicates" are descriptors that share `ServiceType` + `ImplementationType` but were not deduped automatically — typically a sign that a custom extension is bypassing the cache. Hardened built-in verbs do not produce soft duplicates.
+
+## What's NOT thread-safe
+
+Bootstrap is single-threaded by contract. The cached builder and its sub-builders are not protected by locks. Modules must run their `Configure(IServiceCollection)` calls serially, exactly as `Host.CreateDefaultBuilder(args).ConfigureServices(...)` does. Once `host.Build()` returns, the service provider is fully constructed and standard DI thread-safety applies.
+
+If you parallelize module wiring you will see intermittent missing registrations and lost configuration actions. Don't.
+
+## See also
+
+- `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` — a runnable three-module demonstration including producer deduplication and the diagnostic report.
+- [Fluent Configuration](./fluent-configuration.mdx) — the underlying builder API.
+- [GUID Generation](./guid-generation.mdx) — singleton-style verb that participates in the conflict matrix.
+- [System Time](./system-time.mdx) — same.
+
+---
+
+## System Time Abstraction
 Source: https://rcommon.com/docs/core-concepts/system-time
----
-title: System Time Abstraction
-sidebar_position: 4
-description: "Use ISystemTime to abstract DateTime.Now for testable time-dependent code — configure UTC or local time, normalize incoming dates, and substitute clocks in tests."
----
-
-
+Use ISystemTime to abstract DateTime.Now for testable time-dependent code — configure UTC or local time, normalize incoming dates, and substitute clocks in tests.
 
 # System Time Abstraction
 
@@ -3406,8 +3607,6 @@ Code that calls `DateTime.Now` or `DateTime.UtcNow` directly is difficult to tes
 Beyond testability, `ISystemTime` also centralizes time zone handling. When `DateTimeKind.Utc` is configured, `ISystemTime.Now` always returns UTC, and the `Normalize` method converts any incoming `DateTime` to match that kind.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -3445,7 +3644,7 @@ builder.Services.AddRCommon()
     });
 ```
 
-Only one `WithDateTimeSystem` call is permitted per application. A second call throws `RCommonBuilderException`.
+`WithDateTimeSystem` is now idempotent — calling it multiple times is safe and any options actions you supply accumulate via the Options pattern. This lets multiple modules independently configure the date/time system without coordination. See [Modular Composition](./modular-composition.mdx) for the full conflict matrix across all `With*` verbs.
 
 ## Usage
 
@@ -3943,15 +4142,9 @@ if (!result.IsSuccess)
 
 ---
 
-## mediatr
+## MediatR
 Source: https://rcommon.com/docs/cqrs-mediator/mediatr
----
-title: MediatR
-sidebar_position: 4
-description: Wire MediatR into RCommon's mediator abstraction for request-response and fan-out notifications, with built-in logging, validation, and unit-of-work pipeline behaviors.
----
-
-
+Wire MediatR into RCommon's mediator abstraction for request-response and fan-out notifications, with built-in logging, validation, and unit-of-work pipeline behaviors.
 
 # MediatR
 
@@ -3967,8 +4160,6 @@ description: Wire MediatR into RCommon's mediator abstraction for request-respon
 Application code depends only on `IMediatorService` from `RCommon.Mediator`. The MediatR implementation is an infrastructure detail registered at startup.
 
 ## Installation
-
-
 
 This package depends on `RCommon.Mediator`, `RCommon.ApplicationServices`, `RCommon.Core`, `RCommon.Persistence`, and the `MediatR` NuGet package. All are pulled in transitively.
 
@@ -3993,6 +4184,10 @@ builder.Services.AddRCommon()
         mediator.AddNotification();
     });
 ```
+
+:::tip Modular composition
+`WithMediator` is cache-aware. When multiple modules call it, the cached `MediatRBuilder` is reused and each module's configuration delegate runs against the same instance — `AddRequest`, `AddNotification`, `AddLoggingToRequestPipeline`, `AddUnitOfWorkToRequestPipeline`, and `Configure(...)` registrations from every module accumulate on one builder. This lets each module register its own command/query handlers without coordinating with the others. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ### Advanced MediatR configuration
 
@@ -4458,15 +4653,9 @@ public class OrderApplicationService
 
 ---
 
-## wolverine
+## Wolverine
 Source: https://rcommon.com/docs/cqrs-mediator/wolverine
----
-title: Wolverine
-sidebar_position: 5
-description: Integrate WolverineFx as a distributed event producer in RCommon, supporting fan-out publish and point-to-point send via ISubscriber without Wolverine-specific handler code.
----
-
-
+Integrate WolverineFx as a distributed event producer in RCommon, supporting fan-out publish and point-to-point send via ISubscriber without Wolverine-specific handler code.
 
 # Wolverine
 
@@ -4484,8 +4673,6 @@ The package provides:
 Events must implement `ISerializableEvent` (from `RCommon.Models`) to flow through the Wolverine producers.
 
 ## Installation
-
-
 
 This package depends on `RCommon.Core` and `WolverineFx`. Wolverine itself requires host-level setup via `UseWolverine()` on the application host builder — see the Wolverine documentation for transport and endpoint configuration.
 
@@ -4515,6 +4702,10 @@ builder.Services.AddRCommon()
         wolverine.AddSubscriber();
     });
 ```
+
+:::tip Modular composition
+`WithEventHandling` is a cache-aware sub-builder verb. When multiple modules call it, the cached `WolverineEventHandlingBuilder` is reused and each module's `AddSubscriber` and `AddProducer<T>` registrations accumulate on the same instance. `AddProducer<T>` deduplicates by concrete producer type, so the same producer registered from two modules yields exactly one descriptor. Note that the host-level `builder.Host.UseWolverine(...)` call must happen exactly once in the application host; only the RCommon sub-builder participates in module-level composition. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Usage
 
@@ -5752,15 +5943,9 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ---
 
-## overview
+## Overview
 Source: https://rcommon.com/docs/email/overview
----
-title: Overview
-sidebar_position: 1
-description: Provider-agnostic email abstraction for .NET with IEmailService, built-in SMTP support via SmtpClient, HTML bodies, attachments, and an EmailSent event.
----
-
-
+Provider-agnostic email abstraction for .NET with IEmailService, built-in SMTP support via SmtpClient, HTML bodies, attachments, and an EmailSent event.
 
 # Email Overview
 
@@ -5781,8 +5966,6 @@ The `RCommon.Emailing` package delivers a built-in SMTP implementation backed by
 Both methods accept a standard `System.Net.Mail.MailMessage`, which means you can use the full .NET mail model (multiple recipients, CC, BCC, attachments, HTML body, inline images) regardless of which provider is configured.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -5825,6 +6008,17 @@ builder.Services.AddRCommon()
     .WithSmtpEmailServices(smtp =>
         builder.Configuration.GetSection("Email").Bind(smtp));
 ```
+
+### Modular composition
+
+Both `WithSmtpEmailServices` and `WithSendGridEmailServices` are singleton-style verbs: only one `IEmailService` implementation makes sense per process, so they enforce the choice at startup.
+
+| Re-registration shape | Behaviour |
+|---|---|
+| Same verb called twice (e.g. `WithSmtpEmailServices` in two modules) | Idempotent no-op — the second call detects the impl is already registered and skips the second registration. The latest configuration delegate still runs against `SmtpEmailSettings`, so option values follow last-write-wins. |
+| Different email impls in the same process (e.g. one module calls `WithSmtpEmailServices`, another calls `WithSendGridEmailServices`) | Throws `RCommonBuilderException` naming both impl types. Pick exactly one transport. |
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 
 ## Usage
 
@@ -5927,15 +6121,9 @@ _emailService.EmailSent += (sender, args) =>
 
 ---
 
-## sendgrid
+## SendGrid
 Source: https://rcommon.com/docs/email/sendgrid
----
-title: SendGrid
-sidebar_position: 2
-description: RCommon.SendGrid implements IEmailService via the SendGrid API, converting MailMessage objects to SendGrid calls with attachment and multi-recipient support.
----
-
-
+RCommon.SendGrid implements IEmailService via the SendGrid API, converting MailMessage objects to SendGrid calls with attachment and multi-recipient support.
 
 # SendGrid
 
@@ -5952,8 +6140,6 @@ Switching from SMTP to SendGrid is a startup configuration change — no applica
 The synchronous `SendEmail` method wraps the async implementation using `AsyncHelper.RunSync`.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -5995,6 +6181,10 @@ builder.Services.AddRCommon()
     .WithSendGridEmailServices(sg =>
         builder.Configuration.GetSection("SendGrid").Bind(sg));
 ```
+
+:::tip Modular composition
+`WithSendGridEmailServices` is a singleton-style verb: only one `IEmailService` implementation makes sense per process. Calling `WithSendGridEmailServices` from two modules is an idempotent no-op — the second registration is skipped, and `SendGridEmailSettings` follows last-write-wins for any options the second module's delegate assigns. Mixing `WithSendGridEmailServices` and `WithSmtpEmailServices` in the same process throws `RCommonBuilderException` naming both impl types; pick exactly one transport. See [Modular Composition](../core-concepts/modular-composition.mdx) and the [Email overview](./overview.mdx#modular-composition) for the full conflict matrix.
+:::
 
 ## Usage
 
@@ -6196,15 +6386,9 @@ For reliable at-least-once delivery guarantees, pair MassTransit or Wolverine wi
 
 ---
 
-## in-memory
+## In-Memory Events
 Source: https://rcommon.com/docs/event-handling/in-memory
----
-title: In-Memory Events
-sidebar_position: 2
-description: Configure RCommon's in-process event bus with InMemoryEventBusBuilder, implement ISubscriber handlers, and publish events via IEventRouter or IEventBus directly.
----
-
-
+Configure RCommon's in-process event bus with InMemoryEventBusBuilder, implement ISubscriber handlers, and publish events via IEventRouter or IEventBus directly.
 
 # In-Memory Events
 
@@ -6213,8 +6397,6 @@ The in-memory event bus provides local publish/subscribe within a single process
 ## Installation
 
 The in-memory event bus is part of `RCommon.Core`, which is included when you install the main package:
-
-
 
 ## Configuration
 
@@ -6235,6 +6417,10 @@ builder.Services.AddRCommon()
 ```
 
 `PublishWithEventBusEventProducer` is the built-in producer that delegates to `IEventBus.PublishAsync`. Additional subscribers can be registered for the same event type; all of them will be called.
+
+:::tip Modular composition
+`WithEventHandling` is cache-aware. When multiple modules call it, the cached `InMemoryEventBusBuilder` is reused and each configuration delegate runs against the same instance — so subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: if `OrderingModule` and `NotificationsModule` both call `eventHandling.AddProducer()`, exactly one `AuditProducer` descriptor is registered. `AddSubscriber` accumulates normally, so multiple modules can register handlers for the same event. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Defining an event
 
@@ -6360,23 +6546,15 @@ eventBus.SubscribeAllHandledEvents();
 
 ---
 
-## masstransit
+## MassTransit
 Source: https://rcommon.com/docs/event-handling/masstransit
----
-title: MassTransit
-sidebar_position: 6
-description: Deliver RCommon events across service boundaries via MassTransit consumers, with fan-out publish or point-to-point send and transport-agnostic ISubscriber handlers.
----
-
-
+Deliver RCommon events across service boundaries via MassTransit consumers, with fan-out publish or point-to-point send and transport-agnostic ISubscriber handlers.
 
 # MassTransit
 
 RCommon integrates with MassTransit to deliver events to consumers across service boundaries. The integration uses `MassTransitEventHandler` as a MassTransit `IConsumer` that delegates to the application's `ISubscriber` implementation. Application handler code has no dependency on MassTransit types.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -6411,6 +6589,14 @@ builder.Services.AddRCommon()
 1. Registers `ISubscriber` in the DI container as transient.
 2. Calls `AddConsumer>` so MassTransit creates a consumer for the endpoint.
 3. Records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to the MassTransit producer.
+
+:::tip Modular composition
+`WithEventHandling` participates in the cache-aware sub-builder contract: a second call with the same builder type reuses the cached `MassTransitEventHandlingBuilder`, and subscriber/producer registrations from each module accumulate against the one instance. `AddProducer<T>` deduplicates by concrete producer type — exactly one descriptor per producer.
+
+**Known limitation — cross-module composition.** MassTransit's pre-existing `IBus` registration guard means a second module that calls `WithEventHandling` will throw `MassTransit.ConfigurationException`. Single-module usage is unchanged. Tracked as a follow-up; for now, funnel MassTransit wiring through a single module and let other modules contribute subscribers via the shared cached builder accessed through `IRCommonBuilder.GetOrAddBuilder()`.
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Defining an event
 
@@ -6527,23 +6713,15 @@ public class MassTransitEventHandler : IConsumer
 
 ---
 
-## mediatr
+## MediatR
 Source: https://rcommon.com/docs/event-handling/mediatr
----
-title: MediatR
-sidebar_position: 5
-description: Route RCommon events through MediatR's notification pipeline using MediatREventHandlingBuilder, with ISubscriber handlers unaware of MediatR internals.
----
-
-
+Route RCommon events through MediatR's notification pipeline using MediatREventHandlingBuilder, with ISubscriber handlers unaware of MediatR internals.
 
 # MediatR
 
 RCommon integrates with MediatR to route events through the MediatR notification pipeline. Each event is wrapped in a `MediatRNotification` and published to all registered `INotificationHandler` instances. From the application's perspective, handlers still implement `ISubscriber` — the MediatR plumbing is hidden behind the abstraction.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -6562,6 +6740,10 @@ builder.Services.AddRCommon()
         eventHandling.AddSubscriber();
     });
 ```
+
+:::tip Modular composition
+`WithEventHandling` is cache-aware. When multiple modules call it, the cached `MediatREventHandlingBuilder` is reused and each configuration delegate runs against the same instance — subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: registering `PublishWithMediatREventProducer` from both `OrderingModule` and `NotificationsModule` results in a single descriptor. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 `AddSubscriber` does three things internally:
 
@@ -6915,23 +7097,15 @@ This gives at-least-once delivery semantics. Consumers must be idempotent to han
 
 ---
 
-## wolverine
+## Wolverine
 Source: https://rcommon.com/docs/event-handling/wolverine
----
-title: Wolverine
-sidebar_position: 7
-description: Use Wolverine as an event transport in RCommon's event handling pipeline, registering ISubscriber handlers and choosing between fan-out publish or point-to-point send.
----
-
-
+Use Wolverine as an event transport in RCommon's event handling pipeline, registering ISubscriber handlers and choosing between fan-out publish or point-to-point send.
 
 # Wolverine
 
 RCommon integrates with Wolverine to deliver events both in-process and across service boundaries. The integration registers `WolverineEventHandler` as a Wolverine `IWolverineHandler` that delegates to the application's `ISubscriber`. Application handler code has no dependency on Wolverine types.
 
 ## Installation
-
-
 
 Wolverine requires host-level registration via `UseWolverine()` in addition to the RCommon service configuration:
 
@@ -6964,6 +7138,10 @@ builder.Services.AddRCommon()
 ```
 
 `AddSubscriber` registers `ISubscriber` as scoped in the DI container and records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to Wolverine producers.
+
+:::tip Modular composition
+`WithEventHandling` is a cache-aware sub-builder verb. When multiple modules call it, the cached `WolverineEventHandlingBuilder` is reused and each module's `AddSubscriber` and `AddProducer<T>` calls accumulate on the same instance. `AddProducer<T>` deduplicates by concrete producer type — registering `PublishWithWolverineEventProducer` from two modules yields one descriptor. The host-level `builder.Host.UseWolverine(...)` registration must remain in the application host's composition root; only the RCommon sub-builder participates in module-level composition. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Defining an event
 
@@ -7736,16 +7914,9 @@ For distributed messaging across services, see the [Messaging Examples](./messag
 
 ---
 
-## hr-leave-management
+## HR Leave Management Sample
 Source: https://rcommon.com/docs/examples-recipes/hr-leave-management
----
-title: HR Leave Management Sample
-sidebar_position: 1
-description: Explore RCommon's HR Leave Management reference app demonstrating Clean Architecture, CQRS, EF Core, FluentValidation, JWT auth, and SendGrid email integration.
----
-
-
-
+Explore RCommon's HR Leave Management reference app demonstrating Clean Architecture, CQRS, EF Core, FluentValidation, JWT auth, and SendGrid email integration.
 
 # HR Leave Management Sample
 
@@ -8159,6 +8330,10 @@ public class LeaveTypesController : ControllerBase
 
 Everything is wired in `Program.cs`. This is the only place in the system where concrete implementations are referenced by name:
 
+:::tip Modular composition
+The HR Leave Management sample keeps all wiring in a single `Program.cs` for clarity, but RCommon also supports splitting this across modules. For example, an `IdentityServicesRegistration.AddIdentityServices(services)` extension could call `services.AddRCommon().WithClaimsAndPrincipalAccessor()` while a separate `PersistenceServicesRegistration` calls `services.AddRCommon().WithPersistence(...)`. The bootstrapper merges both into the same builder. See [Modular Composition](../core-concepts/modular-composition.mdx) for the contract.
+:::
+
 ```csharp
 builder.Services.AddRCommon()
     .WithClaimsAndPrincipalAccessor()
@@ -8267,17 +8442,9 @@ public class CreateLeaveTypeCommandHandlerTests
 
 ---
 
-## messaging
+## Messaging Examples
 Source: https://rcommon.com/docs/examples-recipes/messaging
----
-title: Messaging Examples
-sidebar_position: 4
-description: Messaging examples for RCommon showing MassTransit and Wolverine transports, subscription isolation between multiple builders, and in-process vs distributed routing.
----
-
-
-
-
+Messaging examples for RCommon showing MassTransit and Wolverine transports, subscription isolation between multiple builders, and in-process vs distributed routing.
 
 # Messaging Examples
 
@@ -8334,8 +8501,6 @@ public class TestEventHandler : ISubscriber
 ## Example 1: MassTransit
 
 ### Installation
-
-
 
 ### Configuration
 
@@ -8433,8 +8598,6 @@ await host.RunAsync();
 
 ### Installation
 
-
-
 Wolverine requires calling `UseWolverine` on the host builder before configuring services:
 
 ### Configuration
@@ -8481,6 +8644,10 @@ The pattern is identical to MassTransit. Only the builder type and the registere
 ## Example 3: Subscription Isolation
 
 The subscription isolation example demonstrates that events are only routed to the producer/handler pair that subscribed them. This is critical in services with mixed internal and external messaging.
+
+:::tip Modular composition
+The two-builder pattern shown below works whether you wire it in one `Program.cs` or split it across modules. Each module can call `services.AddRCommon().WithEventHandling(...)` independently — the cached builder is reused and subscriber registrations accumulate. The MassTransit builder has a known cross-module limitation documented on the [MassTransit event handling page](../event-handling/masstransit.mdx#configuration); see [Modular Composition](../core-concepts/modular-composition.mdx) for the full contract.
+:::
 
 ### Scenario
 
@@ -8663,13 +8830,9 @@ For integration tests, use the MassTransit in-memory transport or Wolverine's te
 
 ---
 
-## configuration
+## Configuration & Bootstrapping
 Source: https://rcommon.com/docs/getting-started/configuration
----
-title: Configuration & Bootstrapping
-sidebar_position: 4
-description: "Configure RCommon with AddRCommon() — fluent builder methods for GUID generation, system time, persistence, unit of work, mediator, and event handling."
----
+Configure RCommon with AddRCommon() — fluent builder methods for GUID generation, system time, persistence, unit of work, mediator, and event handling.
 
 # Configuration & Bootstrapping
 
@@ -8886,6 +9049,47 @@ builder.Services.AddRCommon()
     });
 ```
 
+## Modular Composition
+
+`AddRCommon()` is idempotent across modules. The first call constructs the `IRCommonBuilder` and caches it on `IServiceCollection`; every subsequent call returns the same instance. Sub-builder verbs (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, `WithUnitOfWork<T>`, `WithCQRS<T>`, `WithValidation<T>`, `WithBlobStorage<T>`, `WithMultiTenancy<T>`, `WithMemoryCaching<T>`, `WithDistributedCaching<T>`) are cache-aware: a second call with the same `T` reuses the cached sub-builder, so the supplied `Action<T>` runs against the same instance and registrations accumulate. Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) are idempotent on identical impls and throw `RCommonBuilderException` only when a different impl competes for the same slot.
+
+The typical pattern: each module exposes a `Configure(IServiceCollection services)` method that builds its slice of RCommon independently.
+
+```csharp
+public interface IServiceModule
+{
+    void Configure(IServiceCollection services);
+}
+
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()
+            .WithPersistence(ef =>
+                ef.AddDbContext(
+                    "Ordering",
+                    o => o.UseSqlServer(orderingConnectionString)));
+    }
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()          // Same impl as Ordering — idempotent no-op.
+            .WithPersistence(ef =>
+                ef.AddDbContext(
+                    "Inventory",
+                    o => o.UseNpgsql(inventoryConnectionString)));
+    }
+}
+```
+
+Each module pulls in only the features it needs; the framework deduplicates shared registrations automatically. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and the runnable example under `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/`.
+
 ## Diagnostics
 
 During development you can print all registered services to the console to verify configuration:
@@ -8898,13 +9102,9 @@ This produces a sorted list of every `ServiceDescriptor` in the container, which
 
 ---
 
-## dependency-injection
+## Dependency Injection
 Source: https://rcommon.com/docs/getting-started/dependency-injection
----
-title: Dependency Injection
-sidebar_position: 5
-description: "How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores."
----
+How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores.
 
 # Dependency Injection
 
@@ -9104,6 +9304,65 @@ When you register multiple DbContexts (for example a write model and a read mode
 
 A repository can be directed to use a specific data store by setting `DataStoreName` on the repository instance before use. The `IDataStoreFactory` resolves the correct DbContext by name at runtime.
 
+## Multi-module bootstrapping
+
+`AddRCommon()` is safe to call from any number of modules in the same process. The first call constructs the `IRCommonBuilder` and caches it on `IServiceCollection`; subsequent calls return the same instance, so all modules share one builder and one set of sub-builders. Three helper APIs support this pattern directly:
+
+| API | Purpose |
+|---|---|
+| `IServiceCollection.IsRCommonInitialized()` | Returns `true` if any module in the process has already called `AddRCommon()`. Useful for optional wiring in libraries that should skip themselves when RCommon is absent. |
+| `IRCommonBuilder.GetOrAddBuilder(Func)` | The hook custom `WithX<T>` extensions use to opt into sub-builder caching. The factory runs at most once per `TSubBuilder` per process. |
+| `IRCommonBuilder.GetBootstrapDiagnostics()` | After `host.StartAsync()`, returns a report of soft duplicates detected by the descriptor scanner, or `string.Empty` if nothing is suspicious. |
+
+A minimal module pattern:
+
+```csharp
+public interface IServiceModule
+{
+    void Configure(IServiceCollection services);
+}
+
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()
+            .WithPersistence(ef =>
+                ef.AddDbContext(
+                    "Ordering",
+                    o => o.UseInMemoryDatabase("ordering")));
+    }
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()          // Same impl — idempotent no-op.
+            .WithPersistence(ef =>
+                ef.AddDbContext(
+                    "Inventory",
+                    o => o.UseInMemoryDatabase("inventory")));
+    }
+}
+
+// Composition root
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        IServiceModule[] modules = { new OrderingModule(), new InventoryModule() };
+        foreach (var module in modules)
+            module.Configure(services);
+    })
+    .Build();
+```
+
+Both `WithPersistence` calls share the same persistence sub-builder, so both `AddDbContext` calls accumulate against one `DataStoreFactoryOptions`. The duplicate `WithSimpleGuidGenerator()` is a no-op because the impl type matches.
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable three-module example.
+
 ## Verifying registrations
 
 During development you can dump the full service registration list to the console:
@@ -9275,13 +9534,9 @@ Add further packages incrementally as requirements grow. Packages that share abs
 
 ---
 
-## overview
+## Overview & Philosophy
 Source: https://rcommon.com/docs/getting-started/overview
----
-title: Overview & Philosophy
-sidebar_position: 1
-description: "Learn what RCommon provides — pluggable .NET abstractions for persistence, CQRS, domain events, messaging, and caching with a fluent DI-first configuration API."
----
+Learn what RCommon provides — pluggable .NET abstractions for persistence, CQRS, domain events, messaging, and caching with a fluent DI-first configuration API.
 
 # Overview & Philosophy
 
@@ -9291,7 +9546,7 @@ The goal is not to invent new patterns but to give you clean, consistent interfa
 
 ## What RCommon provides
 
-- **Fluent, DI-first configuration** — a single `AddRCommon()` call bootstraps everything through a composable builder chain.
+- **Fluent, DI-first configuration** — a single `AddRCommon()` call bootstraps everything through a composable builder chain. RCommon supports both single-call and multi-module composition; see [Modular Composition](../core-concepts/modular-composition.mdx).
 - **Pluggable providers** — every feature area exposes a generic slot (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, etc.) that accepts whichever implementation package you install.
 - **Repository and unit-of-work abstractions** — `ILinqRepository<T>`, `IReadOnlyRepository<T>`, `IWriteOnlyRepository<T>`, and `IAggregateRepository<T, TId>` sit in front of EF Core, Dapper, or Linq2Db.
 - **Domain-driven design primitives** — base entity classes with auditing, soft delete, and transactional domain events built in.
@@ -9317,7 +9572,7 @@ RCommon is released under the [Apache License, Version 2.0](https://www.apache.o
 
 ## Source code
 
-The full source is available on GitHub: [https://github.com/jfrog/RCommon](https://github.com/RCommon-Framework/RCommon)
+The full source is available on GitHub: [https://github.com/RCommon-Team/RCommon](https://github.com/RCommon-Team/RCommon)
 
 ## Design principles
 
@@ -9331,15 +9586,9 @@ The full source is available on GitHub: [https://github.com/jfrog/RCommon](https
 
 ---
 
-## quick-start
+## Quick Start Guide
 Source: https://rcommon.com/docs/getting-started/quick-start
----
-title: Quick Start Guide
-sidebar_position: 3
-description: "Build a .NET web API with RCommon in minutes — define entities, configure EF Core persistence, and query via ILinqRepository using a single fluent builder chain."
----
-
-
+Build a .NET web API with RCommon in minutes — define entities, configure EF Core persistence, and query via ILinqRepository using a single fluent builder chain.
 
 # Quick Start Guide
 
@@ -9353,11 +9602,6 @@ cd MyApp
 ```
 
 ## 2. Install packages
-
-
-
-
-
 
 ## 3. Define your entity
 
@@ -9489,6 +9733,10 @@ public class ProductsController : ControllerBase
 
 From here you can add CQRS mediation, event handling, validation, or any other RCommon feature by chaining additional `With*` calls on the builder.
 
+:::tip Modular apps
+`AddRCommon()` can be called from multiple modules safely — repeat calls return the same cached builder, sub-builder verbs (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, etc.) reuse the same sub-builder, and singleton-style verbs are idempotent on identical impls. Registrations merge instead of throwing. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ---
 
 ## index
@@ -9505,23 +9753,15 @@ Welcome to the RCommon documentation. Use the sidebar to navigate through the av
 
 ---
 
-## masstransit
+## MassTransit
 Source: https://rcommon.com/docs/messaging/masstransit
----
-title: MassTransit
-sidebar_position: 4
-description: Configure MassTransit as RCommon's messaging transport, register consumers and producers, choose RabbitMQ or Azure Service Bus, and keep handler code broker-free.
----
-
-
+Configure MassTransit as RCommon's messaging transport, register consumers and producers, choose RabbitMQ or Azure Service Bus, and keep handler code broker-free.
 
 # MassTransit
 
 RCommon integrates with MassTransit to deliver events to consumers across service boundaries. The integration registers `MassTransitEventHandler` as a MassTransit `IConsumer` that delegates to the application's `ISubscriber`. Handler code has no dependency on MassTransit types.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -9556,6 +9796,14 @@ builder.Services.AddRCommon()
 1. Registers `ISubscriber` in the DI container as transient.
 2. Calls `AddConsumer>` so MassTransit creates a consumer for the endpoint.
 3. Records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to MassTransit producers.
+
+:::tip Modular composition
+`WithEventHandling` participates in the cache-aware sub-builder contract: a second call with the same builder type reuses the cached `MassTransitEventHandlingBuilder`, and subscriber/producer registrations from each module accumulate against the one instance. `AddProducer<T>` deduplicates by concrete producer type, so the same producer registered from two modules yields exactly one descriptor.
+
+**Known limitation — cross-module composition.** MassTransit's `AddMassTransit(...)` includes a pre-existing `IBus` guard: invoking it again after the bus has been registered throws `MassTransit.ConfigurationException`. RCommon's bootstrapper caches the sub-builder, but the underlying MassTransit guard runs the first time `WithEventHandling` is called. Single-module usage is unchanged. A second module that calls `WithEventHandling` will throw `MassTransit.ConfigurationException`. Tracked as a follow-up; for now, funnel all MassTransit wiring through one module and let other modules use `AddSubscriber` against the shared cached builder via `IRCommonBuilder.GetOrAddBuilder()` if cross-module subscribers are required.
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Defining an event
 
@@ -10615,15 +10863,9 @@ public class AuditService
 
 ---
 
-## overview
+## Overview
 Source: https://rcommon.com/docs/multi-tenancy/overview
----
-title: Overview
-sidebar_position: 1
-description: Multi-tenancy abstraction for RCommon that automatically scopes repository queries and entity stamps to the active tenant via ITenantIdAccessor and IMultiTenant.
----
-
-
+Multi-tenancy abstraction for RCommon that automatically scopes repository queries and entity stamps to the active tenant via ITenantIdAccessor and IMultiTenant.
 
 # Multi-Tenancy Overview
 
@@ -10667,11 +10909,7 @@ When `GetTenantId()` returns `null` or an empty string all tenant filtering is b
 
 ## Installation
 
-
-
 A provider package is also required. For Finbuckle:
-
-
 
 ## Configuration
 
@@ -10706,6 +10944,10 @@ builder.Services.AddRCommon(config =>
         });
 });
 ```
+
+:::tip Modular composition
+`WithMultiTenancy` is a cache-aware sub-builder verb. When multiple modules call `WithMultiTenancy>(...)` with the same builder type, the cached builder is reused and each module's configuration action runs against the same instance. `FinbuckleTenantIdAccessor` is registered exactly once. This lets modules independently add tenant-aware services (custom tenant stores, per-tenant options) without coordinating wiring. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Usage
 
@@ -11328,15 +11570,9 @@ Refer to the [Dommel documentation](https://github.com/henkmollema/Dommel) for t
 
 ---
 
-## efcore
+## Entity Framework Core
 Source: https://rcommon.com/docs/persistence/efcore
----
-title: Entity Framework Core
-sidebar_position: 4
-description: Configure RCommon's EF Core provider to register named DbContexts, inject IGraphRepository with full LINQ support, eager loading, soft delete, and change-tracking control.
----
-
-
+Configure RCommon's EF Core provider to register named DbContexts, inject IGraphRepository with full LINQ support, eager loading, soft delete, and change-tracking control.
 
 # Entity Framework Core
 
@@ -11347,8 +11583,6 @@ The EF Core provider wires `EFCoreRepository` into the repository abstraction la
 The provider resolves a `RCommonDbContext`-derived `DbContext` from the `IDataStoreFactory` at runtime, which makes it possible to register multiple named DbContext instances and route repositories to the right one.
 
 ## Installation
-
-
 
 ## DbContext setup
 
@@ -11444,6 +11678,36 @@ ef.AddDbContext("Ordering",
 
 ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Ordering");
 ```
+
+## Modular composition
+
+`WithPersistence` is cache-aware. When two modules both call it, the second call reuses the cached `EFCorePerisistenceBuilder` rather than constructing a new one — both configuration delegates run against the same instance, so each module can declare its own DbContexts side by side:
+
+```csharp
+// In OrderingModule.Configure
+services.AddRCommon()
+    .WithPersistence(ef =>
+        ef.AddDbContext("Ordering",
+            o => o.UseSqlServer(orderingConn)));
+
+// In InventoryModule.Configure
+services.AddRCommon()
+    .WithPersistence(ef =>
+        ef.AddDbContext("Inventory",
+            o => o.UseNpgsql(inventoryConn)));
+```
+
+After both modules run, `IDataStoreFactory` resolves `"Ordering"` and `"Inventory"` to their respective contexts. The `EFCorePerisistenceBuilder` itself is constructed exactly once.
+
+`AddDbContext(name, ...)` has the following conflict semantics across modules:
+
+| Re-registration shape | Behaviour |
+|---|---|
+| Same `name` + same `TDbContext` (same options-builder allowed to differ) | Idempotent — the duplicate is dropped. |
+| Same `name` + different `TDbContext` | Throws `UnsupportedDataStoreException` naming both context types. |
+| Different `name` + same or different `TDbContext` | Both are registered. |
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 
 ## Usage
 
@@ -12428,15 +12692,9 @@ bool satisfied = spec.IsSatisfiedBy(allocation);
 
 ---
 
-## unit-of-work
+## Unit of Work
 Source: https://rcommon.com/docs/persistence/unit-of-work
----
-title: Unit of Work
-sidebar_position: 3
-description: Coordinate writes across multiple repositories in a single TransactionScope using RCommon's IUnitOfWorkFactory, with MediatR and Wolverine pipeline integration support.
----
-
-
+Coordinate writes across multiple repositories in a single TransactionScope using RCommon's IUnitOfWorkFactory, with MediatR and Wolverine pipeline integration support.
 
 # Unit of Work
 
@@ -12454,8 +12712,6 @@ RCommon also integrates with MediatR and Wolverine pipelines so that units of wo
 
 ## Installation
 
-
-
 ## Configuration
 
 Configure the unit of work in your application startup using `WithUnitOfWork`:
@@ -12471,6 +12727,10 @@ builder.Services.AddRCommon()
         });
     });
 ```
+
+:::tip Modular composition
+`WithUnitOfWork` is cached by concrete builder type. When two modules both call `WithUnitOfWork(...)`, the second call reuses the cached sub-builder and runs its `SetOptions` delegate against the same instance — last-write-wins for option values, but the builder is constructed exactly once. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 `UnitOfWorkSettings` defaults:
 
@@ -12588,15 +12848,9 @@ With `AutoCompleteScope = true` the unit of work commits automatically when the 
 
 ---
 
-## authorization
+## Authorization
 Source: https://rcommon.com/docs/security-web/authorization
----
-title: Authorization
-sidebar_position: 1
-description: RCommon.Security provides ICurrentUser and ICurrentPrincipalAccessor for claims-based identity resolution, plus Swashbuckle filters for OpenAPI authorization docs.
----
-
-
+RCommon.Security provides ICurrentUser and ICurrentPrincipalAccessor for claims-based identity resolution, plus Swashbuckle filters for OpenAPI authorization docs.
 
 # Authorization
 
@@ -12621,15 +12875,9 @@ The core design is a layered stack:
 
 For the core security abstractions (principal accessor, current user, claims helpers):
 
-
-
 For ASP.NET Core web apps that need HTTP-context-aware principal resolution:
 
-
-
 For the Swashbuckle/OpenAPI authorization filters:
-
-
 
 ## Configuration
 
@@ -12667,6 +12915,10 @@ builder.Services.AddRCommon(config =>
 
 This registers the same interfaces but substitutes `HttpContextCurrentPrincipalAccessor` for `ThreadCurrentPrincipalAccessor`, and calls `AddHttpContextAccessor()` automatically.
 
+:::tip Modular composition
+Both `WithClaimsAndPrincipalAccessor()` and `WithClaimsAndPrincipalAccessorForWeb()` are `TryAdd`-hardened — repeat calls from multiple modules are idempotent. The principal accessor, `ICurrentUser`, `ICurrentClient`, and `ITenantIdAccessor` registrations are each added exactly once. Do not mix the two variants in the same process: `TryAdd` keeps whichever ran first and silently ignores the other, which can leave a web host running with `ThreadCurrentPrincipalAccessor` (or vice versa). Pick one variant in the host's composition root. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ### Overriding claim type URIs
 
 If your identity provider uses non-standard claim type URIs, override the static properties on `ClaimTypesConst` once at startup before any requests are processed:
@@ -12675,11 +12927,15 @@ If your identity provider uses non-standard claim type URIs, override the static
 using RCommon.Security.Claims;
 
 // Map to the short claim names issued by your OIDC provider.
-ClaimTypesConst.UserId   = "sub";
-ClaimTypesConst.Role     = "roles";
-ClaimTypesConst.Email    = "email";
-ClaimTypesConst.TenantId = "tenant_id";
-ClaimTypesConst.ClientId = "client_id";
+// Configure must be called once at startup, before any property is accessed.
+ClaimTypesConst.Configure(options =>
+{
+    options.UserId   = "sub";
+    options.Role     = "roles";
+    options.Email    = "email";
+    options.TenantId = "tenant_id";
+    options.ClientId = "client_id";
+});
 ```
 
 ### Swashbuckle operation filters
@@ -12738,7 +12994,7 @@ public class OrderCommandHandler
 
         var order = new Order
         {
-            CustomerId   = _currentUser.Id!.Value,
+            CustomerId   = _currentUser.Id!,
             CustomerName = _currentUser.FindClaimValue(ClaimTypes.GivenName) ?? "Unknown",
             Total        = command.Total
         };
@@ -12768,9 +13024,6 @@ Claim[] allDeptClaims = _currentUser.FindClaims("custom:department");
 
 // Find a claim value as a string.
 string? department = _currentUser.FindClaimValue("custom:department");
-
-// Find a claim value converted to a specific struct type.
-int employeeNumber = _currentUser.FindClaimValue<int>("custom:employee_number");
 ```
 
 ### Accessing the current client
@@ -12872,7 +13125,7 @@ principal.AddIdentityIfNotContains(new ClaimsIdentity(claims, "Cookie"));
 Extract well-known values directly from a `ClaimsPrincipal`:
 
 ```csharp
-Guid? userId   = principal.FindUserId();    // parses ClaimTypesConst.UserId as Guid
+string? userId = principal.FindUserId();    // reads ClaimTypesConst.UserId
 string? tenant = principal.FindTenantId();  // reads ClaimTypesConst.TenantId
 string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
 ```
@@ -12887,10 +13140,10 @@ string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
 | `CurrentPrincipalAccessorExtensions` | `RCommon.Security` | `Change(Claim)`, `Change(IEnumerable)`, `Change(ClaimsIdentity)` overloads |
 | `ICurrentUser` | `RCommon.Security` | Exposes `Id`, `IsAuthenticated`, `Roles`, `TenantId`, `FindClaim`, `FindClaims`, `GetAllClaims` |
 | `CurrentUser` | `RCommon.Security` | Default `ICurrentUser` implementation backed by `ICurrentPrincipalAccessor` |
-| `CurrentUserExtensions` | `RCommon.Security` | `FindClaimValue(string)`, `FindClaimValue<T>(string)`, `GetId()` |
+| `CurrentUserExtensions` | `RCommon.Security` | `FindClaimValue(string)`, `GetId()` |
 | `ICurrentClient` | `RCommon.Security` | Exposes `Id` and `IsAuthenticated` for OAuth client identities |
 | `CurrentClient` | `RCommon.Security` | Default `ICurrentClient` backed by `ICurrentPrincipalAccessor` |
-| `ClaimTypesConst` | `RCommon.Security` | Configurable claim type URIs: `UserName`, `Name`, `SurName`, `UserId`, `Role`, `Email`, `TenantId`, `ClientId` |
+| `ClaimTypesConst` | `RCommon.Security` | Configure-once claim type URIs via `Configure(Action)`: `UserName`, `Name`, `SurName`, `UserId`, `Role`, `Email`, `TenantId`, `ClientId` |
 | `ClaimsIdentityExtensions` | `RCommon.Security` | `FindUserId`, `FindTenantId`, `FindClientId`, `AddIfNotContains`, `AddOrReplace`, `AddIdentityIfNotContains` |
 | `AuthorizationException` | `RCommon.Security` | Application-layer exception for access-denied scenarios; carries `Code`, `LogLevel`, and fluent `WithData()` |
 | `AuthorizeCheckOperationFilter` | `RCommon.Authorization.Web` | Swashbuckle filter: adds 401/403 responses and OAuth2 security requirement to `[Authorize]`-decorated operations |
@@ -12898,15 +13151,9 @@ string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
 
 ---
 
-## web-utilities
+## Web Utilities
 Source: https://rcommon.com/docs/security-web/web-utilities
----
-title: Web Utilities
-sidebar_position: 2
-description: RCommon.Web bridges ASP.NET Core's HttpContext.User to ICurrentPrincipalAccessor, replacing the thread-based default for correct identity resolution in web apps.
----
-
-
+RCommon.Web bridges ASP.NET Core's HttpContext.User to ICurrentPrincipalAccessor, replacing the thread-based default for correct identity resolution in web apps.
 
 # Web Utilities
 
@@ -12924,8 +13171,6 @@ The package contains:
 RCommon's core security library (`RCommon.Security`) has no ASP.NET Core dependency. Its default principal accessor reads from `Thread.CurrentPrincipal`, which works in console apps, background services, and test harnesses. In an ASP.NET Core web app the authenticated user is set on `HttpContext.User` by the authentication middleware, not on `Thread.CurrentPrincipal`. `RCommon.Web` provides the adapter that makes the correct source available to all RCommon services.
 
 ## Installation
-
-
 
 This package depends on `RCommon.Security`, which is pulled in automatically.
 
@@ -12963,6 +13208,10 @@ app.Run();
 | `ITenantIdAccessor` | `ClaimsTenantIdAccessor` |
 
 It also calls `services.AddHttpContextAccessor()` so that `IHttpContextAccessor` is available for injection.
+
+:::tip Modular composition
+`WithClaimsAndPrincipalAccessorForWeb()` is `TryAdd`-hardened — repeat calls from multiple modules are idempotent. Each principal/claims/tenant interface is registered exactly once. Modules that need access to `ICurrentUser` can each call this verb without coordinating with other modules. Do not mix `WithClaimsAndPrincipalAccessor()` and `WithClaimsAndPrincipalAccessorForWeb()` in the same process — `TryAdd` will keep whichever ran first and silently ignore the other. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ### Combined with other RCommon features
 
@@ -13038,7 +13287,7 @@ public class RequestAuditMiddleware
     {
         if (currentUser.IsAuthenticated)
         {
-            var userId = currentUser.Id?.ToString() ?? "anonymous";
+            var userId = currentUser.Id ?? "anonymous";
             context.Items["AuditUserId"] = userId;
         }
 
@@ -13116,15 +13365,9 @@ No other code changes are needed. All services that depend on `ICurrentUser`, `I
 
 ---
 
-## newtonsoft
+## Newtonsoft.Json
 Source: https://rcommon.com/docs/serialization/newtonsoft
----
-title: Newtonsoft.Json
-sidebar_position: 2
-description: RCommon.JsonNet wraps Newtonsoft.Json behind IJsonSerializer with full JsonSerializerSettings access, custom converters, and camelCase or indented output options.
----
-
-
+RCommon.JsonNet wraps Newtonsoft.Json behind IJsonSerializer with full JsonSerializerSettings access, custom converters, and camelCase or indented output options.
 
 # Newtonsoft.Json
 
@@ -13135,8 +13378,6 @@ description: RCommon.JsonNet wraps Newtonsoft.Json behind IJsonSerializer with f
 The underlying `JsonSerializerSettings` instance is registered in the DI container via the options pattern, so you can apply any Newtonsoft.Json setting that `JsonSerializerSettings` exposes.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -13203,6 +13444,17 @@ builder.Services.AddRCommon()
             });
         });
 ```
+
+### Modular composition
+
+`WithJsonSerialization()` is a singleton-style verb across all six overloads (parameterless, `serializeOptions`, `serializeOptions + deSerializeOptions`, `actions`, `serializeOptions + actions`, and `serializeOptions + deSerializeOptions + actions`). Only one `IJsonSerializer` implementation makes sense per process, so the verb enforces the choice at startup.
+
+| Re-registration shape | Behaviour |
+|---|---|
+| `WithJsonSerialization()` called from two modules | Idempotent no-op — the second registration is skipped, but the configuration delegate still runs so per-call option values follow last-write-wins. |
+| One module calls `WithJsonSerialization()` and another calls `WithJsonSerialization()` | Throws `RCommonBuilderException` naming both builder types. Pick exactly one JSON serializer. |
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 
 ## Usage
 
@@ -13441,15 +13693,9 @@ string json = _serializer.Serialize(
 
 ---
 
-## system-text-json
+## System.Text.Json
 Source: https://rcommon.com/docs/serialization/system-text-json
----
-title: System.Text.Json
-sidebar_position: 3
-description: RCommon.SystemTextJson wraps System.Text.Json behind IJsonSerializer with full JsonSerializerOptions access and built-in integer and byte enum converters.
----
-
-
+RCommon.SystemTextJson wraps System.Text.Json behind IJsonSerializer with full JsonSerializerOptions access and built-in integer and byte enum converters.
 
 # System.Text.Json
 
@@ -13465,8 +13711,6 @@ The package also includes two ready-to-use converters:
 - `JsonByteEnumConverter` — serializes enums as bytes.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -13551,6 +13795,17 @@ builder.Services.AddRCommon()
     });
 ```
 
+### Modular composition
+
+`WithJsonSerialization()` is a singleton-style verb across all six overloads (parameterless, `serializeOptions`, `serializeOptions + deSerializeOptions`, `actions`, `serializeOptions + actions`, and `serializeOptions + deSerializeOptions + actions`). Only one `IJsonSerializer` implementation makes sense per process, so the verb enforces the choice at startup.
+
+| Re-registration shape | Behaviour |
+|---|---|
+| `WithJsonSerialization()` called from two modules | Idempotent no-op — the second registration is skipped, but the configuration delegate still runs so per-call option values follow last-write-wins. |
+| One module calls `WithJsonSerialization()` and another calls `WithJsonSerialization()` | Throws `RCommonBuilderException` naming both builder types. Pick exactly one JSON serializer. |
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+
 ## Usage
 
 Inject `IJsonSerializer` and call `Serialize` or `Deserialize`.
@@ -13615,13 +13870,9 @@ Implements all four `IJsonSerializer` methods. Per-call `JsonSerializeOptions` o
 
 ---
 
-## overview
+## Overview
 Source: https://rcommon.com/docs/state-machines/overview
----
-title: Overview
-sidebar_position: 1
-description: Provider-agnostic finite state machine abstraction for .NET using C# enums, with Stateless and MassTransit adapter options for workflow and lifecycle modeling.
----
+Provider-agnostic finite state machine abstraction for .NET using C# enums, with Stateless and MassTransit adapter options for workflow and lifecycle modeling.
 
 # State Machines Overview
 
@@ -13716,29 +13967,25 @@ Choose `RCommon.MassTransit.StateMachines` when:
 - You are already using `RCommon.MassTransit` and want to avoid an additional dependency.
 - Your state machine only uses simple unconditional transitions and guarded transitions with no trigger data.
 
+:::tip Modular composition
+Both `WithStatelessStateMachine()` and `WithMassTransitStateMachine()` are `TryAdd`-hardened — repeat calls from multiple modules are idempotent and the open-generic `IStateMachineConfigurator<,>` registration is added exactly once. Modules can opt into state-machine support independently. Registering both adapters in the same process is not recommended (the second registration is ignored by `TryAdd`); pick one per process. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ## Section contents
 
 - [Stateless](./stateless.mdx) — Stateless library integration, defining states/triggers, full configuration reference
 
 ---
 
-## stateless
+## Stateless
 Source: https://rcommon.com/docs/state-machines/stateless
----
-title: Stateless
-sidebar_position: 2
-description: RCommon.Stateless wraps the Stateless library behind IStateMachineConfigurator, supporting guarded transitions, parameterized triggers, and async entry/exit actions.
----
-
-
+RCommon.Stateless wraps the Stateless library behind IStateMachineConfigurator, supporting guarded transitions, parameterized triggers, and async entry/exit actions.
 
 # Stateless
 
 `RCommon.Stateless` wraps the popular [Stateless](https://github.com/dotnet-state-machine/stateless) library behind the RCommon `IStateMachineConfigurator` abstraction. Application code works only with the RCommon interfaces; the Stateless library is an implementation detail.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -13752,6 +13999,10 @@ builder.Services.AddRCommon()
 ```
 
 This registers `StatelessConfigurator` as the open-generic `IStateMachineConfigurator` implementation. Any combination of state and trigger enum types is automatically available for injection.
+
+:::tip Modular composition
+`WithStatelessStateMachine()` is `TryAdd`-hardened — repeat calls from multiple modules are idempotent. The open-generic `IStateMachineConfigurator<,>` registration is added exactly once regardless of how many modules invoke this verb. Modules can opt into state-machine support independently without coordinating. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Defining states and triggers
 
@@ -14581,15 +14832,9 @@ Assert.That(results.Items.All(c => c.FirstName.StartsWith("Bart")), Is.True);
 
 ---
 
-## fluent-validation
+## FluentValidation
 Source: https://rcommon.com/docs/validation/fluent-validation
----
-title: FluentValidation
-sidebar_position: 1
-description: RCommon.FluentValidation integrates FluentValidation with the CQRS pipeline for automatic command and query validation, with manual IValidationService support.
----
-
-
+RCommon.FluentValidation integrates FluentValidation with the CQRS pipeline for automatic command and query validation, with manual IValidationService support.
 
 # FluentValidation
 
@@ -14609,8 +14854,6 @@ Your application code depends only on `IValidationService` (for manual validatio
 You can also call `IValidationService.ValidateAsync` directly from application services when you need to validate outside the CQRS pipeline.
 
 ## Installation
-
-
 
 ## Configuration
 
@@ -14686,6 +14929,10 @@ builder.Services.AddRCommon()
 ```
 
 Both `ValidateCommands` and `ValidateQueries` default to `false`.
+
+:::tip Modular composition
+`WithValidation<T>` is cache-aware. Both the `RCommon.ApplicationServices` overload (`WithValidation(...)`) and the `RCommon.FluentValidation` extension share the same builder cache, so when multiple modules call `WithValidation(...)` the cached `FluentValidationBuilder` is reused and each module's `AddValidator<T, TValidator>`, `AddValidatorsFromAssemblyContaining(...)`, and `AddValidatorsFromAssemblies(...)` registrations accumulate on the same instance. Each module can scan its own assembly for validators without coordinating with other modules. `CqrsValidationOptions` is a shared singleton: the last module to call the options overload wins for `ValidateCommands` / `ValidateQueries`. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
 
 ## Usage
 

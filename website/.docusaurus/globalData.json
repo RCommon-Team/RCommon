@@ -91,6 +91,11 @@
               "sidebar": "docsSidebar"
             },
             {
+              "id": "core-concepts/modular-composition",
+              "path": "/docs/next/core-concepts/modular-composition",
+              "sidebar": "docsSidebar"
+            },
+            {
               "id": "core-concepts/system-time",
               "path": "/docs/next/core-concepts/system-time",
               "sidebar": "docsSidebar"
