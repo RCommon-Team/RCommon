@@ -106,6 +106,17 @@ builder.Services.AddRCommon()
     });
 ```
 
+### Modular composition
+
+`WithJsonSerialization<TextJsonBuilder>()` is a singleton-style verb across all six overloads (parameterless, `serializeOptions`, `serializeOptions + deSerializeOptions`, `actions`, `serializeOptions + actions`, and `serializeOptions + deSerializeOptions + actions`). Only one `IJsonSerializer` implementation makes sense per process, so the verb enforces the choice at startup.
+
+| Re-registration shape | Behaviour |
+|---|---|
+| `WithJsonSerialization<TextJsonBuilder>()` called from two modules | Idempotent no-op — the second registration is skipped, but the configuration delegate still runs so per-call option values follow last-write-wins. |
+| One module calls `WithJsonSerialization<TextJsonBuilder>()` and another calls `WithJsonSerialization<JsonNetBuilder>()` | Throws `RCommonBuilderException` naming both builder types. Pick exactly one JSON serializer. |
+
+See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+
 ## Usage
 
 Inject `IJsonSerializer` and call `Serialize` or `Deserialize`.

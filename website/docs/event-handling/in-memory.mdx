@@ -36,6 +36,10 @@ builder.Services.AddRCommon()
 
 `PublishWithEventBusEventProducer` is the built-in producer that delegates to `IEventBus.PublishAsync`. Additional subscribers can be registered for the same event type; all of them will be called.
 
+:::tip Modular composition
+`WithEventHandling<InMemoryEventBusBuilder>` is cache-aware. When multiple modules call it, the cached `InMemoryEventBusBuilder` is reused and each configuration delegate runs against the same instance — so subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: if `OrderingModule` and `NotificationsModule` both call `eventHandling.AddProducer<AuditProducer>()`, exactly one `AuditProducer` descriptor is registered. `AddSubscriber<TEvent, THandler>` accumulates normally, so multiple modules can register handlers for the same event. See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+:::
+
 ## Defining an event
 
 Events must implement `ISerializableEvent`. Use `ISyncEvent` for sequential dispatch or `IAsyncEvent` for concurrent dispatch:
