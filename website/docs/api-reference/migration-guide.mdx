@@ -35,6 +35,48 @@ Update all `RCommon.*` packages in your project files at once. Because all packa
 <!-- All RCommon.* packages should share the same version -->
 ```
 
+## Upgrading to Modular Composition
+
+This release introduces modular composition of `AddRCommon()`. **No source changes are required.** Existing single-call apps continue to compile and behave identically.
+
+### What changed
+
+If you previously relied on `WithSequentialGuidGenerator`, `WithSimpleGuidGenerator`, or `WithDateTimeSystem` throwing `RCommonBuilderException` on a second call, that behavior is now relaxed:
+
+- **Same implementation type**, repeated → idempotent no-op.
+- **Different implementation type** → still throws `RCommonBuilderException` (with both type names in the message).
+
+Likewise, `DataStoreFactoryOptions.Register<B,C>(name)` now accepts identical re-registrations:
+
+- **Same `(name, B, C)` triple** → idempotent no-op.
+- **Same `(name, B)` with different `C`** → still throws `UnsupportedDataStoreException`.
+
+### What you can now do
+
+Modules can independently configure RCommon features:
+
+```csharp
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services) =>
+        services.AddRCommon()
+            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+                ef.AddDbContext<OrderingDbContext>("Ordering", o => o.UseInMemoryDatabase("ord")));
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services) =>
+        services.AddRCommon()
+            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+                ef.AddDbContext<InventoryDbContext>("Inventory", o => o.UseInMemoryDatabase("inv")));
+}
+```
+
+Both modules call `AddRCommon()` and `WithPersistence<EFCorePerisistenceBuilder>`. The persistence sub-builder's constructor runs exactly once; both `AddDbContext` calls accumulate registrations.
+
+See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix and new helper APIs.
+
 ## Breaking Change Patterns
 
 The following sections describe the categories of breaking changes that appear in major RCommon releases and how to address them.

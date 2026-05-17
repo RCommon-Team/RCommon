@@ -54,7 +54,7 @@ builder.Services.AddRCommon()
     });
 ```
 
-Only one `WithDateTimeSystem` call is permitted per application. A second call throws `RCommonBuilderException`.
+`WithDateTimeSystem` is now idempotent — calling it multiple times is safe and any options actions you supply accumulate via the Options pattern. This lets multiple modules independently configure the date/time system without coordination. See [Modular Composition](./modular-composition.md) for the full conflict matrix across all `With*` verbs.
 
 ## Usage
 
