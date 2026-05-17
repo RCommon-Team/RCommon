@@ -22,6 +22,13 @@ export default {
     "path": "i18n",
     "localeConfigs": {}
   },
+  "scripts": [
+    {
+      "src": "https://context7.com/widget.js",
+      "data-library": "/rcommon-team/rcommon",
+      "async": true
+    }
+  ],
   "headTags": [
     {
       "tagName": "meta",
@@ -416,7 +423,6 @@ export default {
     "static"
   ],
   "customFields": {},
-  "scripts": [],
   "stylesheets": [],
   "clientModules": [],
   "titleDelimiter": "|",

@@ -37,15 +37,17 @@ public class DataStoreFactoryOptionsTests
     }
 
     [Fact]
-    public void Register_WithSameNameAndBaseType_ThrowsUnsupportedDataStoreException()
+    public void Register_WithSameNameAndBaseTypeButDifferentConcrete_ThrowsUnsupportedDataStoreException()
     {
         // Arrange
         var options = new DataStoreFactoryOptions();
         var dataStoreName = "TestDataStore";
         options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>(dataStoreName);
 
-        // Act
-        var action = () => options.Register<TestDataStoreForOptionsBase, TestDataStoreForOptions>(dataStoreName);
+        // Act - registering the same (name, base) with a DIFFERENT concrete should still throw.
+        // Note: re-registering the same (name, base, concrete) triple is now idempotent;
+        // see DataStoreFactoryOptionsRegisterTests for the idempotent contract.
+        var action = () => options.Register<TestDataStoreForOptionsBase, AnotherConcreteForOptions>(dataStoreName);
 
         // Assert
         action.Should().Throw<UnsupportedDataStoreException>()
@@ -137,6 +139,12 @@ public abstract class TestDataStoreForOptionsBase : IDataStore
 }
 
 public class TestDataStoreForOptions : TestDataStoreForOptionsBase
+{
+    public override DbConnection GetDbConnection() => null!;
+    public override ValueTask DisposeAsync() => ValueTask.CompletedTask;
+}
+
+public class AnotherConcreteForOptions : TestDataStoreForOptionsBase
 {
     public override DbConnection GetDbConnection() => null!;
     public override ValueTask DisposeAsync() => ValueTask.CompletedTask;

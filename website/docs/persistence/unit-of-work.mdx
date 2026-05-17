@@ -40,6 +40,10 @@ builder.Services.AddRCommon()
     });
 ```
 
+:::tip Modular composition
+`WithUnitOfWork<TUnitOfWork>` is cached by concrete builder type. When two modules both call `WithUnitOfWork<DefaultUnitOfWorkBuilder>(...)`, the second call reuses the cached sub-builder and runs its `SetOptions` delegate against the same instance — last-write-wins for option values, but the builder is constructed exactly once. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 `UnitOfWorkSettings` defaults:
 
 | Setting | Default | Description |

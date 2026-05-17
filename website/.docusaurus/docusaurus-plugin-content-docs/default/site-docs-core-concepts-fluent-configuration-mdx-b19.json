@@ -23,7 +23,7 @@
     "permalink": "/docs/next/category/core-concepts"
   },
   "next": {
-    "title": "Guards & Validation",
-    "permalink": "/docs/next/core-concepts/guards"
+    "title": "Modular Composition",
+    "permalink": "/docs/next/core-concepts/modular-composition"
   }
 }

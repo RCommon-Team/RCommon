@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using RCommon.Bootstrapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace RCommon.Json
         /// <param name="builder">The RCommon builder instance.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithJsonSerialization<T>(this IRCommonBuilder builder)
-            where T : IJsonBuilder
+            where T : class, IJsonBuilder
         {
             return WithJsonSerialization<T>(builder, x => { }, x => { }, x => { });
         }
@@ -41,7 +42,7 @@ namespace RCommon.Json
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithJsonSerialization<T>(this IRCommonBuilder builder, Action<JsonSerializeOptions> serializeOptions,
             Action<JsonDeserializeOptions> deSerializeOptions)
-            where T : IJsonBuilder
+            where T : class, IJsonBuilder
         {
             return WithJsonSerialization<T>(builder, serializeOptions, deSerializeOptions, x => { });
         }
@@ -54,7 +55,7 @@ namespace RCommon.Json
         /// <param name="serializeOptions">An action to configure <see cref="JsonSerializeOptions"/>.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithJsonSerialization<T>(this IRCommonBuilder builder, Action<JsonSerializeOptions> serializeOptions)
-            where T : IJsonBuilder
+            where T : class, IJsonBuilder
         {
             return WithJsonSerialization<T>(builder, serializeOptions, x => { }, x => { });
         }
@@ -68,7 +69,7 @@ namespace RCommon.Json
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithJsonSerialization<T>(this IRCommonBuilder builder,
             Action<JsonDeserializeOptions> deSerializeOptions)
-            where T : IJsonBuilder
+            where T : class, IJsonBuilder
         {
             return WithJsonSerialization<T>(builder, x => { }, deSerializeOptions, x => { });
         }
@@ -81,7 +82,7 @@ namespace RCommon.Json
         /// <param name="actions">An action to further configure the <typeparamref name="T"/> builder instance.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithJsonSerialization<T>(this IRCommonBuilder builder, Action<T> actions)
-            where T : IJsonBuilder
+            where T : class, IJsonBuilder
         {
 
             return WithJsonSerialization<T>(builder, x => { }, x => { }, actions);
@@ -98,21 +99,40 @@ namespace RCommon.Json
         /// <param name="actions">An action to further configure the <typeparamref name="T"/> builder instance.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         /// <remarks>
+        /// Singleton-style: re-invoking with the same <typeparamref name="T"/> is idempotent (the sub-builder
+        /// is cached via <see cref="IRCommonBuilder.GetOrAddBuilder{TSubBuilder}(Func{TSubBuilder})"/> so the
+        /// constructor runs once); the <paramref name="actions"/> delegate still runs each call.
+        /// Re-invoking with a different concrete <typeparamref name="T"/> after one is already configured
+        /// throws <see cref="RCommonBuilderException"/>.
         /// This method uses <see cref="Activator.CreateInstance(Type, object[])"/> to instantiate the builder,
         /// passing the <see cref="IRCommonBuilder"/> as the constructor argument. The builder's constructor
         /// is expected to register its serialization services into the DI container.
         /// </remarks>
         public static IRCommonBuilder WithJsonSerialization<T>(this IRCommonBuilder builder, Action<JsonSerializeOptions> serializeOptions,
             Action<JsonDeserializeOptions> deSerializeOptions, Action<T> actions)
-            where T : IJsonBuilder
+            where T : class, IJsonBuilder
         {
             Guard.IsNotNull(serializeOptions, nameof(serializeOptions));
             Guard.IsNotNull(deSerializeOptions, nameof(deSerializeOptions));
             Guard.IsNotNull(actions, nameof(actions));
-            builder.Services.Configure<JsonSerializeOptions>(serializeOptions);
 
-            // Instantiate the builder via reflection; the constructor registers serializer services into DI
-            var jsonConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder })!;
+            var existing = RCommonBuilderInternals.FindCachedImplementationOf<IJsonBuilder>(builder);
+            if (existing is not null && existing != typeof(T))
+            {
+                throw new RCommonBuilderException(
+                    $"IJsonBuilder already configured as '{existing.FullName}'; " +
+                    $"cannot reconfigure as '{typeof(T).FullName}'. " +
+                    "To configure multiple modules consistently, ensure all modules agree on the same JSON serialization implementation.");
+            }
+
+            builder.Services.Configure<JsonSerializeOptions>(serializeOptions);
+            // NOTE: deSerializeOptions is intentionally not wired up here. The existing implementation
+            // also does not call Configure<JsonDeserializeOptions>. Preserving that pre-existing behavior
+            // keeps this change scope-limited to the singleton-style migration; the missing wiring is
+            // tracked separately as a follow-up.
+
+            var jsonConfig = builder.GetOrAddBuilder<T>(
+                () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
             actions(jsonConfig);
             return builder;
         }

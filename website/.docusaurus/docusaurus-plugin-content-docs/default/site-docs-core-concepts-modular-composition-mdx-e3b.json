@@ -1,0 +1,29 @@
+{
+  "id": "core-concepts/modular-composition",
+  "title": "Modular Composition",
+  "description": "Compose AddRCommon across multiple modules in a single process — registrations merge, never duplicate or throw on agreement.",
+  "source": "@site/docs/core-concepts/modular-composition.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/modular-composition",
+  "permalink": "/docs/next/core-concepts/modular-composition",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/core-concepts/modular-composition.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Modular Composition",
+    "sidebar_position": 2,
+    "description": "Compose AddRCommon across multiple modules in a single process — registrations merge, never duplicate or throw on agreement."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Fluent Configuration",
+    "permalink": "/docs/next/core-concepts/fluent-configuration"
+  },
+  "next": {
+    "title": "Guards & Validation",
+    "permalink": "/docs/next/core-concepts/guards"
+  }
+}

@@ -87,6 +87,10 @@ IRCommonBuilder
 
 `IMemoryCachingBuilder` and `IDistributedCachingBuilder` are marker interfaces. Provider packages implement them with concrete builder types (`InMemoryCachingBuilder`, `DistributedMemoryCacheBuilder`, `RedisCachingBuilder`) that expose provider-specific extension methods.
 
+:::tip Modular composition
+Both `WithMemoryCaching<T>` and `WithDistributedCaching<T>` are cache-aware sub-builder verbs. When two modules call `WithMemoryCaching<InMemoryCachingBuilder>` (or `WithDistributedCaching<RedisCachingBuilder>`) with the same concrete builder type, the cached sub-builder is reused and each module's configuration delegate runs against the same instance — `Configure(...)` and `CacheDynamicallyCompiledExpressions()` registrations accumulate. Different concrete builder types coexist side by side (e.g. `WithMemoryCaching<InMemoryCachingBuilder>` and `WithDistributedCaching<DistributedMemoryCacheBuilder>` register independently). See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ## Section contents
 
 - [Memory Cache](./memory.mdx) — In-process memory caching setup, configuration options, eviction, and expression caching

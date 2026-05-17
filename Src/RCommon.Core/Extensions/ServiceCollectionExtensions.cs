@@ -23,9 +23,33 @@ namespace RCommon
         /// <returns>RCommon configuration interface for additional chaining.</returns>
         public static IRCommonBuilder AddRCommon(this IServiceCollection services)
         {
+            var existing = services.FirstOrDefault(d => d.ServiceType == typeof(IRCommonBuilder));
+            if (existing?.ImplementationInstance is IRCommonBuilder cached)
+            {
+                return cached;
+            }
+
             var config = new RCommonBuilder(services);
-            config.Configure();
+            services.AddSingleton<IRCommonBuilder>(config);
+            config.Configure(); // No-op in the base class (just returns Services); preserved for consistency with the existing API shape and in case a subclass overrides it.
+
+            // Register finalize diagnostics hosted service exactly once (first AddRCommon call only).
+            // The cached-return branch above ensures subsequent AddRCommon calls do not re-register.
+            services.AddSingleton<IHostedService>(sp =>
+                new RCommonBootstrapDiagnosticsHostedService(
+                    services,
+                    sp.GetRequiredService<IRCommonBuilder>(),
+                    sp.GetService<ILoggerFactory>()));
+
             return config;
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if <see cref="AddRCommon"/> has been invoked against this collection.
+        /// </summary>
+        public static bool IsRCommonInitialized(this IServiceCollection services)
+        {
+            return services.Any(d => d.ServiceType == typeof(IRCommonBuilder));
         }
 
         /// <summary>

@@ -87,6 +87,10 @@ builder.Services.AddRCommon()
     });
 ```
 
+:::tip Modular composition
+`WithBlobStorage<T>` is a cache-aware sub-builder verb. When multiple modules call `WithBlobStorage<AzureBlobStorageBuilder>` (or any single concrete builder), the cached builder is reused and each module's `AddBlobStore(name, ...)` calls accumulate on the same instance — store names from every module are visible through `IBlobStoreFactory`. Different concrete builder types (e.g. one module using `AzureBlobStorageBuilder` and another using `AmazonS3ObjectsBuilder`) coexist side by side, exactly as the chained example above shows; calling the same builder type twice with the same store name is idempotent for that name's options. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ## Usage
 
 ### Resolving a store

@@ -30,7 +30,9 @@ RCommon supports three primary patterns that are essential in microservice envir
 
 ## Setting Up a Service with Messaging
 
-Each microservice calls `AddRCommon()` independently. The following shows how a service is configured to publish and receive messages via MassTransit:
+Each microservice calls `AddRCommon()` independently. Inside a single service, feature-folder modules can each call `AddRCommon().With...(...)` again — the bootstrapper caches the builder and merges registrations across calls. This lets a service's internal modules wire their own subscribers, validators, and DbContexts without funneling everything through one static initializer. See [Modular Composition](../core-concepts/modular-composition.mdx) for the contract that makes this safe.
+
+The following shows how a service is configured to publish and receive messages via MassTransit:
 
 ```csharp
 // Program.cs — Order Service

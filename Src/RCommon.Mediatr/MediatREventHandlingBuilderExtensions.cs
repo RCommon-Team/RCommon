@@ -28,7 +28,7 @@ namespace RCommon.MediatR
         /// <param name="builder">The RCommon builder.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder)
-            where T : IMediatREventHandlingBuilder
+            where T : class, IMediatREventHandlingBuilder
         {
             return WithEventHandling<T>(builder, x => { }, x=> { });
         }
@@ -41,7 +41,7 @@ namespace RCommon.MediatR
         /// <param name="actions">Configuration delegate for MediatR event handling.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<IMediatREventHandlingBuilder> actions)
-            where T : IMediatREventHandlingBuilder
+            where T : class, IMediatREventHandlingBuilder
         {
             // MediatR
             WithEventHandling<T>(builder, actions, mediatrActions =>
@@ -63,15 +63,17 @@ namespace RCommon.MediatR
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithEventHandling<T>(this IRCommonBuilder builder, Action<IMediatREventHandlingBuilder> actions,
             Action<MediatRServiceConfiguration> mediatRActions)
-            where T : IMediatREventHandlingBuilder
+            where T : class, IMediatREventHandlingBuilder
         {
             builder.Services.AddScoped<IMediatorService, MediatorService>();
 
             // MediatR
             builder.Services.AddMediatR(mediatRActions);
 
-            // This will wire up common event handling
-            var eventHandlingConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder })!;
+            // This will wire up common event handling.
+            // Routed through GetOrAddBuilder so repeated WithEventHandling<T> calls reuse the cached sub-builder.
+            var eventHandlingConfig = builder.GetOrAddBuilder<T>(
+                () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
             actions(eventHandlingConfig);
 
             return builder;

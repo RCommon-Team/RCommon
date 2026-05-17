@@ -48,6 +48,14 @@ builder.Services.AddRCommon()
 2. Calls `AddConsumer<MassTransitEventHandler<TEvent>>` so MassTransit creates a consumer for the endpoint.
 3. Records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to the MassTransit producer.
 
+:::tip Modular composition
+`WithEventHandling<MassTransitEventHandlingBuilder>` participates in the cache-aware sub-builder contract: a second call with the same builder type reuses the cached `MassTransitEventHandlingBuilder`, and subscriber/producer registrations from each module accumulate against the one instance. `AddProducer<T>` deduplicates by concrete producer type — exactly one descriptor per producer.
+
+**Known limitation — cross-module composition.** MassTransit's pre-existing `IBus` registration guard means a second module that calls `WithEventHandling<MassTransitEventHandlingBuilder>` will throw `MassTransit.ConfigurationException`. Single-module usage is unchanged. Tracked as a follow-up; for now, funnel MassTransit wiring through a single module and let other modules contribute subscribers via the shared cached builder accessed through `IRCommonBuilder.GetOrAddBuilder<MassTransitEventHandlingBuilder>()`.
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ## Defining an event
 
 Events must implement `ISerializableEvent` and must have a parameterless constructor for broker deserialization:

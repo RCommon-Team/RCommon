@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.Stateless;
 using RCommon.StateMachines;
 
@@ -18,7 +19,7 @@ public static class StatelessBuilderExtensions
     /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
     public static IRCommonBuilder WithStatelessStateMachine(this IRCommonBuilder builder)
     {
-        builder.Services.AddTransient(typeof(IStateMachineConfigurator<,>), typeof(StatelessConfigurator<,>));
+        builder.Services.TryAddTransient(typeof(IStateMachineConfigurator<,>), typeof(StatelessConfigurator<,>));
         return builder;
     }
 }

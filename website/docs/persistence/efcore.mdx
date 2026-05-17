@@ -113,6 +113,36 @@ ef.AddDbContext<OrderingDbContext>("Ordering",
 ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Ordering");
 ```
 
+## Modular composition
+
+`WithPersistence<EFCorePerisistenceBuilder>` is cache-aware. When two modules both call it, the second call reuses the cached `EFCorePerisistenceBuilder` rather than constructing a new one — both configuration delegates run against the same instance, so each module can declare its own DbContexts side by side:
+
+```csharp
+// In OrderingModule.Configure
+services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        ef.AddDbContext<OrderingDbContext>("Ordering",
+            o => o.UseSqlServer(orderingConn)));
+
+// In InventoryModule.Configure
+services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        ef.AddDbContext<InventoryDbContext>("Inventory",
+            o => o.UseNpgsql(inventoryConn)));
+```
+
+After both modules run, `IDataStoreFactory` resolves `"Ordering"` and `"Inventory"` to their respective contexts. The `EFCorePerisistenceBuilder` itself is constructed exactly once.
+
+`AddDbContext<TDbContext>(name, ...)` has the following conflict semantics across modules:
+
+| Re-registration shape | Behaviour |
+|---|---|
+| Same `name` + same `TDbContext` (same options-builder allowed to differ) | Idempotent — the duplicate is dropped. |
+| Same `name` + different `TDbContext` | Throws `UnsupportedDataStoreException` naming both context types. |
+| Different `name` + same or different `TDbContext` | Both are registered. |
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+
 ## Usage
 
 ### Injecting and targeting a data store

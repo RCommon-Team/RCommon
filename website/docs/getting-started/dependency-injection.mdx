@@ -202,6 +202,65 @@ When you register multiple DbContexts (for example a write model and a read mode
 
 A repository can be directed to use a specific data store by setting `DataStoreName` on the repository instance before use. The `IDataStoreFactory` resolves the correct DbContext by name at runtime.
 
+## Multi-module bootstrapping
+
+`AddRCommon()` is safe to call from any number of modules in the same process. The first call constructs the `IRCommonBuilder` and caches it on `IServiceCollection`; subsequent calls return the same instance, so all modules share one builder and one set of sub-builders. Three helper APIs support this pattern directly:
+
+| API | Purpose |
+|---|---|
+| `IServiceCollection.IsRCommonInitialized()` | Returns `true` if any module in the process has already called `AddRCommon()`. Useful for optional wiring in libraries that should skip themselves when RCommon is absent. |
+| `IRCommonBuilder.GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder>)` | The hook custom `WithX<T>` extensions use to opt into sub-builder caching. The factory runs at most once per `TSubBuilder` per process. |
+| `IRCommonBuilder.GetBootstrapDiagnostics()` | After `host.StartAsync()`, returns a report of soft duplicates detected by the descriptor scanner, or `string.Empty` if nothing is suspicious. |
+
+A minimal module pattern:
+
+```csharp
+public interface IServiceModule
+{
+    void Configure(IServiceCollection services);
+}
+
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()
+            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+                ef.AddDbContext<OrderingDbContext>(
+                    "Ordering",
+                    o => o.UseInMemoryDatabase("ordering")));
+    }
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()          // Same impl — idempotent no-op.
+            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+                ef.AddDbContext<InventoryDbContext>(
+                    "Inventory",
+                    o => o.UseInMemoryDatabase("inventory")));
+    }
+}
+
+// Composition root
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        IServiceModule[] modules = { new OrderingModule(), new InventoryModule() };
+        foreach (var module in modules)
+            module.Configure(services);
+    })
+    .Build();
+```
+
+Both `WithPersistence<EFCorePerisistenceBuilder>` calls share the same persistence sub-builder, so both `AddDbContext` calls accumulate against one `DataStoreFactoryOptions`. The duplicate `WithSimpleGuidGenerator()` is a no-op because the impl type matches.
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable three-module example.
+
 ## Verifying registrations
 
 During development you can dump the full service registration list to the console:

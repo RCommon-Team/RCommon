@@ -20,6 +20,7 @@ const sidebars: SidebarsConfig = {
       link: { type: 'generated-index' },
       items: [
         'core-concepts/fluent-configuration',
+        'core-concepts/modular-composition',
         'core-concepts/guards',
         'core-concepts/guid-generation',
         'core-concepts/system-time',

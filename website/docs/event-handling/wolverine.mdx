@@ -46,6 +46,10 @@ builder.Services.AddRCommon()
 
 `AddSubscriber<TEvent, TEventHandler>` registers `ISubscriber<TEvent>` as scoped in the DI container and records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to Wolverine producers.
 
+:::tip Modular composition
+`WithEventHandling<WolverineEventHandlingBuilder>` is a cache-aware sub-builder verb. When multiple modules call it, the cached `WolverineEventHandlingBuilder` is reused and each module's `AddSubscriber<TEvent, THandler>` and `AddProducer<T>` calls accumulate on the same instance. `AddProducer<T>` deduplicates by concrete producer type — registering `PublishWithWolverineEventProducer` from two modules yields one descriptor. The host-level `builder.Host.UseWolverine(...)` registration must remain in the application host's composition root; only the RCommon sub-builder participates in module-level composition. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ## Defining an event
 
 Events must implement `ISerializableEvent`. Include a parameterless constructor for Wolverine deserialization:

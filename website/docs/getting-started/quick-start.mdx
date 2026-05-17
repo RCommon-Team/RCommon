@@ -153,3 +153,7 @@ public class ProductsController : ControllerBase
 - `WithUnitOfWork<DefaultUnitOfWorkBuilder>` registers `IUnitOfWork` and `IUnitOfWorkFactory` for transactional coordination.
 
 From here you can add CQRS mediation, event handling, validation, or any other RCommon feature by chaining additional `With*` calls on the builder.
+
+:::tip Modular apps
+`AddRCommon()` can be called from multiple modules safely — repeat calls return the same cached builder, sub-builder verbs (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, etc.) reuse the same sub-builder, and singleton-style verbs are idempotent on identical impls. Registrations merge instead of throwing. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::

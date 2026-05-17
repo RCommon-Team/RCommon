@@ -75,6 +75,10 @@ builder.Services.AddRCommon(config =>
 
 This registers the same interfaces but substitutes `HttpContextCurrentPrincipalAccessor` for `ThreadCurrentPrincipalAccessor`, and calls `AddHttpContextAccessor()` automatically.
 
+:::tip Modular composition
+Both `WithClaimsAndPrincipalAccessor()` and `WithClaimsAndPrincipalAccessorForWeb()` are `TryAdd`-hardened — repeat calls from multiple modules are idempotent. The principal accessor, `ICurrentUser`, `ICurrentClient`, and `ITenantIdAccessor` registrations are each added exactly once. Do not mix the two variants in the same process: `TryAdd` keeps whichever ran first and silently ignores the other, which can leave a web host running with `ThreadCurrentPrincipalAccessor` (or vice versa). Pick one variant in the host's composition root. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ### Overriding claim type URIs
 
 If your identity provider uses non-standard claim type URIs, override the static properties on `ClaimTypesConst` once at startup before any requests are processed:

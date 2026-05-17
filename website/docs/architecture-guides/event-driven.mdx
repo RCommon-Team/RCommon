@@ -119,6 +119,10 @@ public class SendApprovalEmailHandler : ISubscriber<LeaveRequestApprovedEvent>
 
 RCommon ships with four event handling providers. You choose one (or more) at startup via the fluent builder.
 
+:::tip Modular composition
+`WithEventHandling<T>` is cache-aware. In a modular codebase, each feature module can call `services.AddRCommon().WithEventHandling<InMemoryEventBusBuilder>(eh => eh.AddSubscriber<MyEvent, MyHandler>())` independently — the cached `InMemoryEventBusBuilder` is reused across modules and subscriber/producer registrations accumulate. `AddProducer<T>` deduplicates by concrete producer type, so the same producer registered from two modules yields exactly one descriptor. This pattern works for `InMemoryEventBusBuilder`, `MediatREventHandlingBuilder`, and `WolverineEventHandlingBuilder`; `MassTransitEventHandlingBuilder` has a known cross-module limitation documented on its [MassTransit page](../event-handling/masstransit.mdx#configuration). See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ### In-Memory Event Bus
 
 The simplest provider. Events are dispatched synchronously within the same process. No external broker required. Best for domain events within a single service.

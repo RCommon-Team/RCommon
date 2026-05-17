@@ -19,8 +19,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "Fluent Configuration",
-    "permalink": "/docs/next/core-concepts/fluent-configuration"
+    "title": "Modular Composition",
+    "permalink": "/docs/next/core-concepts/modular-composition"
   },
   "next": {
     "title": "GUID Generation",

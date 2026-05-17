@@ -54,6 +54,10 @@ builder.Services.AddRCommon()
     });
 ```
 
+:::tip Modular composition
+`WithEventHandling<WolverineEventHandlingBuilder>` is a cache-aware sub-builder verb. When multiple modules call it, the cached `WolverineEventHandlingBuilder` is reused and each module's `AddSubscriber<TEvent, THandler>` and `AddProducer<T>` registrations accumulate on the same instance. `AddProducer<T>` deduplicates by concrete producer type, so the same producer registered from two modules yields exactly one descriptor. Note that the host-level `builder.Host.UseWolverine(...)` call must happen exactly once in the application host; only the RCommon sub-builder participates in module-level composition. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ## Usage
 
 ### Defining an event

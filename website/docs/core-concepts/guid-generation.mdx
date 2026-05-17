@@ -15,7 +15,7 @@ RCommon abstracts GUID generation behind an `IGuidGenerator` interface for two r
 1. **Testability.** Code that calls `Guid.NewGuid()` directly cannot be controlled in unit tests. Injecting `IGuidGenerator` lets tests substitute a predictable implementation.
 2. **Database performance.** Standard random GUIDs cause index fragmentation in clustered indexes because their values are not monotonically increasing. Sequential GUIDs embed a timestamp in the byte layout so new rows are always appended at the end of the index.
 
-RCommon ships two implementations out of the box: `SimpleGuidGenerator` and `SequentialGuidGenerator`. You pick one during application configuration; only one generator may be registered per application.
+RCommon ships two implementations out of the box: `SimpleGuidGenerator` and `SequentialGuidGenerator`. You pick one during application configuration; see [Behavior on repeated calls](#behavior-on-repeated-calls) below for what happens when more than one module configures GUID generation.
 
 ## Installation
 
@@ -53,6 +53,10 @@ builder.Services.AddRCommon()
 ```
 
 When `DefaultSequentialGuidType` is left `null`, the generator defaults to `SequentialAtEnd`.
+
+### Behavior on repeated calls
+
+GUID generator verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`) now follow singleton-style modular composition: calling the same generator twice is an idempotent no-op, while calling a different generator after one is already configured throws `RCommonBuilderException`. The exception message names both impl types and offers a remediation hint. See [Modular Composition](./modular-composition.mdx) for the full conflict matrix.
 
 ## Usage
 

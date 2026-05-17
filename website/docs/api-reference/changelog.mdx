@@ -12,6 +12,32 @@ The authoritative release history for all RCommon packages is maintained on GitH
 
 ## Recent Changes
 
+### Modular Composition (Unreleased)
+
+Added support for calling `services.AddRCommon()` from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement.
+
+**Added**
+
+- **Modular composition support** — `services.AddRCommon()` can now be called from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement. See [Modular Composition](../core-concepts/modular-composition.mdx).
+- New public API: `IRCommonBuilder.GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder>)` — third-party `WithX<T>` extensions opt into sub-builder caching.
+- New public API: `IRCommonBuilder.GetBootstrapDiagnostics()` — retrieve the soft-duplicate report stashed at host startup.
+- New public API: `IServiceCollection.IsRCommonInitialized()` — true iff `AddRCommon()` has been called.
+- New internal `IHostedService` runs the duplicate-descriptor scanner at host startup and emits a single warning on soft duplicates.
+
+**Changed**
+
+- `AddRCommon()` is now idempotent: subsequent calls return the cached `IRCommonBuilder`.
+- Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) are now idempotent on same-type re-registration. Different-type conflicts throw `RCommonBuilderException` with diagnostic messages.
+- `DataStoreFactoryOptions.Register<,>` is now idempotent for identical `(name, base, concrete)` triples. Conflicts (same `(name, base)` with different concrete) throw `UnsupportedDataStoreException` (exception type preserved).
+- `AddProducer<T>` now deduplicates by concrete producer type via descriptor scan — distinct producer types still coexist.
+- All sub-builder `WithX<T>` extensions route through `GetOrAddBuilder<T>`; generic constraints tightened to `where T : class, ...`.
+
+**Notes**
+
+- Strictly additive public API surface. No method or interface signature removals.
+- No exception types changed on existing APIs.
+- See `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable demonstration.
+
 ### Blob Storage Abstractions
 
 Added `RCommon.Blobs` as a provider-agnostic blob storage abstraction layer, with two concrete implementations:

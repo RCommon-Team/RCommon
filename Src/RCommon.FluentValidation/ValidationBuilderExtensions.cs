@@ -23,7 +23,7 @@ namespace RCommon.ApplicationServices
         /// <param name="builder">The RCommon builder instance.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
         public static IRCommonBuilder WithValidation<T>(this IRCommonBuilder builder)
-            where T : IValidationBuilder
+            where T : class, IValidationBuilder
         {
 
             return WithValidation<T>(builder, x => { });
@@ -43,11 +43,13 @@ namespace RCommon.ApplicationServices
         /// is expected to register its validation services into the DI container.
         /// </remarks>
         public static IRCommonBuilder WithValidation<T>(this IRCommonBuilder builder, Action<CqrsValidationOptions> actions)
-            where T : IValidationBuilder
+            where T : class, IValidationBuilder
         {
 
-            // Instantiate the validation builder via reflection; the constructor registers validation services into DI
-            var cqrsBuilder = (T)Activator.CreateInstance(typeof(T), new object[] { builder })!;
+            // Instantiate the validation builder via reflection; the constructor registers validation services into DI.
+            // Routed through GetOrAddBuilder so repeated WithValidation<T> calls reuse the cached sub-builder.
+            var cqrsBuilder = builder.GetOrAddBuilder<T>(
+                () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
             builder.Services.Configure<CqrsValidationOptions>(actions);
             return builder;
         }

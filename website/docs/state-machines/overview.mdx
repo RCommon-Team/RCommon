@@ -97,6 +97,10 @@ Choose `RCommon.MassTransit.StateMachines` when:
 - You are already using `RCommon.MassTransit` and want to avoid an additional dependency.
 - Your state machine only uses simple unconditional transitions and guarded transitions with no trigger data.
 
+:::tip Modular composition
+Both `WithStatelessStateMachine()` and `WithMassTransitStateMachine()` are `TryAdd`-hardened — repeat calls from multiple modules are idempotent and the open-generic `IStateMachineConfigurator<,>` registration is added exactly once. Modules can opt into state-machine support independently. Registering both adapters in the same process is not recommended (the second registration is ignored by `TryAdd`); pick one per process. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ## Section contents
 
 - [Stateless](./stateless.mdx) — Stateless library integration, defining states/triggers, full configuration reference

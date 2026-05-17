@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Src\RCommon.Emailing\RCommon.Emailing.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.SendGrid\RCommon.SendGrid.csproj" />
   </ItemGroup>
 
 </Project>

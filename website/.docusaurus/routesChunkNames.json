@@ -5,17 +5,17 @@
       "plugin": "138e0e15"
     }
   },
-  "/docs-62c": {
+  "/docs-732": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
     }
   },
-  "/docs/next-f3e": {
+  "/docs/next-1a8": {
     "__comp": "a7bd4aaa",
     "__props": "bf1307fc"
   },
-  "/docs/next-a23": {
+  "/docs/next-bf6": {
     "__comp": "a94703ab"
   },
   "/docs/next-c40": {
@@ -161,6 +161,10 @@
   "/docs/next/core-concepts/guid-generation-df6": {
     "__comp": "17896441",
     "content": "217dc876"
+  },
+  "/docs/next/core-concepts/modular-composition-40a": {
+    "__comp": "17896441",
+    "content": "e3ba908e"
   },
   "/docs/next/core-concepts/system-time-1a0": {
     "__comp": "17896441",

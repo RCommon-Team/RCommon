@@ -50,7 +50,7 @@ namespace RCommon
         /// <param name="builder">The RCommon builder.</param>
         /// <returns>The <paramref name="builder"/> for further chaining.</returns>
         public static IRCommonBuilder WithCQRS<T>(this IRCommonBuilder builder)
-            where T : ICqrsBuilder
+            where T : class, ICqrsBuilder
         {
 
             return WithCQRS<T>(builder, x => { });
@@ -64,11 +64,13 @@ namespace RCommon
         /// <param name="actions">A delegate to configure the CQRS builder (e.g., register handlers).</param>
         /// <returns>The <paramref name="builder"/> for further chaining.</returns>
         public static IRCommonBuilder WithCQRS<T>(this IRCommonBuilder builder, Action<T> actions)
-            where T : ICqrsBuilder
+            where T : class, ICqrsBuilder
         {
 
-            // Instantiate the CQRS builder implementation, which registers core bus services in its constructor
-            var cqrsBuilder = (T)Activator.CreateInstance(typeof(T), new object[] { builder })!;
+            // Instantiate the CQRS builder implementation, which registers core bus services in its constructor.
+            // Routed through GetOrAddBuilder so repeated WithCQRS<T> calls reuse the cached sub-builder.
+            var cqrsBuilder = builder.GetOrAddBuilder<T>(
+                () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
             actions(cqrsBuilder);
             return builder;
         }

@@ -47,6 +47,10 @@ builder.Services.AddRCommon()
     });
 ```
 
+:::tip Modular composition
+`WithMediator<MediatRBuilder>` is cache-aware. When multiple modules call it, the cached `MediatRBuilder` is reused and each module's configuration delegate runs against the same instance — `AddRequest`, `AddNotification`, `AddLoggingToRequestPipeline`, `AddUnitOfWorkToRequestPipeline`, and `Configure(...)` registrations from every module accumulate on one builder. This lets each module register its own command/query handlers without coordinating with the others. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
 ### Advanced MediatR configuration
 
 Access the underlying `MediatRServiceConfiguration` to register handlers from additional assemblies or to set MediatR-specific options:

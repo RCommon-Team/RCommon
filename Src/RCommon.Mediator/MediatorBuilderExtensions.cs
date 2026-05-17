@@ -25,7 +25,7 @@ namespace RCommon
         /// <param name="builder">The RCommon builder instance.</param>
         /// <returns>The <see cref="IRCommonBuilder"/> for chaining additional configuration calls.</returns>
         public static IRCommonBuilder WithMediator<T>(this IRCommonBuilder builder)
-            where T : IMediatorBuilder
+            where T : class, IMediatorBuilder
         {
             return WithMediator<T>(builder, x => { });
         }
@@ -45,13 +45,15 @@ namespace RCommon
         /// the configuration delegate to allow library-specific setup.
         /// </remarks>
         public static IRCommonBuilder WithMediator<T>(this IRCommonBuilder builder, Action<T> actions)
-            where T : IMediatorBuilder
+            where T : class, IMediatorBuilder
         {
 
             builder.Services.AddScoped<IMediatorService, MediatorService>();
 
-            // Create the mediator-specific builder by convention (expects a constructor accepting IRCommonBuilder)
-            var mediatorConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder })!;
+            // Create the mediator-specific builder by convention (expects a constructor accepting IRCommonBuilder).
+            // Routed through GetOrAddBuilder so repeated WithMediator<T> calls reuse the cached sub-builder.
+            var mediatorConfig = builder.GetOrAddBuilder<T>(
+                () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
             actions(mediatorConfig);
             return builder;
         }

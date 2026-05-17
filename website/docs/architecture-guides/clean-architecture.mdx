@@ -282,6 +282,10 @@ public class LeaveManagementDbContext : AuditableDbContext
 
 All layers are wired together in `Program.cs` using RCommon's fluent builder. This is the only place where concrete implementations are named:
 
+:::tip Modular composition
+A single `Program.cs` is the easiest pattern, but it is not the only one. RCommon's bootstrapper is cache-aware: each layer (or feature folder) can expose its own static `Add*ModuleServices(IServiceCollection)` method that calls `services.AddRCommon().With...(...)` independently, and the registrations merge predictably. Layer-owned wiring lets the Application layer register handlers and validators while the Infrastructure layer registers the `DbContext` and SendGrid — without coordinating through one giant `Program.cs`. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full contract.
+:::
+
 ```csharp
 builder.Services.AddRCommon()
     .WithClaimsAndPrincipalAccessor()

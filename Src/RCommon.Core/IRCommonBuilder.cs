@@ -53,5 +53,22 @@ namespace RCommon
         IRCommonBuilder WithCommonFactory<TService, TImplementation>()
             where TService : class
             where TImplementation : class, TService;
+
+        /// <summary>
+        /// Returns the cached sub-builder for <typeparamref name="TSubBuilder"/> if one exists,
+        /// otherwise invokes <paramref name="factory"/>, caches the result, and returns it.
+        /// </summary>
+        /// <typeparam name="TSubBuilder">Concrete sub-builder type (e.g., <c>EFCorePerisistenceBuilder</c>).</typeparam>
+        /// <param name="factory">Parameterless factory invoked exactly once per <typeparamref name="TSubBuilder"/>
+        /// per <see cref="IRCommonBuilder"/>. Callers close over whichever constructor argument the sub-builder
+        /// requires — typically <c>builder.Services</c> or <c>builder</c> itself.</param>
+        TSubBuilder GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder> factory)
+            where TSubBuilder : class;
+
+        /// <summary>
+        /// Returns soft-duplicate diagnostic output stashed at finalize when no <see cref="Microsoft.Extensions.Logging.ILoggerFactory"/>
+        /// was available. Empty string if no duplicates were detected.
+        /// </summary>
+        string GetBootstrapDiagnostics();
     }
 }

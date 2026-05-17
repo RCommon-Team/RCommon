@@ -70,6 +70,17 @@ builder.Services.AddRCommon()
         builder.Configuration.GetSection("Email").Bind(smtp));
 ```
 
+### Modular composition
+
+Both `WithSmtpEmailServices` and `WithSendGridEmailServices` are singleton-style verbs: only one `IEmailService` implementation makes sense per process, so they enforce the choice at startup.
+
+| Re-registration shape | Behaviour |
+|---|---|
+| Same verb called twice (e.g. `WithSmtpEmailServices` in two modules) | Idempotent no-op — the second call detects the impl is already registered and skips the second registration. The latest configuration delegate still runs against `SmtpEmailSettings`, so option values follow last-write-wins. |
+| Different email impls in the same process (e.g. one module calls `WithSmtpEmailServices`, another calls `WithSendGridEmailServices`) | Throws `RCommonBuilderException` naming both impl types. Pick exactly one transport. |
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+
 ## Usage
 
 Inject `IEmailService` wherever you need to send mail.

@@ -23,7 +23,7 @@ namespace RCommon.ApplicationServices
         /// <param name="builder">The RCommon builder.</param>
         /// <returns>The <paramref name="builder"/> for further chaining.</returns>
         public static IRCommonBuilder WithValidation<T>(this IRCommonBuilder builder)
-            where T : IValidationBuilder
+            where T : class, IValidationBuilder
         {
             return WithValidation<T>(builder, x => { });
         }
@@ -36,14 +36,16 @@ namespace RCommon.ApplicationServices
         /// <param name="actions">A delegate to configure the validation builder (e.g., register validation providers).</param>
         /// <returns>The <paramref name="builder"/> for further chaining.</returns>
         public static IRCommonBuilder WithValidation<T>(this IRCommonBuilder builder, Action<T> actions)
-            where T : IValidationBuilder
+            where T : class, IValidationBuilder
         {
 
             builder.Services.AddScoped<IValidationService, ValidationService>();
 
-            // Instantiate the validation builder implementation, which may register provider-specific services
-            var mediatorConfig = (T)Activator.CreateInstance(typeof(T), new object[] { builder })!;
-            actions(mediatorConfig);
+            // Instantiate the validation builder implementation, which may register provider-specific services.
+            // Routed through GetOrAddBuilder so repeated WithValidation<T> calls reuse the cached sub-builder.
+            var validationConfig = builder.GetOrAddBuilder<T>(
+                () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
+            actions(validationConfig);
             return builder;
         }
 

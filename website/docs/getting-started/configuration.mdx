@@ -219,6 +219,47 @@ builder.Services.AddRCommon()
     });
 ```
 
+## Modular Composition
+
+`AddRCommon()` is idempotent across modules. The first call constructs the `IRCommonBuilder` and caches it on `IServiceCollection`; every subsequent call returns the same instance. Sub-builder verbs (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, `WithUnitOfWork<T>`, `WithCQRS<T>`, `WithValidation<T>`, `WithBlobStorage<T>`, `WithMultiTenancy<T>`, `WithMemoryCaching<T>`, `WithDistributedCaching<T>`) are cache-aware: a second call with the same `T` reuses the cached sub-builder, so the supplied `Action<T>` runs against the same instance and registrations accumulate. Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) are idempotent on identical impls and throw `RCommonBuilderException` only when a different impl competes for the same slot.
+
+The typical pattern: each module exposes a `Configure(IServiceCollection services)` method that builds its slice of RCommon independently.
+
+```csharp
+public interface IServiceModule
+{
+    void Configure(IServiceCollection services);
+}
+
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()
+            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+                ef.AddDbContext<OrderingDbContext>(
+                    "Ordering",
+                    o => o.UseSqlServer(orderingConnectionString)));
+    }
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()          // Same impl as Ordering — idempotent no-op.
+            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+                ef.AddDbContext<InventoryDbContext>(
+                    "Inventory",
+                    o => o.UseNpgsql(inventoryConnectionString)));
+    }
+}
+```
+
+Each module pulls in only the features it needs; the framework deduplicates shared registrations automatically. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and the runnable example under `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/`.
+
 ## Diagnostics
 
 During development you can print all registered services to the console to verify configuration:

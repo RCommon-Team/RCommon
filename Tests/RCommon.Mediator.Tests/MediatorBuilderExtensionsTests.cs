@@ -240,7 +240,7 @@ public class MediatorBuilderExtensionsTests
     #region MediatorBuilder Creation Tests
 
     [Fact]
-    public void WithMediator_CreatesNewMediatorBuilderForEachCall()
+    public void WithMediator_ReusesCachedBuilderForRepeatedCalls()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -252,8 +252,10 @@ public class MediatorBuilderExtensionsTests
         builder.WithMediator<TestMediatorBuilder>(config => instances.Add(config));
 
         // Assert
+        // The action delegate still runs each call, but the sub-builder is cached
+        // via IRCommonBuilder.GetOrAddBuilder so both invocations see the same instance.
         instances.Should().HaveCount(2);
-        instances[0].Should().NotBeSameAs(instances[1]);
+        instances[0].Should().BeSameAs(instances[1]);
     }
 
     #endregion
@@ -284,6 +286,10 @@ public class MediatorBuilderExtensionsTests
 
     public class TestRCommonBuilder : IRCommonBuilder
     {
+        // Mirrors the production RCommonBuilder._subBuilderCache so tests exercise the real caching contract:
+        // GetOrAddBuilder<T> must return the same instance on repeated calls for the same T.
+        private readonly Dictionary<Type, object> _subBuilderCache = new();
+
         public IServiceCollection Services { get; }
 
         public TestRCommonBuilder(IServiceCollection services)
@@ -317,6 +323,21 @@ public class MediatorBuilderExtensionsTests
         {
             return this;
         }
+
+        public TSubBuilder GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder> factory)
+            where TSubBuilder : class
+        {
+            if (_subBuilderCache.TryGetValue(typeof(TSubBuilder), out var existing))
+            {
+                return (TSubBuilder)existing;
+            }
+
+            var created = factory();
+            _subBuilderCache[typeof(TSubBuilder)] = created;
+            return created;
+        }
+
+        public string GetBootstrapDiagnostics() => string.Empty;
     }
 
     #endregion
