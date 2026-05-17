@@ -53,7 +53,7 @@ builder.Services.AddRCommon()
 
 **Known limitation — cross-module composition.** MassTransit's `AddMassTransit(...)` includes a pre-existing `IBus` guard: invoking it again after the bus has been registered throws `MassTransit.ConfigurationException`. RCommon's bootstrapper caches the sub-builder, but the underlying MassTransit guard runs the first time `WithEventHandling<MassTransitEventHandlingBuilder>` is called. Single-module usage is unchanged. A second module that calls `WithEventHandling<MassTransitEventHandlingBuilder>` will throw `MassTransit.ConfigurationException`. Tracked as a follow-up; for now, funnel all MassTransit wiring through one module and let other modules use `AddSubscriber` against the shared cached builder via `IRCommonBuilder.GetOrAddBuilder<MassTransitEventHandlingBuilder>()` if cross-module subscribers are required.
 
-See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 :::
 
 ## Defining an event

@@ -79,7 +79,7 @@ Both `WithSmtpEmailServices` and `WithSendGridEmailServices` are singleton-style
 | Same verb called twice (e.g. `WithSmtpEmailServices` in two modules) | Idempotent no-op — the second call detects the impl is already registered and skips the second registration. The latest configuration delegate still runs against `SmtpEmailSettings`, so option values follow last-write-wins. |
 | Different email impls in the same process (e.g. one module calls `WithSmtpEmailServices`, another calls `WithSendGridEmailServices`) | Throws `RCommonBuilderException` naming both impl types. Pick exactly one transport. |
 
-See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 
 ## Usage
 

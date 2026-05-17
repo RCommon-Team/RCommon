@@ -259,7 +259,7 @@ var host = Host.CreateDefaultBuilder(args)
 
 Both `WithPersistence<EFCorePerisistenceBuilder>` calls share the same persistence sub-builder, so both `AddDbContext` calls accumulate against one `DataStoreFactoryOptions`. The duplicate `WithSimpleGuidGenerator()` is a no-op because the impl type matches.
 
-See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix and `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable three-module example.
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable three-module example.
 
 ## Verifying registrations
 

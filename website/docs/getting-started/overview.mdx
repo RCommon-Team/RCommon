@@ -12,7 +12,7 @@ The goal is not to invent new patterns but to give you clean, consistent interfa
 
 ## What RCommon provides
 
-- **Fluent, DI-first configuration** — a single `AddRCommon()` call bootstraps everything through a composable builder chain. RCommon supports both single-call and multi-module composition; see [Modular Composition](../core-concepts/modular-composition.md).
+- **Fluent, DI-first configuration** — a single `AddRCommon()` call bootstraps everything through a composable builder chain. RCommon supports both single-call and multi-module composition; see [Modular Composition](../core-concepts/modular-composition.mdx).
 - **Pluggable providers** — every feature area exposes a generic slot (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, etc.) that accepts whichever implementation package you install.
 - **Repository and unit-of-work abstractions** — `ILinqRepository<T>`, `IReadOnlyRepository<T>`, `IWriteOnlyRepository<T>`, and `IAggregateRepository<T, TId>` sit in front of EF Core, Dapper, or Linq2Db.
 - **Domain-driven design primitives** — base entity classes with auditing, soft delete, and transactional domain events built in.

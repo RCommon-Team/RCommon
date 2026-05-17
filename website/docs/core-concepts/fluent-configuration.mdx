@@ -117,4 +117,4 @@ builder.Services.AddRCommon()
 
 ### Behavior on repeated calls
 
-Calling the same `With*<T>` method twice with the same `T` is now idempotent — the sub-builder is cached on the underlying `IServiceCollection` and any configuration action delegates accumulate against the cached instance. Singleton-style verbs (e.g., `WithSimpleGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`) are idempotent on same-type re-registration but throw `RCommonBuilderException` on different-type conflicts. See [Modular Composition](./modular-composition.md) for the full conflict matrix and modular usage patterns.
+Calling the same `With*<T>` method twice with the same `T` is now idempotent — the sub-builder is cached on the underlying `IServiceCollection` and any configuration action delegates accumulate against the cached instance. Singleton-style verbs (e.g., `WithSimpleGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`) are idempotent on same-type re-registration but throw `RCommonBuilderException` on different-type conflicts. See [Modular Composition](./modular-composition.mdx) for the full conflict matrix and modular usage patterns.

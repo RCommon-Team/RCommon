@@ -33,7 +33,7 @@ builder.Services.AddRCommon()
 ```
 
 :::tip Modular composition
-`WithEventHandling<MediatREventHandlingBuilder>` is cache-aware. When multiple modules call it, the cached `MediatREventHandlingBuilder` is reused and each configuration delegate runs against the same instance — subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: registering `PublishWithMediatREventProducer` from both `OrderingModule` and `NotificationsModule` results in a single descriptor. See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+`WithEventHandling<MediatREventHandlingBuilder>` is cache-aware. When multiple modules call it, the cached `MediatREventHandlingBuilder` is reused and each configuration delegate runs against the same instance — subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: registering `PublishWithMediatREventProducer` from both `OrderingModule` and `NotificationsModule` results in a single descriptor. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 :::
 
 `AddSubscriber` does three things internally:

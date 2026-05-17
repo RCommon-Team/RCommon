@@ -56,7 +56,7 @@ When `DefaultSequentialGuidType` is left `null`, the generator defaults to `Sequ
 
 ### Behavior on repeated calls
 
-GUID generator verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`) now follow singleton-style modular composition: calling the same generator twice is an idempotent no-op, while calling a different generator after one is already configured throws `RCommonBuilderException`. The exception message names both impl types and offers a remediation hint. See [Modular Composition](./modular-composition.md) for the full conflict matrix.
+GUID generator verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`) now follow singleton-style modular composition: calling the same generator twice is an idempotent no-op, while calling a different generator after one is already configured throws `RCommonBuilderException`. The exception message names both impl types and offers a remediation hint. See [Modular Composition](./modular-composition.mdx) for the full conflict matrix.
 
 ## Usage
 

@@ -18,7 +18,7 @@ Added support for calling `services.AddRCommon()` from multiple modules in the s
 
 **Added**
 
-- **Modular composition support** — `services.AddRCommon()` can now be called from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement. See [Modular Composition](../core-concepts/modular-composition.md).
+- **Modular composition support** — `services.AddRCommon()` can now be called from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement. See [Modular Composition](../core-concepts/modular-composition.mdx).
 - New public API: `IRCommonBuilder.GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder>)` — third-party `WithX<T>` extensions opt into sub-builder caching.
 - New public API: `IRCommonBuilder.GetBootstrapDiagnostics()` — retrieve the soft-duplicate report stashed at host startup.
 - New public API: `IServiceCollection.IsRCommonInitialized()` — true iff `AddRCommon()` has been called.

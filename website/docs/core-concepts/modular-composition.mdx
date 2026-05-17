@@ -10,7 +10,7 @@ description: Compose AddRCommon across multiple modules in a single process — 
 
 RCommon's bootstrapper supports modular composition: any number of modules in the same process can independently call `services.AddRCommon().WithX(...)` and the registrations merge predictably. Sub-builders are cached by concrete type, singleton-style verbs are idempotent on same-type re-registration, and conflicts (different impls competing for the same slot) throw with a diagnostic message that names both types.
 
-This page documents the contract. For the underlying builder API itself, see [Fluent Configuration](./fluent-configuration.md).
+This page documents the contract. For the underlying builder API itself, see [Fluent Configuration](./fluent-configuration.mdx).
 
 ## The problem
 
@@ -186,6 +186,6 @@ If you parallelize module wiring you will see intermittent missing registrations
 ## See also
 
 - `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` — a runnable three-module demonstration including producer deduplication and the diagnostic report.
-- [Fluent Configuration](./fluent-configuration.md) — the underlying builder API.
-- [GUID Generation](./guid-generation.md) — singleton-style verb that participates in the conflict matrix.
-- [System Time](./system-time.md) — same.
+- [Fluent Configuration](./fluent-configuration.mdx) — the underlying builder API.
+- [GUID Generation](./guid-generation.mdx) — singleton-style verb that participates in the conflict matrix.
+- [System Time](./system-time.mdx) — same.

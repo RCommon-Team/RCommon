@@ -28,7 +28,7 @@ builder.Services.AddRCommon()
 This registers `StatelessConfigurator<TState, TTrigger>` as the open-generic `IStateMachineConfigurator<TState, TTrigger>` implementation. Any combination of state and trigger enum types is automatically available for injection.
 
 :::tip Modular composition
-`WithStatelessStateMachine()` is `TryAdd`-hardened — repeat calls from multiple modules are idempotent. The open-generic `IStateMachineConfigurator<,>` registration is added exactly once regardless of how many modules invoke this verb. Modules can opt into state-machine support independently without coordinating. See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+`WithStatelessStateMachine()` is `TryAdd`-hardened — repeat calls from multiple modules are idempotent. The open-generic `IStateMachineConfigurator<,>` registration is added exactly once regardless of how many modules invoke this verb. Modules can opt into state-machine support independently without coordinating. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 :::
 
 ## Defining states and triggers

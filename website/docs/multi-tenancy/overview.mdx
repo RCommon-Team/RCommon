@@ -89,7 +89,7 @@ builder.Services.AddRCommon(config =>
 ```
 
 :::tip Modular composition
-`WithMultiTenancy<TBuilder>` is a cache-aware sub-builder verb. When multiple modules call `WithMultiTenancy<FinbuckleMultiTenantBuilder<TenantInfo>>(...)` with the same builder type, the cached builder is reused and each module's configuration action runs against the same instance. `FinbuckleTenantIdAccessor` is registered exactly once. This lets modules independently add tenant-aware services (custom tenant stores, per-tenant options) without coordinating wiring. See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+`WithMultiTenancy<TBuilder>` is a cache-aware sub-builder verb. When multiple modules call `WithMultiTenancy<FinbuckleMultiTenantBuilder<TenantInfo>>(...)` with the same builder type, the cached builder is reused and each module's configuration action runs against the same instance. `FinbuckleTenantIdAccessor` is registered exactly once. This lets modules independently add tenant-aware services (custom tenant stores, per-tenant options) without coordinating wiring. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 :::
 
 ## Usage
