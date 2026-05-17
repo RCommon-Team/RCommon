@@ -35,6 +35,10 @@ builder.Services.AddRCommon()
 
 `Configure` calls `AddStackExchangeRedisCache` on the underlying `IServiceCollection`, registering `IDistributedCache` with the Redis provider. `RedisCacheService` is then available as `ICacheService`.
 
+:::tip Modular composition
+`WithDistributedCaching<RedisCachingBuilder>` is a cache-aware sub-builder verb. When multiple modules call it, the cached `RedisCachingBuilder` is reused and each module's `Configure(...)` and `CacheDynamicallyCompiledExpressions()` calls accumulate on the same instance. Configuration delegates run in the order modules invoke them, so the last `Configure(...)` wins for `RedisCacheOptions` values that are simple scalar assignments — coordinate connection-string ownership in a single module. See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+:::
+
 ### Minimal setup
 
 ```csharp

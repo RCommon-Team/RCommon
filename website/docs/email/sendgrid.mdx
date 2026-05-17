@@ -65,6 +65,10 @@ builder.Services.AddRCommon()
         builder.Configuration.GetSection("SendGrid").Bind(sg));
 ```
 
+:::tip Modular composition
+`WithSendGridEmailServices` is a singleton-style verb: only one `IEmailService` implementation makes sense per process. Calling `WithSendGridEmailServices` from two modules is an idempotent no-op — the second registration is skipped, and `SendGridEmailSettings` follows last-write-wins for any options the second module's delegate assigns. Mixing `WithSendGridEmailServices` and `WithSmtpEmailServices` in the same process throws `RCommonBuilderException` naming both impl types; pick exactly one transport. See [Modular Composition](../core-concepts/modular-composition.md) and the [Email overview](./overview.mdx#modular-composition) for the full conflict matrix.
+:::
+
 ## Usage
 
 Inject `IEmailService` exactly as you would with SMTP. No SendGrid-specific types appear in application code.

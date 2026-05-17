@@ -211,6 +211,10 @@ The pattern is identical to MassTransit. Only the builder type and the registere
 
 The subscription isolation example demonstrates that events are only routed to the producer/handler pair that subscribed them. This is critical in services with mixed internal and external messaging.
 
+:::tip Modular composition
+The two-builder pattern shown below works whether you wire it in one `Program.cs` or split it across modules. Each module can call `services.AddRCommon().WithEventHandling<InMemoryEventBusBuilder>(...)` independently — the cached builder is reused and subscriber registrations accumulate. The MassTransit builder has a known cross-module limitation documented on the [MassTransit event handling page](../event-handling/masstransit.mdx#configuration); see [Modular Composition](../core-concepts/modular-composition.md) for the full contract.
+:::
+
 ### Scenario
 
 - `InMemoryOnlyEvent` — subscribed only in `InMemoryEventBusBuilder`

@@ -70,6 +70,10 @@ builder.Services.AddRCommon()
 
 This registers `IDistributedCache` via `AddDistributedMemoryCache` and makes `DistributedMemoryCacheService` available as `ICacheService`. Data is serialized to JSON before storage.
 
+:::tip Modular composition
+`WithMemoryCaching<InMemoryCachingBuilder>` and `WithDistributedCaching<DistributedMemoryCacheBuilder>` are cache-aware sub-builder verbs. When multiple modules call the same verb with the same builder type, the cached sub-builder is reused and each module's `Configure(...)` and `CacheDynamicallyCompiledExpressions()` calls accumulate against one instance. This lets an "infrastructure" module enable expression caching while a "feature" module separately tunes `MemoryCacheOptions`. See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+:::
+
 ## Expression caching
 
 RCommon uses `ICacheService` internally to cache compiled LINQ expression trees and reflection results. Call `CacheDynamicallyCompiledExpressions` to activate this optimization:

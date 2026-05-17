@@ -102,6 +102,10 @@ builder.Services.AddRCommon()
 
 Both `ValidateCommands` and `ValidateQueries` default to `false`.
 
+:::tip Modular composition
+`WithValidation<T>` is cache-aware. Both the `RCommon.ApplicationServices` overload (`WithValidation<TBuilder>(...)`) and the `RCommon.FluentValidation` extension share the same builder cache, so when multiple modules call `WithValidation<FluentValidationBuilder>(...)` the cached `FluentValidationBuilder` is reused and each module's `AddValidator<T, TValidator>`, `AddValidatorsFromAssemblyContaining(...)`, and `AddValidatorsFromAssemblies(...)` registrations accumulate on the same instance. Each module can scan its own assembly for validators without coordinating with other modules. `CqrsValidationOptions` is a shared singleton: the last module to call the options overload wins for `ValidateCommands` / `ValidateQueries`. See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+:::
+
 ## Usage
 
 ### Defining a validator

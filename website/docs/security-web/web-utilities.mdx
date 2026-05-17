@@ -62,6 +62,10 @@ app.Run();
 
 It also calls `services.AddHttpContextAccessor()` so that `IHttpContextAccessor` is available for injection.
 
+:::tip Modular composition
+`WithClaimsAndPrincipalAccessorForWeb()` is `TryAdd`-hardened — repeat calls from multiple modules are idempotent. Each principal/claims/tenant interface is registered exactly once. Modules that need access to `ICurrentUser` can each call this verb without coordinating with other modules. Do not mix `WithClaimsAndPrincipalAccessor()` and `WithClaimsAndPrincipalAccessorForWeb()` in the same process — `TryAdd` will keep whichever ran first and silently ignore the other. See [Modular Composition](../core-concepts/modular-composition.md) for the full conflict matrix.
+:::
+
 ### Combined with other RCommon features
 
 `WithClaimsAndPrincipalAccessorForWeb()` is fluent and chains naturally with persistence, multi-tenancy, and other configuration:
