@@ -102,6 +102,7 @@ public class AzureBlobStorageService : IBlobStorageService
         var items = new List<RCommonBlobItem>();
         await foreach (var item in container.GetBlobsAsync(
             traits: BlobTraits.Metadata,
+            states: BlobStates.None,
             prefix: prefix,
             cancellationToken: token))
         {

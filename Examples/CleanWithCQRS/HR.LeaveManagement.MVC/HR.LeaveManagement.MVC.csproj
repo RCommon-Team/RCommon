@@ -8,7 +8,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="LocalStorage" Version="2.1.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.2" />
+		<!-- Force non-vulnerable NuGet.* (GHSA-g4vj-cjjj-v7hg in 6.12.1, transitively pulled by
+		     Microsoft.VisualStudio.Web.CodeGeneration.Design). -->
+		<PackageReference Include="NuGet.Packaging" Version="6.14.3" />
+		<PackageReference Include="NuGet.Protocol" Version="6.14.3" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.8" />
 		<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.15.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
 	</ItemGroup>

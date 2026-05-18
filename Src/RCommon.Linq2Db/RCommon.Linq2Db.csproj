@@ -41,7 +41,7 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="linq2db.Extensions" Version="6.1.0" />
+	  <PackageReference Include="linq2db.Extensions" Version="6.3.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Update="MinVer" Version="7.0.0" />

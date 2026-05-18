@@ -19,7 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="8.5.8" />
+    <!-- MassTransit 8.x is the last Apache-2.0 line; 9.x (Massient) is commercial. Do not bump past 8.x. -->
+    <PackageReference Include="MassTransit" Version="8.5.9" />
   </ItemGroup>
 
   <ItemGroup>

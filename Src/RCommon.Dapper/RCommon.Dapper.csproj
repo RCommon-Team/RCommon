@@ -17,8 +17,8 @@
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Dapper" Version="2.1.66" />
-		<PackageReference Include="Dommel" Version="3.5.1" />
+		<PackageReference Include="Dapper" Version="2.1.79" />
+		<PackageReference Include="Dommel" Version="3.5.2" />
 	</ItemGroup>
 
   <ItemGroup>
