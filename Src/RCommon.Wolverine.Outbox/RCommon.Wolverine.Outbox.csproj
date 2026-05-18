@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WolverineFx.EntityFrameworkCore" Version="5.13.0" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" Version="5.39.1" />
   </ItemGroup>
 
   <ItemGroup>
