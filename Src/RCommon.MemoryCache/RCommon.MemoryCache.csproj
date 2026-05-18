@@ -22,7 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.16" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">

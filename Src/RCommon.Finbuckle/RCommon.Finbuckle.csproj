@@ -17,11 +17,11 @@
   </PropertyGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
-		<PackageReference Include="Finbuckle.MultiTenant" Version="9.1.0" />
+		<PackageReference Include="Finbuckle.MultiTenant" Version="9.1.4" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
-		<PackageReference Include="Finbuckle.MultiTenant" Version="9.1.0" />
+		<PackageReference Include="Finbuckle.MultiTenant" Version="9.1.4" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">

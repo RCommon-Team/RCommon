@@ -24,9 +24,10 @@
     <PackageReference Include="Bogus" Version="35.6.5" />
 
     <!-- Assertions: AwesomeAssertions is the Apache-2.0 community fork of FluentAssertions 7.x.
-         Preserves the FluentAssertions namespace so test code requires no `using` changes.
+         The 7.x line preserves the FluentAssertions namespace (ships FluentAssertions.dll) so
+         test code requires no `using` changes. 8.x+ renamed everything to AwesomeAssertions.
          FluentAssertions 8.x switched to the Xceed commercial license. -->
-    <PackageReference Include="AwesomeAssertions" Version="9.4.0" />
+    <PackageReference Include="AwesomeAssertions" Version="7.2.1" />
 
     <!-- Code Coverage -->
     <PackageReference Include="coverlet.collector" Version="10.0.0">
