@@ -19,7 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="14.0.0" />
+    <!-- Pinned to last Apache-2.0 release. MediatR v13.0+ is dual-licensed RPL-1.5/commercial (Lucky Penny). -->
+    <PackageReference Include="MediatR" Version="[12.5.0,13.0.0)" />
   </ItemGroup>
 
   <ItemGroup>
