@@ -12,6 +12,26 @@ The authoritative release history for all RCommon packages is maintained on GitH
 
 ## Recent Changes
 
+### 3.1.1
+
+Bug-fix and security patch release.
+
+**Fixed**
+
+- **Cross-host transactional outbox delivery.** Added `OutboxOptions.ImmediateDispatch` (default `true`, fully backward-compatible). When set to `false`, a unit of work persists outbox events but skips the best-effort post-commit in-process dispatch (Phase 3), leaving the durable poller (`OutboxProcessingService`) as the sole dispatcher and marker. This fixes silent loss of cross-host delivery, where a producing host marked rows processed before a subscriber on a different host could consume them. Producer-only hosts should set `ImmediateDispatch = false`. See [Outbox Producer/Processor Topology](../event-handling/outbox-producer-processor-topology.mdx).
+- Outbox post-commit dispatch no longer marks a message processed when no in-process producer matched the event; it is left for the poller (defense-in-depth).
+- `EFCoreOutboxStore.DeleteProcessedAsync` / `DeleteDeadLetteredAsync` used a `DateTimeOffset` comparison the SQLite provider could not translate. The comparison is now evaluated client-side; SQL Server / PostgreSQL behaviour is unchanged.
+
+**Security**
+
+- Pinned patched **Microsoft.OpenApi 2.7.5** in `RCommon.Authorization.Web` (net10 target), resolving CVE-2026-49451 (GHSA-v5pm-xwqc-g5wc), which was pulled transitively via Swashbuckle 10.x.
+- Upgraded the native SQLite binary (**SQLitePCLRaw.lib.e_sqlite3 3.53.3**) in the SQLite-backed test projects, resolving CVE-2025-6965 (GHSA-2m69-gcr7-jv3q).
+
+**Notes**
+
+- Strictly additive public API surface (`OutboxOptions.ImmediateDispatch`); no signature removals, and no behavioural change at the default.
+- Website (Docusaurus) build-tooling npm advisories are tracked as a separate follow-up (Docusaurus 3.10 upgrade + theme swizzle migration).
+
 ### Modular Composition (Unreleased)
 
 Added support for calling `services.AddRCommon()` from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement.
