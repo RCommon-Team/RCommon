@@ -2,6 +2,9 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.7" />
+    <!-- Pin patched Microsoft.OpenApi (CVE-2026-49451, GHSA-v5pm-xwqc-g5wc); overrides the vulnerable
+         2.x pulled transitively by Swashbuckle 10.x. -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />

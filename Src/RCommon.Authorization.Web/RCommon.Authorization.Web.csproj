@@ -27,6 +27,9 @@
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.7" />
+		<!-- Pin patched Microsoft.OpenApi: Swashbuckle 10.x pulls a vulnerable 2.x transitively
+		     (CVE-2026-49451, GHSA-v5pm-xwqc-g5wc, affects <= 2.7.4). 2.7.5 is the patched 2.x. -->
+		<PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
 	</ItemGroup>
 
 	<ItemGroup>

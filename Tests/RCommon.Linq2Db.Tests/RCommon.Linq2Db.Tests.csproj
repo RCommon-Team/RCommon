@@ -9,6 +9,11 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
     <PackageReference Include="linq2db.SQLite" Version="6.3.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
+    <!-- Override the native SQLite binary pulled transitively by Microsoft.Data.Sqlite. The 2.1.11 lib
+         ships a vulnerable SQLite (CVE-2025-6965, GHSA-2m69-gcr7-jv3q, requires SQLite >= 3.50.2).
+         The lib.e_sqlite3 version tracks the bundled SQLite version; 3.53.3 is patched. Only the native
+         binary is swapped; the managed SQLitePCLRaw.core stays put (SQLite's C ABI is backward-compatible). -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
   </ItemGroup>
 
   <ItemGroup>

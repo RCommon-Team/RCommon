@@ -1,0 +1,84 @@
+---
+title: Outbox Producer/Processor Topology
+sidebar_position: 8
+description: How RCommon's built-in persistence outbox dispatches and marks events across multiple hosts, and why producer-only hosts must set OutboxOptions.ImmediateDispatch = false for reliable cross-host delivery.
+---
+
+# Outbox Producer/Processor Topology
+
+This guide covers RCommon's **built-in persistence outbox** — the one you register with `AddOutbox<TOutboxStore>` on a persistence builder (EF Core, Dapper, or LINQ to DB). It is distinct from the [transport-integrated outbox](./transactional-outbox.mdx) provided by MassTransit and Wolverine. The built-in outbox stores events in a database table (`__OutboxMessages`) and drains them with an in-process background poller (`OutboxProcessingService`).
+
+If you run the producer and every subscriber in a **single process**, the defaults are correct and you can skip most of this page. If events produced on one host are consumed on **another** host, read the [cross-host invariant](#the-cross-host-invariant) carefully — the default behaviour will silently fail to deliver.
+
+## How commit dispatches events (three phases)
+
+When you commit a `UnitOfWork` that has domain events, `CommitAsync` runs three phases:
+
+1. **Persist (inside the transaction).** Each event is serialized and written as a row to the outbox table in the same transaction as your business data. If the transaction rolls back, the outbox row rolls back with it.
+2. **Commit.** The transaction commits, making both the business data and the outbox rows durable together.
+3. **Immediate dispatch (best-effort, post-commit).** The `OutboxEventRouter` dispatches the just-persisted events to any in-process `IEventProducer` instances and, on success, marks each row processed (`ProcessedAtUtc` is set). Failures here are swallowed and logged — the row stays unprocessed for the poller to retry.
+
+Separately, the background poller (`OutboxProcessingService`) claims unprocessed rows — `ClaimAsync` filters `WHERE ProcessedAtUtc IS NULL` — dispatches them, and marks them processed. Phase 3 and the poller are two paths to the same outcome; the poller is the durable one.
+
+## The cross-host invariant
+
+Phase 3 runs **on the host that committed the transaction**. It marks rows processed whenever the in-process dispatch loop does not throw — it is *not* gated on any subscriber actually consuming the event. The in-memory event bus is subscription-filtered and silently does nothing when no matching subscriber lives in that process. So on a host that produces an event but hosts none of its subscribers, Phase 3 still completes, still marks the row processed, and the poller — which only claims `ProcessedAtUtc IS NULL` rows — **never sees it**. Cross-host delivery is silently defeated.
+
+Note that "only mark the row processed if a subscriber handled it" does **not** fix this. No single host knows the full cross-process subscriber set. If a logging subscriber lives on the producer host and the business subscriber lives on the poller host, the producer would see "a subscriber ran," mark the row processed, and still starve the remote subscriber.
+
+The correct model: **when a durable poller is the delivery mechanism, the poller must be the sole dispatcher-and-marker.** Producer-only hosts must persist without running Phase 3.
+
+> **Invariant:** If any subscriber for an event type runs on a different process than the producer, that producer must run with `OutboxOptions.ImmediateDispatch = false`, or the poller will never see the row.
+
+## `OutboxOptions.ImmediateDispatch`
+
+`ImmediateDispatch` (default `true`) controls whether Phase 3 runs:
+
+| Value | Behaviour | Use on |
+|-------|-----------|--------|
+| `true` (default) | Phase 3 runs: immediate in-process dispatch + mark processed after commit. Preserves single-host, low-latency delivery. | Single-process apps, and the host that runs the poller. |
+| `false` | Phase 3 is skipped entirely: no in-process dispatch, no `MarkProcessedAsync`. Rows stay `ProcessedAtUtc IS NULL` for the poller to drain. | Producer-only hosts in a multi-host topology. |
+
+```csharp
+// Producer-only host: persist to the outbox, but let the poller host dispatch and mark.
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePerisistenceBuilder>(db =>
+    {
+        // ... data store configuration ...
+        db.AddOutbox<EFCoreOutboxStore>(outbox =>
+        {
+            outbox.ImmediateDispatch = false;
+        });
+    });
+```
+
+```csharp
+// Poller host: leave ImmediateDispatch at its default (true). It dispatches and marks
+// rows as its OutboxProcessingService drains them — including rows written by producer hosts.
+db.AddOutbox<EFCoreOutboxStore>();
+```
+
+Same-host subscribers are still delivered when `ImmediateDispatch = false`: the poller shares the database and dispatches every unprocessed row exactly once, so a subscriber co-located with the poller fires normally.
+
+## Secondary hardening: no in-process producer
+
+As defense-in-depth, Phase 3 also skips `MarkProcessedAsync` for a message when there is **no matching in-process producer at all** — the row is left unprocessed for the poller rather than being marked processed after being dispatched to nobody.
+
+This is a narrow guard, **not** the cross-host fix. An in-process producer that no-ops when no subscriber matches (like the in-memory bus) still counts as a producer here, so the row would still be marked processed. Rely on `ImmediateDispatch = false` for cross-host correctness; this guard only helps when a host has literally no producer registered for the event.
+
+## Who marks a row processed?
+
+| Scenario | Marked processed by | When |
+|----------|---------------------|------|
+| Single host, `ImmediateDispatch = true` (default) | Phase 3, on the committing host | Immediately after commit |
+| Poller host, `ImmediateDispatch = true` | Phase 3 for its own writes; the poller for anything still unprocessed | After commit / on the next poll |
+| Producer-only host, `ImmediateDispatch = false` | The poller on the processor host | On the next poll |
+
+## How the poller resolves subscribers
+
+The poller dispatches through the in-process producer, which publishes to the in-memory bus. The bus resolves **all** `ISubscriber<TEvent>` registrations from the DI container for the event's runtime type. That means a subscriber registered directly with `services.AddScoped<ISubscriber<TEvent>, THandler>()` is resolved by the poller just as one registered through an event-handling builder's `AddSubscriber<TEvent, THandler>()`.
+
+## Related
+
+- [Transactional Outbox](./transactional-outbox.mdx) — the MassTransit/Wolverine transport-integrated outbox (different mechanism)
+- [Distributed Events](./distributed.mdx) — routing events across brokers

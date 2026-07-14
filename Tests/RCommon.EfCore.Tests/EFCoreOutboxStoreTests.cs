@@ -357,5 +357,61 @@ public class EFCoreOutboxStoreTests : IDisposable
             .WithMessage($"*{msg.Id}*");
     }
 
+    [Fact]
+    public async Task DeleteProcessedAsync_DeletesOnlyProcessedRowsOlderThanCutoff()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var oldProcessed = new OutboxMessage
+        {
+            Id = Guid.NewGuid(), EventType = "T", EventPayload = "{}",
+            CreatedAtUtc = now.AddDays(-10), ProcessedAtUtc = now.AddDays(-8)
+        };
+        var recentProcessed = new OutboxMessage
+        {
+            Id = Guid.NewGuid(), EventType = "T", EventPayload = "{}",
+            CreatedAtUtc = now.AddHours(-2), ProcessedAtUtc = now.AddHours(-1)
+        };
+        var unprocessed = new OutboxMessage
+        {
+            Id = Guid.NewGuid(), EventType = "T", EventPayload = "{}",
+            CreatedAtUtc = now.AddDays(-10) // never processed
+        };
+        _dbContext.Set<OutboxMessage>().AddRange(oldProcessed, recentProcessed, unprocessed);
+        await _dbContext.SaveChangesAsync();
+
+        await _store.DeleteProcessedAsync(TimeSpan.FromDays(7));
+
+        var remaining = await _dbContext.Set<OutboxMessage>().Select(m => m.Id).ToListAsync();
+        remaining.Should().BeEquivalentTo(new[] { recentProcessed.Id, unprocessed.Id });
+    }
+
+    [Fact]
+    public async Task DeleteDeadLetteredAsync_DeletesOnlyDeadLetteredRowsOlderThanCutoff()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var oldDeadLettered = new OutboxMessage
+        {
+            Id = Guid.NewGuid(), EventType = "T", EventPayload = "{}",
+            CreatedAtUtc = now.AddDays(-10), DeadLetteredAtUtc = now.AddDays(-8)
+        };
+        var recentDeadLettered = new OutboxMessage
+        {
+            Id = Guid.NewGuid(), EventType = "T", EventPayload = "{}",
+            CreatedAtUtc = now.AddHours(-2), DeadLetteredAtUtc = now.AddHours(-1)
+        };
+        var pending = new OutboxMessage
+        {
+            Id = Guid.NewGuid(), EventType = "T", EventPayload = "{}",
+            CreatedAtUtc = now.AddDays(-10) // not dead-lettered
+        };
+        _dbContext.Set<OutboxMessage>().AddRange(oldDeadLettered, recentDeadLettered, pending);
+        await _dbContext.SaveChangesAsync();
+
+        await _store.DeleteDeadLetteredAsync(TimeSpan.FromDays(7));
+
+        var remaining = await _dbContext.Set<OutboxMessage>().Select(m => m.Id).ToListAsync();
+        remaining.Should().BeEquivalentTo(new[] { recentDeadLettered.Id, pending.Id });
+    }
+
     public void Dispose() => _dbContext.Dispose();
 }

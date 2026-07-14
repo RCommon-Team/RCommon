@@ -15,5 +15,32 @@ public class OutboxOptions
     public TimeSpan BackoffMaxDelay { get; set; } = TimeSpan.FromMinutes(30);
     public double BackoffMultiplier { get; set; } = 2.0;
     public string InboxTableName { get; set; } = "__InboxMessages";
+
+    /// <summary>
+    /// Controls whether the unit of work attempts best-effort in-process dispatch of outbox events
+    /// immediately after commit (Phase 3), in addition to persisting them for the background poller.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// When <c>true</c> (the default, preserving single-host behaviour), committing a unit of work
+    /// persists events to the outbox and then immediately dispatches them in-process, marking each
+    /// row processed on success. This gives low-latency delivery when the producer and every
+    /// subscriber run in the same process.
+    /// </para>
+    /// <para>
+    /// When <c>false</c>, the unit of work persists events to the outbox but skips Phase 3 entirely —
+    /// no in-process dispatch and no marking rows processed. The durable poller
+    /// (<see cref="OutboxProcessingService"/>) becomes the sole dispatcher and marker.
+    /// </para>
+    /// <para>
+    /// <b>Set this to <c>false</c> on any host that produces outbox events but does not itself run the
+    /// poller (a "producer-only" host in a producer/processor topology).</b> If a subscriber for an
+    /// event type runs on a different process than the producer, an immediate producer-side dispatch
+    /// would mark the row processed before that remote subscriber ever sees it, and the poller —
+    /// which only claims rows where <c>ProcessedAtUtc IS NULL</c> — would never deliver it. Leaving
+    /// this at the default on a producer-only host silently defeats cross-host delivery.
+    /// </para>
+    /// </remarks>
+    public bool ImmediateDispatch { get; set; } = true;
 }
 
