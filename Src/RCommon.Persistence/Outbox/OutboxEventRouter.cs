@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -124,6 +125,20 @@ public class OutboxEventRouter : IEventRouter
     {
         if (_persistedEvents.Count == 0) return;
 
+        // Primary cross-host fix: on a producer-only host (ImmediateDispatch = false), skip Phase 3
+        // entirely — no in-process dispatch and, crucially, no MarkProcessedAsync. The rows were already
+        // persisted in Phase 1; the durable poller on the processor host is the sole dispatcher/marker.
+        // Marking here would hide the rows from the poller (ClaimAsync filters ProcessedAtUtc IS NULL)
+        // and silently defeat cross-host delivery.
+        if (!_options.ImmediateDispatch)
+        {
+            _logger.LogDebug(
+                "ImmediateDispatch is disabled; leaving {Count} persisted outbox message(s) for the poller",
+                _persistedEvents.Count);
+            _persistedEvents.Clear();
+            return;
+        }
+
         _logger.LogInformation("OutboxEventRouter dispatching {Count} retained messages", _persistedEvents.Count);
 
         var producers = _serviceProvider.GetServices<IEventProducer>();
@@ -132,9 +147,21 @@ public class OutboxEventRouter : IEventRouter
         {
             try
             {
-                var filteredProducers = _subscriptionManager.HasSubscriptions
+                var filteredProducers = (_subscriptionManager.HasSubscriptions
                     ? _subscriptionManager.GetProducersForEvent(producers, @event.GetType())
-                    : producers;
+                    : producers).ToList();
+
+                // Secondary hardening (defense-in-depth): if nothing was dispatched in-process, do not
+                // mark the row processed — leave it for the poller. This is NOT the cross-host fix (an
+                // in-process producer that no-ops when no subscriber matches still counts as "dispatched"
+                // here); it only guards the case where no matching producer exists on this host at all.
+                if (filteredProducers.Count == 0)
+                {
+                    _logger.LogDebug(
+                        "No in-process producer matched event {EventType} for message {Id}; leaving it for the poller",
+                        @event.GetType().Name, messageId);
+                    continue;
+                }
 
                 foreach (var producer in filteredProducers)
                 {

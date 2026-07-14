@@ -23,7 +23,7 @@ public class OutboxEventRouterTests
     private readonly Mock<IServiceProvider> _serviceProviderMock = new();
     private readonly EventSubscriptionManager _subscriptionManager = new();
 
-    private OutboxEventRouter CreateRouter()
+    private OutboxEventRouter CreateRouter(OutboxOptions? options = null)
     {
         _guidGenMock.Setup(g => g.Create()).Returns(Guid.NewGuid());
         // _tenantMock is not setup here; Moq returns null by default for reference types.
@@ -36,7 +36,7 @@ public class OutboxEventRouterTests
             _serviceProviderMock.Object,
             _subscriptionManager,
             NullLogger<OutboxEventRouter>.Instance,
-            Options.Create(new OutboxOptions()));
+            Options.Create(options ?? new OutboxOptions()));
     }
 
     [Fact]
@@ -181,6 +181,56 @@ public class OutboxEventRouterTests
             Times.Never);
         _storeMock.Verify(
             s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public void ImmediateDispatch_DefaultsToTrue_PreservesSingleHostBehaviour()
+    {
+        new OutboxOptions().ImmediateDispatch.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RouteEventsAsync_ImmediateDispatchDisabled_DoesNotDispatchOrMarkProcessed()
+    {
+        // Producer-topology host: the row was persisted in Phase 1 but Phase 3 must be skipped
+        // entirely so the durable poller (on another host) remains the sole dispatcher/marker.
+        var producerMock = new Mock<IEventProducer>();
+        _serviceProviderMock.Setup(sp => sp.GetService(typeof(IEnumerable<IEventProducer>)))
+            .Returns(new[] { producerMock.Object });
+
+        var router = CreateRouter(new OutboxOptions { ImmediateDispatch = false });
+        router.AddTransactionalEvent(new RouterTestEvent("x"));
+        await router.PersistBufferedEventsAsync();
+        _storeMock.Invocations.Clear(); // ignore the Phase 1 SaveAsync
+
+        await router.RouteEventsAsync();
+
+        producerMock.Verify(
+            p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _storeMock.Verify(
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task RouteEventsAsync_NoInProcessProducer_DoesNotMarkProcessed()
+    {
+        // Secondary hardening (defense-in-depth): when nothing was dispatched in-process,
+        // don't mark the row processed — leave it for the poller.
+        _serviceProviderMock.Setup(sp => sp.GetService(typeof(IEnumerable<IEventProducer>)))
+            .Returns(Array.Empty<IEventProducer>());
+
+        var router = CreateRouter(); // default ImmediateDispatch = true
+        router.AddTransactionalEvent(new RouterTestEvent("x"));
+        await router.PersistBufferedEventsAsync();
+        _storeMock.Invocations.Clear();
+
+        await router.RouteEventsAsync();
+
+        _storeMock.Verify(
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }

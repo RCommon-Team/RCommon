@@ -195,9 +195,13 @@ public class EFCoreOutboxStore : IOutboxStore
     {
         var dbContext = DbContext;
         var cutoff = DateTimeOffset.UtcNow - olderThan;
-        var old = await dbContext.Set<OutboxMessage>()
-            .Where(m => m.ProcessedAtUtc != null && m.ProcessedAtUtc < cutoff)
+        // Filter the null-check in the database, then compare DateTimeOffset client-side. The SQLite
+        // provider cannot translate ordering comparisons on DateTimeOffset; this mirrors the same
+        // approach used by ClaimAsync and stays correct on SQL Server / PostgreSQL.
+        var candidates = await dbContext.Set<OutboxMessage>()
+            .Where(m => m.ProcessedAtUtc != null)
             .ToListAsync(cancellationToken).ConfigureAwait(false);
+        var old = candidates.Where(m => m.ProcessedAtUtc < cutoff).ToList();
         dbContext.Set<OutboxMessage>().RemoveRange(old);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -207,9 +211,12 @@ public class EFCoreOutboxStore : IOutboxStore
     {
         var dbContext = DbContext;
         var cutoff = DateTimeOffset.UtcNow - olderThan;
-        var old = await dbContext.Set<OutboxMessage>()
-            .Where(m => m.DeadLetteredAtUtc != null && m.DeadLetteredAtUtc < cutoff)
+        // See DeleteProcessedAsync: DateTimeOffset comparison is evaluated client-side for SQLite
+        // compatibility while the null-check runs in the database.
+        var candidates = await dbContext.Set<OutboxMessage>()
+            .Where(m => m.DeadLetteredAtUtc != null)
             .ToListAsync(cancellationToken).ConfigureAwait(false);
+        var old = candidates.Where(m => m.DeadLetteredAtUtc < cutoff).ToList();
         dbContext.Set<OutboxMessage>().RemoveRange(old);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
