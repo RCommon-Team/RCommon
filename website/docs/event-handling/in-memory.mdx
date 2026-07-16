@@ -18,7 +18,7 @@ The in-memory event bus is part of `RCommon.Core`, which is included when you in
 
 ## Configuration
 
-Register the in-memory event bus using `WithEventHandling<InMemoryEventBusBuilder>` on the RCommon builder. Use `AddProducer` to register the producer and `AddSubscriber` to wire each handler to its event type:
+Register the in-memory event bus using `WithEventHandling<InMemoryEventBusBuilder>` on the RCommon builder, then call `AddSubscriber` to wire each handler to its event type:
 
 ```csharp
 using RCommon;
@@ -28,13 +28,27 @@ using RCommon.EventHandling.Producers;
 builder.Services.AddRCommon()
     .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
         eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
         eventHandling.AddSubscriber<OrderShipped, OrderShippedHandler>();
     });
 ```
 
-`PublishWithEventBusEventProducer` is the built-in producer that delegates to `IEventBus.PublishAsync`. Additional subscribers can be registered for the same event type; all of them will be called.
+`AddSubscriber` automatically ensures `PublishWithEventBusEventProducer` — the built-in producer that delegates to `IEventBus.PublishAsync` — is registered; a subscriber with no matching producer is never invoked, so there is no scenario where you'd want one wired without the other. Calling `AddProducer<PublishWithEventBusEventProducer>()` explicitly still works and is harmless (idempotent), but is no longer required for the common case:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        // Explicit and still supported, but redundant as of this version -- AddSubscriber
+        // below registers this automatically.
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
+    });
+```
+
+Additional subscribers can be registered for the same event type; all of them will be called.
+
+If you're registering a *different* producer (not `PublishWithEventBusEventProducer`) alongside subscribers on a custom `IEventHandlingBuilder`, RCommon's startup diagnostics will warn (once) if it ever finds a builder type with recorded subscriptions but zero registered producers — since that combination means the subscribers will silently never fire.
 
 :::tip Modular composition
 `WithEventHandling<InMemoryEventBusBuilder>` is cache-aware. When multiple modules call it, the cached `InMemoryEventBusBuilder` is reused and each configuration delegate runs against the same instance — so subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: if `OrderingModule` and `NotificationsModule` both call `eventHandling.AddProducer<AuditProducer>()`, exactly one `AuditProducer` descriptor is registered. `AddSubscriber<TEvent, THandler>` accumulates normally, so multiple modules can register handlers for the same event. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.

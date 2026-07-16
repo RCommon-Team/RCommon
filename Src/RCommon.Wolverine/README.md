@@ -21,10 +21,15 @@ dotnet add package RCommon.Wolverine
 ```csharp
 using RCommon;
 using RCommon.Wolverine;
+using RCommon.Wolverine.Producers;
 
 builder.Services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(eventHandling =>
     {
+        // Required: AddSubscriber does not auto-register a producer for this builder (unlike
+        // InMemoryEventBusBuilder) -- without this, subscribers below are never invoked.
+        eventHandling.AddProducer<PublishWithWolverineEventProducer>();
+
         // Register subscribers that bridge Wolverine to RCommon
         eventHandling.AddSubscriber<OrderCreatedEvent, OrderCreatedEventHandler>();
 

@@ -63,4 +63,8 @@
 	<ItemGroup>
 	  <PackageReference Update="MinVer" Version="7.0.0" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <InternalsVisibleTo Include="RCommon.Core.Tests" />
+	</ItemGroup>
 </Project>

@@ -20,6 +20,10 @@ namespace RCommon.EventHandling.Producers
         // Maps event type -> set of producer types that should handle that event
         private readonly ConcurrentDictionary<Type, HashSet<Type>> _eventProducerMap = new();
 
+        // Tracks which builder types have had AddSubscription called on them at least once,
+        // independent of whether any producer was registered for that builder at the time.
+        private readonly ConcurrentDictionary<Type, byte> _buildersWithSubscriptions = new();
+
         /// <summary>
         /// Records that a producer type was registered through a specific builder type.
         /// Called during <c>AddProducer</c> configuration.
@@ -49,11 +53,40 @@ namespace RCommon.EventHandling.Producers
         }
 
         /// <summary>
+        /// Returns true if at least one producer has been registered through the given builder type,
+        /// regardless of which producer type. Used by the startup diagnostics check to detect a builder
+        /// with recorded subscriptions but zero registered producers -- a misconfiguration under which
+        /// those subscribers are never invoked.
+        /// </summary>
+        public bool HasProducerForBuilder(Type builderType)
+        {
+            if (_builderProducerMap.TryGetValue(builderType, out var producers))
+            {
+                lock (producers)
+                {
+                    return producers.Count > 0;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the set of builder types that have at least one recorded event subscription
+        /// (i.e. <see cref="AddSubscription"/> has been called for that builder type at least once).
+        /// </summary>
+        public IReadOnlyCollection<Type> GetBuilderTypesWithSubscriptions()
+        {
+            return _buildersWithSubscriptions.Keys.ToList();
+        }
+
+        /// <summary>
         /// Records that an event type should be handled by all producers registered on a specific builder.
         /// Called during <c>AddSubscriber</c> configuration.
         /// </summary>
         public void AddSubscription(Type builderType, Type eventType)
         {
+            _buildersWithSubscriptions.TryAdd(builderType, 0);
+
             if (_builderProducerMap.TryGetValue(builderType, out var producerTypes))
             {
                 var eventProducers = _eventProducerMap.GetOrAdd(eventType, _ => new HashSet<Type>());
@@ -123,6 +156,7 @@ namespace RCommon.EventHandling.Producers
         {
             _builderProducerMap.Clear();
             _eventProducerMap.Clear();
+            _buildersWithSubscriptions.Clear();
         }
     }
 }

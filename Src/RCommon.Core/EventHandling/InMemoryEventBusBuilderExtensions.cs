@@ -31,6 +31,13 @@ namespace RCommon.EventHandling
         {
             builder.Services.AddScoped<ISubscriber<TEvent>, TEventHandler>();
 
+            // A subscriber with no registered IEventProducer for this builder is never invoked, with no
+            // error of any kind. There is no scenario where a consumer wants a subscriber wired but not
+            // routed, so ensure the standard in-memory producer is registered -- idempotent via
+            // AddProducer<T>'s own already-registered check, so calling this repeatedly across multiple
+            // AddSubscriber calls is a no-op after the first.
+            builder.AddProducer<PublishWithEventBusEventProducer>();
+
             // Register event-to-producer subscription so the router only sends this event to producers on this builder
             var subscriptionManager = builder.Services.GetSubscriptionManager();
             subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
@@ -49,6 +56,9 @@ namespace RCommon.EventHandling
             where TEventHandler : class, ISubscriber<TEvent>
         {
             builder.Services.TryAddScoped(getSubscriber);
+
+            // See the parameterless AddSubscriber overload for why this is required.
+            builder.AddProducer<PublishWithEventBusEventProducer>();
 
             // Register event-to-producer subscription so the router only sends this event to producers on this builder
             var subscriptionManager = builder.Services.GetSubscriptionManager();

@@ -213,6 +213,83 @@ public class InMemoryTransactionalEventRouterTests
 
     #endregion
 
+    #region Log-Ordering: Zero Producers vs. Nonzero Producers
+
+    [Fact]
+    public async Task RouteEventsAsync_EventsWithZeroProducers_LogsWarningNotInformation()
+    {
+        // Arrange -- no IEventProducer registered at all; this is the silent-failure scenario
+        // from docs/specs/event-handling/producer-auto-registration.md.
+        var services = new ServiceCollection();
+        services.AddSingleton(_mockLogger.Object);
+        var serviceProvider = services.BuildServiceProvider();
+
+        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
+        var mockEvent = new Mock<ISyncEvent>();
+        var events = new List<ISerializableEvent> { mockEvent.As<ISerializableEvent>().Object };
+
+        // Act
+        await router.RouteEventsAsync(events);
+
+        // Assert
+        _mockLogger.Verify(l => l.Log(
+            LogLevel.Warning,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((state, t) => state.ToString()!.Contains("no IEventProducer is")),
+            null,
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+
+        _mockLogger.Verify(l => l.Log(
+            LogLevel.Information,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((state, t) => state.ToString()!.Contains("transactional events to event producers")),
+            null,
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task RouteEventsAsync_EventsWithAtLeastOneProducer_LogsInformationNotWarning()
+    {
+        // Arrange -- regression guard: the pre-existing, always-fires LogInformation still fires
+        // when there is at least one producer to route to.
+        var mockProducer = new Mock<IEventProducer>();
+        mockProducer.Setup(x => x.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(_mockLogger.Object);
+        services.AddSingleton(mockProducer.Object);
+        var serviceProvider = services.BuildServiceProvider();
+
+        var router = new InMemoryTransactionalEventRouter(serviceProvider, _mockLogger.Object, new EventSubscriptionManager());
+        var mockEvent = new Mock<ISyncEvent>();
+        var events = new List<ISerializableEvent> { mockEvent.As<ISerializableEvent>().Object };
+
+        // Act
+        await router.RouteEventsAsync(events);
+
+        // Assert
+        _mockLogger.Verify(l => l.Log(
+            LogLevel.Information,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((state, t) => state.ToString()!.Contains("transactional events to event producers")),
+            null,
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+
+        _mockLogger.Verify(l => l.Log(
+            LogLevel.Warning,
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            null,
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Never);
+    }
+
+    #endregion
+
     #region RouteEventsAsync (No Parameters) Tests
 
     [Fact]

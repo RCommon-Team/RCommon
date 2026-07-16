@@ -49,10 +49,20 @@ builder.Host.UseWolverine(opts =>
 builder.Services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(wolverine =>
     {
+        wolverine.AddProducer<PublishWithWolverineEventProducer>();
         wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
         wolverine.AddSubscriber<OrderShippedEvent, OrderShippedEventHandler>();
     });
 ```
+
+:::warning Unlike InMemoryEventBusBuilder, AddSubscriber here does not auto-register a producer
+`InMemoryEventBusBuilder.AddSubscriber` automatically registers its matching producer (as of this
+version), but `WolverineEventHandlingBuilder.AddSubscriber` does not -- a subscriber registered
+here with no matching `AddProducer<T>()` call is never invoked, with no error of any kind (the
+router simply has zero producers to route to). Always pair `AddSubscriber` with an `AddProducer<T>()`
+call for one of the two producers below, as shown above. RCommon's startup diagnostics will warn
+once if it detects this builder has subscriptions but no registered producer.
+:::
 
 :::tip Modular composition
 `WithEventHandling<WolverineEventHandlingBuilder>` is a cache-aware sub-builder verb. When multiple modules call it, the cached `WolverineEventHandlingBuilder` is reused and each module's `AddSubscriber<TEvent, THandler>` and `AddProducer<T>` registrations accumulate on the same instance. `AddProducer<T>` deduplicates by concrete producer type, so the same producer registered from two modules yields exactly one descriptor. Note that the host-level `builder.Host.UseWolverine(...)` call must happen exactly once in the application host; only the RCommon sub-builder participates in module-level composition. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
@@ -113,6 +123,7 @@ Register subscribers using the `IWolverineEventHandlingBuilder` extension method
 builder.Services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(wolverine =>
     {
+        wolverine.AddProducer<PublishWithWolverineEventProducer>();
         wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
     });
 ```
@@ -126,17 +137,20 @@ wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>(
 
 ### Producing events
 
-Use `PublishWithWolverineEventProducer` for fan-out delivery (all subscribers receive the event) or `SendWithWolverineEventProducer` for point-to-point delivery (one handler). Register the appropriate producer when setting up your event bus:
+Use `PublishWithWolverineEventProducer` for fan-out delivery (all subscribers receive the event) or `SendWithWolverineEventProducer` for point-to-point delivery (one handler). Register the appropriate producer with the builder's own `AddProducer<T>()` -- not a raw `services.AddScoped<IEventProducer, T>()` call -- so the registration is tracked by `EventSubscriptionManager` and correctly associated with this builder:
 
 ```csharp
-using RCommon.EventHandling.Producers;
 using RCommon.Wolverine.Producers;
 
-// Fan-out: all subscribed handlers receive the event
-builder.Services.AddScoped<IEventProducer, PublishWithWolverineEventProducer>();
+builder.Services.AddRCommon()
+    .WithEventHandling<WolverineEventHandlingBuilder>(wolverine =>
+    {
+        // Fan-out: all subscribed handlers receive the event
+        wolverine.AddProducer<PublishWithWolverineEventProducer>();
 
-// Point-to-point: only one handler receives the event
-builder.Services.AddScoped<IEventProducer, SendWithWolverineEventProducer>();
+        // Point-to-point: only one handler receives the event
+        // wolverine.AddProducer<SendWithWolverineEventProducer>();
+    });
 ```
 
 Produce events through RCommon's `IEventBus` or by raising domain events that flow through the event router — the producers are invoked by the routing infrastructure automatically.
