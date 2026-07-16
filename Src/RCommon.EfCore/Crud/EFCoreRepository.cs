@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,7 @@ namespace RCommon.Persistence.EFCore.Crud
     {
         private IQueryable<TEntity>? _repositoryQuery;
         private bool _tracking;
-        private IIncludableQueryable<TEntity, object>? _includableQueryable;
+        private readonly List<string> _includePaths = new();
         private readonly IDataStoreFactory _dataStoreFactory;
 
 
@@ -108,17 +109,10 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <returns>This repository instance for fluent chaining of additional includes.</returns>
         public override IEagerLoadableQueryable<TEntity> Include(Expression<Func<TEntity, object>> path)
         {
-            if (_includableQueryable == null)
-            {
-                // Start from existing query state (preserves prior ThenInclude chains) or fresh DbSet
-                var source = _repositoryQuery ?? (IQueryable<TEntity>)ObjectContext.Set<TEntity>();
-                _includableQueryable = source.Include(path);
-            }
-            else
-            {
-                _includableQueryable = _includableQueryable.Include(path);
-            }
-
+            // String-based Include works uniformly for both reference and collection navigations --
+            // see IncludeExpressionHelper for why the expression-based overload cannot be used here.
+            _includePaths.Add(IncludeExpressionHelper.GetNavigationPropertyName(path.Body));
+            _repositoryQuery = null; // force RepositoryQuery to rebuild with the new include path
             return this;
         }
 
@@ -131,8 +125,13 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <returns>This repository instance for fluent chaining.</returns>
         public override IEagerLoadableQueryable<TEntity> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<object, TProperty>> path)
         {
-            _repositoryQuery = _includableQueryable!.ThenInclude(path);
-            _includableQueryable = null; // Consumed — RepositoryQuery getter will use _repositoryQuery
+            if (_includePaths.Count == 0)
+            {
+                throw new InvalidOperationException("ThenInclude must be called after a prior Include call.");
+            }
+
+            _includePaths[_includePaths.Count - 1] += "." + IncludeExpressionHelper.GetNavigationPropertyName(path.Body);
+            _repositoryQuery = null;
             return this;
         }
 
@@ -146,13 +145,12 @@ namespace RCommon.Persistence.EFCore.Crud
             {
                 if (_repositoryQuery == null)
                 {
-                    _repositoryQuery = ObjectSet.AsQueryable<TEntity>();
-                }
-
-                // Override the base query with the eager-loaded queryable if includes have been configured
-                if (_includableQueryable != null)
-                {
-                    _repositoryQuery = _includableQueryable;
+                    IQueryable<TEntity> query = ObjectSet.AsQueryable();
+                    foreach (var includePath in _includePaths)
+                    {
+                        query = query.Include(includePath);
+                    }
+                    _repositoryQuery = query;
                 }
                 return _repositoryQuery;
             }
@@ -279,7 +277,7 @@ namespace RCommon.Persistence.EFCore.Crud
             foreach (var entity in entities)
             {
                 SoftDeleteHelper.MarkAsDeleted(entity);
-                ObjectSet.Update(entity);
+                TrackForUpdate(entity);
             }
             return await SaveAsync(token).ConfigureAwait(false);
         }
@@ -288,8 +286,76 @@ namespace RCommon.Persistence.EFCore.Crud
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
             EventTracker.AddEntity(entity);
-            ObjectSet.Update(entity);
+            TrackForUpdate(entity);
             await SaveAsync(token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Marks <paramref name="entity"/> (and any newly-added children in its collection
+        /// navigations) with the correct <see cref="EntityState"/> for an update, without relying on
+        /// EF Core's default graph-walk heuristic (which <see cref="DbSet{TEntity}.Update"/> uses
+        /// internally and which misclassifies a newly-added child as Modified instead of Added
+        /// whenever the child already has a non-default key -- e.g. RCommon's own recommended
+        /// sequential-GUID generation strategy assigns the key at construction, before the child is
+        /// ever saved).
+        /// </summary>
+        /// <remarks>
+        /// Calling <see cref="DbContext.Entry(object)"/> on an entity that is already tracked --
+        /// whether the root itself, or any already-tracked sibling in the same collection --
+        /// triggers EF Core's own relationship-fixup as a side effect, which can reclassify a
+        /// *different*, still-untracked new child as Modified before this method gets a chance to
+        /// inspect or override it. To avoid ever triggering that side effect, every already-tracked
+        /// entity is identified up front from a single <see cref="ChangeTracker.Entries"/> snapshot
+        /// (taken with automatic change detection temporarily disabled, since <c>Entries()</c> would
+        /// otherwise run detection itself), and <c>Entry(...)</c> is then called only on entities
+        /// confirmed absent from that snapshot -- genuinely new to this DbContext. Already-tracked
+        /// children (e.g. loaded via a prior Include in this same scope, or added via a sibling
+        /// repository call earlier in this unit of work) are left completely untouched -- EF's own
+        /// automatic change detection (restored before this method returns) already handles property
+        /// changes on tracked entities. This does not cover a fully disconnected graph reattached in a
+        /// fresh DbContext instance that never tracked any of its children (every child looks equally
+        /// "new" in that case) -- see the Aggregate Repository docs for that documented boundary.
+        /// </remarks>
+        protected void TrackForUpdate(TEntity entity)
+        {
+            var changeTracker = ObjectContext.ChangeTracker;
+            var autoDetectWasEnabled = changeTracker.AutoDetectChangesEnabled;
+            changeTracker.AutoDetectChangesEnabled = false;
+            try
+            {
+                var alreadyTracked = new HashSet<object>(
+                    changeTracker.Entries().Select(e => e.Entity),
+                    ReferenceEqualityComparer.Instance);
+
+                var entityType = ObjectContext.Model.FindEntityType(typeof(TEntity));
+                if (entityType != null)
+                {
+                    foreach (var navigation in entityType.GetNavigations().Where(n => n.IsCollection))
+                    {
+                        if (navigation.PropertyInfo?.GetValue(entity) is not System.Collections.IEnumerable currentValue)
+                        {
+                            continue;
+                        }
+
+                        foreach (var relatedEntity in currentValue)
+                        {
+                            if (!alreadyTracked.Contains(relatedEntity))
+                            {
+                                ObjectContext.Entry(relatedEntity).State = EntityState.Added;
+                            }
+                        }
+                    }
+                }
+
+                if (!alreadyTracked.Contains(entity))
+                {
+                    ObjectContext.Entry(entity).State = EntityState.Modified;
+                }
+            }
+            finally
+            {
+                changeTracker.AutoDetectChangesEnabled = autoDetectWasEnabled;
+            }
         }
 
         /// <summary>

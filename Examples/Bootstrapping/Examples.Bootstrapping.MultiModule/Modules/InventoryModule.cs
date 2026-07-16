@@ -17,7 +17,7 @@ public class InventoryModule : IServiceModule
     {
         services.AddRCommon()
             .WithSimpleGuidGenerator() // Same impl as Ordering -> idempotent no-op.
-            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 ef.AddDbContext<InventoryDbContext>(
                     "Inventory",
                     o => o.UseInMemoryDatabase("inventory")))

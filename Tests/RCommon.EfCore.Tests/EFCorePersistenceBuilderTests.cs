@@ -10,7 +10,7 @@ using Xunit;
 
 namespace RCommon.EfCore.Tests;
 
-public class EFCorePerisistenceBuilderTests
+public class EFCorePersistenceBuilderTests
 {
     [Fact]
     public void Constructor_WithValidServices_CreatesInstance()
@@ -19,7 +19,7 @@ public class EFCorePerisistenceBuilderTests
         var services = new ServiceCollection();
 
         // Act
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Assert
         builder.Should().NotBeNull();
@@ -29,7 +29,7 @@ public class EFCorePerisistenceBuilderTests
     public void Constructor_WithNullServices_ThrowsArgumentNullException()
     {
         // Arrange, Act & Assert
-        var action = () => new EFCorePerisistenceBuilder(null!);
+        var action = () => new EFCorePersistenceBuilder(null!);
 
         action.Should().Throw<ArgumentNullException>()
             .WithParameterName("services");
@@ -42,7 +42,7 @@ public class EFCorePerisistenceBuilderTests
         var services = new ServiceCollection();
 
         // Act
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Assert
         services.Should().Contain(sd =>
@@ -58,7 +58,7 @@ public class EFCorePerisistenceBuilderTests
         var services = new ServiceCollection();
 
         // Act
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Assert
         services.Should().Contain(sd =>
@@ -74,7 +74,7 @@ public class EFCorePerisistenceBuilderTests
         var services = new ServiceCollection();
 
         // Act
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Assert
         services.Should().Contain(sd =>
@@ -90,7 +90,7 @@ public class EFCorePerisistenceBuilderTests
         var services = new ServiceCollection();
 
         // Act
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Assert
         services.Should().Contain(sd =>
@@ -104,7 +104,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Act
         var result = builder.Services;
@@ -118,7 +118,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
         var dataStoreName = "TestDataStore";
 
         // Act
@@ -135,7 +135,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
         var dataStoreName = "TestDataStore";
 
         // Act
@@ -154,7 +154,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Act
         var action = () => builder.AddDbContext<TestDbContext>(null!, options =>
@@ -169,7 +169,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Act
         var action = () => builder.AddDbContext<TestDbContext>(string.Empty, options =>
@@ -184,7 +184,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
         var dataStoreName = "TestDataStore";
 
         // Act
@@ -192,7 +192,7 @@ public class EFCorePerisistenceBuilderTests
             options.UseInMemoryDatabase(dataStoreName));
 
         // Assert
-        result.Should().BeOfType<EFCorePerisistenceBuilder>();
+        result.Should().BeOfType<EFCorePersistenceBuilder>();
         result.Should().BeSameAs(builder);
     }
 
@@ -201,7 +201,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
         var dataStoreName = "TestDataStore";
 
         // Act
@@ -216,7 +216,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Act
         var result = builder.SetDefaultDataStore(options =>
@@ -234,7 +234,7 @@ public class EFCorePerisistenceBuilderTests
         var services = new ServiceCollection();
 
         // Act
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Assert
         builder.Should().BeAssignableTo<IEFCorePersistenceBuilder>();
@@ -247,7 +247,7 @@ public class EFCorePerisistenceBuilderTests
         var services = new ServiceCollection();
 
         // Act
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Assert
         builder.Should().BeAssignableTo<IPersistenceBuilder>();
@@ -258,7 +258,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Act
         builder.AddDbContext<TestDbContext>("DataStore1", options =>
@@ -280,7 +280,7 @@ public class EFCorePerisistenceBuilderTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
 
         // Act
         var result = builder.AddDbContext<TestDbContext>(dataStoreName, options =>
@@ -288,6 +288,35 @@ public class EFCorePerisistenceBuilderTests
 
         // Assert
         result.Should().NotBeNull();
+    }
+
+    [Fact]
+    [Obsolete]
+    public void ObsoleteAlias_StillConstructsAndBehavesIdentically()
+    {
+        // The misspelled EFCorePerisistenceBuilder name is kept as an [Obsolete]-annotated
+        // subclass so existing consumer code keeps compiling. This locks in that it still works.
+        var services = new ServiceCollection();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        var builder = new EFCorePerisistenceBuilder(services);
+#pragma warning restore CS0618
+
+        builder.Should().BeAssignableTo<EFCorePersistenceBuilder>();
+        builder.Should().BeAssignableTo<IEFCorePersistenceBuilder>();
+        services.Should().Contain(sd =>
+            sd.ServiceType == typeof(ILinqRepository<>) &&
+            sd.ImplementationType == typeof(EFCoreRepository<>));
+    }
+
+    [Fact]
+    public void ObsoleteAlias_IsMarkedObsolete()
+    {
+        var obsoleteAttribute = typeof(EFCorePerisistenceBuilder)
+            .GetCustomAttributes(typeof(ObsoleteAttribute), inherit: false)
+            .Should().ContainSingle().Subject;
+
+        obsoleteAttribute.Should().NotBeNull();
     }
 }
 

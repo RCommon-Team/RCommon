@@ -974,3 +974,137 @@ public class OrderSaga
 | `DapperSagaStore.cs` | Create | `Src/RCommon.Dapper/Sagas/` |
 | `Linq2DbSagaStore.cs` | Create | `Src/RCommon.Linq2Db/Sagas/` |
 | Test files | Create | Per project |
+
+---
+
+## Addendum (2026-07-15): UpdateAsync Change-Tracking Fix, Provider Capability Documentation, Event-Tracking Discoverability, Builder Rename
+
+**Branch:** bugfix/consumer-feedback-hardening
+**Status:** Approved
+**Breaking Change:** No (see Design Decision 1 for the one behavior change and its scope)
+
+This addendum amends Part 1 (Aggregate Repository) based on verified consumer field reports against 3.1.0-alpha.3/3.1.1. The original design above is left unchanged as the historical record; this section documents what changes and why.
+
+### Problem
+
+1. `EFCoreAggregateRepository<TAggregate,TKey>.UpdateAsync` (and the identical pattern in `EFCoreRepository<TEntity>.UpdateAsync`) calls `ObjectSet.Update(entity)`, which triggers EF Core's default `ChangeTracker.TrackGraph` walk. That walk marks any untracked node with a non-default key as `Modified`. A child entity newly added to an aggregate's collection navigation — using RCommon's own recommended `WithSequentialGuidGenerator` — already has a non-default key at construction time, so it is misclassified as `Modified` instead of `Added`, producing a `DbUpdateConcurrencyException` on save (the row doesn't exist to update).
+2. `IAggregateRepository<TAggregate,TKey>.GetByIdAsync` does not eager-load collection navigations by default (confirmed, and consistent with every other repository interface in RCommon — this is expected repository-pattern behavior, not a defect). The claim that the repository's own `Include<TProperty>` throws for collection-navigation expressions could not be reproduced from the shipped code; the `Expression.Convert(...)`-to-`object` pattern it uses is EF Core's standard supported idiom for generic `Include` helpers. No existing test exercises this path either way.
+3. Consumers who work around (1) by persisting a new child directly via `ILinqRepository<TChild>.AddAsync(...)` lose that aggregate's domain-event dispatch, because `IEntityEventTracker.AddEntity(...)` is only ever called from inside a repository's own `Add`/`Update`/`Delete` methods — never from a sibling repository acting on a different entity type.
+4. `EFCorePerisistenceBuilder` is misspelled (missing a `s`) in the shipped public API.
+
+### Root Cause Analysis
+
+**Why this isn't a simple heuristic bug.** `DomainEntity<TKey>.IsTransient()` (`Src/RCommon.Entities/DomainEntity.cs:53-54`) — RCommon's own "is this new?" check, also used for entity equality — is `Id is null || Id.Equals(default)`. EF Core's default `TrackGraph`/`Update()` heuristic checks the identical thing (`IsKeySet`). Both break for the same reason: a sequential GUID is assigned at construction, before the entity is ever saved, so "does it have a non-default key" cannot distinguish new from existing once RCommon's own recommended ID strategy is in use. There is no smarter default heuristic to write here — Microsoft's own EF Core documentation confirms that for non-database-generated keys, `TrackGraph` needs an explicit "is this new" signal from the application, because the key alone can't provide one.
+
+**Why the fix is scoped to `UpdateAsync` only, not `AddAsync`, and why it doesn't require that signal.** Two independent findings changed the shape of the fix:
+
+- **Cross-provider exhaustiveness check (Dapper, Linq2Db):** `DapperAggregateRepository.UpdateAsync` (`Src/RCommon.Dapper/Crud/DapperAggregateRepository.cs:366-393`) calls `db.UpdateAsync(entity)` via Dommel; `Linq2DbAggregateRepository.UpdateAsync` (`Src/RCommon.Linq2Db/Crud/Linq2DbAggregateRepository.cs:432-436`) calls `DataConnection.UpdateAsync(entity)`. Both are single-table, single-entity operations with no change-tracker and no concept of a navigation graph — they have **never** attempted to persist child collections through `UpdateAsync`, on any version. EF Core is the only provider that attempts multi-entity graph persistence in one `UpdateAsync` call, and it does so incorrectly. The fix therefore isn't "make EF Core smarter than the other providers" — it's "stop EF Core's `UpdateAsync` from graph-walking children it was never asked to touch," which brings it in line with what Dapper and Linq2Db already do.
+- **`AddAsync` is asymmetric across providers today, and that's a pre-existing, separate condition, not something this fix should touch.** EF Core's `AddAsync` cascade-inserts a brand-new aggregate's pre-populated child collections (correct today, because "everything in a new graph is new" is unambiguous — no heuristic is needed). Dapper's and Linq2Db's `AddAsync` never did this and will still silently drop those children. This is a real, documented (see below) provider-capability difference, consistent with how `IGraphRepository`/change-tracking is already called out as an EF-Core-only capability in the existing Provider Comparison table on the Repository Pattern doc page. Per explicit decision: **leave EF Core's `AddAsync` cascade-insert behavior unchanged** — restricting it to match Dapper/Linq2Db would be a breaking change for existing EF Core consumers, in exchange for a symmetry the other two providers can't offer regardless. Document the asymmetry instead (see Documentation section).
+
+### Design Decision 1: `UpdateAsync` — replace `Update()` with a scoped `TrackGraph` callback
+
+**Location:** `Src/RCommon.EfCore/Crud/EFCoreAggregateRepository.cs` (public `UpdateAsync` override, ~line 287; explicit `IAggregateRepository<TAggregate,TKey>.UpdateAsync`, ~line 566 — the explicit interface member currently duplicates the override's body verbatim and will instead delegate to it) and `Src/RCommon.EfCore/Crud/EFCoreRepository.cs` (`UpdateAsync`, same pattern).
+
+```csharp
+public async override Task UpdateAsync(TAggregate entity, CancellationToken token = default)
+{
+    EventTracker.AddEntity(entity);
+
+    ObjectContext.ChangeTracker.TrackGraph(entity, node =>
+    {
+        if (node.Entry.State != EntityState.Detached)
+        {
+            // Already tracked in this DbContext -- e.g. loaded via a prior Include
+            // query in the same scope, or added via its own repository earlier in
+            // this unit of work. Leave it alone: EF's own change detection already
+            // handles property changes on tracked entities, and overwriting the
+            // state here would clobber an Added entry set by a sibling repository
+            // call (this is exactly the mechanism that made the documented
+            // "add the child via its own repository first" workaround succeed).
+            return;
+        }
+
+        // Any node the ChangeTracker has never seen before is being encountered
+        // for the first time in this DbContext. For the root entity this always
+        // means Modified (Update() implies it already exists in the store). For
+        // every other node, this is only correct under the pattern this method
+        // supports: the aggregate was loaded (with or without Include) and
+        // mutated within this same DbContext scope, so any pre-existing child is
+        // already tracked from that load and skipped by the branch above -- an
+        // untracked node here can only be a child that's genuinely new to this
+        // aggregate. See the Aggregate Repository doc page for the one scenario
+        // this does not cover (a fully disconnected graph reattached in a
+        // different DbContext instance from the one that loaded it), which
+        // still requires persisting the new child through its own repository.
+        node.Entry.State = ReferenceEquals(node.Entry.Entity, entity)
+            ? EntityState.Modified
+            : EntityState.Added;
+    });
+
+    await SaveAsync(token).ConfigureAwait(false);
+}
+```
+
+**What this fixes:** the originally reported scenario — load an aggregate via `GetByIdAsync` (with or without `Include`), mutate it in-memory (add a child, or change an existing already-loaded child's properties), call `UpdateAsync` once, all within one scoped `DbContext` (the standard ASP.NET Core request-scoped hosting pattern RCommon already assumes elsewhere). New children are added; already-tracked existing children keep working exactly as before via EF's automatic change detection — no capability is lost for that pattern.
+
+**What this still does not cover, and why that's an acceptable, documented boundary:** a fully disconnected graph — the aggregate was loaded in one `DbContext` instance/process (or deserialized from a message/DTO) and `UpdateAsync` is called against a *different*, fresh `DbContext` instance that never tracked any of its children. In that case every child looks equally "new" to this callback, including genuinely pre-existing ones, which would attempt to re-insert them (a unique-constraint violation, a different but also loud failure — not silent data loss). This is the scenario the existing "persist the new child via its own repository, then call `IEntityEventTracker.AddEntity(aggregate)`" pattern remains the documented, correct answer for (Design Decision 3). A DB-diffing or explicit entity-level "is this new" flag would close this remaining gap but was rejected for this release: the former needs a per-update query plus EF-metadata-driven navigation discovery, the latter requires new state on `RCommon.Entities` base classes and fragile materialization wiring — both disproportionate to a patch release relative to the boundary case they'd close.
+
+### Design Decision 2: `AddAsync` cascade-insert — unchanged, documented as an EF-Core-specific convenience
+
+No code change. `EFCoreAggregateRepository.AddAsync`/`EFCoreRepository.AddAsync` keep their existing full-graph `Added` cascade. Documented explicitly (see Documentation section) as a capability that does not port to Dapper or Linq2Db — consumers targeting cross-provider portability must persist new child entities through their own repository even on initial aggregate creation.
+
+### Design Decision 3: Event-tracking discoverability (item 13) — document, no code change
+
+`IEntityEventTracker` (`Src/RCommon.Entities/IEntityEventTracker.cs`) is already registered scoped in DI (`PersistenceBuilderExtensions.cs:81`). For the disconnected-graph boundary case in Decision 1 — or any time a consumer intentionally persists a child through its own repository instead of through the parent aggregate — the aggregate's domain events are only dispatched if `IEntityEventTracker.AddEntity(aggregateRoot)` is called explicitly, since nothing else in that code path ever touches the aggregate root. This is not new behavior; it's the same mechanism `UpdateAsync`/`AddAsync` already use internally. The fix here is purely documentation and a locking-in test (Testing Strategy below) — inject `IEntityEventTracker`, call `.AddEntity(aggregateRoot)` after mutating it, alongside the child's own repository call.
+
+### Design Decision 4: `Include<TProperty>` for collection navigations (item 2) — verify with a test, document eager-load semantics
+
+No code change anticipated. Add the test described below; if it passes (expected, given the implementation already uses EF Core's standard generic-`Include` pattern), this becomes a documentation-only item: `GetByIdAsync` does not eager-load by default on any provider, consistent with `ILinqRepository`'s existing documented behavior — use `Include` explicitly. If the test surprises us and does throw, the fix is `ThenInclude`-style plumbing scoped separately (out of this addendum; would need its own follow-up).
+
+### Design Decision 5: `EFCorePerisistenceBuilder` → `EFCorePersistenceBuilder` (item 7)
+
+**Location:** `Src/RCommon.EfCore/EFCorePersistenceBuilder.cs` (new, correctly-spelled file; renamed from `EFCorePerisistenceBuilder.cs`).
+
+The existing class body moves to the correctly-spelled name. The old name becomes a thin, `[Obsolete]`-annotated subclass so existing consumer code (`WithPersistence<EFCorePerisistenceBuilder>(...)`) keeps compiling with a warning, not an error:
+
+```csharp
+[Obsolete("Use EFCorePersistenceBuilder instead. This name will be removed in a future major version.")]
+public class EFCorePerisistenceBuilder : EFCorePersistenceBuilder
+{
+    public EFCorePerisistenceBuilder(IServiceCollection services) : base(services) { }
+}
+```
+
+Non-breaking: existing consumers compile unchanged (with a warning); new consumers and all updated docs/examples use the correct spelling.
+
+### Documentation
+
+New page: `website/docs/persistence/aggregate-repository.mdx` (currently `IAggregateRepository` has no dedicated doc page — it's only mentioned in passing in `getting-started/dependency-injection.mdx` and `getting-started/overview.mdx`). Content:
+
+- Full `IAggregateRepository<TAggregate,TKey>` member reference (mirroring the interface definition in Part 1 above).
+- A "Provider Comparison" table for aggregate-repository capabilities specifically (extending the existing pattern from `persistence/repository-pattern.mdx`), covering at minimum: child-collection cascade insert on `AddAsync` (EF Core only), child-collection persistence on `UpdateAsync` (none — root-row-only on all three providers), `Include`/`ThenInclude` support (EF Core and Linq2Db; no-op on Dapper).
+- The supported pattern (load in-scope, mutate, `UpdateAsync` once) vs. the disconnected-graph pattern (persist new children through their own repository + `IEntityEventTracker.AddEntity`), stated explicitly as two different, both-supported workflows rather than one being an unstated workaround for the other.
+- A worked "what if" scenario for each: adding a child to an existing aggregate; modifying an existing child's property; the cross-request/disconnected case.
+
+Also update: `Src/RCommon.EfCore/README.md`, `Src/RCommon.Persistence/README.md` (cross-reference), and this spec file's own Part 1 DI Registration snippet (currently notes the typo verbatim — update to show the corrected name with the old one noted as obsolete).
+
+### Testing Strategy
+
+1. **EF Core — `UpdateAsync` new-child regression test:** load (or construct) an aggregate with an existing persisted child collection in one `DbContext` scope, add a new child with a client-generated (sequential GUID) key, call `UpdateAsync`, assert both the new child is inserted and no exception is thrown.
+2. **EF Core — `UpdateAsync` existing-child-mutation regression test:** same scope, mutate a property on an already-tracked existing child (loaded via `Include`), call `UpdateAsync`, assert the property change is persisted (locks in that Decision 1 doesn't regress this currently-working case).
+3. **EF Core — disconnected-graph boundary test:** construct an aggregate graph entirely outside of any `DbContext` (simulating deserialization), call `UpdateAsync` against a fresh scope, assert the documented failure mode (unique-constraint violation on the pre-existing child) occurs — this is a "known boundary, still loud" test, not a "this now works" test.
+4. **Collection `Include` test (item 2):** `IAggregateRepository<TAggregate,TKey>.Include(t => t.SomeCollection).GetByIdAsync(id)` returns the aggregate with the collection populated, across EF Core (and Linq2Db via `LoadWith`); Dapper asserts the documented no-op.
+5. **Event-tracking discoverability test (item 13):** persist a new child via `ILinqRepository<TChild>.AddAsync`, explicitly call `IEntityEventTracker.AddEntity(aggregateRoot)`, commit via `IUnitOfWork.CommitAsync()`, assert the aggregate's domain event handler fires. A companion test without the explicit `AddEntity` call asserts the handler does *not* fire, to document (and guard against regressing) the boundary.
+6. **Builder rename:** `EFCorePersistenceBuilder` registers identically to today's `EFCorePerisistenceBuilder`; a compile-time (not runtime) check that `EFCorePerisistenceBuilder` still resolves and is marked `[Obsolete]`.
+
+### File Summary
+
+| File | Action | Location |
+|------|--------|----------|
+| `EFCoreAggregateRepository.cs` | Modify (`UpdateAsync`, both members) | `Src/RCommon.EfCore/Crud/` |
+| `EFCoreRepository.cs` | Modify (`UpdateAsync`) | `Src/RCommon.EfCore/Crud/` |
+| `EFCorePersistenceBuilder.cs` | Create (renamed from `EFCorePerisistenceBuilder.cs`) | `Src/RCommon.EfCore/` |
+| `EFCorePerisistenceBuilder.cs` | Modify (becomes `[Obsolete]` forwarding shim) | `Src/RCommon.EfCore/` |
+| `aggregate-repository.mdx` | Create | `website/docs/persistence/` |
+| `README.md` | Modify | `Src/RCommon.EfCore/`, `Src/RCommon.Persistence/` |
+| Test files (per Testing Strategy above) | Create | `Tests/RCommon.EfCore.Tests/`, `Tests/RCommon.Persistence.Tests/` |

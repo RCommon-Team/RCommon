@@ -29,7 +29,7 @@ dotnet add package RCommon.EFCore
 ```csharp
 // Configure in Program.cs or Startup
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<ApplicationDbContext>("ApplicationDb", options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDb")));
@@ -109,8 +109,10 @@ await _customerRepo.DeleteAsync(customer, isSoftDelete: true);
 | Type | Description |
 |------|-------------|
 | `EFCoreRepository<TEntity>` | Concrete repository backed by EF Core with full CRUD, LINQ, eager loading, and change tracking |
+| `EFCoreAggregateRepository<TAggregate,TKey>` | DDD-constrained repository for `IAggregateRepository<TAggregate,TKey>` -- see [Aggregate Repository](https://rcommon.com/docs/persistence/aggregate-repository) for the full persistence contract, including which operations persist child collections and which don't |
 | `RCommonDbContext` | Abstract `DbContext` base class implementing `IDataStore` for named data store resolution |
-| `EFCorePerisistenceBuilder` | Fluent builder for registering EF Core DbContexts and repository services in DI |
+| `EFCorePersistenceBuilder` | Fluent builder for registering EF Core DbContexts and repository services in DI |
+| `EFCorePerisistenceBuilder` | Obsolete, misspelled alias for `EFCorePersistenceBuilder`, kept as a forwarding subclass for backward compatibility |
 | `IEFCorePersistenceBuilder` | Builder interface exposing `AddDbContext<T>()` for registering named DbContexts |
 
 ## Documentation

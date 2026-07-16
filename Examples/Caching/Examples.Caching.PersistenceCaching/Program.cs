@@ -30,7 +30,7 @@ var host = Host.CreateDefaultBuilder(args)
 
                     // Configure RCommon
                     services.AddRCommon()
-                        .WithPersistence<EFCorePerisistenceBuilder>(ef => // Repository/ORM configuration. We could easily swap out to Linq2Db without impact to domain service up through the stack
+                        .WithPersistence<EFCorePersistenceBuilder>(ef => // Repository/ORM configuration. We could easily swap out to Linq2Db without impact to domain service up through the stack
                         {
                             // Add all the DbContexts here
                             ef.AddDbContext<TestDbContext>("TestDbContext", ef =>
