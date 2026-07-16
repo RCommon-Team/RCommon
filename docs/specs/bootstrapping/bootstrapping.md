@@ -78,6 +78,141 @@ Security review at this layer is limited to ensuring the `RCommonBuilderExceptio
 - **Scaling strategy:** Not applicable. Bootstrap runs once per process.
 - **Growth projections:** Not applicable.
 
+---
+
+## Addendum (2026-07-15): Default Data Store Inference & Improved Failure Messaging
+
+**Branch:** bugfix/consumer-feedback-hardening
+**Status:** Approved
+**Breaking Change:** No
+
+### Problem
+
+Without a call to `SetDefaultDataStore(options => options.DefaultDataStoreName = "...")`, `LinqRepositoryBase<TEntity>`'s constructor (`Src/RCommon.Persistence/Crud/LinqRepositoryBase.cs:47-65`) leaves `DataStoreName` at `null` if the caller also never sets it explicitly. DI registration and host startup succeed with no signal that anything is wrong. The failure only surfaces the first time a repository call actually resolves its data store, via `DataStoreFactory.Resolve<B>(name)` (`Src/RCommon.Persistence/DataStoreFactory.cs:49-59`) throwing `DataStoreNotFoundException` — a real, typed exception, but with an unhelpful message when `name` is empty (`"DataStore with name of  and base type of RCommonDbContext not found"`, literal double space, no mention of `SetDefaultDataStore` as the fix).
+
+### Investigation: why a startup-time hard-fail is the wrong shape for this fix
+
+The obvious-looking fix — fail fast at host startup whenever a data store is registered but no default is set — was rejected after checking it against RCommon's own documented usage. `website/docs/persistence/repository-pattern.mdx:48-61` shows, as a first-class documented pattern, a consumer with multiple registered data stores who sets `DataStoreName` explicitly on every repository instance and *never* calls `SetDefaultDataStore` at all:
+
+```csharp
+public CreateLeaveTypeCommandHandler(IGraphRepository<LeaveType> repository)
+{
+    _repository = repository;
+    _repository.DataStoreName = "LeaveManagement"; // matches the name used in AddDbContext
+}
+```
+
+For this consumer, "no default configured" is correct and intentional, not a misconfiguration — RCommon cannot distinguish this from the actual bug scenario (a consumer who forgot to set a default *and* forgot to set `DataStoreName` per call site) until a repository is actually resolved and used without an explicit name. That is exactly the point at which the current deferred-exception behavior already fires. A hard fail at startup for "N stores, no default" would be a false positive against this legitimate pattern. The fix is narrower than "fail fast for every ambiguous case" — it's two independent, additive pieces that don't touch the genuinely-ambiguous case at all.
+
+### Design Decision 1: auto-infer the default when exactly one data store is registered
+
+This is the one case with zero ambiguity: if there's only one registered data store and no explicit default, "use it" can never be wrong — and it directly resolves the original bug report's scenario (single-database app, `SetDefaultDataStore` never called). Implemented as a standard `IPostConfigureOptions<DefaultDataStoreOptions>`, not a hosted-service side-channel, so it runs lazily via the normal options pipeline the first time `IOptions<DefaultDataStoreOptions>.Value` is resolved (by which point every `WithPersistence`/`AddDbContext` call across every module has already run, since those all happen synchronously during host configuration):
+
+```csharp
+internal sealed class DefaultDataStoreOptionsPostConfigure : IPostConfigureOptions<DefaultDataStoreOptions>
+{
+    private readonly IOptions<DataStoreFactoryOptions> _dataStoreFactoryOptions;
+    private readonly ILogger<DefaultDataStoreOptions>? _logger;
+
+    public DefaultDataStoreOptionsPostConfigure(
+        IOptions<DataStoreFactoryOptions> dataStoreFactoryOptions,
+        ILogger<DefaultDataStoreOptions>? logger = null)
+    {
+        _dataStoreFactoryOptions = dataStoreFactoryOptions;
+        _logger = logger;
+    }
+
+    public void PostConfigure(string? name, DefaultDataStoreOptions options)
+    {
+        if (!string.IsNullOrEmpty(options.DefaultDataStoreName))
+        {
+            return; // consumer explicitly set a default -- always respected, never overridden
+        }
+
+        var registered = _dataStoreFactoryOptions.Value.Values
+            .Select(v => v.Name).Distinct().ToList();
+
+        if (registered.Count == 1)
+        {
+            options.DefaultDataStoreName = registered[0];
+            _logger?.LogInformation(
+                "RCommon inferred '{DataStoreName}' as the default data store because it is the only one " +
+                "registered. Call SetDefaultDataStore(...) explicitly to set this yourself and silence this message.",
+                registered[0]);
+        }
+        else if (registered.Count > 1)
+        {
+            _logger?.LogInformation(
+                "RCommon found {Count} registered data stores ({Names}) and no default was set via " +
+                "SetDefaultDataStore(...). This is expected if every repository sets DataStoreName explicitly; " +
+                "otherwise, repository calls that don't specify DataStoreName will throw DataStoreNotFoundException. " +
+                "Call SetDefaultDataStore(...) to resolve.",
+                registered.Count, string.Join(", ", registered));
+        }
+    }
+}
+```
+
+Registered once via `TryAddEnumerable` in `PersistenceBuilderExtensions.WithPersistence<TObjectAccess>` (`Src/RCommon.Persistence/PersistenceBuilderExtensions.cs:43-54`) — the single entry point every provider's fluent registration (`EFCorePersistenceBuilder`, `DapperPersistenceBuilder`, `Linq2DbPersistenceBuilder`) already routes through, so this covers all three providers with one registration site, and is idempotent across repeated `WithPersistence` calls from multiple modules.
+
+### Design Decision 2: multi-store, no-default case gets an informational log, not an error
+
+Per the investigation above, this case is only *possibly* a misconfiguration. `LogInformation` (not `LogWarning`) documents the ambiguity for anyone reading startup logs without asserting that something is wrong — consistent with this doc's existing Observability section, which already reserves `LogWarning` for genuine soft-duplicate conflicts. No exception is thrown here; the existing deferred-to-first-use `DataStoreNotFoundException` remains the actual enforcement point for the real misconfiguration, improved next.
+
+### Design Decision 3: improve `DataStoreNotFoundException`'s message
+
+**Location:** `Src/RCommon.Persistence/DataStoreFactory.cs:49-59`. Current message renders as `"DataStore with name of  and base type of RCommonDbContext not found"` when `name` is null/empty — the actual complaint from the field report. New message distinguishes the two failure shapes and lists what *is* registered, since `DataStoreFactory` already holds `_values` in scope:
+
+```csharp
+public B Resolve<B>(string name) where B : IDataStore
+{
+    if (_values.Any(x => x.Name == name && x.BaseType == typeof(B)))
+    {
+        return (B)_provider.GetRequiredService(_values.First(x => x.Name == name && x.BaseType == typeof(B)).ConcreteType);
+    }
+
+    var registered = _values.Select(v => v.Name).Distinct().ToList();
+    var registeredList = registered.Count == 0 ? "(none)" : string.Join(", ", registered);
+
+    if (string.IsNullOrEmpty(name))
+    {
+        throw new DataStoreNotFoundException(
+            $"No DataStoreName was specified for this repository, and no default data store has been " +
+            $"configured. Either set the repository's DataStoreName property explicitly, or call " +
+            $"SetDefaultDataStore(...) during WithPersistence<T> setup. Registered data stores: {registeredList}.");
+    }
+
+    throw new DataStoreNotFoundException(
+        $"DataStore with name of '{name}' and base type of '{typeof(B).GetGenericTypeName()}' not found. " +
+        $"Registered data stores: {registeredList}.");
+}
+```
+
+Existing exception *type* (`DataStoreNotFoundException`) is unchanged — only the message text changes, so this doesn't violate the "must not change any existing exception type" rule above; it's a message-quality fix, not a contract change.
+
+### Extends Core Requirements — Must Have
+
+- When exactly one data store is registered across all `WithPersistence<T>`/`AddDbContext<T>` calls and no explicit `SetDefaultDataStore` was called, `DefaultDataStoreOptions.DefaultDataStoreName` is automatically set to that one registration's name, logged at `LogInformation`.
+- When two or more data stores are registered and no explicit default is set, no default is inferred (ambiguous), and a single `LogInformation` note is emitted describing the registered names and the two ways to resolve ambiguity (explicit `DataStoreName` per repository, or `SetDefaultDataStore`).
+- `DataStoreNotFoundException`'s message always lists currently-registered data store names and, when the failure is due to a missing/empty name specifically, names both remediation paths explicitly.
+
+### Testing Strategy
+
+1. Single data store registered, no `SetDefaultDataStore` call → repository resolves successfully using the inferred name; an `LogInformation` entry is emitted.
+2. Two data stores registered, no `SetDefaultDataStore` call, every repository sets `DataStoreName` explicitly → no exception anywhere (regression guard against the false-positive risk this design avoids).
+3. Two data stores registered, no `SetDefaultDataStore` call, a repository is used *without* setting `DataStoreName` → `DataStoreNotFoundException` with the new empty-name message, listing both registered names.
+4. Explicit `SetDefaultDataStore` call is never overridden by the auto-infer logic, regardless of how many data stores are registered.
+5. `DataStoreNotFoundException` message content assertions for both the empty-name and wrong-name cases.
+
+### File Summary
+
+| File | Action | Location |
+|------|--------|----------|
+| `DefaultDataStoreOptionsPostConfigure.cs` | Create | `Src/RCommon.Persistence/` |
+| `PersistenceBuilderExtensions.cs` | Modify (`WithPersistence<TObjectAccess>` — register post-configure via `TryAddEnumerable`) | `Src/RCommon.Persistence/` |
+| `DataStoreFactory.cs` | Modify (`Resolve<B>` message) | `Src/RCommon.Persistence/` |
+| Test files (per Testing Strategy above) | Create | `Tests/RCommon.Persistence.Tests/` |
+
 ## API Design
 
 New public surface, strictly additive:

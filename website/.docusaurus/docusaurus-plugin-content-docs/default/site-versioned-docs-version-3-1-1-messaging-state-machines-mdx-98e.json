@@ -1,0 +1,29 @@
+{
+  "id": "messaging/state-machines",
+  "title": "State Machines",
+  "description": "Orchestrate long-running workflows in RCommon using MassTransit's dictionary-based state machine adapter with IStateMachineConfigurator, guards, and async entry/exit actions.",
+  "source": "@site/versioned_docs/version-3.1.1/messaging/state-machines.mdx",
+  "sourceDirName": "messaging",
+  "slug": "/messaging/state-machines",
+  "permalink": "/docs/3.1.1/messaging/state-machines",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/messaging/state-machines.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "State Machines",
+    "sidebar_position": 3,
+    "description": "Orchestrate long-running workflows in RCommon using MassTransit's dictionary-based state machine adapter with IStateMachineConfigurator, guards, and async entry/exit actions."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Transactional Outbox",
+    "permalink": "/docs/3.1.1/messaging/transactional-outbox"
+  },
+  "next": {
+    "title": "MassTransit",
+    "permalink": "/docs/3.1.1/messaging/masstransit"
+  }
+}

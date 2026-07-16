@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/domain-driven-design/value-objects.mdx",
   "sourceDirName": "domain-driven-design",
   "slug": "/domain-driven-design/value-objects",
-  "permalink": "/docs/domain-driven-design/value-objects",
+  "permalink": "/docs/2.4.1/domain-driven-design/value-objects",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/domain-driven-design/value-objects.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Domain Events",
-    "permalink": "/docs/domain-driven-design/domain-events"
+    "permalink": "/docs/2.4.1/domain-driven-design/domain-events"
   },
   "next": {
     "title": "Auditing",
-    "permalink": "/docs/domain-driven-design/auditing"
+    "permalink": "/docs/2.4.1/domain-driven-design/auditing"
   }
 }

@@ -1,0 +1,29 @@
+{
+  "id": "event-handling/mediatr",
+  "title": "MediatR",
+  "description": "Route RCommon events through MediatR's notification pipeline using MediatREventHandlingBuilder, with ISubscriber handlers unaware of MediatR internals.",
+  "source": "@site/versioned_docs/version-3.1.2/event-handling/mediatr.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/mediatr",
+  "permalink": "/docs/event-handling/mediatr",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/event-handling/mediatr.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "MediatR",
+    "sidebar_position": 5,
+    "description": "Route RCommon events through MediatR's notification pipeline using MediatREventHandlingBuilder, with ISubscriber handlers unaware of MediatR internals."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Outbox Producer/Processor Topology",
+    "permalink": "/docs/event-handling/outbox-producer-processor-topology"
+  },
+  "next": {
+    "title": "MassTransit",
+    "permalink": "/docs/event-handling/masstransit"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "event-handling/transactional-outbox",
+  "title": "Transactional Outbox",
+  "description": "Guarantee at-least-once event delivery using the transactional outbox pattern with MassTransit EF Core outbox or Wolverine's EF Core transaction integration.",
+  "source": "@site/versioned_docs/version-3.1.2/event-handling/transactional-outbox.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/transactional-outbox",
+  "permalink": "/docs/event-handling/transactional-outbox",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/event-handling/transactional-outbox.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Transactional Outbox",
+    "sidebar_position": 4,
+    "description": "Guarantee at-least-once event delivery using the transactional outbox pattern with MassTransit EF Core outbox or Wolverine's EF Core transaction integration."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Distributed Events",
+    "permalink": "/docs/event-handling/distributed"
+  },
+  "next": {
+    "title": "Outbox Producer/Processor Topology",
+    "permalink": "/docs/event-handling/outbox-producer-processor-topology"
+  }
+}

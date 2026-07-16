@@ -1,0 +1,29 @@
+{
+  "id": "domain-driven-design/value-objects",
+  "title": "Value Objects",
+  "description": "Model domain concepts by value rather than identity using RCommon's ValueObject and ValueObject&lt;T&gt; abstract records with built-in structural equality and immutability.",
+  "source": "@site/versioned_docs/version-3.1.1/domain-driven-design/value-objects.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/value-objects",
+  "permalink": "/docs/3.1.1/domain-driven-design/value-objects",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/domain-driven-design/value-objects.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Value Objects",
+    "sidebar_position": 3,
+    "description": "Model domain concepts by value rather than identity using RCommon's ValueObject and ValueObject&lt;T&gt; abstract records with built-in structural equality and immutability."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Domain Events",
+    "permalink": "/docs/3.1.1/domain-driven-design/domain-events"
+  },
+  "next": {
+    "title": "Auditing",
+    "permalink": "/docs/3.1.1/domain-driven-design/auditing"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "serialization/overview",
+  "title": "Overview",
+  "description": "Provider-agnostic JSON serialization for .NET with IJsonSerializer, supporting Newtonsoft.Json and System.Text.Json with per-call and global option configuration.",
+  "source": "@site/versioned_docs/version-3.1.1/serialization/overview.mdx",
+  "sourceDirName": "serialization",
+  "slug": "/serialization/overview",
+  "permalink": "/docs/3.1.1/serialization/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/serialization/overview.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1,
+    "description": "Provider-agnostic JSON serialization for .NET with IJsonSerializer, supporting Newtonsoft.Json and System.Text.Json with per-call and global option configuration."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Serialization",
+    "permalink": "/docs/3.1.1/category/serialization"
+  },
+  "next": {
+    "title": "Newtonsoft.Json",
+    "permalink": "/docs/3.1.1/serialization/newtonsoft"
+  }
+}

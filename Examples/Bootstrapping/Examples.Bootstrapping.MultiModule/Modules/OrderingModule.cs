@@ -17,7 +17,7 @@ public class OrderingModule : IServiceModule
     {
         services.AddRCommon()
             .WithSimpleGuidGenerator() // Singleton verb: idempotent across modules when impl matches.
-            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 ef.AddDbContext<OrderingDbContext>(
                     "Ordering",
                     o => o.UseInMemoryDatabase("ordering")))

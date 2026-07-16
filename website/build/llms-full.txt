@@ -6,9 +6,13 @@
 
 ---
 
-## Changelog
+## changelog
 Source: https://rcommon.com/docs/api-reference/changelog
-RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags.
+---
+title: Changelog
+sidebar_position: 2
+description: RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags.
+---
 
 # Changelog
 
@@ -18,9 +22,9 @@ The authoritative release history for all RCommon packages is maintained on GitH
 
 ## Recent Changes
 
-### Modular Composition (Unreleased)
+### 3.1.2
 
-Added support for calling `services.AddRCommon()` from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement.
+Modular composition, bootstrapping ergonomics, opt-in CQRS transactions, and a docs consolidation pass covering navigation, eight new runnable examples, an end-to-end DDD recipe, and a machine-readable full API reference. All changes in this release are backward-compatible.
 
 **Added**
 
@@ -29,6 +33,22 @@ Added support for calling `services.AddRCommon()` from multiple modules in the s
 - New public API: `IRCommonBuilder.GetBootstrapDiagnostics()` — retrieve the soft-duplicate report stashed at host startup.
 - New public API: `IServiceCollection.IsRCommonInitialized()` — true iff `AddRCommon()` has been called.
 - New internal `IHostedService` runs the duplicate-descriptor scanner at host startup and emits a single warning on soft duplicates.
+- **`ICqrsBuilder.AddUnitOfWorkToCommandBus()`** — opt-in unit-of-work wrapping for the native `ICommandBus`, via a new `UnitOfWorkCommandBus` decorator. Commands only, not queries; gives the native command bus parity with MediatR's `AddUnitOfWorkToRequestPipeline()`.
+- **`TenantScope.Bypass()`** (`RCommon.Security.Claims`) — an ambient, `AsyncLocal`-based, nestable scope that suspends tenant-based repository filtering and stamping for its lifetime. A new `TenantScopeAwareTenantIdAccessor` decorator wraps `ClaimsTenantIdAccessor` and Finbuckle's tenant accessor automatically.
+- When exactly one data store is registered and `SetDefaultDataStore` was never called, it is now auto-inferred (logged at `Information`); registering 2+ stores with no default now also logs informationally instead of only surfacing at first use.
+- Cross-builder startup diagnostics: a warning is logged when an in-memory event bus builder has subscriptions but no registered producer, and when the event router has events to dispatch but no producers are registered for them (both were previously silent).
+- 8 new runnable `Examples/` projects: Dapper, Linq2Db, Sagas, Blob Storage (Azure/S3), State Machines (Stateless), Multi-Tenancy (Finbuckle), and Event Handling (Outbox) — plus an end-to-end [Domain-Driven Design recipe](../examples-recipes/domain-driven-design.mdx) (`Team`/`TeamMembership` aggregate).
+- A machine-readable [full API reference](pathname:///api-reference-full.txt), generated directly from built assemblies and their XML doc-comment sidecars.
+
+**Fixed**
+
+- `EFCoreAggregateRepository`/`EFCoreRepository.UpdateAsync` misclassified newly-added child entities with non-default keys (e.g. sequential GUIDs) as `Modified` instead of `Added`, silently dropping the insert. Fixed with explicit reference-based change tracking.
+- `Include`/`ThenInclude` threw for collection navigations ("invalid inside an Include operation"); switched to EF Core's string-path `Include()` overload.
+- `AddSubscriber()` on `IInMemoryEventBusBuilder` silently did nothing (the handler was never invoked) unless a separate, undocumented producer registration call was also made. The required producer is now auto-registered.
+- The zero-argument `RCommon.FluentValidation.ValidationBuilderExtensions.WithValidation<T>()` overload — a byte-for-byte duplicate of the `ApplicationServices` overload — was deleted, resolving an unconditional `CS0121` ambiguity error when both packages were referenced together.
+- **Dapper (`RCommon.Dapper`):** `AddAsync`/`AddRangeAsync` discarded database-generated keys instead of writing them back to the entity after insert. Separately, Dommel's default key resolver treated any `Guid`/`string`-typed `Id` property as database-generated, silently writing `NULL`/default into the primary key column. A new `RCommonKeyPropertyResolver` restricts auto-generation guessing to numeric key types.
+- **Linq2Db (`RCommon.Linq2Db`):** entities deriving from `BusinessEntity`/`AggregateRoot` failed every insert and query ("no such column") because Linq2Db does not honor `[NotMapped]`. A new `IMetadataReader` implementation excludes the framework-owned event-tracking properties from the entity's column mapping.
+- **`RCommon.Finbuckle`:** an unused `new()` generic constraint on `FinbuckleMultiTenantBuilder`/`FinbuckleTenantIdAccessor` broke compilation against Finbuckle's built-in `TenantInfo` type (which has `required` members) on net10.0. The constraint is now conditional per target framework, since net8.0/net9.0 reference an older Finbuckle version whose own interfaces still require it.
 
 **Changed**
 
@@ -37,12 +57,34 @@ Added support for calling `services.AddRCommon()` from multiple modules in the s
 - `DataStoreFactoryOptions.Register<,>` is now idempotent for identical `(name, base, concrete)` triples. Conflicts (same `(name, base)` with different concrete) throw `UnsupportedDataStoreException` (exception type preserved).
 - `AddProducer<T>` now deduplicates by concrete producer type via descriptor scan — distinct producer types still coexist.
 - All sub-builder `WithX<T>` extensions route through `GetOrAddBuilder<T>`; generic constraints tightened to `where T : class, ...`.
+- `DataStoreNotFoundException`'s message now lists registered stores and remediation steps (message text only; exception type unchanged).
+- `EFCorePerisistenceBuilder` (typo) renamed to `EFCorePersistenceBuilder`; the old name remains as an `[Obsolete]` forwarding subclass.
+- The `WithValidation<T>(Action)` overload is marked `[Obsolete]` in favor of calling `UseWithCqrs(...)` inside `WithValidation<T>(Action<T>)`.
 
 **Notes**
 
-- Strictly additive public API surface. No method or interface signature removals.
-- No exception types changed on existing APIs.
-- See `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable demonstration.
+- Strictly additive public API surface across this release. No method or interface signature removals, and no exception types changed on existing APIs.
+- See `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable demonstration of modular composition.
+
+### 3.1.1
+
+Bug-fix and security patch release.
+
+**Fixed**
+
+- **Cross-host transactional outbox delivery.** Added `OutboxOptions.ImmediateDispatch` (default `true`, fully backward-compatible). When set to `false`, a unit of work persists outbox events but skips the best-effort post-commit in-process dispatch (Phase 3), leaving the durable poller (`OutboxProcessingService`) as the sole dispatcher and marker. This fixes silent loss of cross-host delivery, where a producing host marked rows processed before a subscriber on a different host could consume them. Producer-only hosts should set `ImmediateDispatch = false`. See [Outbox Producer/Processor Topology](../event-handling/outbox-producer-processor-topology.mdx).
+- Outbox post-commit dispatch no longer marks a message processed when no in-process producer matched the event; it is left for the poller (defense-in-depth).
+- `EFCoreOutboxStore.DeleteProcessedAsync` / `DeleteDeadLetteredAsync` used a `DateTimeOffset` comparison the SQLite provider could not translate. The comparison is now evaluated client-side; SQL Server / PostgreSQL behaviour is unchanged.
+
+**Security**
+
+- Pinned patched **Microsoft.OpenApi 2.7.5** in `RCommon.Authorization.Web` (net10 target), resolving CVE-2026-49451 (GHSA-v5pm-xwqc-g5wc), which was pulled transitively via Swashbuckle 10.x.
+- Upgraded the native SQLite binary (**SQLitePCLRaw.lib.e_sqlite3 3.53.3**) in the SQLite-backed test projects, resolving CVE-2025-6965 (GHSA-2m69-gcr7-jv3q).
+
+**Notes**
+
+- Strictly additive public API surface (`OutboxOptions.ImmediateDispatch`); no signature removals, and no behavioural change at the default.
+- Website (Docusaurus) build-tooling npm advisories are tracked as a separate follow-up (Docusaurus 3.10 upgrade + theme swizzle migration).
 
 ### Blob Storage Abstractions
 
@@ -106,9 +148,16 @@ Found a bug or missing a feature? Please open an issue on GitHub:
 
 ---
 
-## Migration Guide
+## migration-guide
 Source: https://rcommon.com/docs/api-reference/migration-guide
-Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades.
+---
+title: Migration Guide
+sidebar_position: 3
+description: Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades.
+---
+
+
+
 
 # Migration Guide
 
@@ -131,6 +180,9 @@ Before upgrading to a new major version, follow these steps:
 Update all `RCommon.*` packages in your project files at once. Because all packages share the same version, mixing versions across packages in the same application is not supported and may cause type resolution failures.
 
 ```xml
+
+
+
 
 <!-- All RCommon.* packages should share the same version -->
 ```
@@ -421,7 +473,7 @@ Drop-in implementations of the persistence abstractions for the ORM or SQL mappe
 
 | Package | ORM / Driver | Description |
 |---|---|---|
-| [RCommon.EFCore](https://www.nuget.org/packages/RCommon.EFCore) | Entity Framework Core | `EFCoreRepository<T>`, `RCommonDbContext`, `EFCorePerisistenceBuilder`; full LINQ, eager loading, change tracking, and bulk delete |
+| [RCommon.EFCore](https://www.nuget.org/packages/RCommon.EFCore) | Entity Framework Core | `EFCoreRepository<T>`, `RCommonDbContext`, `EFCorePersistenceBuilder`; full LINQ, eager loading, change tracking, and bulk delete |
 | [RCommon.Dapper](https://www.nuget.org/packages/RCommon.Dapper) | Dapper + Dommel | `DapperRepository<T>`, `RDbConnection`, `DapperPersistenceBuilder`; expression-based CRUD via Dommel |
 | [RCommon.Linq2Db](https://www.nuget.org/packages/RCommon.Linq2Db) | Linq2Db | `Linq2DbRepository<T>`, `RCommonDataConnection`, `Linq2DbPersistenceBuilder`; full LINQ, eager loading via `LoadWith`, and paginated queries |
 
@@ -566,10 +618,11 @@ RCommon.Core
        └─ RCommon.Persistence
             ├─ RCommon.EFCore
             ├─ RCommon.Dapper
-            └─ RCommon.Linq2Db
+            ├─ RCommon.Linq2Db
+            └─ RCommon.ApplicationServices (IUnitOfWorkFactory, for AddUnitOfWorkToCommandBus())
 
 RCommon.Models
-  └─ RCommon.ApplicationServices
+  └─ RCommon.ApplicationServices (also depends on RCommon.Persistence, above)
        └─ RCommon.FluentValidation (optional validation pipeline)
 
 RCommon.Mediator
@@ -592,11 +645,22 @@ RCommon.Security
        └─ RCommon.Finbuckle
 ```
 
+## Machine-Readable API Reference
+
+For the complete public API surface of every RCommon package (every public type and member, with signatures and XML doc-comment summaries), see [`/api-reference-full.txt`](pathname:///api-reference-full.txt). It's generated directly from the built assemblies and their XML doc-comment sidecars, so it never goes stale relative to the code. For prose documentation aimed at LLMs, see [`/llms-full.txt`](pathname:///llms-full.txt).
+
 ---
 
-## Clean Architecture
+## clean-architecture
 Source: https://rcommon.com/docs/architecture-guides/clean-architecture
-Build .NET apps with Clean Architecture using RCommon. Layer domain, application, and infrastructure with testable CQRS handlers and swappable persistence providers.
+---
+title: Clean Architecture
+sidebar_position: 1
+description: Build .NET apps with Clean Architecture using RCommon. Layer domain, application, and infrastructure with testable CQRS handlers and swappable persistence providers.
+---
+
+
+
 
 # Clean Architecture with RCommon
 
@@ -1038,9 +1102,16 @@ public class CreateLeaveTypeCommandHandlerTests
 
 ---
 
-## Event-Driven Architecture
+## event-driven
 Source: https://rcommon.com/docs/architecture-guides/event-driven
-Implement event-driven .NET apps with RCommon using IEventProducer and ISubscriber across in-memory, MediatR, MassTransit, and Wolverine providers.
+---
+title: Event-Driven Architecture
+sidebar_position: 3
+description: Implement event-driven .NET apps with RCommon using IEventProducer and ISubscriber across in-memory, MediatR, MassTransit, and Wolverine providers.
+---
+
+
+
 
 # Event-Driven Architecture with RCommon
 
@@ -1381,9 +1452,16 @@ public async Task SendApprovalEmailHandler_Sends_Email_On_Approval()
 
 ---
 
-## Microservices
+## microservices
 Source: https://rcommon.com/docs/architecture-guides/microservices
-Build .NET microservices with RCommon using MassTransit or Wolverine for messaging, per-service persistence, and transport-agnostic IEventProducer abstractions.
+---
+title: Microservices
+sidebar_position: 2
+description: Build .NET microservices with RCommon using MassTransit or Wolverine for messaging, per-service persistence, and transport-agnostic IEventProducer abstractions.
+---
+
+
+
 
 # Microservices with RCommon
 
@@ -1812,6 +1890,10 @@ builder.Services.AddRCommon()
 
 Inject `IBlobStoreFactory` and resolve the store by name, or inject `IBlobStorageService` directly when only one store is registered.
 
+:::tip Runnable example
+See `Examples/BlobStorage/Examples.BlobStorage.Azure/` for a complete console app exercising upload/download/delete against the [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) emulator — no real Azure Storage account required.
+:::
+
 ```csharp
 public class FileUploadService
 {
@@ -1871,9 +1953,15 @@ If neither combination is supplied, the store throws an `InvalidOperationExcepti
 
 ---
 
-## Overview
+## overview
 Source: https://rcommon.com/docs/blob-storage/overview
-Provider-agnostic blob storage abstraction for .NET covering upload, download, metadata, presigned URLs, and named multi-store registration via IBlobStoreFactory.
+---
+title: Overview
+sidebar_position: 1
+description: Provider-agnostic blob storage abstraction for .NET covering upload, download, metadata, presigned URLs, and named multi-store registration via IBlobStoreFactory.
+---
+
+
 
 # Blob Storage Overview
 
@@ -1907,9 +1995,15 @@ Applications that need more than one storage backend register each store under a
 
 Install the core abstractions package:
 
+
+
 Then install the provider package that matches your storage backend:
 
+
+
 or
+
+
 
 ## Configuration
 
@@ -2238,6 +2332,10 @@ builder.Services.AddRCommon()
 
 Inject `IBlobStoreFactory` and resolve the store by name:
 
+:::tip Runnable example
+See `Examples/BlobStorage/Examples.BlobStorage.S3/` for a complete console app exercising upload/download/delete/presigned-URL generation against a local MinIO-style endpoint — no real AWS account required.
+:::
+
 ```csharp
 public class ReportStorageService
 {
@@ -2299,9 +2397,15 @@ Credential resolution priority:
 
 ---
 
-## Memory Cache
+## memory
 Source: https://rcommon.com/docs/caching/memory
-RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backed caching with get-or-create patterns and LINQ expression caching optimization.
+---
+title: Memory Cache
+sidebar_position: 2
+description: RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backed caching with get-or-create patterns and LINQ expression caching optimization.
+---
+
+
 
 # Memory Cache
 
@@ -2313,6 +2417,8 @@ RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backe
 Both serve single-process applications. Use `DistributedMemoryCacheService` when your service registration already relies on `IDistributedCache` and you do not yet need a real distributed store.
 
 ## Installation
+
+
 
 ## In-memory cache setup
 
@@ -2457,9 +2563,13 @@ Individual entry expiration is configured through the `IMemoryCache.GetOrCreate`
 
 ---
 
-## Overview
+## overview
 Source: https://rcommon.com/docs/caching/overview
-Provider-agnostic caching abstraction for .NET with ICacheService, strongly-typed CacheKey, and support for in-memory, distributed, and Redis backends.
+---
+title: Overview
+sidebar_position: 1
+description: Provider-agnostic caching abstraction for .NET with ICacheService, strongly-typed CacheKey, and support for in-memory, distributed, and Redis backends.
+---
 
 # Caching Overview
 
@@ -2555,15 +2665,23 @@ Both `WithMemoryCaching<T>` and `WithDistributedCaching<T>` are cache-aware sub-
 
 ---
 
-## Redis Cache
+## redis
 Source: https://rcommon.com/docs/caching/redis
-RCommon.RedisCache implements ICacheService using StackExchange.Redis for distributed caching across multiple app instances, with JSON serialization support.
+---
+title: Redis Cache
+sidebar_position: 3
+description: RCommon.RedisCache implements ICacheService using StackExchange.Redis for distributed caching across multiple app instances, with JSON serialization support.
+---
+
+
 
 # Redis Cache
 
 `RCommon.RedisCache` implements `ICacheService` using StackExchange.Redis through the `Microsoft.Extensions.Caching.StackExchangeRedis` provider. It is the recommended caching backend for applications deployed across multiple instances or hosts.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -2950,9 +3068,15 @@ public record OrderListModel : PaginatedListModel
 
 ---
 
-## Fluent Configuration
+## fluent-configuration
 Source: https://rcommon.com/docs/core-concepts/fluent-configuration
-Deep dive into RCommon's fluent configuration API — IRCommonBuilder, With* extension methods, custom builder extensions, and double-registration protection.
+---
+title: Fluent Configuration
+sidebar_position: 1
+description: "Deep dive into RCommon's fluent configuration API — IRCommonBuilder, With* extension methods, custom builder extensions, and double-registration protection."
+---
+
+
 
 # Fluent Configuration Builder
 
@@ -2963,6 +3087,8 @@ RCommon uses a fluent builder pattern to configure framework services during app
 This approach keeps all RCommon configuration in one place, makes dependencies explicit, and prevents double-registration of the same service.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -3256,9 +3382,15 @@ Guard.IsEqual(expectedVersion, actualVersion,
 
 ---
 
-## GUID Generation
+## guid-generation
 Source: https://rcommon.com/docs/core-concepts/guid-generation
-RCommon's IGuidGenerator abstraction for testable GUID creation — sequential GUIDs for SQL Server, MySQL, PostgreSQL, and Oracle to reduce index fragmentation.
+---
+title: GUID Generation
+sidebar_position: 3
+description: "RCommon's IGuidGenerator abstraction for testable GUID creation — sequential GUIDs for SQL Server, MySQL, PostgreSQL, and Oracle to reduce index fragmentation."
+---
+
+
 
 # GUID Generation
 
@@ -3272,6 +3404,8 @@ RCommon abstracts GUID generation behind an `IGuidGenerator` interface for two r
 RCommon ships two implementations out of the box: `SimpleGuidGenerator` and `SequentialGuidGenerator`. You pick one during application configuration; see [Behavior on repeated calls](#behavior-on-repeated-calls) below for what happens when more than one module configures GUID generation.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -3402,9 +3536,13 @@ Registered by `WithSequentialGuidGenerator(...)`. Transient lifetime. Generates 
 
 ---
 
-## Modular Composition
+## modular-composition
 Source: https://rcommon.com/docs/core-concepts/modular-composition
-Compose AddRCommon across multiple modules in a single process — registrations merge, never duplicate or throw on agreement.
+---
+title: Modular Composition
+sidebar_position: 2
+description: Compose AddRCommon across multiple modules in a single process — registrations merge, never duplicate or throw on agreement.
+---
 
 # Modular Composition
 
@@ -3427,7 +3565,7 @@ The net effect: modular apps had to funnel all RCommon wiring through a single s
 
 ## The solution
 
-`AddRCommon()` is now idempotent. The first call constructs an `IRCommonBuilder` and stashes it on `IServiceCollection`; subsequent calls return the same cached instance. Sub-builders are cached by concrete builder type, so a second `WithPersistence(ef => ...)` reuses the same `EFCorePerisistenceBuilder` and the new action delegate runs against it. Singleton-style verbs record the impl type they registered; same-type re-registration is a no-op, different-type calls throw `RCommonBuilderException` with both type names in the message.
+`AddRCommon()` is now idempotent. The first call constructs an `IRCommonBuilder` and stashes it on `IServiceCollection`; subsequent calls return the same cached instance. Sub-builders are cached by concrete builder type, so a second `WithPersistence(ef => ...)` reuses the same `EFCorePersistenceBuilder` and the new action delegate runs against it. Singleton-style verbs record the impl type they registered; same-type re-registration is a no-op, different-type calls throw `RCommonBuilderException` with both type names in the message.
 
 Conflict semantics are predictable across the entire surface — see the matrix below.
 
@@ -3594,9 +3732,15 @@ If you parallelize module wiring you will see intermittent missing registrations
 
 ---
 
-## System Time Abstraction
+## system-time
 Source: https://rcommon.com/docs/core-concepts/system-time
-Use ISystemTime to abstract DateTime.Now for testable time-dependent code — configure UTC or local time, normalize incoming dates, and substitute clocks in tests.
+---
+title: System Time Abstraction
+sidebar_position: 4
+description: "Use ISystemTime to abstract DateTime.Now for testable time-dependent code — configure UTC or local time, normalize incoming dates, and substitute clocks in tests."
+---
+
+
 
 # System Time Abstraction
 
@@ -3607,6 +3751,8 @@ Code that calls `DateTime.Now` or `DateTime.UtcNow` directly is difficult to tes
 Beyond testability, `ISystemTime` also centralizes time zone handling. When `DateTimeKind.Utc` is configured, `ISystemTime.Now` always returns UTC, and the `Normalize` method converts any incoming `DateTime` to match that kind.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -3843,6 +3989,26 @@ builder.Services.AddRCommon()
     });
 ```
 
+### Enabling transactional command dispatch
+
+By default, `ICommandBus.DispatchCommandAsync` does not open a transaction — a multi-step command handler (e.g., create an order and reserve inventory) must manage its own `IUnitOfWork` explicitly. Call `AddUnitOfWorkToCommandBus()` to wrap every command dispatch in an `IUnitOfWork`, committed automatically after a successful dispatch:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithCQRS(cqrs =>
+    {
+        cqrs.AddCommandHandlers(typeof(Program).Assembly);
+        cqrs.AddUnitOfWorkToCommandBus();
+    })
+    .WithUnitOfWork(uow => { /* ... */ });
+```
+
+This is opt-in and scoped to commands only — `IQueryBus` is never wrapped, since queries are read-only by CQRS convention. If the handler throws, the unit of work is disposed without committing, so the transaction rolls back.
+
+:::tip RCommon.Mediatr has its own, separate opt-in
+If you use MediatR instead of (or alongside) the native `ICommandBus`, the equivalent feature is `AddUnitOfWorkToRequestPipeline()` on `IMediatRBuilder` — see [MediatR](./mediatr#adding-pipeline-behaviors). The two are independent: enabling one does not enable the other, and each dispatcher gets the idiom that fits its shape (a bus-level decorator here; an `IPipelineBehavior<,>` there).
+:::
+
 ## Usage
 
 Inject `ICommandBus` or `IQueryBus` into any service and call the dispatch methods:
@@ -3896,11 +4062,14 @@ public class OrderApplicationService
 | `AddCommandHandler()` | Registers a single command handler as a transient service. |
 | `AddCommand()` | Alias for `AddCommandHandler` with command-first type parameter order. |
 | `AddCommandHandlers(Assembly, Predicate?)` | Scans an assembly and registers all `ICommandHandler` implementations. Excludes decorator types. |
+| `AddCommandHandlers(params Type[])` | Registers the provided command handler types explicitly. |
 | `AddCommandHandlers(IEnumerable)` | Registers the provided command handler types explicitly. |
 | `AddQueryHandler()` | Registers a single query handler as a transient service. |
 | `AddQuery()` | Alias for `AddQueryHandler` with query-first type parameter order. |
 | `AddQueryHandlers(Assembly, Predicate?)` | Scans an assembly and registers all `IQueryHandler` implementations. Excludes decorator types. |
+| `AddQueryHandlers(params Type[])` | Registers the provided query handler types explicitly. |
 | `AddQueryHandlers(IEnumerable)` | Registers the provided query handler types explicitly. |
+| `AddUnitOfWorkToCommandBus()` | Opt-in. Wraps `ICommandBus.DispatchCommandAsync` in an `IUnitOfWork`, committed after a successful dispatch. Commands only; `IQueryBus` is untouched. |
 
 ### `CqrsValidationOptions`
 
@@ -4142,9 +4311,15 @@ if (!result.IsSuccess)
 
 ---
 
-## MediatR
+## mediatr
 Source: https://rcommon.com/docs/cqrs-mediator/mediatr
-Wire MediatR into RCommon's mediator abstraction for request-response and fan-out notifications, with built-in logging, validation, and unit-of-work pipeline behaviors.
+---
+title: MediatR
+sidebar_position: 4
+description: Wire MediatR into RCommon's mediator abstraction for request-response and fan-out notifications, with built-in logging, validation, and unit-of-work pipeline behaviors.
+---
+
+
 
 # MediatR
 
@@ -4160,6 +4335,8 @@ Wire MediatR into RCommon's mediator abstraction for request-response and fan-ou
 Application code depends only on `IMediatorService` from `RCommon.Mediator`. The MediatR implementation is an infrastructure detail registered at startup.
 
 ## Installation
+
+
 
 This package depends on `RCommon.Mediator`, `RCommon.ApplicationServices`, `RCommon.Core`, `RCommon.Persistence`, and the `MediatR` NuGet package. All are pulled in transitively.
 
@@ -4228,6 +4405,10 @@ builder.Services.AddRCommon()
         mediator.AddUnitOfWorkToRequestPipeline();
     });
 ```
+
+:::tip Native ICommandBus has its own, separate opt-in
+`AddUnitOfWorkToRequestPipeline()` only wraps MediatR requests dispatched through `IMediator`. It has no effect on RCommon's native, non-MediatR `ICommandBus` — that dispatcher has its own opt-in, `AddUnitOfWorkToCommandBus()`, described in [Command & Query Bus](./command-query-bus#enabling-transactional-command-dispatch). If your application uses both dispatchers, enable each one independently; neither implies the other.
+:::
 
 ## Usage
 
@@ -4653,9 +4834,15 @@ public class OrderApplicationService
 
 ---
 
-## Wolverine
+## wolverine
 Source: https://rcommon.com/docs/cqrs-mediator/wolverine
-Integrate WolverineFx as a distributed event producer in RCommon, supporting fan-out publish and point-to-point send via ISubscriber without Wolverine-specific handler code.
+---
+title: Wolverine
+sidebar_position: 5
+description: Integrate WolverineFx as a distributed event producer in RCommon, supporting fan-out publish and point-to-point send via ISubscriber without Wolverine-specific handler code.
+---
+
+
 
 # Wolverine
 
@@ -4673,6 +4860,8 @@ The package provides:
 Events must implement `ISerializableEvent` (from `RCommon.Models`) to flow through the Wolverine producers.
 
 ## Installation
+
+
 
 This package depends on `RCommon.Core` and `WolverineFx`. Wolverine itself requires host-level setup via `UseWolverine()` on the application host builder — see the Wolverine documentation for transport and endpoint configuration.
 
@@ -4698,10 +4887,20 @@ builder.Host.UseWolverine(opts =>
 builder.Services.AddRCommon()
     .WithEventHandling(wolverine =>
     {
+        wolverine.AddProducer();
         wolverine.AddSubscriber();
         wolverine.AddSubscriber();
     });
 ```
+
+:::warning Unlike InMemoryEventBusBuilder, AddSubscriber here does not auto-register a producer
+`InMemoryEventBusBuilder.AddSubscriber` automatically registers its matching producer (as of this
+version), but `WolverineEventHandlingBuilder.AddSubscriber` does not -- a subscriber registered
+here with no matching `AddProducer<T>()` call is never invoked, with no error of any kind (the
+router simply has zero producers to route to). Always pair `AddSubscriber` with an `AddProducer<T>()`
+call for one of the two producers below, as shown above. RCommon's startup diagnostics will warn
+once if it detects this builder has subscriptions but no registered producer.
+:::
 
 :::tip Modular composition
 `WithEventHandling` is a cache-aware sub-builder verb. When multiple modules call it, the cached `WolverineEventHandlingBuilder` is reused and each module's `AddSubscriber` and `AddProducer<T>` registrations accumulate on the same instance. `AddProducer<T>` deduplicates by concrete producer type, so the same producer registered from two modules yields exactly one descriptor. Note that the host-level `builder.Host.UseWolverine(...)` call must happen exactly once in the application host; only the RCommon sub-builder participates in module-level composition. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
@@ -4762,6 +4961,7 @@ Register subscribers using the `IWolverineEventHandlingBuilder` extension method
 builder.Services.AddRCommon()
     .WithEventHandling(wolverine =>
     {
+        wolverine.AddProducer();
         wolverine.AddSubscriber();
     });
 ```
@@ -4775,17 +4975,20 @@ wolverine.AddSubscriber(
 
 ### Producing events
 
-Use `PublishWithWolverineEventProducer` for fan-out delivery (all subscribers receive the event) or `SendWithWolverineEventProducer` for point-to-point delivery (one handler). Register the appropriate producer when setting up your event bus:
+Use `PublishWithWolverineEventProducer` for fan-out delivery (all subscribers receive the event) or `SendWithWolverineEventProducer` for point-to-point delivery (one handler). Register the appropriate producer with the builder's own `AddProducer<T>()` -- not a raw `services.AddScoped()` call -- so the registration is tracked by `EventSubscriptionManager` and correctly associated with this builder:
 
 ```csharp
-using RCommon.EventHandling.Producers;
 using RCommon.Wolverine.Producers;
 
-// Fan-out: all subscribed handlers receive the event
-builder.Services.AddScoped();
+builder.Services.AddRCommon()
+    .WithEventHandling(wolverine =>
+    {
+        // Fan-out: all subscribed handlers receive the event
+        wolverine.AddProducer();
 
-// Point-to-point: only one handler receives the event
-builder.Services.AddScoped();
+        // Point-to-point: only one handler receives the event
+        // wolverine.AddProducer();
+    });
 ```
 
 Produce events through RCommon's `IEventBus` or by raising domain events that flow through the event router — the producers are invoked by the routing infrastructure automatically.
@@ -4842,6 +5045,10 @@ description: Capture who created and last modified an entity using RCommon's IAu
 # Auditing
 
 Audit tracking records who created an entity, when it was created, who last modified it, and when. RCommon provides `IAuditedEntity` and `AuditedEntity` to standardize these fields across your domain model, making it straightforward to capture audit information in any persistence layer.
+
+:::tip Related
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) doesn't use `IAuditedEntity` (its `Team` aggregate focuses on aggregates, domain events, value objects, soft delete, and multi-tenancy instead), but combines those building blocks the same way you would layer `IAuditedEntity` onto your own aggregate.
+:::
 
 ## Installation
 
@@ -5101,6 +5308,10 @@ description: Raise, accumulate, and dispatch domain events in RCommon using the 
 
 Domain events represent something meaningful that happened within your domain. They are raised by aggregate roots when state changes occur, then dispatched after the unit of work commits. This keeps side effects (sending emails, updating read models, publishing to message brokers) decoupled from the core business logic.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) raises `TeamMemberAddedEvent` from `Team.AddMember` and dispatches it to a real `ISubscriber` via `UnitOfWork.CommitAsync()`, in both the common single-scope case and a cross-scope mutation case.
+:::
+
 ## Installation
 
 
@@ -5326,6 +5537,10 @@ description: Learn how RCommon's BusinessEntity and AggregateRoot base classes g
 
 In Domain-Driven Design, entities are objects with a distinct identity that persists over time. Aggregate roots are the primary entities that serve as the entry point for a cluster of related objects, enforcing consistency boundaries. RCommon provides a hierarchy of base classes that give you identity, equality, domain event tracking, and optimistic concurrency out of the box.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) builds a `Team`/`TeamMembership` aggregate combining `AggregateRoot`, domain events, a value object, `ISoftDelete`, and `IMultiTenant` in one runnable project, including why the child entity is a `BusinessEntity` rather than a `DomainEntity`.
+:::
+
 ## Installation
 
 
@@ -5532,6 +5747,10 @@ description: Mark records as deleted instead of removing them physically using R
 
 Soft delete is the practice of marking a record as deleted rather than physically removing it from the database. The record remains in the data store with `IsDeleted = true`, allowing you to audit what was deleted, restore records if needed, and avoid referential integrity problems caused by physical deletes.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) implements `ISoftDelete` on its `Team` aggregate and shows `ExistsAsync` excluding a soft-deleted row from reads.
+:::
+
 ## Installation
 
 
@@ -5714,6 +5933,10 @@ description: Model domain concepts by value rather than identity using RCommon's
 # Value Objects
 
 Value objects are a DDD building block that model concepts by their value rather than by identity. Two value objects with the same data are considered equal — there is no separate identity field. Common examples include money amounts, addresses, email addresses, date ranges, and geographic coordinates.
+
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) uses an `EmailAddress : ValueObject<string>` on `TeamMembership`, with a validating factory method and tests proving structural equality.
+:::
 
 ## Installation
 
@@ -5943,9 +6166,15 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ---
 
-## Overview
+## overview
 Source: https://rcommon.com/docs/email/overview
-Provider-agnostic email abstraction for .NET with IEmailService, built-in SMTP support via SmtpClient, HTML bodies, attachments, and an EmailSent event.
+---
+title: Overview
+sidebar_position: 1
+description: Provider-agnostic email abstraction for .NET with IEmailService, built-in SMTP support via SmtpClient, HTML bodies, attachments, and an EmailSent event.
+---
+
+
 
 # Email Overview
 
@@ -5966,6 +6195,8 @@ The `RCommon.Emailing` package delivers a built-in SMTP implementation backed by
 Both methods accept a standard `System.Net.Mail.MailMessage`, which means you can use the full .NET mail model (multiple recipients, CC, BCC, attachments, HTML body, inline images) regardless of which provider is configured.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -6121,9 +6352,15 @@ _emailService.EmailSent += (sender, args) =>
 
 ---
 
-## SendGrid
+## sendgrid
 Source: https://rcommon.com/docs/email/sendgrid
-RCommon.SendGrid implements IEmailService via the SendGrid API, converting MailMessage objects to SendGrid calls with attachment and multi-recipient support.
+---
+title: SendGrid
+sidebar_position: 2
+description: RCommon.SendGrid implements IEmailService via the SendGrid API, converting MailMessage objects to SendGrid calls with attachment and multi-recipient support.
+---
+
+
 
 # SendGrid
 
@@ -6140,6 +6377,8 @@ Switching from SMTP to SendGrid is a startup configuration change — no applica
 The synchronous `SendEmail` method wraps the async implementation using `AsyncHelper.RunSync`.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -6386,9 +6625,15 @@ For reliable at-least-once delivery guarantees, pair MassTransit or Wolverine wi
 
 ---
 
-## In-Memory Events
+## in-memory
 Source: https://rcommon.com/docs/event-handling/in-memory
-Configure RCommon's in-process event bus with InMemoryEventBusBuilder, implement ISubscriber handlers, and publish events via IEventRouter or IEventBus directly.
+---
+title: In-Memory Events
+sidebar_position: 2
+description: Configure RCommon's in-process event bus with InMemoryEventBusBuilder, implement ISubscriber handlers, and publish events via IEventRouter or IEventBus directly.
+---
+
+
 
 # In-Memory Events
 
@@ -6398,9 +6643,11 @@ The in-memory event bus provides local publish/subscribe within a single process
 
 The in-memory event bus is part of `RCommon.Core`, which is included when you install the main package:
 
+
+
 ## Configuration
 
-Register the in-memory event bus using `WithEventHandling` on the RCommon builder. Use `AddProducer` to register the producer and `AddSubscriber` to wire each handler to its event type:
+Register the in-memory event bus using `WithEventHandling` on the RCommon builder, then call `AddSubscriber` to wire each handler to its event type:
 
 ```csharp
 using RCommon;
@@ -6410,13 +6657,49 @@ using RCommon.EventHandling.Producers;
 builder.Services.AddRCommon()
     .WithEventHandling(eventHandling =>
     {
-        eventHandling.AddProducer();
         eventHandling.AddSubscriber();
         eventHandling.AddSubscriber();
     });
 ```
 
-`PublishWithEventBusEventProducer` is the built-in producer that delegates to `IEventBus.PublishAsync`. Additional subscribers can be registered for the same event type; all of them will be called.
+`AddSubscriber` automatically ensures `PublishWithEventBusEventProducer` — the built-in producer that delegates to `IEventBus.PublishAsync` — is registered; a subscriber with no matching producer is never invoked, so there is no scenario where you'd want one wired without the other. Calling `AddProducer()` explicitly still works and is harmless (idempotent), but is no longer required for the common case:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithEventHandling(eventHandling =>
+    {
+        // Explicit and still supported, but redundant as of this version -- AddSubscriber
+        // below registers this automatically.
+        eventHandling.AddProducer();
+        eventHandling.AddSubscriber();
+    });
+```
+
+Additional subscribers can be registered for the same event type; all of them will be called.
+
+### Additional AddSubscriber / AddProducer overloads
+
+If your handler needs constructor arguments that DI can't resolve on its own, use the factory-delegate overload of `AddSubscriber` instead of the parameterless one:
+
+```csharp
+eventHandling.AddSubscriber(
+    sp => new OrderPlacedHandler(sp.GetRequiredService>(), extraArg: 42));
+```
+
+`AddProducer<T>` has two additional overloads beyond the parameterless `AddProducer<T>()` shown above:
+
+```csharp
+// Factory delegate -- same idea as AddSubscriber's factory overload.
+eventHandling.AddProducer(sp => new MyCustomProducer(sp.GetRequiredService()));
+
+// Pre-built instance.
+var producer = new MyCustomProducer(preconfiguredClient);
+eventHandling.AddProducer(producer);
+```
+
+The instance overload (`AddProducer<T>(T producer)`) has a behaviorally significant side effect: if the instance you pass also implements `IHostedService`, it is additionally registered as a hosted service, so it participates in the host's start/stop lifecycle alongside being resolvable as `IEventProducer`. The parameterless and factory-delegate overloads do not do this.
+
+If you're registering a *different* producer (not `PublishWithEventBusEventProducer`) alongside subscribers on a custom `IEventHandlingBuilder`, RCommon's startup diagnostics will warn (once) if it ever finds a builder type with recorded subscriptions but zero registered producers — since that combination means the subscribers will silently never fire.
 
 :::tip Modular composition
 `WithEventHandling` is cache-aware. When multiple modules call it, the cached `InMemoryEventBusBuilder` is reused and each configuration delegate runs against the same instance — so subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: if `OrderingModule` and `NotificationsModule` both call `eventHandling.AddProducer()`, exactly one `AuditProducer` descriptor is registered. `AddSubscriber` accumulates normally, so multiple modules can register handlers for the same event. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
@@ -6544,17 +6827,35 @@ eventBus.SubscribeAllHandledEvents();
 | `ISyncEvent` | Marker; events produced sequentially |
 | `IAsyncEvent` | Marker; events produced concurrently |
 
+### `AddSubscriber` / `AddProducer` overloads
+
+| Method | Description |
+|---|---|
+| `AddSubscriber()` | Registers `TEventHandler` as a scoped `ISubscriber`; auto-registers `PublishWithEventBusEventProducer`. |
+| `AddSubscriber(Func)` | Same as above, constructing the handler via a factory delegate. |
+| `AddProducer<T>()` | Registers `T` as a singleton `IEventProducer`, deduplicated by concrete type. |
+| `AddProducer<T>(Func)` | Same as above, constructing the producer via a factory delegate. |
+| `AddProducer<T>(T producer)` | Registers a pre-built producer instance. Also registers it as `IHostedService` if `producer` implements that interface. |
+
 ---
 
-## MassTransit
+## masstransit
 Source: https://rcommon.com/docs/event-handling/masstransit
-Deliver RCommon events across service boundaries via MassTransit consumers, with fan-out publish or point-to-point send and transport-agnostic ISubscriber handlers.
+---
+title: MassTransit
+sidebar_position: 6
+description: Deliver RCommon events across service boundaries via MassTransit consumers, with fan-out publish or point-to-point send and transport-agnostic ISubscriber handlers.
+---
+
+
 
 # MassTransit
 
 RCommon integrates with MassTransit to deliver events to consumers across service boundaries. The integration uses `MassTransitEventHandler` as a MassTransit `IConsumer` that delegates to the application's `ISubscriber` implementation. Application handler code has no dependency on MassTransit types.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -6713,15 +7014,23 @@ public class MassTransitEventHandler : IConsumer
 
 ---
 
-## MediatR
+## mediatr
 Source: https://rcommon.com/docs/event-handling/mediatr
-Route RCommon events through MediatR's notification pipeline using MediatREventHandlingBuilder, with ISubscriber handlers unaware of MediatR internals.
+---
+title: MediatR
+sidebar_position: 5
+description: Route RCommon events through MediatR's notification pipeline using MediatREventHandlingBuilder, with ISubscriber handlers unaware of MediatR internals.
+---
+
+
 
 # MediatR
 
 RCommon integrates with MediatR to route events through the MediatR notification pipeline. Each event is wrapped in a `MediatRNotification` and published to all registered `INotificationHandler` instances. From the application's perspective, handlers still implement `ISubscriber` — the MediatR plumbing is hidden behind the abstraction.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -6855,6 +7164,99 @@ This means MediatR pipeline behaviours (logging, validation, unit-of-work) apply
 | `SendWithMediatREventProducer` | `IEventProducer` that sends via `IMediatorService.Send` (point-to-point) |
 | `MediatREventHandler` | Internal `INotificationHandler` that bridges MediatR to `ISubscriber` |
 | `MediatRNotification` | MediatR `INotification` wrapper used to carry events through the pipeline |
+
+---
+
+## outbox-producer-processor-topology
+Source: https://rcommon.com/docs/event-handling/outbox-producer-processor-topology
+---
+title: Outbox Producer/Processor Topology
+sidebar_position: 8
+description: How RCommon's built-in persistence outbox dispatches and marks events across multiple hosts, and why producer-only hosts must set OutboxOptions.ImmediateDispatch = false for reliable cross-host delivery.
+---
+
+# Outbox Producer/Processor Topology
+
+This guide covers RCommon's **built-in persistence outbox** — the one you register with `AddOutbox` on a persistence builder (EF Core, Dapper, or LINQ to DB). It is distinct from the [transport-integrated outbox](./transactional-outbox.mdx) provided by MassTransit and Wolverine. The built-in outbox stores events in a database table (`__OutboxMessages`) and drains them with an in-process background poller (`OutboxProcessingService`).
+
+If you run the producer and every subscriber in a **single process**, the defaults are correct and you can skip most of this page. If events produced on one host are consumed on **another** host, read the [cross-host invariant](#the-cross-host-invariant) carefully — the default behaviour will silently fail to deliver.
+
+:::tip Runnable example
+See `Examples/EventHandling/Examples.EventHandling.Outbox/` for a complete console app exercising the single-host, default-`ImmediateDispatch` happy path end to end: committing a `UnitOfWork` persists the outbox row, dispatches it to a subscriber, and marks it processed.
+:::
+
+## How commit dispatches events (three phases)
+
+When you commit a `UnitOfWork` that has domain events, `CommitAsync` runs three phases:
+
+1. **Persist (inside the transaction).** Each event is serialized and written as a row to the outbox table in the same transaction as your business data. If the transaction rolls back, the outbox row rolls back with it.
+2. **Commit.** The transaction commits, making both the business data and the outbox rows durable together.
+3. **Immediate dispatch (best-effort, post-commit).** The `OutboxEventRouter` dispatches the just-persisted events to any in-process `IEventProducer` instances and, on success, marks each row processed (`ProcessedAtUtc` is set). Failures here are swallowed and logged — the row stays unprocessed for the poller to retry.
+
+Separately, the background poller (`OutboxProcessingService`) claims unprocessed rows — `ClaimAsync` filters `WHERE ProcessedAtUtc IS NULL` — dispatches them, and marks them processed. Phase 3 and the poller are two paths to the same outcome; the poller is the durable one.
+
+## The cross-host invariant
+
+Phase 3 runs **on the host that committed the transaction**. It marks rows processed whenever the in-process dispatch loop does not throw — it is *not* gated on any subscriber actually consuming the event. The in-memory event bus is subscription-filtered and silently does nothing when no matching subscriber lives in that process. So on a host that produces an event but hosts none of its subscribers, Phase 3 still completes, still marks the row processed, and the poller — which only claims `ProcessedAtUtc IS NULL` rows — **never sees it**. Cross-host delivery is silently defeated.
+
+Note that "only mark the row processed if a subscriber handled it" does **not** fix this. No single host knows the full cross-process subscriber set. If a logging subscriber lives on the producer host and the business subscriber lives on the poller host, the producer would see "a subscriber ran," mark the row processed, and still starve the remote subscriber.
+
+The correct model: **when a durable poller is the delivery mechanism, the poller must be the sole dispatcher-and-marker.** Producer-only hosts must persist without running Phase 3.
+
+> **Invariant:** If any subscriber for an event type runs on a different process than the producer, that producer must run with `OutboxOptions.ImmediateDispatch = false`, or the poller will never see the row.
+
+## `OutboxOptions.ImmediateDispatch`
+
+`ImmediateDispatch` (default `true`) controls whether Phase 3 runs:
+
+| Value | Behaviour | Use on |
+|-------|-----------|--------|
+| `true` (default) | Phase 3 runs: immediate in-process dispatch + mark processed after commit. Preserves single-host, low-latency delivery. | Single-process apps, and the host that runs the poller. |
+| `false` | Phase 3 is skipped entirely: no in-process dispatch, no `MarkProcessedAsync`. Rows stay `ProcessedAtUtc IS NULL` for the poller to drain. | Producer-only hosts in a multi-host topology. |
+
+```csharp
+// Producer-only host: persist to the outbox, but let the poller host dispatch and mark.
+builder.Services.AddRCommon()
+    .WithPersistence(db =>
+    {
+        // ... data store configuration ...
+        db.AddOutbox(outbox =>
+        {
+            outbox.ImmediateDispatch = false;
+        });
+    });
+```
+
+```csharp
+// Poller host: leave ImmediateDispatch at its default (true). It dispatches and marks
+// rows as its OutboxProcessingService drains them — including rows written by producer hosts.
+db.AddOutbox();
+```
+
+Same-host subscribers are still delivered when `ImmediateDispatch = false`: the poller shares the database and dispatches every unprocessed row exactly once, so a subscriber co-located with the poller fires normally.
+
+## Secondary hardening: no in-process producer
+
+As defense-in-depth, Phase 3 also skips `MarkProcessedAsync` for a message when there is **no matching in-process producer at all** — the row is left unprocessed for the poller rather than being marked processed after being dispatched to nobody.
+
+This is a narrow guard, **not** the cross-host fix. An in-process producer that no-ops when no subscriber matches (like the in-memory bus) still counts as a producer here, so the row would still be marked processed. Rely on `ImmediateDispatch = false` for cross-host correctness; this guard only helps when a host has literally no producer registered for the event.
+
+## Who marks a row processed?
+
+| Scenario | Marked processed by | When |
+|----------|---------------------|------|
+| Single host, `ImmediateDispatch = true` (default) | Phase 3, on the committing host | Immediately after commit |
+| Poller host, `ImmediateDispatch = true` | Phase 3 for its own writes; the poller for anything still unprocessed | After commit / on the next poll |
+| Producer-only host, `ImmediateDispatch = false` | The poller on the processor host | On the next poll |
+
+## How the poller resolves subscribers
+
+The poller dispatches through the in-process producer, which publishes to the in-memory bus. The bus resolves **all** `ISubscriber` registrations from the DI container for the event's runtime type. That means a subscriber registered directly with `services.AddScoped, THandler>()` is resolved by the poller just as one registered through an event-handling builder's `AddSubscriber()`.
+
+## Related
+
+- [Transactional Outbox](./transactional-outbox.mdx) — the MassTransit/Wolverine transport-integrated outbox (different mechanism)
+- [Distributed Events](./distributed.mdx) — routing events across brokers
 
 ---
 
@@ -7097,15 +7499,23 @@ This gives at-least-once delivery semantics. Consumers must be idempotent to han
 
 ---
 
-## Wolverine
+## wolverine
 Source: https://rcommon.com/docs/event-handling/wolverine
-Use Wolverine as an event transport in RCommon's event handling pipeline, registering ISubscriber handlers and choosing between fan-out publish or point-to-point send.
+---
+title: Wolverine
+sidebar_position: 7
+description: Use Wolverine as an event transport in RCommon's event handling pipeline, registering ISubscriber handlers and choosing between fan-out publish or point-to-point send.
+---
+
+
 
 # Wolverine
 
 RCommon integrates with Wolverine to deliver events both in-process and across service boundaries. The integration registers `WolverineEventHandler` as a Wolverine `IWolverineHandler` that delegates to the application's `ISubscriber`. Application handler code has no dependency on Wolverine types.
 
 ## Installation
+
+
 
 Wolverine requires host-level registration via `UseWolverine()` in addition to the RCommon service configuration:
 
@@ -7578,6 +7988,139 @@ Console.WriteLine(customers);
 
 ---
 
+## End-to-End DDD Recipe
+Source: https://rcommon.com/docs/examples-recipes/domain-driven-design
+A single runnable project walking through AggregateRoot, domain events, value objects, soft delete, and IMultiTenant together on one coherent Team/TeamMembership aggregate.
+
+# End-to-End DDD Recipe
+
+The five [Domain-Driven Design](../domain-driven-design/entities-aggregates.mdx) conceptual pages each introduce one building block in isolation, with its own small, disposable example. This recipe ties all of them together on a single, coherent aggregate — a `Team` that members can join — so you can see how the pieces actually compose in one running project rather than five unrelated snippets.
+
+**Source:** `Examples/DomainDrivenDesign/Examples.DomainDrivenDesign/` (project) and `Examples.DomainDrivenDesign.Tests/` (unit tests).
+
+## The aggregate
+
+`Team` is the aggregate root. It brings together every building block this recipe covers:
+
+```csharp
+public class Team : AggregateRoot, ISoftDelete, IMultiTenant
+{
+    private readonly List _memberships = new();
+
+    public Team(string name) : base(Guid.NewGuid())
+    {
+        Name = name;
+    }
+
+    public string Name { get; private set; }
+    public ICollection Memberships => _memberships;
+    public bool IsDeleted { get; set; }
+    public string? TenantId { get; set; }
+
+    public void AddMember(Guid userId, EmailAddress email, TeamRole role)
+    {
+        var membership = new TeamMembership(Id, userId, email, role);
+        _memberships.Add(membership);
+
+        AddDomainEvent(new TeamMemberAddedEvent(Id, userId, email));
+    }
+}
+```
+
+### Aggregate roots and child entities — [Entities & Aggregate Roots](../domain-driven-design/entities-aggregates.mdx)
+
+`Team` derives from `AggregateRoot`, giving it identity, domain event tracking, and optimistic concurrency. `TeamMembership`, the child inside the aggregate boundary, derives from `BusinessEntity` rather than the lighter-weight `DomainEntity` you'll see in that page's own `OrderLine` example — deliberately, because this recipe's Pattern 2 (below) persists a membership through its own repository, which requires it to be a full `IBusinessEntity`, something `DomainEntity` does not implement.
+
+### Raising and dispatching a domain event — [Domain Events](../domain-driven-design/domain-events.mdx)
+
+`AddMember` raises `TeamMemberAddedEvent` via `AddDomainEvent` — a state change and its side effect recorded together, not scattered across an application service. The event is only *dispatched* once the aggregate is persisted and a `UnitOfWork` is committed:
+
+```csharp
+var team = new Team("Platform Engineering");
+team.AddMember(userId, EmailAddress.Create("ada@example.com"), TeamRole.Lead);
+
+using var uow = unitOfWorkFactory.Create();
+await teams.AddAsync(team);
+await uow.CommitAsync(); // TeamMemberAddedEvent is dispatched here, not before
+```
+
+A subscriber (`TeamMemberAddedEventHandler : ISubscriber`) registered via `WithEventHandling` receives it — simulating a welcome-email side effect kept entirely out of `Team` itself.
+
+### A value object on the child entity — [Value Objects](../domain-driven-design/value-objects.mdx)
+
+`TeamMembership.Email` is an `EmailAddress`, a single-value wrapper value object with a validating factory and structural equality for free:
+
+```csharp
+public record EmailAddress(string Value) : ValueObject<string>(Value)
+{
+    public static EmailAddress Create(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !value.Contains('@'))
+            throw new ArgumentException($"'{value}' is not a valid email address.", nameof(value));
+
+        return new EmailAddress(value);
+    }
+}
+```
+
+Two `EmailAddress` instances with the same underlying string are equal without any `Equals`/`GetHashCode` override — `ValueObject<T>` is a `record`, so equality is structural by default.
+
+## Persisting the aggregate — [Aggregate Repository](../persistence/aggregate-repository.mdx)
+
+The recipe persists `Team` through `IAggregateRepository`, demonstrating both fully-supported add/update-child patterns from that page, not just the common case:
+
+**Pattern 1 — load, mutate, update, in one scope (recommended):**
+
+```csharp
+var team = await teams.Include(t => t.Memberships).GetByIdAsync(teamId);
+team!.AddMember(userId, EmailAddress.Create("grace@example.com"), TeamRole.Member);
+
+using var uow = unitOfWorkFactory.Create();
+await teams.UpdateAsync(team); // new membership inserted; event queued
+await uow.CommitAsync();       // event dispatched
+```
+
+**Pattern 2 — cross-scope mutation** (a background worker or message handler operating on a `Team` it didn't load in this `DbContext` scope):
+
+```csharp
+var team = await teams.GetByIdAsync(teamId);
+team!.AddMember(userId, EmailAddress.Create("alan@example.com"), TeamRole.Member);
+
+using var uow = unitOfWorkFactory.Create();
+// UpdateAsync is deliberately not called -- persist the new child through its own repository.
+await writableMemberships.AddAsync(team.Memberships.Last());
+
+// Required: nothing else registers `team` for event dispatch without UpdateAsync.
+eventTracker.AddEntity(team);
+await uow.CommitAsync();
+```
+
+## Soft delete — [Soft Delete](../domain-driven-design/soft-delete.mdx)
+
+`Team` implements `ISoftDelete`. Calling `DeleteAsync` sets `IsDeleted = true` and issues an `UPDATE` rather than physically removing the row — and `ExistsAsync` (like every other read path) filters soft-deleted rows out automatically:
+
+```csharp
+await teams.DeleteAsync(team);
+await uow.CommitAsync();
+
+team.IsDeleted;                       // true
+await teams.ExistsAsync(team.Id);     // false -- soft-deleted rows are excluded from reads
+```
+
+## Multi-tenancy, kept minimal — [Multi-Tenancy Overview](../multi-tenancy/overview.mdx)
+
+`Team` implements `IMultiTenant`, so `AddAsync` stamps `TenantId` automatically from whatever `ITenantIdAccessor` is registered. This recipe registers a trivial fixed-tenant accessor purely to show the stamping happen — it does not wire up `TenantScope.Bypass()` or Finbuckle. For the full tenant-resolution story (real request-scoped tenant resolution, bypassing tenant filtering for admin/bootstrap scenarios), see [Examples.MultiTenancy.Finbuckle](../multi-tenancy/finbuckle.mdx) instead of duplicating that wiring here.
+
+## Running it
+
+```shell
+dotnet run --project Examples/DomainDrivenDesign/Examples.DomainDrivenDesign
+```
+
+The console output walks through aggregate creation, both add/update-child patterns, soft delete, and the resulting subscriber invocation count. `Examples.DomainDrivenDesign.Tests` covers the pieces most worth unit-testing in isolation: the domain event raised on the right method call, `EmailAddress` equality and validation, and the `IsDeleted` flag's default/settable behavior.
+
+---
+
 ## event-handling
 Source: https://rcommon.com/docs/examples-recipes/event-handling
 ---
@@ -7914,9 +8457,16 @@ For distributed messaging across services, see the [Messaging Examples](./messag
 
 ---
 
-## HR Leave Management Sample
+## hr-leave-management
 Source: https://rcommon.com/docs/examples-recipes/hr-leave-management
-Explore RCommon's HR Leave Management reference app demonstrating Clean Architecture, CQRS, EF Core, FluentValidation, JWT auth, and SendGrid email integration.
+---
+title: HR Leave Management Sample
+sidebar_position: 1
+description: Explore RCommon's HR Leave Management reference app demonstrating Clean Architecture, CQRS, EF Core, FluentValidation, JWT auth, and SendGrid email integration.
+---
+
+
+
 
 # HR Leave Management Sample
 
@@ -8442,9 +8992,17 @@ public class CreateLeaveTypeCommandHandlerTests
 
 ---
 
-## Messaging Examples
+## messaging
 Source: https://rcommon.com/docs/examples-recipes/messaging
-Messaging examples for RCommon showing MassTransit and Wolverine transports, subscription isolation between multiple builders, and in-process vs distributed routing.
+---
+title: Messaging Examples
+sidebar_position: 4
+description: Messaging examples for RCommon showing MassTransit and Wolverine transports, subscription isolation between multiple builders, and in-process vs distributed routing.
+---
+
+
+
+
 
 # Messaging Examples
 
@@ -8501,6 +9059,8 @@ public class TestEventHandler : ISubscriber
 ## Example 1: MassTransit
 
 ### Installation
+
+
 
 ### Configuration
 
@@ -8597,6 +9157,8 @@ await host.RunAsync();
 ## Example 2: Wolverine
 
 ### Installation
+
+
 
 Wolverine requires calling `UseWolverine` on the host builder before configuring services:
 
@@ -8830,9 +9392,13 @@ For integration tests, use the MassTransit in-memory transport or Wolverine's te
 
 ---
 
-## Configuration & Bootstrapping
+## configuration
 Source: https://rcommon.com/docs/getting-started/configuration
-Configure RCommon with AddRCommon() — fluent builder methods for GUID generation, system time, persistence, unit of work, mediator, and event handling.
+---
+title: Configuration & Bootstrapping
+sidebar_position: 4
+description: "Configure RCommon with AddRCommon() — fluent builder methods for GUID generation, system time, persistence, unit of work, mediator, and event handling."
+---
 
 # Configuration & Bootstrapping
 
@@ -8926,7 +9492,7 @@ Registers a service type alongside a DI-aware `ICommonFactory` that can create i
 
 ## Persistence configuration
 
-`WithPersistence<T>` accepts any type that implements `IPersistenceBuilder`. The built-in options are `EFCorePerisistenceBuilder`, `DapperPersistenceBuilder`, and `Linq2DbPersistenceBuilder`.
+`WithPersistence<T>` accepts any type that implements `IPersistenceBuilder`. The built-in options are `EFCorePersistenceBuilder`, `DapperPersistenceBuilder`, and `Linq2DbPersistenceBuilder`.
 
 ```csharp
 .WithPersistence(ef =>
@@ -9102,9 +9668,13 @@ This produces a sorted list of every `ServiceDescriptor` in the container, which
 
 ---
 
-## Dependency Injection
+## dependency-injection
 Source: https://rcommon.com/docs/getting-started/dependency-injection
-How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores.
+---
+title: Dependency Injection
+sidebar_position: 5
+description: "How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores."
+---
 
 # Dependency Injection
 
@@ -9534,9 +10104,13 @@ Add further packages incrementally as requirements grow. Packages that share abs
 
 ---
 
-## Overview & Philosophy
+## overview
 Source: https://rcommon.com/docs/getting-started/overview
-Learn what RCommon provides — pluggable .NET abstractions for persistence, CQRS, domain events, messaging, and caching with a fluent DI-first configuration API.
+---
+title: Overview & Philosophy
+sidebar_position: 1
+description: "Learn what RCommon provides — pluggable .NET abstractions for persistence, CQRS, domain events, messaging, and caching with a fluent DI-first configuration API."
+---
 
 # Overview & Philosophy
 
@@ -9586,9 +10160,15 @@ The full source is available on GitHub: [https://github.com/RCommon-Team/RCommon
 
 ---
 
-## Quick Start Guide
+## quick-start
 Source: https://rcommon.com/docs/getting-started/quick-start
-Build a .NET web API with RCommon in minutes — define entities, configure EF Core persistence, and query via ILinqRepository using a single fluent builder chain.
+---
+title: Quick Start Guide
+sidebar_position: 3
+description: "Build a .NET web API with RCommon in minutes — define entities, configure EF Core persistence, and query via ILinqRepository using a single fluent builder chain."
+---
+
+
 
 # Quick Start Guide
 
@@ -9602,6 +10182,11 @@ cd MyApp
 ```
 
 ## 2. Install packages
+
+
+
+
+
 
 ## 3. Define your entity
 
@@ -9682,7 +10267,7 @@ app.Run();
 
 ## 6. Inject and use the repository
 
-RCommon automatically registers `ILinqRepository<T>` for every entity once `EFCorePerisistenceBuilder` is configured. Inject it directly into your controllers, application services, or handlers.
+RCommon automatically registers `ILinqRepository<T>` for every entity once `EFCorePersistenceBuilder` is configured. Inject it directly into your controllers, application services, or handlers.
 
 ```csharp
 using RCommon.Persistence.Crud;
@@ -9753,15 +10338,23 @@ Welcome to the RCommon documentation. Use the sidebar to navigate through the av
 
 ---
 
-## MassTransit
+## masstransit
 Source: https://rcommon.com/docs/messaging/masstransit
-Configure MassTransit as RCommon's messaging transport, register consumers and producers, choose RabbitMQ or Azure Service Bus, and keep handler code broker-free.
+---
+title: MassTransit
+sidebar_position: 4
+description: Configure MassTransit as RCommon's messaging transport, register consumers and producers, choose RabbitMQ or Azure Service Bus, and keep handler code broker-free.
+---
+
+
 
 # MassTransit
 
 RCommon integrates with MassTransit to deliver events to consumers across service boundaries. The integration registers `MassTransitEventHandler` as a MassTransit `IConsumer` that delegates to the application's `ISubscriber`. Handler code has no dependency on MassTransit types.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -10600,6 +11193,12 @@ description: RCommon.Finbuckle integrates Finbuckle.MultiTenant with RCommon's p
 
 When you call `WithMultiTenancy>` at startup, `FinbuckleMultiTenantBuilder` replaces the default `NullTenantIdAccessor` registration with `FinbuckleTenantIdAccessor`. From that point on every repository operation that touches an `IMultiTenant` entity is automatically scoped to whichever tenant Finbuckle has resolved for the current request.
 
+:::warning RCommon.Finbuckle does not wire Finbuckle's EF Core integration
+Tenant enforcement here is entirely repository-level: `MultiTenantHelper`, driven by `ITenantIdAccessor.GetTenantId()`. `RCommon.Finbuckle` never touches Finbuckle's own EF Core integration (`IMultiTenantDbContext` / `EnforceMultiTenant()`) — `RCommonDbContext` does not implement it and nothing in this package configures it.
+
+If you layer Finbuckle's `IMultiTenantDbContext`/`EnforceMultiTenant()` on top of `RCommonDbContext` yourself, be aware that `EnforceMultiTenant()` is Finbuckle's own mechanism and can throw *before* Finbuckle's `TenantMismatchMode` is consulted, independent of anything RCommon does. That behavior belongs to Finbuckle, not to `RCommon.Finbuckle`, and nothing in this package mitigates it.
+:::
+
 ### How tenant resolution flows
 
 1. An HTTP request arrives. ASP.NET Core runs the Finbuckle middleware which identifies the tenant using the strategy you configured (header, route segment, hostname, etc.) and sets `IMultiTenantContextAccessor.MultiTenantContext`.
@@ -10749,6 +11348,10 @@ builder.Services.AddMultiTenant()
 
 ## Usage
 
+:::tip Runnable example
+See `Examples/MultiTenancy/Examples.MultiTenancy.Finbuckle/` for a complete console app demonstrating tenant-scoped reads/writes across two tenants and `TenantScope.Bypass()` for a cross-tenant admin view — no ASP.NET Core host or HTTP requests required; the tenant context is set directly via Finbuckle's `IMultiTenantContextSetter`.
+:::
+
 ### Defining tenant-scoped entities
 
 Implement `IMultiTenant` on entities that should be isolated per tenant:
@@ -10863,9 +11466,15 @@ public class AuditService
 
 ---
 
-## Overview
+## overview
 Source: https://rcommon.com/docs/multi-tenancy/overview
-Multi-tenancy abstraction for RCommon that automatically scopes repository queries and entity stamps to the active tenant via ITenantIdAccessor and IMultiTenant.
+---
+title: Overview
+sidebar_position: 1
+description: Multi-tenancy abstraction for RCommon that automatically scopes repository queries and entity stamps to the active tenant via ITenantIdAccessor and IMultiTenant.
+---
+
+
 
 # Multi-Tenancy Overview
 
@@ -10907,9 +11516,22 @@ At query time the repository reads the current `TenantId` from `ITenantIdAccesso
 
 When `GetTenantId()` returns `null` or an empty string all tenant filtering is bypassed, which is intentional for administrative scenarios where a privileged caller needs cross-tenant access.
 
+### Stamping semantics
+
+The exact guard applied when a repository writes an entity (`MultiTenantHelper.SetTenantIdIfApplicable`) is:
+
+- If the resolved tenant ID is `null` or empty, stamping is **skipped entirely** — the entity's existing `TenantId` (if any) is left untouched, not overwritten with `null`.
+- If the resolved tenant ID is non-empty, it **unconditionally overwrites** whatever the entity's `TenantId` already was.
+
+This asymmetry is what makes `TenantScope.Bypass()` (below) safe to use for the tenant-bootstrap scenario: suspending resolution down to `null` for the scope's lifetime means stamping is skipped, so an aggregate's explicitly-set `TenantId` survives `AddAsync` unmodified.
+
 ## Installation
 
+
+
 A provider package is also required. For Finbuckle:
+
+
 
 ## Configuration
 
@@ -10981,9 +11603,71 @@ Repository writes stamp the current tenant ID automatically:
 await _repository.AddAsync(new Product { Name = "Widget", Price = 9.99m }, cancellationToken);
 ```
 
-### Bypassing tenant isolation
+### Bypassing tenant isolation for one call: `TenantScope.Bypass()`
 
-For administrative or cross-tenant operations, resolve `ITenantIdAccessor` from your own infrastructure that returns `null`. Because `NullTenantIdAccessor` is the default when no provider is registered, you can also run without calling `WithMultiTenancy<T>` to keep filtering off globally during development.
+Swapping in a different `ITenantIdAccessor` registration is an all-or-nothing, DI-configuration-time change — it affects every request for the life of the process. Most cross-tenant needs are narrower than that: one specific call (list every tenant a super-admin belongs to, create the first row for a brand-new tenant) that should skip ambient scoping without touching anything else.
+
+`TenantScope.Bypass()` (`RCommon.Security.Claims`) is a scoped, per-call primitive for exactly this. While the scope returned by `Bypass()` is active — including across `await` continuations, via `AsyncLocal<bool>` — any accessor wrapped with `TenantScopeAwareTenantIdAccessor` resolves to `null`, which every repository already treats as "skip filtering / skip stamping":
+
+```csharp
+using RCommon.Security.Claims;
+
+public class TenantAdminService
+{
+    private readonly IGraphRepository _tenants;
+
+    public async Task> ListAllTenantsAsync(CancellationToken ct)
+    {
+        // Requires the caller to already be authorized for cross-tenant access --
+        // TenantScope.Bypass() has no authorization check of its own.
+        using (TenantScope.Bypass())
+        {
+            return await _tenants.FindAsync(t => true, ct);
+        }
+    }
+}
+```
+
+Always dispose the returned handle — a `using` block is strongly recommended. If it is never disposed (e.g. an exception path that skips the `using` block due to a bug in calling code), the bypass remains active for the rest of the current logical call context. Nested scopes compose correctly: disposing an inner scope while an outer scope is still active restores "bypassed," not "not bypassed."
+
+RCommon wraps its own built-in accessors with `TenantScopeAwareTenantIdAccessor` automatically at their existing registration sites — `ClaimsTenantIdAccessor` (via `WithClaimsAndPrincipalAccessor()`) and `FinbuckleTenantIdAccessor` (via `FinbuckleMultiTenantBuilder`) both honor `TenantScope.Bypass()` with no code change required. `NullTenantIdAccessor` is intentionally not wrapped, since it always returns `null` already.
+
+#### Worked scenario: tenant bootstrap
+
+Creating the very first row for a brand-new tenant is the one case where you *want* an explicitly-set `TenantId` to survive `AddAsync` untouched — not stamped with `null`, and not stamped with whatever tenant the caller happens to be ambiently scoped to:
+
+```csharp
+public class CreateTenantCommandHandler
+{
+    private readonly IAggregateRepository _tenants;
+
+    public async Task HandleAsync(CreateTenantCommand cmd, CancellationToken ct)
+    {
+        using (TenantScope.Bypass())
+        {
+            var tenant = new Tenant(cmd.NewTenantId, cmd.Name);
+            // tenant.TenantId is set explicitly by the aggregate's own constructor. With the
+            // bypass active, ITenantIdAccessor.GetTenantId() resolves to null, so the stamping
+            // guard above skips stamping entirely -- the explicitly-set TenantId is left as-is.
+            await _tenants.AddAsync(tenant, ct);
+        }
+    }
+}
+```
+
+#### Opting in a custom `ITenantIdAccessor`
+
+If you've written your own `ITenantIdAccessor` implementation instead of using `ClaimsTenantIdAccessor` or Finbuckle's accessor, wrap it with `TenantScopeAwareTenantIdAccessor` at your own registration site to get the same bypass support — RCommon has no way to intercept a registration it doesn't own:
+
+```csharp
+services.AddTransient();
+services.AddTransient(sp =>
+    new TenantScopeAwareTenantIdAccessor(sp.GetRequiredService()));
+```
+
+:::danger Authorization is the caller's responsibility
+`TenantScope.Bypass()` removes tenant isolation for its scope with no authorization check of its own — the same trust model as `ITenantIdAccessor` itself. Gate any code path that calls `Bypass()` behind your own authorization check (e.g. an admin role). RCommon has no way to know which callers should be allowed to see cross-tenant data.
+:::
 
 ## API Summary
 
@@ -10992,9 +11676,126 @@ For administrative or cross-tenant operations, resolve `ITenantIdAccessor` from 
 | `ITenantIdAccessor` | `RCommon.Security` | Returns the current tenant ID; `null` disables all filtering |
 | `NullTenantIdAccessor` | `RCommon.Security` | Default implementation; always returns `null` |
 | `ClaimsTenantIdAccessor` | `RCommon.Security` | Reads tenant ID from the authenticated user's claims |
+| `TenantScope` | `RCommon.Security` | `Bypass()` suspends tenant scoping for a scoped, ambient, per-call lifetime |
+| `TenantScopeAwareTenantIdAccessor` | `RCommon.Security` | Decorator making any `ITenantIdAccessor` honor `TenantScope.Bypass()` |
 | `IMultiTenantBuilder` | `RCommon.MultiTenancy` | Builder interface that provider packages implement |
 | `MultiTenancyBuilderExtensions` | `RCommon.MultiTenancy` | Provides `WithMultiTenancy()` on `IRCommonBuilder` |
 | `IMultiTenant` | `RCommon.Entities` | Entity marker interface; exposes `string? TenantId` |
+
+---
+
+## Aggregate Repository
+Source: https://rcommon.com/docs/persistence/aggregate-repository
+Use IAggregateRepository for DDD-constrained aggregate root persistence across EF Core, Dapper, and Linq2Db, with provider-specific capability differences documented explicitly.
+
+# Aggregate Repository
+
+## Overview
+
+`IAggregateRepository` is a narrower, DDD-constrained sibling to the general [Repository Pattern](./repository-pattern) interfaces. It only exposes aggregate-appropriate operations -- load by ID, find by specification, existence check, add, update, delete, and eager loading -- and does not expose `IQueryable` or arbitrary collection queries, since those belong on a read-model or query handler, not on the aggregate boundary.
+
+```csharp
+public interface IAggregateRepository : INamedDataSource
+    where TAggregate : class, IAggregateRoot
+    where TKey : IEquatable
+{
+    Task GetByIdAsync(TKey id, CancellationToken cancellationToken = default);
+    Task FindAsync(ISpecification specification, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(TKey id, CancellationToken cancellationToken = default);
+
+    Task AddAsync(TAggregate aggregate, CancellationToken cancellationToken = default);
+    Task UpdateAsync(TAggregate aggregate, CancellationToken cancellationToken = default);
+    Task DeleteAsync(TAggregate aggregate, CancellationToken cancellationToken = default);
+
+    IAggregateRepository Include(Expression> path);
+    IAggregateRepository ThenInclude(Expression> path);
+}
+```
+
+## Installation
+
+You will also need at least one provider package (see [EF Core](./efcore), [Dapper](./dapper), or [Linq2Db](./linq2db)) -- `IAggregateRepository<,>` is registered automatically alongside the other repository interfaces when you configure a provider.
+
+## The persistence contract: root-row-only, on every provider
+
+**`AddAsync` and `UpdateAsync` guarantee persistence of the aggregate root's own row.** Whether a call also persists children reachable through a collection navigation depends on the provider and the operation:
+
+A few things follow directly from this table:
+
+- **`UpdateAsync` never persists child collections, on any provider.** This is deliberate, not a limitation to work around -- see "Adding or modifying children" below for the two fully-supported patterns.
+- **EF Core's `AddAsync` cascade-inserting brand-new child collections is an EF-specific convenience**, not a portable guarantee. If you need Dapper or Linq2Db portability, persist new children through their own repository even on initial aggregate creation.
+- **Dapper never supports eager loading** (`Include`/`ThenInclude` are no-ops that return `this` for fluent-chaining compatibility) -- Dommel is a micro-ORM over flat, single-table CRUD with no navigation-property concept. Load child collections via a separate query against the child's own repository.
+
+## Adding or modifying children
+
+There are two fully-supported patterns, and one documented boundary that is not silently broken -- it fails loudly.
+
+### Pattern 1: load, mutate, update -- in one DbContext scope (recommended)
+
+```csharp
+public class AddTeamMemberCommandHandler
+{
+    private readonly IAggregateRepository _teams;
+
+    public async Task HandleAsync(AddTeamMemberCommand cmd, CancellationToken ct)
+    {
+        var team = await _teams.Include(t => t.Memberships).GetByIdAsync(cmd.TeamId, ct);
+        team!.AddMember(cmd.UserId, cmd.Role); // raises a domain event internally
+
+        await _teams.UpdateAsync(team, ct);
+        // -- the new membership is inserted; any existing, already-loaded membership whose
+        // properties changed is updated; the domain event raised by AddMember is dispatched
+        // automatically, because everything happened through this one repository call.
+    }
+}
+```
+
+This is the common case: load the aggregate (optionally with `Include` for the children you need to inspect or modify), mutate it in memory, call `UpdateAsync` once. New children are correctly inserted; already-tracked existing children's property changes are correctly updated. No special handling is required.
+
+### Pattern 2: cross-scope / disconnected mutation
+
+Sometimes an aggregate is loaded in one scope (or process, or deserialized from a message) and mutated in a different one from where `UpdateAsync` will eventually be called -- for example, a background worker resuming a saga, or a message handler operating on a payload built elsewhere. In that case, `UpdateAsync` cannot distinguish "a child that's genuinely new" from "a child that already exists but was never loaded in this scope" -- both look identical (untracked) to this DbContext. Persist the new child through its own repository instead, and register the aggregate for event dispatch explicitly:
+
+```csharp
+public class AddTeamMemberCommandHandler
+{
+    private readonly ILinqRepository _memberships;
+    private readonly IEntityEventTracker _eventTracker;
+
+    public async Task HandleAsync(AddTeamMemberCommand cmd, Team team, CancellationToken ct)
+    {
+        team.AddMember(cmd.UserId, cmd.Role); // raises a domain event internally
+
+        await _memberships.AddAsync(team.Memberships.Last(), ct);
+
+        // Required: UpdateAsync was not called on `team`, so nothing else registers it for
+        // event dispatch. Without this line, AddMember's domain event is silently never
+        // dispatched -- IEntityEventTracker.AddEntity is the same mechanism UpdateAsync uses
+        // internally; calling it directly here reproduces that registration by hand.
+        _eventTracker.AddEntity(team);
+    }
+}
+```
+
+### Boundary: what happens if you skip both patterns
+
+If `UpdateAsync` is called against a fully disconnected graph -- the aggregate and an *existing* child were both constructed fresh (e.g. deserialized) rather than loaded through this DbContext, and neither pattern above was followed -- the existing child looks exactly as "new" as a genuinely new one. The result is a loud failure (a unique-constraint violation attempting to re-insert an already-existing row), not silent data loss. If you hit this, use Pattern 2 instead.
+
+## TenantId stamping and tenant-scoped bypass
+
+If your aggregate implements `IMultiTenant`, `AddAsync` stamps `TenantId` automatically. The exact guard: stamping is skipped entirely (not set to null) when the resolved tenant ID is null or empty; a non-empty resolved tenant ID unconditionally overwrites whatever the entity's `TenantId` already was. See [Multi-Tenancy](../multi-tenancy/overview) for the full semantics, including `TenantScope.Bypass()` for the tenant-bootstrap scenario (creating the very first row for a brand-new tenant, where you want the entity's explicitly-set `TenantId` left untouched).
+
+## API Summary
+
+| Member | Purpose |
+|--------|---------|
+| `GetByIdAsync(TKey)` | Loads the aggregate by primary key. Does not eager-load collections by default. |
+| `FindAsync(ISpecification)` | Loads a single aggregate matching a specification. |
+| `ExistsAsync(TKey)` | Lightweight existence check without loading the full aggregate. |
+| `AddAsync(TAggregate)` | Persists a new aggregate. See the provider comparison table for cascade-insert behavior. |
+| `UpdateAsync(TAggregate)` | Persists changes to an existing aggregate's own row. Never persists child collections -- see "Adding or modifying children" above. |
+| `DeleteAsync(TAggregate)` | Soft-deletes if the aggregate implements `ISoftDelete`; otherwise a physical delete. |
+| `Include` / `ThenInclude` | Fluent eager-loading. No-op on Dapper. |
 
 ---
 
@@ -11416,11 +12217,12 @@ Unlike the EF Core provider, Dapper does not expose `ILinqRepository` or `IGraph
 Your connection class must derive from `RDbConnection`, which implements `IDataStore` so that the `IDataStoreFactory` can resolve it by name.
 
 ```csharp
+using Microsoft.Extensions.Options;
 using RCommon.Persistence.Sql;
 
 public class AppDbConnection : RDbConnection
 {
-    public AppDbConnection(RDbConnectionOptions options)
+    public AppDbConnection(IOptions options)
         : base(options)
     {
     }
@@ -11502,6 +12304,14 @@ await _repo.DeleteAsync(product, cancellationToken);
 int affected = await _repo.DeleteManyAsync(p => p.StockQuantity == 0, cancellationToken);
 ```
 
+### Primary keys
+
+`AddAsync`/`AddRangeAsync` populate an auto-increment `int`/`long` `Id` with the database-generated value after insert — inject `ISqlMapperRepository` (or `IWriteOnlyRepository`), call `AddAsync`, and the entity's `Id` is set when the call returns, the same as with the EF Core provider. A `Guid` or `string` `Id` is always inserted exactly as you set it — the Dapper provider never overwrites a non-numeric key.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Dapper/` for a complete console app exercising this end to end, including the SQLite-specific `DommelMapper.AddSqlBuilder` registration needed for identity retrieval against SQLite.
+:::
+
 ### Soft delete
 
 If the entity implements `ISoftDelete`, `DeleteAsync` and `DeleteManyAsync` will set `IsDeleted = true` and issue an UPDATE rather than a physical DELETE. To force a physical DELETE regardless of the interface:
@@ -11570,9 +12380,15 @@ Refer to the [Dommel documentation](https://github.com/henkmollema/Dommel) for t
 
 ---
 
-## Entity Framework Core
+## efcore
 Source: https://rcommon.com/docs/persistence/efcore
-Configure RCommon's EF Core provider to register named DbContexts, inject IGraphRepository with full LINQ support, eager loading, soft delete, and change-tracking control.
+---
+title: Entity Framework Core
+sidebar_position: 4
+description: Configure RCommon's EF Core provider to register named DbContexts, inject IGraphRepository with full LINQ support, eager loading, soft delete, and change-tracking control.
+---
+
+
 
 # Entity Framework Core
 
@@ -11583,6 +12399,8 @@ The EF Core provider wires `EFCoreRepository` into the repository abstraction la
 The provider resolves a `RCommonDbContext`-derived `DbContext` from the `IDataStoreFactory` at runtime, which makes it possible to register multiple named DbContext instances and route repositories to the right one.
 
 ## Installation
+
+
 
 ## DbContext setup
 
@@ -11681,7 +12499,7 @@ ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Ordering");
 
 ## Modular composition
 
-`WithPersistence` is cache-aware. When two modules both call it, the second call reuses the cached `EFCorePerisistenceBuilder` rather than constructing a new one — both configuration delegates run against the same instance, so each module can declare its own DbContexts side by side:
+`WithPersistence` is cache-aware. When two modules both call it, the second call reuses the cached `EFCorePersistenceBuilder` rather than constructing a new one — both configuration delegates run against the same instance, so each module can declare its own DbContexts side by side:
 
 ```csharp
 // In OrderingModule.Configure
@@ -11697,7 +12515,7 @@ services.AddRCommon()
             o => o.UseNpgsql(inventoryConn)));
 ```
 
-After both modules run, `IDataStoreFactory` resolves `"Ordering"` and `"Inventory"` to their respective contexts. The `EFCorePerisistenceBuilder` itself is constructed exactly once.
+After both modules run, `IDataStoreFactory` resolves `"Ordering"` and `"Inventory"` to their respective contexts. The `EFCorePersistenceBuilder` itself is constructed exactly once.
 
 `AddDbContext(name, ...)` has the following conflict semantics across modules:
 
@@ -11810,15 +12628,60 @@ var spec = new AllocationExistsSpec(userId, leaveTypeId, year);
 long count = await _allocationRepo.GetCountAsync(spec, cancellationToken);
 ```
 
+### Read models
+
+Alongside `IGraphRepository`, `EFCorePersistenceBuilder`'s constructor also registers `IReadModelRepository` (backed by `EFCoreReadModelRepository`) for every type — no separate opt-in call is required. It targets `IReadModel`-marked projection/query types rather than full aggregates, and is specification-driven rather than exposing raw LINQ:
+
+```csharp
+using RCommon.Persistence.Crud;
+
+public class LeaveBalanceSummary : IReadModel
+{
+    public Guid EmployeeId { get; set; }
+    public int  RemainingDays { get; set; }
+}
+
+public class LeaveBalanceQueryHandler
+{
+    private readonly IReadModelRepository _readModels;
+
+    public LeaveBalanceQueryHandler(IReadModelRepository readModels)
+    {
+        _readModels = readModels;
+    }
+
+    public async Task HandleAsync(Guid employeeId, CancellationToken cancellationToken)
+    {
+        return await _readModels.FindAsync(new EmployeeBalanceSpec(employeeId), cancellationToken);
+    }
+}
+```
+
+| Member | Description |
+|---|---|
+| `FindAsync(ISpecification, CancellationToken)` | Returns the first match, or `null`. |
+| `FindAllAsync(ISpecification, CancellationToken)` | Returns all matches as a read-only list. |
+| `GetPagedAsync(IPagedSpecification, CancellationToken)` | Returns a paged result set. |
+| `GetCountAsync(ISpecification, CancellationToken)` | Returns the count of matches. |
+| `AnyAsync(ISpecification, CancellationToken)` | Returns whether any match exists. |
+| `Include(Expression>)` | Eager-loads a navigation property; chainable. |
+
+`IReadModelRepository` also implements `INamedDataSource`, so `DataStoreName` can be set the same way as on `IGraphRepository` to target a specific registered `DbContext`.
+
+Aggregates are also registered automatically: `IAggregateRepository` (via `EFCoreAggregateRepository<,>`) for loading and persisting aggregate roots with their child collections — see [Aggregate Repository](aggregate-repository.mdx) — and `ISagaStore` (via `EFCoreSagaStore<,>`) for saga/process-manager state — see [Sagas](sagas.mdx).
+
 ## API Summary
 
 | Type | Purpose |
 |------|---------|
 | `IEFCorePersistenceBuilder` | Fluent startup builder with `AddDbContext` and `SetDefaultDataStore` |
-| `EFCorePerisistenceBuilder` | Concrete implementation that registers EF Core repositories in the DI container |
+| `EFCorePersistenceBuilder` | Concrete implementation that registers EF Core repositories in the DI container. (The obsolete, misspelled `EFCorePerisistenceBuilder` name still compiles as a deprecated alias, but new code should use this corrected spelling.) |
 | `RCommonDbContext` | Abstract base class for all EF Core contexts; implements `IDataStore` |
 | `EFCoreRepository` | Concrete repository; implements `IGraphRepository` and lower interfaces |
 | `IGraphRepository` | Full CRUD + LINQ + paging + eager loading + `Tracking` property |
+| `IReadModelRepository` | Specification-driven read access for `IReadModel` projection types; registered automatically alongside the write-side repositories |
+| `IAggregateRepository` | Loads/persists aggregate roots and their child collections; see [Aggregate Repository](aggregate-repository.mdx) |
+| `ISagaStore` | Persists saga/process-manager state; see [Sagas](sagas.mdx) |
 
 ---
 
@@ -12014,6 +12877,27 @@ If the entity implements `ISoftDelete`, delete operations mark `IsDeleted = true
 ```csharp
 await _repo.DeleteAsync(product, isSoftDelete: false, cancellationToken);
 ```
+
+### Primary keys
+
+Unlike the Dapper provider (which infers a database-generated key from the "Id" naming convention), LinqToDB never guesses — an auto-increment key must be mapped explicitly, either with an attribute on the entity or with fluent mapping at startup. Without this mapping, `AddAsync` inserts the entity's key exactly as set (`0` for a new `int` key), so a second insert fails with a primary-key violation.
+
+Fluent mapping is the more convenient option for entities that derive from `BusinessEntity`, since it doesn't require redeclaring the inherited `Id` property:
+
+```csharp
+using LinqToDB.Mapping;
+
+new FluentMappingBuilder(MappingSchema.Default)
+    .Entity().HasTableName("Products")
+    .Property(p => p.Id).IsPrimaryKey().IsIdentity()
+    .Build();
+```
+
+Register this once at startup, before the first `DataConnection` is built. A `Guid` or `string` key needs no such mapping — it is always inserted exactly as you set it.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Linq2Db/` for a complete console app exercising this end to end.
+:::
 
 ## API Summary
 
@@ -12469,16 +13353,17 @@ services.AddRCommon()
         ef.AddDbContext("OrderDb", options =>
             options.UseSqlServer(connectionString));
     })
-    .WithStateMachine(sm =>
-    {
-        sm.AddStatelessStateMachine();
-    });
+    .WithStatelessStateMachine();
 
 // Register your saga
 services.AddScoped();
 ```
 
 The `ISagaStore<,>` is automatically registered by each persistence builder — no manual registration needed.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Sagas/` for a complete console app exercising the full happy path and a compensation path, using `InMemorySagaStore` so it requires no real database.
+:::
 
 ## Saga store providers
 
@@ -12692,9 +13577,15 @@ bool satisfied = spec.IsSatisfiedBy(allocation);
 
 ---
 
-## Unit of Work
+## unit-of-work
 Source: https://rcommon.com/docs/persistence/unit-of-work
-Coordinate writes across multiple repositories in a single TransactionScope using RCommon's IUnitOfWorkFactory, with MediatR and Wolverine pipeline integration support.
+---
+title: Unit of Work
+sidebar_position: 3
+description: Coordinate writes across multiple repositories in a single TransactionScope using RCommon's IUnitOfWorkFactory, with MediatR and Wolverine pipeline integration support.
+---
+
+
 
 # Unit of Work
 
@@ -12711,6 +13602,8 @@ The typical workflow is:
 RCommon also integrates with MediatR and Wolverine pipelines so that units of work can be opened and committed automatically around command handlers — see [MediatR integration](../cqrs-mediator/mediatr).
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -12848,9 +13741,15 @@ With `AutoCompleteScope = true` the unit of work commits automatically when the 
 
 ---
 
-## Authorization
+## authorization
 Source: https://rcommon.com/docs/security-web/authorization
-RCommon.Security provides ICurrentUser and ICurrentPrincipalAccessor for claims-based identity resolution, plus Swashbuckle filters for OpenAPI authorization docs.
+---
+title: Authorization
+sidebar_position: 1
+description: RCommon.Security provides ICurrentUser and ICurrentPrincipalAccessor for claims-based identity resolution, plus Swashbuckle filters for OpenAPI authorization docs.
+---
+
+
 
 # Authorization
 
@@ -12875,9 +13774,15 @@ The core design is a layered stack:
 
 For the core security abstractions (principal accessor, current user, claims helpers):
 
+
+
 For ASP.NET Core web apps that need HTTP-context-aware principal resolution:
 
+
+
 For the Swashbuckle/OpenAPI authorization filters:
+
+
 
 ## Configuration
 
@@ -13003,6 +13908,27 @@ public class OrderCommandHandler
     }
 }
 ```
+
+### `ICurrentUser` member reference
+
+`ICurrentUser` exposes seven members. All of them read from whatever `ClaimsPrincipal` the configured `ICurrentPrincipalAccessor` currently returns:
+
+- **`string? Id { get; }`** — the current user's unique identifier, read from the `ClaimTypesConst.UserId` claim. `null` if no user is authenticated or the claim is absent.
+- **`bool IsAuthenticated { get; }`** — whether the underlying `IIdentity.IsAuthenticated` reports `true`. Check this before trusting any other member.
+- **`string[] Roles { get; }`** — the distinct set of role names from `ClaimTypesConst.Role` claims. Empty array (never `null`) if the user has no role claims.
+- **`string? TenantId { get; }`** — the tenant identifier from the `ClaimTypesConst.TenantId` claim on the current principal. See the callout below — this is a different concept from `IMultiTenant.TenantId`.
+- **`Claim? FindClaim(string claimType)`** — the first claim matching `claimType`, or `null` if none is present.
+- **`Claim[] FindClaims(string claimType)`** — all claims matching `claimType`. Empty array if none match.
+- **`Claim[] GetAllClaims()`** — every claim on the current principal, regardless of type. Empty array if the user has no claims.
+
+:::info `ICurrentUser.TenantId` vs. `IMultiTenant.TenantId`
+These are two unrelated properties that happen to share a name:
+
+- **`ICurrentUser.TenantId`** (`RCommon.Security`) is the *caller's* tenant — a claim read off the current `ClaimsPrincipal`, describing who is making the current request.
+- **`IMultiTenant.TenantId`** (`RCommon.Entities`) is a *persistence-layer* property stamped onto an individual entity, describing which tenant that row belongs to.
+
+RCommon's multi-tenancy pipeline uses `ITenantIdAccessor` (typically backed by `ICurrentUser.TenantId` via `ClaimsTenantIdAccessor`) to decide which `IMultiTenant.TenantId` value to stamp on new entities and to filter queries by. The two properties usually hold the same value at runtime, but they live at different layers and are set independently — see [Multi-Tenancy Overview](../multi-tenancy/overview.mdx) for how the accessor bridges them.
+:::
 
 ### Reading roles
 
@@ -13138,7 +14064,7 @@ string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
 | `CurrentPrincipalAccessorBase` | `RCommon.Security` | Abstract base implementing `Change()` with `AsyncLocal` storage |
 | `ThreadCurrentPrincipalAccessor` | `RCommon.Security` | Default implementation; reads `Thread.CurrentPrincipal` |
 | `CurrentPrincipalAccessorExtensions` | `RCommon.Security` | `Change(Claim)`, `Change(IEnumerable)`, `Change(ClaimsIdentity)` overloads |
-| `ICurrentUser` | `RCommon.Security` | Exposes `Id`, `IsAuthenticated`, `Roles`, `TenantId`, `FindClaim`, `FindClaims`, `GetAllClaims` |
+| `ICurrentUser` | `RCommon.Security` | Exposes `Id`, `IsAuthenticated`, `Roles`, `TenantId`, `FindClaim`, `FindClaims`, `GetAllClaims` — see [member reference](#icurrentuser-member-reference) above |
 | `CurrentUser` | `RCommon.Security` | Default `ICurrentUser` implementation backed by `ICurrentPrincipalAccessor` |
 | `CurrentUserExtensions` | `RCommon.Security` | `FindClaimValue(string)`, `GetId()` |
 | `ICurrentClient` | `RCommon.Security` | Exposes `Id` and `IsAuthenticated` for OAuth client identities |
@@ -13151,9 +14077,15 @@ string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
 
 ---
 
-## Web Utilities
+## web-utilities
 Source: https://rcommon.com/docs/security-web/web-utilities
-RCommon.Web bridges ASP.NET Core's HttpContext.User to ICurrentPrincipalAccessor, replacing the thread-based default for correct identity resolution in web apps.
+---
+title: Web Utilities
+sidebar_position: 2
+description: RCommon.Web bridges ASP.NET Core's HttpContext.User to ICurrentPrincipalAccessor, replacing the thread-based default for correct identity resolution in web apps.
+---
+
+
 
 # Web Utilities
 
@@ -13171,6 +14103,8 @@ The package contains:
 RCommon's core security library (`RCommon.Security`) has no ASP.NET Core dependency. Its default principal accessor reads from `Thread.CurrentPrincipal`, which works in console apps, background services, and test harnesses. In an ASP.NET Core web app the authenticated user is set on `HttpContext.User` by the authentication middleware, not on `Thread.CurrentPrincipal`. `RCommon.Web` provides the adapter that makes the correct source available to all RCommon services.
 
 ## Installation
+
+
 
 This package depends on `RCommon.Security`, which is pulled in automatically.
 
@@ -13365,9 +14299,15 @@ No other code changes are needed. All services that depend on `ICurrentUser`, `I
 
 ---
 
-## Newtonsoft.Json
+## newtonsoft
 Source: https://rcommon.com/docs/serialization/newtonsoft
-RCommon.JsonNet wraps Newtonsoft.Json behind IJsonSerializer with full JsonSerializerSettings access, custom converters, and camelCase or indented output options.
+---
+title: Newtonsoft.Json
+sidebar_position: 2
+description: RCommon.JsonNet wraps Newtonsoft.Json behind IJsonSerializer with full JsonSerializerSettings access, custom converters, and camelCase or indented output options.
+---
+
+
 
 # Newtonsoft.Json
 
@@ -13378,6 +14318,8 @@ RCommon.JsonNet wraps Newtonsoft.Json behind IJsonSerializer with full JsonSeria
 The underlying `JsonSerializerSettings` instance is registered in the DI container via the options pattern, so you can apply any Newtonsoft.Json setting that `JsonSerializerSettings` exposes.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -13693,9 +14635,15 @@ string json = _serializer.Serialize(
 
 ---
 
-## System.Text.Json
+## system-text-json
 Source: https://rcommon.com/docs/serialization/system-text-json
-RCommon.SystemTextJson wraps System.Text.Json behind IJsonSerializer with full JsonSerializerOptions access and built-in integer and byte enum converters.
+---
+title: System.Text.Json
+sidebar_position: 3
+description: RCommon.SystemTextJson wraps System.Text.Json behind IJsonSerializer with full JsonSerializerOptions access and built-in integer and byte enum converters.
+---
+
+
 
 # System.Text.Json
 
@@ -13711,6 +14659,8 @@ The package also includes two ready-to-use converters:
 - `JsonByteEnumConverter` — serializes enums as bytes.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -13870,9 +14820,13 @@ Implements all four `IJsonSerializer` methods. Per-call `JsonSerializeOptions` o
 
 ---
 
-## Overview
+## overview
 Source: https://rcommon.com/docs/state-machines/overview
-Provider-agnostic finite state machine abstraction for .NET using C# enums, with Stateless and MassTransit adapter options for workflow and lifecycle modeling.
+---
+title: Overview
+sidebar_position: 1
+description: Provider-agnostic finite state machine abstraction for .NET using C# enums, with Stateless and MassTransit adapter options for workflow and lifecycle modeling.
+---
 
 # State Machines Overview
 
@@ -13977,15 +14931,23 @@ Both `WithStatelessStateMachine()` and `WithMassTransitStateMachine()` are `TryA
 
 ---
 
-## Stateless
+## stateless
 Source: https://rcommon.com/docs/state-machines/stateless
-RCommon.Stateless wraps the Stateless library behind IStateMachineConfigurator, supporting guarded transitions, parameterized triggers, and async entry/exit actions.
+---
+title: Stateless
+sidebar_position: 2
+description: RCommon.Stateless wraps the Stateless library behind IStateMachineConfigurator, supporting guarded transitions, parameterized triggers, and async entry/exit actions.
+---
+
+
 
 # Stateless
 
 `RCommon.Stateless` wraps the popular [Stateless](https://github.com/dotnet-state-machine/stateless) library behind the RCommon `IStateMachineConfigurator` abstraction. Application code works only with the RCommon interfaces; the Stateless library is an implementation detail.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -13999,6 +14961,10 @@ builder.Services.AddRCommon()
 ```
 
 This registers `StatelessConfigurator` as the open-generic `IStateMachineConfigurator` implementation. Any combination of state and trigger enum types is automatically available for injection.
+
+:::tip Runnable example
+See `Examples/StateMachines/Examples.StateMachines.Stateless/` for a complete console app exercising guarded transitions, entry/exit actions, and parameterized triggers using this exact order-state-machine walkthrough.
+:::
 
 :::tip Modular composition
 `WithStatelessStateMachine()` is `TryAdd`-hardened — repeat calls from multiple modules are idempotent. The open-generic `IStateMachineConfigurator<,>` registration is added exactly once regardless of how many modules invoke this verb. Modules can opt into state-machine support independently without coordinating. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
@@ -14293,7 +15259,7 @@ public class OrderRepositoryIntegrationTests : IDisposable
         services.AddLogging();
         services.AddSingleton();
 
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
         builder.AddDbContext("AppDb", options =>
             options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
         builder.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
@@ -14644,7 +15610,7 @@ public class CustomerRepositoryIntegrationTests : TestFixture, IDisposable
 
         services.AddSingleton();
 
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
         builder.AddDbContext("AppDb", options =>
             options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
         builder.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
@@ -14832,9 +15798,15 @@ Assert.That(results.Items.All(c => c.FirstName.StartsWith("Bart")), Is.True);
 
 ---
 
-## FluentValidation
+## fluent-validation
 Source: https://rcommon.com/docs/validation/fluent-validation
-RCommon.FluentValidation integrates FluentValidation with the CQRS pipeline for automatic command and query validation, with manual IValidationService support.
+---
+title: FluentValidation
+sidebar_position: 1
+description: RCommon.FluentValidation integrates FluentValidation with the CQRS pipeline for automatic command and query validation, with manual IValidationService support.
+---
+
+
 
 # FluentValidation
 
@@ -14854,6 +15826,8 @@ Your application code depends only on `IValidationService` (for manual validatio
 You can also call `IValidationService.ValidateAsync` directly from application services when you need to validate outside the CQRS pipeline.
 
 ## Installation
+
+
 
 ## Configuration
 
@@ -14901,34 +15875,28 @@ builder.Services.AddRCommon()
 
 ### Enable automatic CQRS pipeline validation
 
-Pass `CqrsValidationOptions` to activate validation in the command bus, the query bus, or both:
+Call `UseWithCqrs` on the validation builder, inside the same `WithValidation<T>(Action<T>)` lambda used to register validators, to activate validation in the command bus, the query bus, or both:
 
 ```csharp
 builder.Services.AddRCommon()
     .WithValidation(validation =>
     {
         validation.AddValidatorsFromAssemblyContaining(typeof(MyCommand));
-    })
-    // Enable auto-validation for commands only.
-    .WithValidation(opts =>
-    {
-        opts.ValidateCommands = true;
-        opts.ValidateQueries = false;
+
+        // Enable auto-validation for commands only.
+        validation.UseWithCqrs(opts =>
+        {
+            opts.ValidateCommands = true;
+            opts.ValidateQueries = false;
+        });
     });
 ```
 
-Alternatively, pass `CqrsValidationOptions` in the single `WithValidation` overload that accepts it:
+Both `ValidateCommands` and `ValidateQueries` default to `false`. `UseWithCqrs` is declared on `RCommon.ApplicationServices.ValidationBuilderExtensions` and extends `IValidationBuilder`, so it's available on `validation` inside the lambda without any additional `using`.
 
-```csharp
-builder.Services.AddRCommon()
-    .WithValidation(opts =>
-    {
-        opts.ValidateCommands = true;
-        opts.ValidateQueries = true;
-    });
-```
-
-Both `ValidateCommands` and `ValidateQueries` default to `false`.
+:::warning Migrating from `WithValidation<T>(Action)`
+An older overload — `.WithValidation(opts => { opts.ValidateCommands = true; })` passing `CqrsValidationOptions` directly to `WithValidation` — is `[Obsolete]`. It's still functional, but collided with `RCommon.ApplicationServices`'s own `WithValidation<T>(Action<T>)` overload in a way that made the zero-arg `.WithValidation<T>()` call ambiguous (CS0121) whenever both packages were referenced. Replace it with `UseWithCqrs` inside the `Action<T>` lambda as shown above — same effect, no ambiguity.
+:::
 
 :::tip Modular composition
 `WithValidation<T>` is cache-aware. Both the `RCommon.ApplicationServices` overload (`WithValidation(...)`) and the `RCommon.FluentValidation` extension share the same builder cache, so when multiple modules call `WithValidation(...)` the cached `FluentValidationBuilder` is reused and each module's `AddValidator<T, TValidator>`, `AddValidatorsFromAssemblyContaining(...)`, and `AddValidatorsFromAssemblies(...)` registrations accumulate on the same instance. Each module can scan its own assembly for validators without coordinating with other modules. `CqrsValidationOptions` is a shared singleton: the last module to call the options overload wins for `ValidateCommands` / `ValidateQueries`. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
@@ -15040,8 +16008,10 @@ catch (ValidationException ex)
 
 | Method | Description |
 |--------|-------------|
-| `WithValidation<T>()` | Registers the validation provider with default `CqrsValidationOptions`. |
-| `WithValidation<T>(Action)` | Registers the validation provider and configures CQRS pipeline validation. |
+| `WithValidation<T>()` | Registers the validation provider with default `CqrsValidationOptions`. Declared once, in `RCommon.ApplicationServices`. |
+| `WithValidation<T>(Action<T>)` | Registers the validation provider and applies the given configuration action against it. Declared in `RCommon.ApplicationServices`. |
+| `UseWithCqrs(Action)` | Extension on `IValidationBuilder` (call inside the `Action<T>` lambda above) that configures CQRS pipeline validation. Declared in `RCommon.ApplicationServices`. |
+| `WithValidation<T>(Action)` | **Obsolete.** Declared in `RCommon.FluentValidation`; use `UseWithCqrs` inside `WithValidation<T>(Action<T>)` instead (see the migration note above). |
 
 ### `IFluentValidationBuilder` extension methods
 

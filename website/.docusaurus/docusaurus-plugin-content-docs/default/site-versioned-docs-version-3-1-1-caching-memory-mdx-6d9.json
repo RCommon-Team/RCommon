@@ -1,0 +1,29 @@
+{
+  "id": "caching/memory",
+  "title": "Memory Cache",
+  "description": "RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backed caching with get-or-create patterns and LINQ expression caching optimization.",
+  "source": "@site/versioned_docs/version-3.1.1/caching/memory.mdx",
+  "sourceDirName": "caching",
+  "slug": "/caching/memory",
+  "permalink": "/docs/3.1.1/caching/memory",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/caching/memory.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Memory Cache",
+    "sidebar_position": 2,
+    "description": "RCommon.MemoryCache provides in-process IMemoryCache and IDistributedCache-backed caching with get-or-create patterns and LINQ expression caching optimization."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/3.1.1/caching/overview"
+  },
+  "next": {
+    "title": "Redis Cache",
+    "permalink": "/docs/3.1.1/caching/redis"
+  }
+}

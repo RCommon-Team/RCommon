@@ -9,6 +9,7 @@ Provides a CQRS (Command Query Responsibility Segregation) implementation with d
 - **Validation pipeline** -- optionally validates commands and/or queries before handler execution via `IValidationService`
 - **Handler registration** -- register handlers individually or scan assemblies with automatic decorator exclusion
 - **Expression caching** -- dynamically compiled handler delegates can be cached for improved dispatch performance
+- **Opt-in transactional command dispatch** -- `AddUnitOfWorkToCommandBus()` wraps every `ICommandBus` dispatch in an `IUnitOfWork`, committed automatically after success; scoped to commands only
 - **Fluent builder API** -- integrates with the `AddRCommon()` builder pattern for clean DI configuration
 
 ## Installation
@@ -62,6 +63,22 @@ public class OrderService
 }
 ```
 
+### Enabling transactional command dispatch
+
+```csharp
+services.AddRCommon(config =>
+{
+    config.WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddCommandHandlers(typeof(CreateOrderHandler).Assembly);
+        cqrs.AddUnitOfWorkToCommandBus();
+    })
+    .WithUnitOfWork<UnitOfWorkBuilder>(uow => { /* ... */ });
+});
+```
+
+Opt-in; scoped to commands only (`IQueryBus` is untouched, since queries are read-only by CQRS convention). This is the native-bus equivalent of `RCommon.Mediatr`'s `AddUnitOfWorkToRequestPipeline()` -- enabling one does not enable the other.
+
 ### Enabling Validation
 
 ```csharp
@@ -91,6 +108,7 @@ services.AddRCommon(config =>
 | `ValidationFault` | Describes a single validation failure with property name, message, and severity |
 | `CqrsValidationOptions` | Controls whether commands and/or queries are validated before dispatch |
 | `CqrsBuilder` | Default `ICqrsBuilder` implementation that registers `CommandBus` and `QueryBus` |
+| `UnitOfWorkCommandBus` | `ICommandBus` decorator that wraps dispatch in an `IUnitOfWork`; registered via `AddUnitOfWorkToCommandBus()` |
 
 ## Documentation
 
@@ -101,6 +119,7 @@ For full documentation, visit [rcommon.com](https://rcommon.com).
 - [RCommon.Core](https://www.nuget.org/packages/RCommon.Core) - Core abstractions and builder infrastructure
 - [RCommon.FluentValidation](https://www.nuget.org/packages/RCommon.FluentValidation) - FluentValidation-based `IValidationProvider` for CQRS pipeline integration
 - [RCommon.Models](https://www.nuget.org/packages/RCommon.Models) - `ICommand`, `IQuery`, and `IExecutionResult` model contracts
+- [RCommon.Persistence](https://www.nuget.org/packages/RCommon.Persistence) - `IUnitOfWork`/`IUnitOfWorkFactory` used by `AddUnitOfWorkToCommandBus()`
 
 ## License
 

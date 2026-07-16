@@ -46,11 +46,14 @@ public class EventSubscriptionIsolationTests
         var testEvent = new TestSyncEvent { Message = "Hello from builder A" };
         await router.RouteEventsAsync(new List<ISerializableEvent> { testEvent });
 
-        // Assert - the event was routed (FakeProducerA was called)
+        // Assert - the event was routed (FakeProducerA was called). AddSubscriber now also
+        // auto-registers PublishWithEventBusEventProducer (see
+        // docs/specs/event-handling/producer-auto-registration.md), so 2 producers are
+        // registered in total; only FakeProducerA is asserted on directly here.
         var producers = serviceProvider.GetServices<IEventProducer>().ToList();
-        producers.Should().HaveCount(1);
-        producers[0].Should().BeOfType<FakeProducerA>();
-        ((FakeProducerA)producers[0]).EventsProduced.Should().HaveCount(1);
+        producers.Should().HaveCount(2);
+        var producerA = producers.OfType<FakeProducerA>().Single();
+        producerA.EventsProduced.Should().HaveCount(1);
     }
 
     #endregion
@@ -86,9 +89,11 @@ public class EventSubscriptionIsolationTests
         var testEvent = new TestSyncEvent { Message = "Should only go to ProducerA" };
         await router.RouteEventsAsync(new List<ISerializableEvent> { testEvent });
 
-        // Assert
+        // Assert -- 3 producers total: FakeProducerA, FakeProducerB, and the single, shared
+        // PublishWithEventBusEventProducer that AddSubscriber now auto-registers (deduped by
+        // implementation type across both builders' AddSubscriber calls).
         var producers = serviceProvider.GetServices<IEventProducer>().ToList();
-        producers.Should().HaveCount(2);
+        producers.Should().HaveCount(3);
 
         var producerA = producers.OfType<FakeProducerA>().Single();
         var producerB = producers.OfType<FakeProducerB>().Single();

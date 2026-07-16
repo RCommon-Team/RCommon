@@ -80,7 +80,7 @@ builder.Services.AddRCommon()
         mediator.AddLoggingToRequestPipeline();
         mediator.AddUnitOfWorkToRequestPipeline();
     })
-    .WithPersistence<EFCorePerisistenceBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
+    .WithPersistence<EFCorePersistenceBuilder>(ef => // Repository/ORM configuration. We could easily swap out to NHibernate without impact to domain service up through the stack
     {
         // Add all the DbContexts here
         ef.AddDbContext<LeaveManagementDbContext>(DataStoreNamesConst.LeaveManagement, options =>

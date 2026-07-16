@@ -1,0 +1,29 @@
+{
+  "id": "persistence/specifications",
+  "title": "Specifications",
+  "description": "Encapsulate reusable query predicates as named Specification objects, compose them with &amp; and | operators, and pass them directly to any RCommon repository method.",
+  "source": "@site/versioned_docs/version-3.1.2/persistence/specifications.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/specifications",
+  "permalink": "/docs/persistence/specifications",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/persistence/specifications.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Specifications",
+    "sidebar_position": 2,
+    "description": "Encapsulate reusable query predicates as named Specification objects, compose them with &amp; and | operators, and pass them directly to any RCommon repository method."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Repository Pattern",
+    "permalink": "/docs/persistence/repository-pattern"
+  },
+  "next": {
+    "title": "Unit of Work",
+    "permalink": "/docs/persistence/unit-of-work"
+  }
+}

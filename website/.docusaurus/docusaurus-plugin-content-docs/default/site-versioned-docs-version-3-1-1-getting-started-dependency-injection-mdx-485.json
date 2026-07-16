@@ -1,0 +1,29 @@
+{
+  "id": "getting-started/dependency-injection",
+  "title": "Dependency Injection",
+  "description": "How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores.",
+  "source": "@site/versioned_docs/version-3.1.1/getting-started/dependency-injection.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/dependency-injection",
+  "permalink": "/docs/3.1.1/getting-started/dependency-injection",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/getting-started/dependency-injection.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Dependency Injection",
+    "sidebar_position": 5,
+    "description": "How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Configuration & Bootstrapping",
+    "permalink": "/docs/3.1.1/getting-started/configuration"
+  },
+  "next": {
+    "title": "Core Concepts",
+    "permalink": "/docs/3.1.1/category/core-concepts"
+  }
+}

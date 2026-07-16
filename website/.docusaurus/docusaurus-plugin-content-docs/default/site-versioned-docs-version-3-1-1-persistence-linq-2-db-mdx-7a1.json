@@ -1,0 +1,29 @@
+{
+  "id": "persistence/linq2db",
+  "title": "Linq2Db",
+  "description": "Wire up RCommon's Linq2Db provider for ILinqRepository support with LINQ queries, paging, eager loading via LoadWith, and multi-database connection management without EF Core.",
+  "source": "@site/versioned_docs/version-3.1.1/persistence/linq2db.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/linq2db",
+  "permalink": "/docs/3.1.1/persistence/linq2db",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/persistence/linq2db.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "title": "Linq2Db",
+    "sidebar_position": 6,
+    "description": "Wire up RCommon's Linq2Db provider for ILinqRepository support with LINQ queries, paging, eager loading via LoadWith, and multi-database connection management without EF Core."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Dapper",
+    "permalink": "/docs/3.1.1/persistence/dapper"
+  },
+  "next": {
+    "title": "Sagas",
+    "permalink": "/docs/3.1.1/persistence/sagas"
+  }
+}

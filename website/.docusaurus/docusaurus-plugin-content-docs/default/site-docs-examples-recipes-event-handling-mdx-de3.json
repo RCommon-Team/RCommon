@@ -19,8 +19,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "HR Leave Management Sample",
-    "permalink": "/docs/next/examples-recipes/hr-leave-management"
+    "title": "End-to-End DDD Recipe",
+    "permalink": "/docs/next/examples-recipes/domain-driven-design"
   },
   "next": {
     "title": "Caching Examples",

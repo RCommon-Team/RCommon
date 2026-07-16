@@ -1,4 +1,4 @@
-# RCommon.Finbuckle
+﻿# RCommon.Finbuckle
 
 Finbuckle multitenancy provider for the RCommon framework. Adapts Finbuckle's `IMultiTenantContextAccessor<TTenantInfo>` to RCommon's `ITenantIdAccessor` interface, enabling automatic tenant-scoped repository operations using Finbuckle's tenant resolution strategies.
 
@@ -35,7 +35,7 @@ builder.Services.AddMultiTenant<TenantInfo>()
 builder.Services.AddRCommon(config =>
 {
     config.WithClaimsAndPrincipalAccessorForWeb()
-        .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        .WithPersistence<EFCorePersistenceBuilder>(ef =>
         {
             ef.AddDbContext<ApplicationDbContext>("ApplicationDb", options =>
                 options.UseSqlServer(connectionString));

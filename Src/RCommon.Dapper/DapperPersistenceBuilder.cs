@@ -31,7 +31,6 @@ namespace RCommon
         private readonly IServiceCollection _services;
         private List<string> _dbContextTypes = new List<string>();
 
-
         /// <summary>
         /// Initializes a new instance of <see cref="DapperPersistenceBuilder"/> and registers
         /// Dapper repository services in the provided service collection.

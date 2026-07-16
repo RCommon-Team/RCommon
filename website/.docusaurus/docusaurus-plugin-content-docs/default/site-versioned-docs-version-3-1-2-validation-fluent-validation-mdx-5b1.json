@@ -1,0 +1,29 @@
+{
+  "id": "validation/fluent-validation",
+  "title": "FluentValidation",
+  "description": "RCommon.FluentValidation integrates FluentValidation with the CQRS pipeline for automatic command and query validation, with manual IValidationService support.",
+  "source": "@site/versioned_docs/version-3.1.2/validation/fluent-validation.mdx",
+  "sourceDirName": "validation",
+  "slug": "/validation/fluent-validation",
+  "permalink": "/docs/validation/fluent-validation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/validation/fluent-validation.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "FluentValidation",
+    "sidebar_position": 1,
+    "description": "RCommon.FluentValidation integrates FluentValidation with the CQRS pipeline for automatic command and query validation, with manual IValidationService support."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Validation",
+    "permalink": "/docs/category/validation"
+  },
+  "next": {
+    "title": "Email",
+    "permalink": "/docs/category/email"
+  }
+}

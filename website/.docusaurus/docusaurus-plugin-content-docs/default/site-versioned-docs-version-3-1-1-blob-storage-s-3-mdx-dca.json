@@ -1,0 +1,29 @@
+{
+  "id": "blob-storage/s3",
+  "title": "Amazon S3",
+  "description": "RCommon.Amazon.S3Objects wraps the AWS SDK behind IBlobStorageService, supporting explicit credentials, named profiles, IAM instance roles, and S3-compatible stores.",
+  "source": "@site/versioned_docs/version-3.1.1/blob-storage/s3.mdx",
+  "sourceDirName": "blob-storage",
+  "slug": "/blob-storage/s3",
+  "permalink": "/docs/3.1.1/blob-storage/s3",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/blob-storage/s3.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Amazon S3",
+    "sidebar_position": 3,
+    "description": "RCommon.Amazon.S3Objects wraps the AWS SDK behind IBlobStorageService, supporting explicit credentials, named profiles, IAM instance roles, and S3-compatible stores."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Azure Blob Storage",
+    "permalink": "/docs/3.1.1/blob-storage/azure"
+  },
+  "next": {
+    "title": "Serialization",
+    "permalink": "/docs/3.1.1/category/serialization"
+  }
+}

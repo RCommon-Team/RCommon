@@ -1,0 +1,29 @@
+{
+  "id": "api-reference/nuget-packages",
+  "title": "NuGet Packages",
+  "description": "Complete NuGet package listing for RCommon covering persistence, caching, messaging, mediator, serialization, email, security, multitenancy, and blob storage providers.",
+  "source": "@site/versioned_docs/version-3.1.2/api-reference/nuget-packages.mdx",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/nuget-packages",
+  "permalink": "/docs/api-reference/nuget-packages",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/api-reference/nuget-packages.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "NuGet Packages",
+    "sidebar_position": 1,
+    "description": "Complete NuGet package listing for RCommon covering persistence, caching, messaging, mediator, serialization, email, security, multitenancy, and blob storage providers."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "API Reference",
+    "permalink": "/docs/category/api-reference"
+  },
+  "next": {
+    "title": "Changelog",
+    "permalink": "/docs/api-reference/changelog"
+  }
+}

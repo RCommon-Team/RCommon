@@ -1,0 +1,29 @@
+{
+  "id": "email/sendgrid",
+  "title": "SendGrid",
+  "description": "RCommon.SendGrid implements IEmailService via the SendGrid API, converting MailMessage objects to SendGrid calls with attachment and multi-recipient support.",
+  "source": "@site/versioned_docs/version-3.1.1/email/sendgrid.mdx",
+  "sourceDirName": "email",
+  "slug": "/email/sendgrid",
+  "permalink": "/docs/3.1.1/email/sendgrid",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/email/sendgrid.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "SendGrid",
+    "sidebar_position": 2,
+    "description": "RCommon.SendGrid implements IEmailService via the SendGrid API, converting MailMessage objects to SendGrid calls with attachment and multi-recipient support."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/3.1.1/email/overview"
+  },
+  "next": {
+    "title": "Multi-Tenancy",
+    "permalink": "/docs/3.1.1/category/multi-tenancy"
+  }
+}

@@ -1,4 +1,4 @@
-# RCommon.MultiTenancy
+﻿# RCommon.MultiTenancy
 
 Multitenancy builder abstraction for the RCommon framework. Provides the `WithMultiTenancy<T>()` fluent API for registering tenant resolution providers (such as Finbuckle) that supply the current `ITenantIdAccessor` implementation.
 
@@ -26,7 +26,7 @@ using Finbuckle.MultiTenant;
 
 builder.Services.AddRCommon(config =>
 {
-    config.WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    config.WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<ApplicationDbContext>("ApplicationDb", options =>
             options.UseSqlServer(connectionString));
@@ -56,6 +56,8 @@ var products = await repo.FindAsync(p => p.IsActive);
 // TenantId is stamped automatically on add
 await repo.AddAsync(new Product { Name = "Widget" });
 ```
+
+Stamping is skipped entirely (not nulled) when the resolved tenant ID is null/empty; a non-empty resolved tenant ID always overwrites the entity's existing `TenantId`. For one-off cross-tenant calls (an admin listing all tenants, or creating the first row for a brand-new tenant) without changing the accessor registration for the whole app, use `TenantScope.Bypass()` from `RCommon.Security` -- see [Multi-Tenancy](https://rcommon.com/docs/multi-tenancy/overview#bypassing-tenant-isolation-for-one-call-tenantscopebypass) for the full semantics and worked examples.
 
 ## Key Types
 

@@ -14,6 +14,10 @@ public class TestDbContext : RCommonDbContext
 
     public DbSet<TestEntity> TestEntities { get; set; } = null!;
 
+    public DbSet<TestOrderAggregate> Orders { get; set; } = null!;
+
+    public DbSet<TestOrderLineItem> OrderLineItems { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -22,6 +26,22 @@ public class TestDbContext : RCommonDbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<TestOrderAggregate>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CustomerName).HasMaxLength(255);
+            entity.HasMany(e => e.LineItems)
+                .WithOne()
+                .HasForeignKey(li => li.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TestOrderLineItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ProductName).HasMaxLength(255);
         });
     }
 }

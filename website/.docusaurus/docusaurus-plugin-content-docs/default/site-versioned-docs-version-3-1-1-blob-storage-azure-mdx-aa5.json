@@ -1,0 +1,29 @@
+{
+  "id": "blob-storage/azure",
+  "title": "Azure Blob Storage",
+  "description": "RCommon.Azure.Blobs wraps the Azure Blob Storage SDK behind IBlobStorageService, supporting connection strings, managed identity, and multiple named stores.",
+  "source": "@site/versioned_docs/version-3.1.1/blob-storage/azure.mdx",
+  "sourceDirName": "blob-storage",
+  "slug": "/blob-storage/azure",
+  "permalink": "/docs/3.1.1/blob-storage/azure",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/blob-storage/azure.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Azure Blob Storage",
+    "sidebar_position": 2,
+    "description": "RCommon.Azure.Blobs wraps the Azure Blob Storage SDK behind IBlobStorageService, supporting connection strings, managed identity, and multiple named stores."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/3.1.1/blob-storage/overview"
+  },
+  "next": {
+    "title": "Amazon S3",
+    "permalink": "/docs/3.1.1/blob-storage/s3"
+  }
+}

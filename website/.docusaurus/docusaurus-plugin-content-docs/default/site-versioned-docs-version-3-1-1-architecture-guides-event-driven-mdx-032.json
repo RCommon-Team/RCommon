@@ -1,0 +1,29 @@
+{
+  "id": "architecture-guides/event-driven",
+  "title": "Event-Driven Architecture",
+  "description": "Implement event-driven .NET apps with RCommon using IEventProducer and ISubscriber across in-memory, MediatR, MassTransit, and Wolverine providers.",
+  "source": "@site/versioned_docs/version-3.1.1/architecture-guides/event-driven.mdx",
+  "sourceDirName": "architecture-guides",
+  "slug": "/architecture-guides/event-driven",
+  "permalink": "/docs/3.1.1/architecture-guides/event-driven",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/architecture-guides/event-driven.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Event-Driven Architecture",
+    "sidebar_position": 3,
+    "description": "Implement event-driven .NET apps with RCommon using IEventProducer and ISubscriber across in-memory, MediatR, MassTransit, and Wolverine providers."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Microservices",
+    "permalink": "/docs/3.1.1/architecture-guides/microservices"
+  },
+  "next": {
+    "title": "Examples & Recipes",
+    "permalink": "/docs/3.1.1/category/examples--recipes"
+  }
+}

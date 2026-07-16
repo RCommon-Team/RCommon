@@ -19,8 +19,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "Entity Framework Core",
-    "permalink": "/docs/next/persistence/efcore"
+    "title": "Aggregate Repository",
+    "permalink": "/docs/next/persistence/aggregate-repository"
   },
   "next": {
     "title": "Linq2Db",

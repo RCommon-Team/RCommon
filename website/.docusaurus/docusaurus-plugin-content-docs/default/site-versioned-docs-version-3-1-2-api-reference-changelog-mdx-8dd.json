@@ -1,0 +1,29 @@
+{
+  "id": "api-reference/changelog",
+  "title": "Changelog",
+  "description": "RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags.",
+  "source": "@site/versioned_docs/version-3.1.2/api-reference/changelog.mdx",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/changelog",
+  "permalink": "/docs/api-reference/changelog",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/api-reference/changelog.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Changelog",
+    "sidebar_position": 2,
+    "description": "RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "NuGet Packages",
+    "permalink": "/docs/api-reference/nuget-packages"
+  },
+  "next": {
+    "title": "Migration Guide",
+    "permalink": "/docs/api-reference/migration-guide"
+  }
+}

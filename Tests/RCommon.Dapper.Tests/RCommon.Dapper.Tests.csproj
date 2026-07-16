@@ -2,6 +2,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
+    <!-- Pinned to the patched native SQLite binary; see Tests/RCommon.Linq2Db.Tests for the same
+         override and CVE-2025-6965 (GHSA-2m69-gcr7-jv3q) rationale. -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Src\RCommon.Dapper\RCommon.Dapper.csproj" />

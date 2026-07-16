@@ -1,4 +1,4 @@
-# RCommon
+﻿# RCommon
 
 Open-source .NET infrastructure library providing battle-tested abstractions for persistence, CQRS, event handling, messaging, caching, and more. Swap providers (EF Core, Dapper, MediatR, MassTransit, Wolverine, Redis) without touching your domain code.
 
@@ -42,7 +42,7 @@ All configuration flows through a single fluent builder chain:
 
 ```csharp
 services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef => ef
+    .WithPersistence<EFCorePersistenceBuilder>(ef => ef
         .AddDbContext<MyDbContext>("MyDb", options => ...))
     .WithMediator<MediatRBuilder>(mediator => mediator
         .AddCommand<MyCommand, MyCommandHandler>())

@@ -55,7 +55,20 @@ namespace RCommon.Persistence
                 return (B)_provider.GetRequiredService(_values.First(x => x.Name == name && x.BaseType == typeof(B)).ConcreteType);
             }
 
-            throw new DataStoreNotFoundException($"DataStore with name of {name} and base type of {typeof(B).GetGenericTypeName()} not found");
+            var registered = _values.Select(v => v.Name).Distinct().ToList();
+            var registeredList = registered.Count == 0 ? "(none)" : string.Join(", ", registered);
+
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new DataStoreNotFoundException(
+                    $"No DataStoreName was specified for this repository, and no default data store has been " +
+                    $"configured. Either set the repository's DataStoreName property explicitly, or call " +
+                    $"SetDefaultDataStore(...) during WithPersistence<T> setup. Registered data stores: {registeredList}.");
+            }
+
+            throw new DataStoreNotFoundException(
+                $"DataStore with name of '{name}' and base type of '{typeof(B).GetGenericTypeName()}' not found. " +
+                $"Registered data stores: {registeredList}.");
         }
     }
 }

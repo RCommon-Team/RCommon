@@ -6,5 +6,13 @@
     <MinVerGenerateAssemblyVersion>true</MinVerGenerateAssemblyVersion>
     <MinVerGenerateFileVersion>true</MinVerGenerateFileVersion>
     <MinVerGenerateInformationalVersion>true</MinVerGenerateInformationalVersion>
+    <!-- Emits a .xml doc sidecar next to every RCommon.*.dll, consumed by
+         Tools/RCommon.ApiReferenceGenerator to build website/static/api-reference-full.txt.
+         CS1591 (missing XML comment on a public member) is suppressed: enabling this surfaced
+         ~636 distinct undocumented public members across Src/ (1908 warnings x3 target
+         frameworks): too large a volume to hand-fix as part of adding the reference generator.
+         Tracked as follow-up documentation-hardening work, not fixed here. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 </Project> 

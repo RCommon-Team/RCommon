@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/core-concepts/guards.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/guards",
-  "permalink": "/docs/core-concepts/guards",
+  "permalink": "/docs/2.4.1/core-concepts/guards",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/core-concepts/guards.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Fluent Configuration",
-    "permalink": "/docs/core-concepts/fluent-configuration"
+    "permalink": "/docs/2.4.1/core-concepts/fluent-configuration"
   },
   "next": {
     "title": "GUID Generation",
-    "permalink": "/docs/core-concepts/guid-generation"
+    "permalink": "/docs/2.4.1/core-concepts/guid-generation"
   }
 }

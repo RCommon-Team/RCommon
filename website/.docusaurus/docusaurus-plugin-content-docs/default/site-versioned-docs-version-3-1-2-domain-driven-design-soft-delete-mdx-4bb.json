@@ -1,0 +1,29 @@
+{
+  "id": "domain-driven-design/soft-delete",
+  "title": "Soft Delete",
+  "description": "Mark records as deleted instead of removing them physically using RCommon's ISoftDelete interface, with automatic query filtering and explicit delete mode overrides.",
+  "source": "@site/versioned_docs/version-3.1.2/domain-driven-design/soft-delete.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/soft-delete",
+  "permalink": "/docs/domain-driven-design/soft-delete",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/domain-driven-design/soft-delete.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Soft Delete",
+    "sidebar_position": 5,
+    "description": "Mark records as deleted instead of removing them physically using RCommon's ISoftDelete interface, with automatic query filtering and explicit delete mode overrides."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Auditing",
+    "permalink": "/docs/domain-driven-design/auditing"
+  },
+  "next": {
+    "title": "Persistence",
+    "permalink": "/docs/category/persistence"
+  }
+}

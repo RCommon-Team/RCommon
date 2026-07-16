@@ -1,0 +1,29 @@
+{
+  "id": "persistence/caching-redis",
+  "title": "Caching with Redis",
+  "description": "Back RCommon's repository caching decorators with Redis via RedisCacheService for a distributed, out-of-process cache shared across multiple service instances and restarts.",
+  "source": "@site/versioned_docs/version-3.1.1/persistence/caching-redis.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/caching-redis",
+  "permalink": "/docs/3.1.1/persistence/caching-redis",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/persistence/caching-redis.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "title": "Caching with Redis",
+    "sidebar_position": 8,
+    "description": "Back RCommon's repository caching decorators with Redis via RedisCacheService for a distributed, out-of-process cache shared across multiple service instances and restarts."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Caching with Memory",
+    "permalink": "/docs/3.1.1/persistence/caching-memory"
+  },
+  "next": {
+    "title": "CQRS & Mediator",
+    "permalink": "/docs/3.1.1/category/cqrs--mediator"
+  }
+}

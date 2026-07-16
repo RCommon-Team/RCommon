@@ -1,0 +1,29 @@
+{
+  "id": "core-concepts/fluent-configuration",
+  "title": "Fluent Configuration",
+  "description": "Deep dive into RCommon's fluent configuration API — IRCommonBuilder, With* extension methods, custom builder extensions, and double-registration protection.",
+  "source": "@site/versioned_docs/version-3.1.1/core-concepts/fluent-configuration.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/fluent-configuration",
+  "permalink": "/docs/3.1.1/core-concepts/fluent-configuration",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/core-concepts/fluent-configuration.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Fluent Configuration",
+    "sidebar_position": 1,
+    "description": "Deep dive into RCommon's fluent configuration API — IRCommonBuilder, With* extension methods, custom builder extensions, and double-registration protection."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Core Concepts",
+    "permalink": "/docs/3.1.1/category/core-concepts"
+  },
+  "next": {
+    "title": "Modular Composition",
+    "permalink": "/docs/3.1.1/core-concepts/modular-composition"
+  }
+}

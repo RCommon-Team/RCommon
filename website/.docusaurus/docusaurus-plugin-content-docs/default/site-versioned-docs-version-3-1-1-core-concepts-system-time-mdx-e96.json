@@ -1,0 +1,29 @@
+{
+  "id": "core-concepts/system-time",
+  "title": "System Time Abstraction",
+  "description": "Use ISystemTime to abstract DateTime.Now for testable time-dependent code — configure UTC or local time, normalize incoming dates, and substitute clocks in tests.",
+  "source": "@site/versioned_docs/version-3.1.1/core-concepts/system-time.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/system-time",
+  "permalink": "/docs/3.1.1/core-concepts/system-time",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/core-concepts/system-time.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "System Time Abstraction",
+    "sidebar_position": 4,
+    "description": "Use ISystemTime to abstract DateTime.Now for testable time-dependent code — configure UTC or local time, normalize incoming dates, and substitute clocks in tests."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "GUID Generation",
+    "permalink": "/docs/3.1.1/core-concepts/guid-generation"
+  },
+  "next": {
+    "title": "Execution Results & Models",
+    "permalink": "/docs/3.1.1/core-concepts/execution-results"
+  }
+}

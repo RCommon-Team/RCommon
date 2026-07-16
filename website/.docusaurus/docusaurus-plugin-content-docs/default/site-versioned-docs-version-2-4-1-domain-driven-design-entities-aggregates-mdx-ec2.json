@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/domain-driven-design/entities-aggregates.mdx",
   "sourceDirName": "domain-driven-design",
   "slug": "/domain-driven-design/entities-aggregates",
-  "permalink": "/docs/domain-driven-design/entities-aggregates",
+  "permalink": "/docs/2.4.1/domain-driven-design/entities-aggregates",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/domain-driven-design/entities-aggregates.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Domain-Driven Design",
-    "permalink": "/docs/category/domain-driven-design"
+    "permalink": "/docs/2.4.1/category/domain-driven-design"
   },
   "next": {
     "title": "Domain Events",
-    "permalink": "/docs/domain-driven-design/domain-events"
+    "permalink": "/docs/2.4.1/domain-driven-design/domain-events"
   }
 }

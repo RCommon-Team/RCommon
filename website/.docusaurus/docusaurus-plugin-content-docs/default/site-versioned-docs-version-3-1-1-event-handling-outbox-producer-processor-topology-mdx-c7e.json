@@ -1,0 +1,20 @@
+{
+  "id": "event-handling/outbox-producer-processor-topology",
+  "title": "Outbox Producer/Processor Topology",
+  "description": "How RCommon's built-in persistence outbox dispatches and marks events across multiple hosts, and why producer-only hosts must set OutboxOptions.ImmediateDispatch = false for reliable cross-host delivery.",
+  "source": "@site/versioned_docs/version-3.1.1/event-handling/outbox-producer-processor-topology.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/outbox-producer-processor-topology",
+  "permalink": "/docs/3.1.1/event-handling/outbox-producer-processor-topology",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/event-handling/outbox-producer-processor-topology.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "title": "Outbox Producer/Processor Topology",
+    "sidebar_position": 8,
+    "description": "How RCommon's built-in persistence outbox dispatches and marks events across multiple hosts, and why producer-only hosts must set OutboxOptions.ImmediateDispatch = false for reliable cross-host delivery."
+  }
+}

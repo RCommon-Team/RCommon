@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/domain-driven-design/auditing.mdx",
   "sourceDirName": "domain-driven-design",
   "slug": "/domain-driven-design/auditing",
-  "permalink": "/docs/domain-driven-design/auditing",
+  "permalink": "/docs/2.4.1/domain-driven-design/auditing",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/domain-driven-design/auditing.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Value Objects",
-    "permalink": "/docs/domain-driven-design/value-objects"
+    "permalink": "/docs/2.4.1/domain-driven-design/value-objects"
   },
   "next": {
     "title": "Soft Delete",
-    "permalink": "/docs/domain-driven-design/soft-delete"
+    "permalink": "/docs/2.4.1/domain-driven-design/soft-delete"
   }
 }

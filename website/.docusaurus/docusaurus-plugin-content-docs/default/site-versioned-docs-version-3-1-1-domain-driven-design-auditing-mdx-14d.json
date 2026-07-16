@@ -1,0 +1,29 @@
+{
+  "id": "domain-driven-design/auditing",
+  "title": "Auditing",
+  "description": "Capture who created and last modified an entity using RCommon's IAuditedEntity interface and AuditedEntity base classes with generic user identifier types.",
+  "source": "@site/versioned_docs/version-3.1.1/domain-driven-design/auditing.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/auditing",
+  "permalink": "/docs/3.1.1/domain-driven-design/auditing",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/domain-driven-design/auditing.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Auditing",
+    "sidebar_position": 4,
+    "description": "Capture who created and last modified an entity using RCommon's IAuditedEntity interface and AuditedEntity base classes with generic user identifier types."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Value Objects",
+    "permalink": "/docs/3.1.1/domain-driven-design/value-objects"
+  },
+  "next": {
+    "title": "Soft Delete",
+    "permalink": "/docs/3.1.1/domain-driven-design/soft-delete"
+  }
+}

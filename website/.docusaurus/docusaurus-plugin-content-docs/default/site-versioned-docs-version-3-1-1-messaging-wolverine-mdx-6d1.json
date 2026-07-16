@@ -1,0 +1,29 @@
+{
+  "id": "messaging/wolverine",
+  "title": "Wolverine",
+  "description": "Configure Wolverine as RCommon's messaging transport with durable delivery, fan-out publish or point-to-point send, and ISubscriber handlers free of Wolverine dependencies.",
+  "source": "@site/versioned_docs/version-3.1.1/messaging/wolverine.mdx",
+  "sourceDirName": "messaging",
+  "slug": "/messaging/wolverine",
+  "permalink": "/docs/3.1.1/messaging/wolverine",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/messaging/wolverine.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Wolverine",
+    "sidebar_position": 5,
+    "description": "Configure Wolverine as RCommon's messaging transport with durable delivery, fan-out publish or point-to-point send, and ISubscriber handlers free of Wolverine dependencies."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "MassTransit",
+    "permalink": "/docs/3.1.1/messaging/masstransit"
+  },
+  "next": {
+    "title": "State Machines",
+    "permalink": "/docs/3.1.1/category/state-machines"
+  }
+}

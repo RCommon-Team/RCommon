@@ -1,0 +1,29 @@
+{
+  "id": "examples-recipes/domain-driven-design",
+  "title": "End-to-End DDD Recipe",
+  "description": "A single runnable project walking through AggregateRoot, domain events, value objects, soft delete, and IMultiTenant together on one coherent Team/TeamMembership aggregate.",
+  "source": "@site/versioned_docs/version-3.1.2/examples-recipes/domain-driven-design.mdx",
+  "sourceDirName": "examples-recipes",
+  "slug": "/examples-recipes/domain-driven-design",
+  "permalink": "/docs/examples-recipes/domain-driven-design",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/examples-recipes/domain-driven-design.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "End-to-End DDD Recipe",
+    "sidebar_position": 5,
+    "description": "A single runnable project walking through AggregateRoot, domain events, value objects, soft delete, and IMultiTenant together on one coherent Team/TeamMembership aggregate."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "HR Leave Management Sample",
+    "permalink": "/docs/examples-recipes/hr-leave-management"
+  },
+  "next": {
+    "title": "Event Handling Examples",
+    "permalink": "/docs/examples-recipes/event-handling"
+  }
+}

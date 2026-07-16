@@ -1,0 +1,29 @@
+{
+  "id": "state-machines/stateless",
+  "title": "Stateless",
+  "description": "RCommon.Stateless wraps the Stateless library behind IStateMachineConfigurator, supporting guarded transitions, parameterized triggers, and async entry/exit actions.",
+  "source": "@site/versioned_docs/version-3.1.2/state-machines/stateless.mdx",
+  "sourceDirName": "state-machines",
+  "slug": "/state-machines/stateless",
+  "permalink": "/docs/state-machines/stateless",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/state-machines/stateless.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Stateless",
+    "sidebar_position": 2,
+    "description": "RCommon.Stateless wraps the Stateless library behind IStateMachineConfigurator, supporting guarded transitions, parameterized triggers, and async entry/exit actions."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/state-machines/overview"
+  },
+  "next": {
+    "title": "Caching",
+    "permalink": "/docs/category/caching"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "examples-recipes/messaging",
+  "title": "Messaging Examples",
+  "description": "Messaging examples for RCommon showing MassTransit and Wolverine transports, subscription isolation between multiple builders, and in-process vs distributed routing.",
+  "source": "@site/versioned_docs/version-3.1.1/examples-recipes/messaging.mdx",
+  "sourceDirName": "examples-recipes",
+  "slug": "/examples-recipes/messaging",
+  "permalink": "/docs/3.1.1/examples-recipes/messaging",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/examples-recipes/messaging.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Messaging Examples",
+    "sidebar_position": 4,
+    "description": "Messaging examples for RCommon showing MassTransit and Wolverine transports, subscription isolation between multiple builders, and in-process vs distributed routing."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Caching Examples",
+    "permalink": "/docs/3.1.1/examples-recipes/caching"
+  },
+  "next": {
+    "title": "Testing",
+    "permalink": "/docs/3.1.1/category/testing"
+  }
+}

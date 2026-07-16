@@ -53,4 +53,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" Condition=" '$(TargetFramework)' == 'net10.0' " />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="RCommon.Persistence.Tests" />
+  </ItemGroup>
+
 </Project>

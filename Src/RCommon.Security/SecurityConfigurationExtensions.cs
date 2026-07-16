@@ -28,7 +28,9 @@ namespace RCommon
             config.Services.TryAddTransient<ICurrentPrincipalAccessor, ThreadCurrentPrincipalAccessor>();
             config.Services.TryAddTransient<ICurrentClient, CurrentClient>();
             config.Services.TryAddTransient<ICurrentUser, CurrentUser>();
-            config.Services.TryAddTransient<ITenantIdAccessor, ClaimsTenantIdAccessor>();
+            config.Services.TryAddTransient<ClaimsTenantIdAccessor>();
+            config.Services.TryAddTransient<ITenantIdAccessor>(sp =>
+                new TenantScopeAwareTenantIdAccessor(sp.GetRequiredService<ClaimsTenantIdAccessor>()));
             return config;
         }
     }

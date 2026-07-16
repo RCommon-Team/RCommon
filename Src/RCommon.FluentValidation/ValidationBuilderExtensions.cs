@@ -15,21 +15,6 @@ namespace RCommon.ApplicationServices
     {
 
         /// <summary>
-        /// Registers validation using the specified <typeparamref name="T"/> builder with default
-        /// <see cref="CqrsValidationOptions"/>.
-        /// </summary>
-        /// <typeparam name="T">An <see cref="IValidationBuilder"/> implementation such as
-        /// <c>FluentValidationBuilder</c>.</typeparam>
-        /// <param name="builder">The RCommon builder instance.</param>
-        /// <returns>The <see cref="IRCommonBuilder"/> for further chaining.</returns>
-        public static IRCommonBuilder WithValidation<T>(this IRCommonBuilder builder)
-            where T : class, IValidationBuilder
-        {
-
-            return WithValidation<T>(builder, x => { });
-        }
-
-        /// <summary>
         /// Registers validation using the specified <typeparamref name="T"/> builder and configures
         /// <see cref="CqrsValidationOptions"/> for CQRS pipeline validation behavior.
         /// </summary>
@@ -42,6 +27,10 @@ namespace RCommon.ApplicationServices
         /// passing the <see cref="IRCommonBuilder"/> as the constructor argument. The builder's constructor
         /// is expected to register its validation services into the DI container.
         /// </remarks>
+        [Obsolete("Use RCommon.ApplicationServices.ValidationBuilderExtensions.WithValidation<T>(Action<T>) " +
+            "and call UseWithCqrs(Action<CqrsValidationOptions>) inside that lambda instead, e.g. " +
+            "builder.WithValidation<T>(v => v.UseWithCqrs(opts => opts.ValidateCommands = true)). " +
+            "This overload will be removed in a future major version.")]
         public static IRCommonBuilder WithValidation<T>(this IRCommonBuilder builder, Action<CqrsValidationOptions> actions)
             where T : class, IValidationBuilder
         {

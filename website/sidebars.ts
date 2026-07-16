@@ -48,6 +48,7 @@ const sidebars: SidebarsConfig = {
         'persistence/specifications',
         'persistence/unit-of-work',
         'persistence/efcore',
+        'persistence/aggregate-repository',
         'persistence/dapper',
         'persistence/linq2db',
         'persistence/sagas',
@@ -76,6 +77,7 @@ const sidebars: SidebarsConfig = {
         'event-handling/in-memory',
         'event-handling/distributed',
         'event-handling/transactional-outbox',
+        'event-handling/outbox-producer-processor-topology',
         'event-handling/mediatr',
         'event-handling/masstransit',
         'event-handling/wolverine',
@@ -183,6 +185,7 @@ const sidebars: SidebarsConfig = {
       link: { type: 'generated-index' },
       items: [
         'examples-recipes/hr-leave-management',
+        'examples-recipes/domain-driven-design',
         'examples-recipes/event-handling',
         'examples-recipes/caching',
         'examples-recipes/messaging',

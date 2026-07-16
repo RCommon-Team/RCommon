@@ -47,13 +47,25 @@ namespace RCommon.EventHandling.Producers
 
                 if (transactionalEvents.Any())
                 {
-                    _logger.LogInformation($"{this.GetGenericTypeName()} is routing {transactionalEvents.Count().ToString()} transactional events to event producers.");
-
                     // Seperate Async events from Sync Events
                     var syncEvents = transactionalEvents.Where(x => x is ISyncEvent);
                     var asyncEvents = transactionalEvents.Where(x => x is IAsyncEvent);
                     var remainingEvents = transactionalEvents.Where(x => x is not IAsyncEvent && x is not ISyncEvent);
-                    var eventProducers = _serviceProvider.GetServices<IEventProducer>();
+                    var eventProducers = _serviceProvider.GetServices<IEventProducer>().ToList();
+
+                    if (!eventProducers.Any())
+                    {
+                        _logger.LogWarning(
+                            "{Router} has {Count} transactional event(s) to route but no IEventProducer is " +
+                            "registered -- these events will not be delivered to any subscriber.",
+                            this.GetGenericTypeName(), transactionalEvents.Count());
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "{Router} is routing {Count} transactional events to event producers.",
+                            this.GetGenericTypeName(), transactionalEvents.Count());
+                    }
 
                     if (syncEvents.Any())
                     {

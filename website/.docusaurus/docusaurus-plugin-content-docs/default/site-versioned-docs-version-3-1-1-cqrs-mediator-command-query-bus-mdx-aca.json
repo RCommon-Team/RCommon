@@ -1,0 +1,29 @@
+{
+  "id": "cqrs-mediator/command-query-bus",
+  "title": "Command & Query Bus",
+  "description": "Learn how RCommon's ICommandBus and IQueryBus implement CQRS, resolve handlers from DI, support validation, and cache compiled dispatch delegates.",
+  "source": "@site/versioned_docs/version-3.1.1/cqrs-mediator/command-query-bus.mdx",
+  "sourceDirName": "cqrs-mediator",
+  "slug": "/cqrs-mediator/command-query-bus",
+  "permalink": "/docs/3.1.1/cqrs-mediator/command-query-bus",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/cqrs-mediator/command-query-bus.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Command & Query Bus",
+    "sidebar_position": 1,
+    "description": "Learn how RCommon's ICommandBus and IQueryBus implement CQRS, resolve handlers from DI, support validation, and cache compiled dispatch delegates."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "CQRS & Mediator",
+    "permalink": "/docs/3.1.1/category/cqrs--mediator"
+  },
+  "next": {
+    "title": "Commands & Handlers",
+    "permalink": "/docs/3.1.1/cqrs-mediator/commands-handlers"
+  }
+}

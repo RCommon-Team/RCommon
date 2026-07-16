@@ -1,0 +1,25 @@
+{
+  "id": "api-reference/migration-guide",
+  "title": "Migration Guide",
+  "description": "Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades.",
+  "source": "@site/versioned_docs/version-3.1.1/api-reference/migration-guide.mdx",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/migration-guide",
+  "permalink": "/docs/3.1.1/api-reference/migration-guide",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/api-reference/migration-guide.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Migration Guide",
+    "sidebar_position": 3,
+    "description": "Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Changelog",
+    "permalink": "/docs/3.1.1/api-reference/changelog"
+  }
+}

@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/persistence/dapper.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/dapper",
-  "permalink": "/docs/persistence/dapper",
+  "permalink": "/docs/2.4.1/persistence/dapper",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/persistence/dapper.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Entity Framework Core",
-    "permalink": "/docs/persistence/efcore"
+    "permalink": "/docs/2.4.1/persistence/efcore"
   },
   "next": {
     "title": "Linq2Db",
-    "permalink": "/docs/persistence/linq2db"
+    "permalink": "/docs/2.4.1/persistence/linq2db"
   }
 }

@@ -22,12 +22,14 @@
 
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.ApplicationServices;
 using RCommon.ApplicationServices.Commands;
 using RCommon.ApplicationServices.Queries;
 using RCommon.Models.Commands;
 using RCommon.Models.ExecutionResults;
 using RCommon.Models.Queries;
+using RCommon.Persistence.Transactions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,6 +75,22 @@ namespace RCommon
                 () => (T)Activator.CreateInstance(typeof(T), new object[] { builder })!);
             actions(cqrsBuilder);
             return builder;
+        }
+
+        /// <summary>
+        /// Wraps every <c>ICommandBus.DispatchCommandAsync</c> call in an <see cref="IUnitOfWork"/>,
+        /// committed automatically after a successful dispatch -- the native-bus equivalent of RCommon.Mediatr's
+        /// <c>AddUnitOfWorkToRequestPipeline()</c>. Opt-in; scoped to commands only, since <see cref="IQueryBus"/>
+        /// is untouched (queries are read-only by CQRS convention).
+        /// </summary>
+        /// <param name="builder">The CQRS builder.</param>
+        public static void AddUnitOfWorkToCommandBus(this ICqrsBuilder builder)
+        {
+            builder.Services.AddTransient<CommandBus>();
+            builder.Services.Replace(ServiceDescriptor.Transient<ICommandBus>(sp =>
+                new UnitOfWorkCommandBus(
+                    sp.GetRequiredService<CommandBus>(),
+                    sp.GetRequiredService<IUnitOfWorkFactory>())));
         }
 
         /// <summary>
