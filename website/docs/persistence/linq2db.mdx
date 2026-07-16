@@ -189,6 +189,27 @@ If the entity implements `ISoftDelete`, delete operations mark `IsDeleted = true
 await _repo.DeleteAsync(product, isSoftDelete: false, cancellationToken);
 ```
 
+### Primary keys
+
+Unlike the Dapper provider (which infers a database-generated key from the "Id" naming convention), LinqToDB never guesses — an auto-increment key must be mapped explicitly, either with an attribute on the entity or with fluent mapping at startup. Without this mapping, `AddAsync` inserts the entity's key exactly as set (`0` for a new `int` key), so a second insert fails with a primary-key violation.
+
+Fluent mapping is the more convenient option for entities that derive from `BusinessEntity<TKey>`, since it doesn't require redeclaring the inherited `Id` property:
+
+```csharp
+using LinqToDB.Mapping;
+
+new FluentMappingBuilder(MappingSchema.Default)
+    .Entity<Product>().HasTableName("Products")
+    .Property(p => p.Id).IsPrimaryKey().IsIdentity()
+    .Build();
+```
+
+Register this once at startup, before the first `DataConnection` is built. A `Guid` or `string` key needs no such mapping — it is always inserted exactly as you set it.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Linq2Db/` for a complete console app exercising this end to end.
+:::
+
 ## API Summary
 
 | Type | Purpose |

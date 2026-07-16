@@ -216,16 +216,17 @@ services.AddRCommon()
         ef.AddDbContext<OrderDbContext>("OrderDb", options =>
             options.UseSqlServer(connectionString));
     })
-    .WithStateMachine<StatelessBuilder>(sm =>
-    {
-        sm.AddStatelessStateMachine();
-    });
+    .WithStatelessStateMachine();
 
 // Register your saga
 services.AddScoped<OrderFulfillmentSaga>();
 ```
 
 The `ISagaStore<,>` is automatically registered by each persistence builder — no manual registration needed.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Sagas/` for a complete console app exercising the full happy path and a compensation path, using `InMemorySagaStore` so it requires no real database.
+:::
 
 ## Saga store providers
 

@@ -10,6 +10,10 @@ This guide covers RCommon's **built-in persistence outbox** — the one you regi
 
 If you run the producer and every subscriber in a **single process**, the defaults are correct and you can skip most of this page. If events produced on one host are consumed on **another** host, read the [cross-host invariant](#the-cross-host-invariant) carefully — the default behaviour will silently fail to deliver.
 
+:::tip Runnable example
+See `Examples/EventHandling/Examples.EventHandling.Outbox/` for a complete console app exercising the single-host, default-`ImmediateDispatch` happy path end to end: committing a `UnitOfWork` persists the outbox row, dispatches it to a subscriber, and marks it processed.
+:::
+
 ## How commit dispatches events (three phases)
 
 When you commit a `UnitOfWork` that has domain events, `CommitAsync` runs three phases:

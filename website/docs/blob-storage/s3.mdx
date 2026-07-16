@@ -129,6 +129,10 @@ builder.Services.AddRCommon()
 
 Inject `IBlobStoreFactory` and resolve the store by name:
 
+:::tip Runnable example
+See `Examples/BlobStorage/Examples.BlobStorage.S3/` for a complete console app exercising upload/download/delete/presigned-URL generation against a local MinIO-style endpoint — no real AWS account required.
+:::
+
 ```csharp
 public class ReportStorageService
 {

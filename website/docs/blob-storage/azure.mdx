@@ -106,6 +106,10 @@ builder.Services.AddRCommon()
 
 Inject `IBlobStoreFactory` and resolve the store by name, or inject `IBlobStorageService` directly when only one store is registered.
 
+:::tip Runnable example
+See `Examples/BlobStorage/Examples.BlobStorage.Azure/` for a complete console app exercising upload/download/delete against the [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) emulator — no real Azure Storage account required.
+:::
+
 ```csharp
 public class FileUploadService
 {

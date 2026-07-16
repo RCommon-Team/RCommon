@@ -169,6 +169,10 @@ builder.Services.AddMultiTenant<TenantInfo>()
 
 ## Usage
 
+:::tip Runnable example
+See `Examples/MultiTenancy/Examples.MultiTenancy.Finbuckle/` for a complete console app demonstrating tenant-scoped reads/writes across two tenants and `TenantScope.Bypass()` for a cross-tenant admin view — no ASP.NET Core host or HTTP requests required; the tenant context is set directly via Finbuckle's `IMultiTenantContextSetter`.
+:::
+
 ### Defining tenant-scoped entities
 
 Implement `IMultiTenant` on entities that should be isolated per tenant:

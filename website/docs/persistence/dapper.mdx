@@ -112,6 +112,14 @@ await _repo.DeleteAsync(product, cancellationToken);
 int affected = await _repo.DeleteManyAsync(p => p.StockQuantity == 0, cancellationToken);
 ```
 
+### Primary keys
+
+`AddAsync`/`AddRangeAsync` populate an auto-increment `int`/`long` `Id` with the database-generated value after insert — inject `ISqlMapperRepository<TEntity>` (or `IWriteOnlyRepository<TEntity>`), call `AddAsync`, and the entity's `Id` is set when the call returns, the same as with the EF Core provider. A `Guid` or `string` `Id` is always inserted exactly as you set it — the Dapper provider never overwrites a non-numeric key.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Dapper/` for a complete console app exercising this end to end, including the SQLite-specific `DommelMapper.AddSqlBuilder` registration needed for identity retrieval against SQLite.
+:::
+
 ### Soft delete
 
 If the entity implements `ISoftDelete`, `DeleteAsync` and `DeleteManyAsync` will set `IsDeleted = true` and issue an UPDATE rather than a physical DELETE. To force a physical DELETE regardless of the interface:
