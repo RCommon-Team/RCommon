@@ -1868,6 +1868,10 @@ builder.Services.AddRCommon()
 
 Inject `IBlobStoreFactory` and resolve the store by name, or inject `IBlobStorageService` directly when only one store is registered.
 
+:::tip Runnable example
+See `Examples/BlobStorage/Examples.BlobStorage.Azure/` for a complete console app exercising upload/download/delete against the [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) emulator — no real Azure Storage account required.
+:::
+
 ```csharp
 public class FileUploadService
 {
@@ -2305,6 +2309,10 @@ builder.Services.AddRCommon()
 ## Usage
 
 Inject `IBlobStoreFactory` and resolve the store by name:
+
+:::tip Runnable example
+See `Examples/BlobStorage/Examples.BlobStorage.S3/` for a complete console app exercising upload/download/delete/presigned-URL generation against a local MinIO-style endpoint — no real AWS account required.
+:::
 
 ```csharp
 public class ReportStorageService
@@ -5016,6 +5024,10 @@ description: Capture who created and last modified an entity using RCommon's IAu
 
 Audit tracking records who created an entity, when it was created, who last modified it, and when. RCommon provides `IAuditedEntity` and `AuditedEntity` to standardize these fields across your domain model, making it straightforward to capture audit information in any persistence layer.
 
+:::tip Related
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) doesn't use `IAuditedEntity` (its `Team` aggregate focuses on aggregates, domain events, value objects, soft delete, and multi-tenancy instead), but combines those building blocks the same way you would layer `IAuditedEntity` onto your own aggregate.
+:::
+
 ## Installation
 
 
@@ -5274,6 +5286,10 @@ description: Raise, accumulate, and dispatch domain events in RCommon using the 
 
 Domain events represent something meaningful that happened within your domain. They are raised by aggregate roots when state changes occur, then dispatched after the unit of work commits. This keeps side effects (sending emails, updating read models, publishing to message brokers) decoupled from the core business logic.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) raises `TeamMemberAddedEvent` from `Team.AddMember` and dispatches it to a real `ISubscriber` via `UnitOfWork.CommitAsync()`, in both the common single-scope case and a cross-scope mutation case.
+:::
+
 ## Installation
 
 
@@ -5499,6 +5515,10 @@ description: Learn how RCommon's BusinessEntity and AggregateRoot base classes g
 
 In Domain-Driven Design, entities are objects with a distinct identity that persists over time. Aggregate roots are the primary entities that serve as the entry point for a cluster of related objects, enforcing consistency boundaries. RCommon provides a hierarchy of base classes that give you identity, equality, domain event tracking, and optimistic concurrency out of the box.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) builds a `Team`/`TeamMembership` aggregate combining `AggregateRoot`, domain events, a value object, `ISoftDelete`, and `IMultiTenant` in one runnable project, including why the child entity is a `BusinessEntity` rather than a `DomainEntity`.
+:::
+
 ## Installation
 
 
@@ -5705,6 +5725,10 @@ description: Mark records as deleted instead of removing them physically using R
 
 Soft delete is the practice of marking a record as deleted rather than physically removing it from the database. The record remains in the data store with `IsDeleted = true`, allowing you to audit what was deleted, restore records if needed, and avoid referential integrity problems caused by physical deletes.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) implements `ISoftDelete` on its `Team` aggregate and shows `ExistsAsync` excluding a soft-deleted row from reads.
+:::
+
 ## Installation
 
 
@@ -5887,6 +5911,10 @@ description: Model domain concepts by value rather than identity using RCommon's
 # Value Objects
 
 Value objects are a DDD building block that model concepts by their value rather than by identity. Two value objects with the same data are considered equal — there is no separate identity field. Common examples include money amounts, addresses, email addresses, date ranges, and geographic coordinates.
+
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) uses an `EmailAddress : ValueObject<string>` on `TeamMembership`, with a validating factory method and tests proving structural equality.
+:::
 
 ## Installation
 
@@ -7131,6 +7159,10 @@ This guide covers RCommon's **built-in persistence outbox** — the one you regi
 
 If you run the producer and every subscriber in a **single process**, the defaults are correct and you can skip most of this page. If events produced on one host are consumed on **another** host, read the [cross-host invariant](#the-cross-host-invariant) carefully — the default behaviour will silently fail to deliver.
 
+:::tip Runnable example
+See `Examples/EventHandling/Examples.EventHandling.Outbox/` for a complete console app exercising the single-host, default-`ImmediateDispatch` happy path end to end: committing a `UnitOfWork` persists the outbox row, dispatches it to a subscriber, and marks it processed.
+:::
+
 ## How commit dispatches events (three phases)
 
 When you commit a `UnitOfWork` that has domain events, `CommitAsync` runs three phases:
@@ -7931,6 +7963,139 @@ Console.WriteLine(customers);
 | `ICachingGraphRepository<T>` | `RCommon.Persistence` | Caching repository interface |
 | `IJsonSerializer` | `RCommon.Json` | Serialization abstraction |
 | `JsonNetBuilder` | `RCommon.Json.JsonNet` | Json.NET serializer registration |
+
+---
+
+## End-to-End DDD Recipe
+Source: https://rcommon.com/docs/examples-recipes/domain-driven-design
+A single runnable project walking through AggregateRoot, domain events, value objects, soft delete, and IMultiTenant together on one coherent Team/TeamMembership aggregate.
+
+# End-to-End DDD Recipe
+
+The five [Domain-Driven Design](../domain-driven-design/entities-aggregates.mdx) conceptual pages each introduce one building block in isolation, with its own small, disposable example. This recipe ties all of them together on a single, coherent aggregate — a `Team` that members can join — so you can see how the pieces actually compose in one running project rather than five unrelated snippets.
+
+**Source:** `Examples/DomainDrivenDesign/Examples.DomainDrivenDesign/` (project) and `Examples.DomainDrivenDesign.Tests/` (unit tests).
+
+## The aggregate
+
+`Team` is the aggregate root. It brings together every building block this recipe covers:
+
+```csharp
+public class Team : AggregateRoot, ISoftDelete, IMultiTenant
+{
+    private readonly List _memberships = new();
+
+    public Team(string name) : base(Guid.NewGuid())
+    {
+        Name = name;
+    }
+
+    public string Name { get; private set; }
+    public ICollection Memberships => _memberships;
+    public bool IsDeleted { get; set; }
+    public string? TenantId { get; set; }
+
+    public void AddMember(Guid userId, EmailAddress email, TeamRole role)
+    {
+        var membership = new TeamMembership(Id, userId, email, role);
+        _memberships.Add(membership);
+
+        AddDomainEvent(new TeamMemberAddedEvent(Id, userId, email));
+    }
+}
+```
+
+### Aggregate roots and child entities — [Entities & Aggregate Roots](../domain-driven-design/entities-aggregates.mdx)
+
+`Team` derives from `AggregateRoot`, giving it identity, domain event tracking, and optimistic concurrency. `TeamMembership`, the child inside the aggregate boundary, derives from `BusinessEntity` rather than the lighter-weight `DomainEntity` you'll see in that page's own `OrderLine` example — deliberately, because this recipe's Pattern 2 (below) persists a membership through its own repository, which requires it to be a full `IBusinessEntity`, something `DomainEntity` does not implement.
+
+### Raising and dispatching a domain event — [Domain Events](../domain-driven-design/domain-events.mdx)
+
+`AddMember` raises `TeamMemberAddedEvent` via `AddDomainEvent` — a state change and its side effect recorded together, not scattered across an application service. The event is only *dispatched* once the aggregate is persisted and a `UnitOfWork` is committed:
+
+```csharp
+var team = new Team("Platform Engineering");
+team.AddMember(userId, EmailAddress.Create("ada@example.com"), TeamRole.Lead);
+
+using var uow = unitOfWorkFactory.Create();
+await teams.AddAsync(team);
+await uow.CommitAsync(); // TeamMemberAddedEvent is dispatched here, not before
+```
+
+A subscriber (`TeamMemberAddedEventHandler : ISubscriber`) registered via `WithEventHandling` receives it — simulating a welcome-email side effect kept entirely out of `Team` itself.
+
+### A value object on the child entity — [Value Objects](../domain-driven-design/value-objects.mdx)
+
+`TeamMembership.Email` is an `EmailAddress`, a single-value wrapper value object with a validating factory and structural equality for free:
+
+```csharp
+public record EmailAddress(string Value) : ValueObject<string>(Value)
+{
+    public static EmailAddress Create(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !value.Contains('@'))
+            throw new ArgumentException($"'{value}' is not a valid email address.", nameof(value));
+
+        return new EmailAddress(value);
+    }
+}
+```
+
+Two `EmailAddress` instances with the same underlying string are equal without any `Equals`/`GetHashCode` override — `ValueObject<T>` is a `record`, so equality is structural by default.
+
+## Persisting the aggregate — [Aggregate Repository](../persistence/aggregate-repository.mdx)
+
+The recipe persists `Team` through `IAggregateRepository`, demonstrating both fully-supported add/update-child patterns from that page, not just the common case:
+
+**Pattern 1 — load, mutate, update, in one scope (recommended):**
+
+```csharp
+var team = await teams.Include(t => t.Memberships).GetByIdAsync(teamId);
+team!.AddMember(userId, EmailAddress.Create("grace@example.com"), TeamRole.Member);
+
+using var uow = unitOfWorkFactory.Create();
+await teams.UpdateAsync(team); // new membership inserted; event queued
+await uow.CommitAsync();       // event dispatched
+```
+
+**Pattern 2 — cross-scope mutation** (a background worker or message handler operating on a `Team` it didn't load in this `DbContext` scope):
+
+```csharp
+var team = await teams.GetByIdAsync(teamId);
+team!.AddMember(userId, EmailAddress.Create("alan@example.com"), TeamRole.Member);
+
+using var uow = unitOfWorkFactory.Create();
+// UpdateAsync is deliberately not called -- persist the new child through its own repository.
+await writableMemberships.AddAsync(team.Memberships.Last());
+
+// Required: nothing else registers `team` for event dispatch without UpdateAsync.
+eventTracker.AddEntity(team);
+await uow.CommitAsync();
+```
+
+## Soft delete — [Soft Delete](../domain-driven-design/soft-delete.mdx)
+
+`Team` implements `ISoftDelete`. Calling `DeleteAsync` sets `IsDeleted = true` and issues an `UPDATE` rather than physically removing the row — and `ExistsAsync` (like every other read path) filters soft-deleted rows out automatically:
+
+```csharp
+await teams.DeleteAsync(team);
+await uow.CommitAsync();
+
+team.IsDeleted;                       // true
+await teams.ExistsAsync(team.Id);     // false -- soft-deleted rows are excluded from reads
+```
+
+## Multi-tenancy, kept minimal — [Multi-Tenancy Overview](../multi-tenancy/overview.mdx)
+
+`Team` implements `IMultiTenant`, so `AddAsync` stamps `TenantId` automatically from whatever `ITenantIdAccessor` is registered. This recipe registers a trivial fixed-tenant accessor purely to show the stamping happen — it does not wire up `TenantScope.Bypass()` or Finbuckle. For the full tenant-resolution story (real request-scoped tenant resolution, bypassing tenant filtering for admin/bootstrap scenarios), see [Examples.MultiTenancy.Finbuckle](../multi-tenancy/finbuckle.mdx) instead of duplicating that wiring here.
+
+## Running it
+
+```shell
+dotnet run --project Examples/DomainDrivenDesign/Examples.DomainDrivenDesign
+```
+
+The console output walks through aggregate creation, both add/update-child patterns, soft delete, and the resulting subscriber invocation count. `Examples.DomainDrivenDesign.Tests` covers the pieces most worth unit-testing in isolation: the domain event raised on the right method call, `EmailAddress` equality and validation, and the `IsDeleted` flag's default/settable behavior.
 
 ---
 
@@ -11161,6 +11326,10 @@ builder.Services.AddMultiTenant()
 
 ## Usage
 
+:::tip Runnable example
+See `Examples/MultiTenancy/Examples.MultiTenancy.Finbuckle/` for a complete console app demonstrating tenant-scoped reads/writes across two tenants and `TenantScope.Bypass()` for a cross-tenant admin view — no ASP.NET Core host or HTTP requests required; the tenant context is set directly via Finbuckle's `IMultiTenantContextSetter`.
+:::
+
 ### Defining tenant-scoped entities
 
 Implement `IMultiTenant` on entities that should be isolated per tenant:
@@ -12026,11 +12195,12 @@ Unlike the EF Core provider, Dapper does not expose `ILinqRepository` or `IGraph
 Your connection class must derive from `RDbConnection`, which implements `IDataStore` so that the `IDataStoreFactory` can resolve it by name.
 
 ```csharp
+using Microsoft.Extensions.Options;
 using RCommon.Persistence.Sql;
 
 public class AppDbConnection : RDbConnection
 {
-    public AppDbConnection(RDbConnectionOptions options)
+    public AppDbConnection(IOptions options)
         : base(options)
     {
     }
@@ -12111,6 +12281,14 @@ await _repo.DeleteAsync(product, cancellationToken);
 // Bulk delete by expression
 int affected = await _repo.DeleteManyAsync(p => p.StockQuantity == 0, cancellationToken);
 ```
+
+### Primary keys
+
+`AddAsync`/`AddRangeAsync` populate an auto-increment `int`/`long` `Id` with the database-generated value after insert — inject `ISqlMapperRepository` (or `IWriteOnlyRepository`), call `AddAsync`, and the entity's `Id` is set when the call returns, the same as with the EF Core provider. A `Guid` or `string` `Id` is always inserted exactly as you set it — the Dapper provider never overwrites a non-numeric key.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Dapper/` for a complete console app exercising this end to end, including the SQLite-specific `DommelMapper.AddSqlBuilder` registration needed for identity retrieval against SQLite.
+:::
 
 ### Soft delete
 
@@ -12678,6 +12856,27 @@ If the entity implements `ISoftDelete`, delete operations mark `IsDeleted = true
 await _repo.DeleteAsync(product, isSoftDelete: false, cancellationToken);
 ```
 
+### Primary keys
+
+Unlike the Dapper provider (which infers a database-generated key from the "Id" naming convention), LinqToDB never guesses — an auto-increment key must be mapped explicitly, either with an attribute on the entity or with fluent mapping at startup. Without this mapping, `AddAsync` inserts the entity's key exactly as set (`0` for a new `int` key), so a second insert fails with a primary-key violation.
+
+Fluent mapping is the more convenient option for entities that derive from `BusinessEntity`, since it doesn't require redeclaring the inherited `Id` property:
+
+```csharp
+using LinqToDB.Mapping;
+
+new FluentMappingBuilder(MappingSchema.Default)
+    .Entity().HasTableName("Products")
+    .Property(p => p.Id).IsPrimaryKey().IsIdentity()
+    .Build();
+```
+
+Register this once at startup, before the first `DataConnection` is built. A `Guid` or `string` key needs no such mapping — it is always inserted exactly as you set it.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Linq2Db/` for a complete console app exercising this end to end.
+:::
+
 ## API Summary
 
 | Type | Purpose |
@@ -13132,16 +13331,17 @@ services.AddRCommon()
         ef.AddDbContext("OrderDb", options =>
             options.UseSqlServer(connectionString));
     })
-    .WithStateMachine(sm =>
-    {
-        sm.AddStatelessStateMachine();
-    });
+    .WithStatelessStateMachine();
 
 // Register your saga
 services.AddScoped();
 ```
 
 The `ISagaStore<,>` is automatically registered by each persistence builder — no manual registration needed.
+
+:::tip Runnable example
+See `Examples/Persistence/Examples.Persistence.Sagas/` for a complete console app exercising the full happy path and a compensation path, using `InMemorySagaStore` so it requires no real database.
+:::
 
 ## Saga store providers
 
@@ -14739,6 +14939,10 @@ builder.Services.AddRCommon()
 ```
 
 This registers `StatelessConfigurator` as the open-generic `IStateMachineConfigurator` implementation. Any combination of state and trigger enum types is automatically available for injection.
+
+:::tip Runnable example
+See `Examples/StateMachines/Examples.StateMachines.Stateless/` for a complete console app exercising guarded transitions, entry/exit actions, and parameterized triggers using this exact order-state-machine walkthrough.
+:::
 
 :::tip Modular composition
 `WithStatelessStateMachine()` is `TryAdd`-hardened — repeat calls from multiple modules are idempotent. The open-generic `IStateMachineConfigurator<,>` registration is added exactly once regardless of how many modules invoke this verb. Modules can opt into state-machine support independently without coordinating. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.

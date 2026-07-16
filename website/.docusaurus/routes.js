@@ -9,7 +9,7 @@ export default [
   },
   {
     path: '/docs',
-    component: ComponentCreator('/docs', 'd83'),
+    component: ComponentCreator('/docs', '5da'),
     routes: [
       {
         path: '/docs/2.4.1',
@@ -570,11 +570,11 @@ export default [
       },
       {
         path: '/docs/next',
-        component: ComponentCreator('/docs/next', 'ca4'),
+        component: ComponentCreator('/docs/next', '9e8'),
         routes: [
           {
             path: '/docs/next',
-            component: ComponentCreator('/docs/next', '055'),
+            component: ComponentCreator('/docs/next', '60d'),
             routes: [
               {
                 path: '/docs/next',
@@ -926,6 +926,12 @@ export default [
               {
                 path: '/docs/next/examples-recipes/caching',
                 component: ComponentCreator('/docs/next/examples-recipes/caching', 'a2e'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/next/examples-recipes/domain-driven-design',
+                component: ComponentCreator('/docs/next/examples-recipes/domain-driven-design', '4e0'),
                 exact: true,
                 sidebar: "docsSidebar"
               },

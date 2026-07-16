@@ -1,0 +1,132 @@
+---
+title: End-to-End DDD Recipe
+sidebar_position: 5
+description: A single runnable project walking through AggregateRoot, domain events, value objects, soft delete, and IMultiTenant together on one coherent Team/TeamMembership aggregate.
+---
+
+# End-to-End DDD Recipe
+
+The five [Domain-Driven Design](../domain-driven-design/entities-aggregates.mdx) conceptual pages each introduce one building block in isolation, with its own small, disposable example. This recipe ties all of them together on a single, coherent aggregate — a `Team` that members can join — so you can see how the pieces actually compose in one running project rather than five unrelated snippets.
+
+**Source:** `Examples/DomainDrivenDesign/Examples.DomainDrivenDesign/` (project) and `Examples.DomainDrivenDesign.Tests/` (unit tests).
+
+## The aggregate
+
+`Team` is the aggregate root. It brings together every building block this recipe covers:
+
+```csharp
+public class Team : AggregateRoot<Guid>, ISoftDelete, IMultiTenant
+{
+    private readonly List<TeamMembership> _memberships = new();
+
+    public Team(string name) : base(Guid.NewGuid())
+    {
+        Name = name;
+    }
+
+    public string Name { get; private set; }
+    public ICollection<TeamMembership> Memberships => _memberships;
+    public bool IsDeleted { get; set; }
+    public string? TenantId { get; set; }
+
+    public void AddMember(Guid userId, EmailAddress email, TeamRole role)
+    {
+        var membership = new TeamMembership(Id, userId, email, role);
+        _memberships.Add(membership);
+
+        AddDomainEvent(new TeamMemberAddedEvent(Id, userId, email));
+    }
+}
+```
+
+### Aggregate roots and child entities — [Entities & Aggregate Roots](../domain-driven-design/entities-aggregates.mdx)
+
+`Team` derives from `AggregateRoot<Guid>`, giving it identity, domain event tracking, and optimistic concurrency. `TeamMembership`, the child inside the aggregate boundary, derives from `BusinessEntity<Guid>` rather than the lighter-weight `DomainEntity<TKey>` you'll see in that page's own `OrderLine` example — deliberately, because this recipe's Pattern 2 (below) persists a membership through its own repository, which requires it to be a full `IBusinessEntity`, something `DomainEntity<TKey>` does not implement.
+
+### Raising and dispatching a domain event — [Domain Events](../domain-driven-design/domain-events.mdx)
+
+`AddMember` raises `TeamMemberAddedEvent` via `AddDomainEvent` — a state change and its side effect recorded together, not scattered across an application service. The event is only *dispatched* once the aggregate is persisted and a `UnitOfWork` is committed:
+
+```csharp
+var team = new Team("Platform Engineering");
+team.AddMember(userId, EmailAddress.Create("ada@example.com"), TeamRole.Lead);
+
+using var uow = unitOfWorkFactory.Create();
+await teams.AddAsync(team);
+await uow.CommitAsync(); // TeamMemberAddedEvent is dispatched here, not before
+```
+
+A subscriber (`TeamMemberAddedEventHandler : ISubscriber<TeamMemberAddedEvent>`) registered via `WithEventHandling<InMemoryEventBusBuilder>` receives it — simulating a welcome-email side effect kept entirely out of `Team` itself.
+
+### A value object on the child entity — [Value Objects](../domain-driven-design/value-objects.mdx)
+
+`TeamMembership.Email` is an `EmailAddress`, a single-value wrapper value object with a validating factory and structural equality for free:
+
+```csharp
+public record EmailAddress(string Value) : ValueObject<string>(Value)
+{
+    public static EmailAddress Create(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !value.Contains('@'))
+            throw new ArgumentException($"'{value}' is not a valid email address.", nameof(value));
+
+        return new EmailAddress(value);
+    }
+}
+```
+
+Two `EmailAddress` instances with the same underlying string are equal without any `Equals`/`GetHashCode` override — `ValueObject<T>` is a `record`, so equality is structural by default.
+
+## Persisting the aggregate — [Aggregate Repository](../persistence/aggregate-repository.mdx)
+
+The recipe persists `Team` through `IAggregateRepository<Team, Guid>`, demonstrating both fully-supported add/update-child patterns from that page, not just the common case:
+
+**Pattern 1 — load, mutate, update, in one scope (recommended):**
+
+```csharp
+var team = await teams.Include(t => t.Memberships).GetByIdAsync(teamId);
+team!.AddMember(userId, EmailAddress.Create("grace@example.com"), TeamRole.Member);
+
+using var uow = unitOfWorkFactory.Create();
+await teams.UpdateAsync(team); // new membership inserted; event queued
+await uow.CommitAsync();       // event dispatched
+```
+
+**Pattern 2 — cross-scope mutation** (a background worker or message handler operating on a `Team` it didn't load in this `DbContext` scope):
+
+```csharp
+var team = await teams.GetByIdAsync(teamId);
+team!.AddMember(userId, EmailAddress.Create("alan@example.com"), TeamRole.Member);
+
+using var uow = unitOfWorkFactory.Create();
+// UpdateAsync is deliberately not called -- persist the new child through its own repository.
+await writableMemberships.AddAsync(team.Memberships.Last());
+
+// Required: nothing else registers `team` for event dispatch without UpdateAsync.
+eventTracker.AddEntity(team);
+await uow.CommitAsync();
+```
+
+## Soft delete — [Soft Delete](../domain-driven-design/soft-delete.mdx)
+
+`Team` implements `ISoftDelete`. Calling `DeleteAsync` sets `IsDeleted = true` and issues an `UPDATE` rather than physically removing the row — and `ExistsAsync` (like every other read path) filters soft-deleted rows out automatically:
+
+```csharp
+await teams.DeleteAsync(team);
+await uow.CommitAsync();
+
+team.IsDeleted;                       // true
+await teams.ExistsAsync(team.Id);     // false -- soft-deleted rows are excluded from reads
+```
+
+## Multi-tenancy, kept minimal — [Multi-Tenancy Overview](../multi-tenancy/overview.mdx)
+
+`Team` implements `IMultiTenant`, so `AddAsync` stamps `TenantId` automatically from whatever `ITenantIdAccessor` is registered. This recipe registers a trivial fixed-tenant accessor purely to show the stamping happen — it does not wire up `TenantScope.Bypass()` or Finbuckle. For the full tenant-resolution story (real request-scoped tenant resolution, bypassing tenant filtering for admin/bootstrap scenarios), see [Examples.MultiTenancy.Finbuckle](../multi-tenancy/finbuckle.mdx) instead of duplicating that wiring here.
+
+## Running it
+
+```shell
+dotnet run --project Examples/DomainDrivenDesign/Examples.DomainDrivenDesign
+```
+
+The console output walks through aggregate creation, both add/update-child patterns, soft delete, and the resulting subscriber invocation count. `Examples.DomainDrivenDesign.Tests` covers the pieces most worth unit-testing in isolation: the domain event raised on the right method call, `EmailAddress` equality and validation, and the `IsDeleted` flag's default/settable behavior.

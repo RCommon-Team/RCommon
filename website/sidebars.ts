@@ -185,6 +185,7 @@ const sidebars: SidebarsConfig = {
       link: { type: 'generated-index' },
       items: [
         'examples-recipes/hr-leave-management',
+        'examples-recipes/domain-driven-design',
         'examples-recipes/event-handling',
         'examples-recipes/caching',
         'examples-recipes/messaging',

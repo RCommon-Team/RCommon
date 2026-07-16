@@ -10,6 +10,10 @@ import NuGetInstall from '@site/src/components/NuGetInstall';
 
 In Domain-Driven Design, entities are objects with a distinct identity that persists over time. Aggregate roots are the primary entities that serve as the entry point for a cluster of related objects, enforcing consistency boundaries. RCommon provides a hierarchy of base classes that give you identity, equality, domain event tracking, and optimistic concurrency out of the box.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) builds a `Team`/`TeamMembership` aggregate combining `AggregateRoot<TKey>`, domain events, a value object, `ISoftDelete`, and `IMultiTenant` in one runnable project, including why the child entity is a `BusinessEntity<TKey>` rather than a `DomainEntity<TKey>`.
+:::
+
 ## Installation
 
 <NuGetInstall packageName="RCommon.Entities" />

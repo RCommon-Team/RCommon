@@ -5,7 +5,7 @@
       "plugin": "138e0e15"
     }
   },
-  "/docs-d83": {
+  "/docs-5da": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
@@ -382,11 +382,11 @@
     "__comp": "17896441",
     "content": "98e9a02b"
   },
-  "/docs/next-ca4": {
+  "/docs/next-9e8": {
     "__comp": "a7bd4aaa",
     "__props": "bf1307fc"
   },
-  "/docs/next-055": {
+  "/docs/next-60d": {
     "__comp": "a94703ab"
   },
   "/docs/next-c40": {
@@ -624,6 +624,10 @@
   "/docs/next/examples-recipes/caching-a2e": {
     "__comp": "17896441",
     "content": "e629df9e"
+  },
+  "/docs/next/examples-recipes/domain-driven-design-4e0": {
+    "__comp": "17896441",
+    "content": "b39c2a68"
   },
   "/docs/next/examples-recipes/event-handling-aaa": {
     "__comp": "17896441",

@@ -206,6 +206,11 @@
               "sidebar": "docsSidebar"
             },
             {
+              "id": "examples-recipes/domain-driven-design",
+              "path": "/docs/next/examples-recipes/domain-driven-design",
+              "sidebar": "docsSidebar"
+            },
+            {
               "id": "examples-recipes/event-handling",
               "path": "/docs/next/examples-recipes/event-handling",
               "sidebar": "docsSidebar"

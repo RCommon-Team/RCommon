@@ -10,6 +10,10 @@ import NuGetInstall from '@site/src/components/NuGetInstall';
 
 Domain events represent something meaningful that happened within your domain. They are raised by aggregate roots when state changes occur, then dispatched after the unit of work commits. This keeps side effects (sending emails, updating read models, publishing to message brokers) decoupled from the core business logic.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) raises `TeamMemberAddedEvent` from `Team.AddMember` and dispatches it to a real `ISubscriber<TEvent>` via `UnitOfWork.CommitAsync()`, in both the common single-scope case and a cross-scope mutation case.
+:::
+
 ## Installation
 
 <NuGetInstall packageName="RCommon.Entities" />

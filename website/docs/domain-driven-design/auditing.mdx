@@ -10,6 +10,10 @@ import NuGetInstall from '@site/src/components/NuGetInstall';
 
 Audit tracking records who created an entity, when it was created, who last modified it, and when. RCommon provides `IAuditedEntity` and `AuditedEntity` to standardize these fields across your domain model, making it straightforward to capture audit information in any persistence layer.
 
+:::tip Related
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) doesn't use `IAuditedEntity` (its `Team` aggregate focuses on aggregates, domain events, value objects, soft delete, and multi-tenancy instead), but combines those building blocks the same way you would layer `IAuditedEntity` onto your own aggregate.
+:::
+
 ## Installation
 
 <NuGetInstall packageName="RCommon.Entities" />

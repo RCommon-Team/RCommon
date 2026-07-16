@@ -10,6 +10,10 @@ import NuGetInstall from '@site/src/components/NuGetInstall';
 
 Value objects are a DDD building block that model concepts by their value rather than by identity. Two value objects with the same data are considered equal — there is no separate identity field. Common examples include money amounts, addresses, email addresses, date ranges, and geographic coordinates.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) uses an `EmailAddress : ValueObject<string>` on `TeamMembership`, with a validating factory method and tests proving structural equality.
+:::
+
 ## Installation
 
 <NuGetInstall packageName="RCommon.Entities" />

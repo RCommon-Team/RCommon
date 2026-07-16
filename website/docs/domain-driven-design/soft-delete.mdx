@@ -10,6 +10,10 @@ import NuGetInstall from '@site/src/components/NuGetInstall';
 
 Soft delete is the practice of marking a record as deleted rather than physically removing it from the database. The record remains in the data store with `IsDeleted = true`, allowing you to audit what was deleted, restore records if needed, and avoid referential integrity problems caused by physical deletes.
 
+:::tip See it in a full example
+The [End-to-End DDD Recipe](../examples-recipes/domain-driven-design.mdx) implements `ISoftDelete` on its `Team` aggregate and shows `ExistsAsync` excluding a soft-deleted row from reads.
+:::
+
 ## Installation
 
 <NuGetInstall packageName="RCommon.Entities" />

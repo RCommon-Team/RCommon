@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+    <!-- InMemory rather than SQLite: RCommon.Persistence's UnitOfWork (required to dispatch domain
+         events raised via AddDomainEvent) wraps a System.Transactions TransactionScope, and
+         Microsoft.Data.Sqlite's ADO provider does not support ambient transaction enlistment at all;
+         see Examples.EventHandling.Outbox for the same limitation and full explanation. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Src\RCommon.EfCore\RCommon.EFCore.csproj" />
+  </ItemGroup>
+
+</Project>
