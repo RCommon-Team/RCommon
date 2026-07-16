@@ -627,6 +627,10 @@ RCommon.Security
        └─ RCommon.Finbuckle
 ```
 
+## Machine-Readable API Reference
+
+For the complete public API surface of every RCommon package (every public type and member, with signatures and XML doc-comment summaries), see [`/api-reference-full.txt`](pathname:///api-reference-full.txt). It's generated directly from the built assemblies and their XML doc-comment sidecars, so it never goes stale relative to the code. For prose documentation aimed at LLMs, see [`/llms-full.txt`](pathname:///llms-full.txt).
+
 ---
 
 ## clean-architecture
