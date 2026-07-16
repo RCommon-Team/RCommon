@@ -25,11 +25,12 @@ Unlike the EF Core provider, Dapper does not expose `ILinqRepository<TEntity>` o
 Your connection class must derive from `RDbConnection`, which implements `IDataStore` so that the `IDataStoreFactory` can resolve it by name.
 
 ```csharp
+using Microsoft.Extensions.Options;
 using RCommon.Persistence.Sql;
 
 public class AppDbConnection : RDbConnection
 {
-    public AppDbConnection(RDbConnectionOptions options)
+    public AppDbConnection(IOptions<RDbConnectionOptions> options)
         : base(options)
     {
     }

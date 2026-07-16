@@ -67,7 +67,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     }
                     EventTracker.AddEntity(entity);
                     MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-                    await db.InsertAsync(entity, cancellationToken: token).ConfigureAwait(false);
+                    await DommelGeneratedKeyHelper.InsertAndAssignGeneratedKeyAsync(db, entity, token).ConfigureAwait(false);
 
                 }
                 catch (ApplicationException exception)
@@ -588,7 +588,7 @@ namespace RCommon.Persistence.Dapper.Crud
                     {
                         EventTracker.AddEntity(entity);
                         MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-                        await db.InsertAsync(entity, cancellationToken: token).ConfigureAwait(false);
+                        await DommelGeneratedKeyHelper.InsertAndAssignGeneratedKeyAsync(db, entity, token).ConfigureAwait(false);
                     }
                 }
                 catch (ApplicationException exception)

@@ -169,7 +169,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
         {
             EventTracker.AddEntity(entity);
             MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-            await DataConnection.InsertAsync(entity, token: token).ConfigureAwait(false);
+            await Linq2DbGeneratedKeyHelper.InsertAndAssignGeneratedKeyAsync(DataConnection, entity, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -449,7 +449,7 @@ namespace RCommon.Persistence.Linq2Db.Crud
             {
                 EventTracker.AddEntity(entity);
                 MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
-                await DataConnection.InsertAsync(entity, token: token).ConfigureAwait(false);
+                await Linq2DbGeneratedKeyHelper.InsertAndAssignGeneratedKeyAsync(DataConnection, entity, token).ConfigureAwait(false);
             }
         }
 
