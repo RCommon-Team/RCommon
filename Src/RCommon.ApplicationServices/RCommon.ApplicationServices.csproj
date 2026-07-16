@@ -21,6 +21,7 @@
     <ProjectReference Include="..\RCommon.Caching\RCommon.Caching.csproj" />
     <ProjectReference Include="..\RCommon.Core\RCommon.Core.csproj" />
     <ProjectReference Include="..\RCommon.Models\RCommon.Models.csproj" />
+    <ProjectReference Include="..\RCommon.Persistence\RCommon.Persistence.csproj" />
   </ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Caching\" />

@@ -91,6 +91,10 @@ builder.Services.AddRCommon()
     });
 ```
 
+:::tip Native ICommandBus has its own, separate opt-in
+`AddUnitOfWorkToRequestPipeline()` only wraps MediatR requests dispatched through `IMediator`. It has no effect on RCommon's native, non-MediatR `ICommandBus` — that dispatcher has its own opt-in, `AddUnitOfWorkToCommandBus()`, described in [Command & Query Bus](./command-query-bus#enabling-transactional-command-dispatch). If your application uses both dispatchers, enable each one independently; neither implies the other.
+:::
+
 ## Usage
 
 ### Defining requests

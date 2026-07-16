@@ -90,6 +90,26 @@ builder.Services.AddRCommon()
     });
 ```
 
+### Enabling transactional command dispatch
+
+By default, `ICommandBus.DispatchCommandAsync` does not open a transaction — a multi-step command handler (e.g., create an order and reserve inventory) must manage its own `IUnitOfWork` explicitly. Call `AddUnitOfWorkToCommandBus()` to wrap every command dispatch in an `IUnitOfWork`, committed automatically after a successful dispatch:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithCQRS<CqrsBuilder>(cqrs =>
+    {
+        cqrs.AddCommandHandlers(typeof(Program).Assembly);
+        cqrs.AddUnitOfWorkToCommandBus();
+    })
+    .WithUnitOfWork<UnitOfWorkBuilder>(uow => { /* ... */ });
+```
+
+This is opt-in and scoped to commands only — `IQueryBus` is never wrapped, since queries are read-only by CQRS convention. If the handler throws, the unit of work is disposed without committing, so the transaction rolls back.
+
+:::tip RCommon.Mediatr has its own, separate opt-in
+If you use MediatR instead of (or alongside) the native `ICommandBus`, the equivalent feature is `AddUnitOfWorkToRequestPipeline()` on `IMediatRBuilder` — see [MediatR](./mediatr#adding-pipeline-behaviors). The two are independent: enabling one does not enable the other, and each dispatcher gets the idiom that fits its shape (a bus-level decorator here; an `IPipelineBehavior<,>` there).
+:::
+
 ## Usage
 
 Inject `ICommandBus` or `IQueryBus` into any service and call the dispatch methods:
@@ -148,6 +168,7 @@ public class OrderApplicationService
 | `AddQuery<TQuery, THandler, TResult>()` | Alias for `AddQueryHandler` with query-first type parameter order. |
 | `AddQueryHandlers(Assembly, Predicate<Type>?)` | Scans an assembly and registers all `IQueryHandler<TQuery, TResult>` implementations. Excludes decorator types. |
 | `AddQueryHandlers(IEnumerable<Type>)` | Registers the provided query handler types explicitly. |
+| `AddUnitOfWorkToCommandBus()` | Opt-in. Wraps `ICommandBus.DispatchCommandAsync` in an `IUnitOfWork`, committed after a successful dispatch. Commands only; `IQueryBus` is untouched. |
 
 ### `CqrsValidationOptions`
 
