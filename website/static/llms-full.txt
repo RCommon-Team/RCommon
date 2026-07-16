@@ -7988,9 +7988,13 @@ Console.WriteLine(customers);
 
 ---
 
-## End-to-End DDD Recipe
+## domain-driven-design
 Source: https://rcommon.com/docs/examples-recipes/domain-driven-design
-A single runnable project walking through AggregateRoot, domain events, value objects, soft delete, and IMultiTenant together on one coherent Team/TeamMembership aggregate.
+---
+title: End-to-End DDD Recipe
+sidebar_position: 5
+description: A single runnable project walking through AggregateRoot, domain events, value objects, soft delete, and IMultiTenant together on one coherent Team/TeamMembership aggregate.
+---
 
 # End-to-End DDD Recipe
 
@@ -11684,9 +11688,16 @@ services.AddTransient(sp =>
 
 ---
 
-## Aggregate Repository
+## aggregate-repository
 Source: https://rcommon.com/docs/persistence/aggregate-repository
-Use IAggregateRepository for DDD-constrained aggregate root persistence across EF Core, Dapper, and Linq2Db, with provider-specific capability differences documented explicitly.
+---
+title: Aggregate Repository
+sidebar_position: 2
+description: Use IAggregateRepository for DDD-constrained aggregate root persistence across EF Core, Dapper, and Linq2Db, with provider-specific capability differences documented explicitly.
+---
+
+
+
 
 # Aggregate Repository
 
@@ -11714,11 +11725,15 @@ public interface IAggregateRepository : INamedDataSource
 
 ## Installation
 
+
+
 You will also need at least one provider package (see [EF Core](./efcore), [Dapper](./dapper), or [Linq2Db](./linq2db)) -- `IAggregateRepository<,>` is registered automatically alongside the other repository interfaces when you configure a provider.
 
 ## The persistence contract: root-row-only, on every provider
 
 **`AddAsync` and `UpdateAsync` guarantee persistence of the aggregate root's own row.** Whether a call also persists children reachable through a collection navigation depends on the provider and the operation:
+
+
 
 A few things follow directly from this table:
 
