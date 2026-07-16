@@ -22,6 +22,50 @@ The authoritative release history for all RCommon packages is maintained on GitH
 
 ## Recent Changes
 
+### 3.1.2
+
+Modular composition, bootstrapping ergonomics, opt-in CQRS transactions, and a docs consolidation pass covering navigation, eight new runnable examples, an end-to-end DDD recipe, and a machine-readable full API reference. All changes in this release are backward-compatible.
+
+**Added**
+
+- **Modular composition support** — `services.AddRCommon()` can now be called from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement. See [Modular Composition](../core-concepts/modular-composition.mdx).
+- New public API: `IRCommonBuilder.GetOrAddBuilder(Func)` — third-party `WithX<T>` extensions opt into sub-builder caching.
+- New public API: `IRCommonBuilder.GetBootstrapDiagnostics()` — retrieve the soft-duplicate report stashed at host startup.
+- New public API: `IServiceCollection.IsRCommonInitialized()` — true iff `AddRCommon()` has been called.
+- New internal `IHostedService` runs the duplicate-descriptor scanner at host startup and emits a single warning on soft duplicates.
+- **`ICqrsBuilder.AddUnitOfWorkToCommandBus()`** — opt-in unit-of-work wrapping for the native `ICommandBus`, via a new `UnitOfWorkCommandBus` decorator. Commands only, not queries; gives the native command bus parity with MediatR's `AddUnitOfWorkToRequestPipeline()`.
+- **`TenantScope.Bypass()`** (`RCommon.Security.Claims`) — an ambient, `AsyncLocal`-based, nestable scope that suspends tenant-based repository filtering and stamping for its lifetime. A new `TenantScopeAwareTenantIdAccessor` decorator wraps `ClaimsTenantIdAccessor` and Finbuckle's tenant accessor automatically.
+- When exactly one data store is registered and `SetDefaultDataStore` was never called, it is now auto-inferred (logged at `Information`); registering 2+ stores with no default now also logs informationally instead of only surfacing at first use.
+- Cross-builder startup diagnostics: a warning is logged when an in-memory event bus builder has subscriptions but no registered producer, and when the event router has events to dispatch but no producers are registered for them (both were previously silent).
+- 8 new runnable `Examples/` projects: Dapper, Linq2Db, Sagas, Blob Storage (Azure/S3), State Machines (Stateless), Multi-Tenancy (Finbuckle), and Event Handling (Outbox) — plus an end-to-end [Domain-Driven Design recipe](../examples-recipes/domain-driven-design.mdx) (`Team`/`TeamMembership` aggregate).
+- A machine-readable [full API reference](pathname:///api-reference-full.txt), generated directly from built assemblies and their XML doc-comment sidecars.
+
+**Fixed**
+
+- `EFCoreAggregateRepository`/`EFCoreRepository.UpdateAsync` misclassified newly-added child entities with non-default keys (e.g. sequential GUIDs) as `Modified` instead of `Added`, silently dropping the insert. Fixed with explicit reference-based change tracking.
+- `Include`/`ThenInclude` threw for collection navigations ("invalid inside an Include operation"); switched to EF Core's string-path `Include()` overload.
+- `AddSubscriber()` on `IInMemoryEventBusBuilder` silently did nothing (the handler was never invoked) unless a separate, undocumented producer registration call was also made. The required producer is now auto-registered.
+- The zero-argument `RCommon.FluentValidation.ValidationBuilderExtensions.WithValidation<T>()` overload — a byte-for-byte duplicate of the `ApplicationServices` overload — was deleted, resolving an unconditional `CS0121` ambiguity error when both packages were referenced together.
+- **Dapper (`RCommon.Dapper`):** `AddAsync`/`AddRangeAsync` discarded database-generated keys instead of writing them back to the entity after insert. Separately, Dommel's default key resolver treated any `Guid`/`string`-typed `Id` property as database-generated, silently writing `NULL`/default into the primary key column. A new `RCommonKeyPropertyResolver` restricts auto-generation guessing to numeric key types.
+- **Linq2Db (`RCommon.Linq2Db`):** entities deriving from `BusinessEntity`/`AggregateRoot` failed every insert and query ("no such column") because Linq2Db does not honor `[NotMapped]`. A new `IMetadataReader` implementation excludes the framework-owned event-tracking properties from the entity's column mapping.
+- **`RCommon.Finbuckle`:** an unused `new()` generic constraint on `FinbuckleMultiTenantBuilder`/`FinbuckleTenantIdAccessor` broke compilation against Finbuckle's built-in `TenantInfo` type (which has `required` members) on net10.0. The constraint is now conditional per target framework, since net8.0/net9.0 reference an older Finbuckle version whose own interfaces still require it.
+
+**Changed**
+
+- `AddRCommon()` is now idempotent: subsequent calls return the cached `IRCommonBuilder`.
+- Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) are now idempotent on same-type re-registration. Different-type conflicts throw `RCommonBuilderException` with diagnostic messages.
+- `DataStoreFactoryOptions.Register<,>` is now idempotent for identical `(name, base, concrete)` triples. Conflicts (same `(name, base)` with different concrete) throw `UnsupportedDataStoreException` (exception type preserved).
+- `AddProducer<T>` now deduplicates by concrete producer type via descriptor scan — distinct producer types still coexist.
+- All sub-builder `WithX<T>` extensions route through `GetOrAddBuilder<T>`; generic constraints tightened to `where T : class, ...`.
+- `DataStoreNotFoundException`'s message now lists registered stores and remediation steps (message text only; exception type unchanged).
+- `EFCorePerisistenceBuilder` (typo) renamed to `EFCorePersistenceBuilder`; the old name remains as an `[Obsolete]` forwarding subclass.
+- The `WithValidation<T>(Action)` overload is marked `[Obsolete]` in favor of calling `UseWithCqrs(...)` inside `WithValidation<T>(Action<T>)`.
+
+**Notes**
+
+- Strictly additive public API surface across this release. No method or interface signature removals, and no exception types changed on existing APIs.
+- See `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable demonstration of modular composition.
+
 ### 3.1.1
 
 Bug-fix and security patch release.
@@ -41,32 +85,6 @@ Bug-fix and security patch release.
 
 - Strictly additive public API surface (`OutboxOptions.ImmediateDispatch`); no signature removals, and no behavioural change at the default.
 - Website (Docusaurus) build-tooling npm advisories are tracked as a separate follow-up (Docusaurus 3.10 upgrade + theme swizzle migration).
-
-### Modular Composition (Unreleased)
-
-Added support for calling `services.AddRCommon()` from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement.
-
-**Added**
-
-- **Modular composition support** — `services.AddRCommon()` can now be called from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement. See [Modular Composition](../core-concepts/modular-composition.mdx).
-- New public API: `IRCommonBuilder.GetOrAddBuilder(Func)` — third-party `WithX<T>` extensions opt into sub-builder caching.
-- New public API: `IRCommonBuilder.GetBootstrapDiagnostics()` — retrieve the soft-duplicate report stashed at host startup.
-- New public API: `IServiceCollection.IsRCommonInitialized()` — true iff `AddRCommon()` has been called.
-- New internal `IHostedService` runs the duplicate-descriptor scanner at host startup and emits a single warning on soft duplicates.
-
-**Changed**
-
-- `AddRCommon()` is now idempotent: subsequent calls return the cached `IRCommonBuilder`.
-- Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) are now idempotent on same-type re-registration. Different-type conflicts throw `RCommonBuilderException` with diagnostic messages.
-- `DataStoreFactoryOptions.Register<,>` is now idempotent for identical `(name, base, concrete)` triples. Conflicts (same `(name, base)` with different concrete) throw `UnsupportedDataStoreException` (exception type preserved).
-- `AddProducer<T>` now deduplicates by concrete producer type via descriptor scan — distinct producer types still coexist.
-- All sub-builder `WithX<T>` extensions route through `GetOrAddBuilder<T>`; generic constraints tightened to `where T : class, ...`.
-
-**Notes**
-
-- Strictly additive public API surface. No method or interface signature removals.
-- No exception types changed on existing APIs.
-- See `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable demonstration.
 
 ### Blob Storage Abstractions
 

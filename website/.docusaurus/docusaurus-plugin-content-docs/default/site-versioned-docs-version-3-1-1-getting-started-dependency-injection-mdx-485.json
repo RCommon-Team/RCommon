@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/getting-started/dependency-injection.mdx",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/dependency-injection",
-  "permalink": "/docs/getting-started/dependency-injection",
+  "permalink": "/docs/3.1.1/getting-started/dependency-injection",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/getting-started/dependency-injection.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Configuration & Bootstrapping",
-    "permalink": "/docs/getting-started/configuration"
+    "permalink": "/docs/3.1.1/getting-started/configuration"
   },
   "next": {
     "title": "Core Concepts",
-    "permalink": "/docs/category/core-concepts"
+    "permalink": "/docs/3.1.1/category/core-concepts"
   }
 }

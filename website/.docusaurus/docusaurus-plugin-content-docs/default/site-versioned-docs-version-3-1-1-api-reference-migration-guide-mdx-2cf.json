@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/api-reference/migration-guide.mdx",
   "sourceDirName": "api-reference",
   "slug": "/api-reference/migration-guide",
-  "permalink": "/docs/api-reference/migration-guide",
+  "permalink": "/docs/3.1.1/api-reference/migration-guide",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/api-reference/migration-guide.mdx",
@@ -20,6 +20,6 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Changelog",
-    "permalink": "/docs/api-reference/changelog"
+    "permalink": "/docs/3.1.1/api-reference/changelog"
   }
 }

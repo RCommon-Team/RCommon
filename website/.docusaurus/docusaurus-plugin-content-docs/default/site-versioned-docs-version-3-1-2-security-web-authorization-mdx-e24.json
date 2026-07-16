@@ -1,0 +1,29 @@
+{
+  "id": "security-web/authorization",
+  "title": "Authorization",
+  "description": "RCommon.Security provides ICurrentUser and ICurrentPrincipalAccessor for claims-based identity resolution, plus Swashbuckle filters for OpenAPI authorization docs.",
+  "source": "@site/versioned_docs/version-3.1.2/security-web/authorization.mdx",
+  "sourceDirName": "security-web",
+  "slug": "/security-web/authorization",
+  "permalink": "/docs/security-web/authorization",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/security-web/authorization.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Authorization",
+    "sidebar_position": 1,
+    "description": "RCommon.Security provides ICurrentUser and ICurrentPrincipalAccessor for claims-based identity resolution, plus Swashbuckle filters for OpenAPI authorization docs."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Security & Web",
+    "permalink": "/docs/category/security--web"
+  },
+  "next": {
+    "title": "Web Utilities",
+    "permalink": "/docs/security-web/web-utilities"
+  }
+}

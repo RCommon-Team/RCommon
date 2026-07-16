@@ -1,0 +1,29 @@
+{
+  "id": "getting-started/installation",
+  "title": "Installation",
+  "description": "Install RCommon NuGet packages for .NET 8, 9, or 10. Pick only what you need — persistence, CQRS, messaging, caching, validation, blob storage, and more.",
+  "source": "@site/versioned_docs/version-3.1.2/getting-started/installation.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/installation",
+  "permalink": "/docs/getting-started/installation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/getting-started/installation.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Installation",
+    "sidebar_position": 2,
+    "description": "Install RCommon NuGet packages for .NET 8, 9, or 10. Pick only what you need — persistence, CQRS, messaging, caching, validation, blob storage, and more."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview & Philosophy",
+    "permalink": "/docs/getting-started/overview"
+  },
+  "next": {
+    "title": "Quick Start Guide",
+    "permalink": "/docs/getting-started/quick-start"
+  }
+}

@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/blob-storage/azure.mdx",
   "sourceDirName": "blob-storage",
   "slug": "/blob-storage/azure",
-  "permalink": "/docs/blob-storage/azure",
+  "permalink": "/docs/3.1.1/blob-storage/azure",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/blob-storage/azure.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Overview",
-    "permalink": "/docs/blob-storage/overview"
+    "permalink": "/docs/3.1.1/blob-storage/overview"
   },
   "next": {
     "title": "Amazon S3",
-    "permalink": "/docs/blob-storage/s3"
+    "permalink": "/docs/3.1.1/blob-storage/s3"
   }
 }

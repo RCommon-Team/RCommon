@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/persistence/efcore.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/efcore",
-  "permalink": "/docs/persistence/efcore",
+  "permalink": "/docs/3.1.1/persistence/efcore",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/persistence/efcore.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Unit of Work",
-    "permalink": "/docs/persistence/unit-of-work"
+    "permalink": "/docs/3.1.1/persistence/unit-of-work"
   },
   "next": {
     "title": "Dapper",
-    "permalink": "/docs/persistence/dapper"
+    "permalink": "/docs/3.1.1/persistence/dapper"
   }
 }

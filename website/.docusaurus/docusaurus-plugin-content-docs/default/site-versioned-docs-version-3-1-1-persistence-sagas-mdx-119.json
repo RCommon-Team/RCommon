@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/persistence/sagas.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/sagas",
-  "permalink": "/docs/persistence/sagas",
+  "permalink": "/docs/3.1.1/persistence/sagas",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/persistence/sagas.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Linq2Db",
-    "permalink": "/docs/persistence/linq2db"
+    "permalink": "/docs/3.1.1/persistence/linq2db"
   },
   "next": {
     "title": "Caching with Memory",
-    "permalink": "/docs/persistence/caching-memory"
+    "permalink": "/docs/3.1.1/persistence/caching-memory"
   }
 }

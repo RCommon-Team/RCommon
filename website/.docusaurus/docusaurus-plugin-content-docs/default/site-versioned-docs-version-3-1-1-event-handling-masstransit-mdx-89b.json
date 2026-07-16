@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/event-handling/masstransit.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/masstransit",
-  "permalink": "/docs/event-handling/masstransit",
+  "permalink": "/docs/3.1.1/event-handling/masstransit",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/event-handling/masstransit.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "MediatR",
-    "permalink": "/docs/event-handling/mediatr"
+    "permalink": "/docs/3.1.1/event-handling/mediatr"
   },
   "next": {
     "title": "Wolverine",
-    "permalink": "/docs/event-handling/wolverine"
+    "permalink": "/docs/3.1.1/event-handling/wolverine"
   }
 }

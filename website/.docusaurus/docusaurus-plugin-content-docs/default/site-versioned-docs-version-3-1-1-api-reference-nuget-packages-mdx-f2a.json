@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/api-reference/nuget-packages.mdx",
   "sourceDirName": "api-reference",
   "slug": "/api-reference/nuget-packages",
-  "permalink": "/docs/api-reference/nuget-packages",
+  "permalink": "/docs/3.1.1/api-reference/nuget-packages",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/api-reference/nuget-packages.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "API Reference",
-    "permalink": "/docs/category/api-reference"
+    "permalink": "/docs/3.1.1/category/api-reference"
   },
   "next": {
     "title": "Changelog",
-    "permalink": "/docs/api-reference/changelog"
+    "permalink": "/docs/3.1.1/api-reference/changelog"
   }
 }

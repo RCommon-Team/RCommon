@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/persistence/specifications.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/specifications",
-  "permalink": "/docs/persistence/specifications",
+  "permalink": "/docs/3.1.1/persistence/specifications",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/persistence/specifications.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Repository Pattern",
-    "permalink": "/docs/persistence/repository-pattern"
+    "permalink": "/docs/3.1.1/persistence/repository-pattern"
   },
   "next": {
     "title": "Unit of Work",
-    "permalink": "/docs/persistence/unit-of-work"
+    "permalink": "/docs/3.1.1/persistence/unit-of-work"
   }
 }

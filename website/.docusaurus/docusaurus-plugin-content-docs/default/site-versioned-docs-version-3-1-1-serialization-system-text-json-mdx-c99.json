@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/serialization/system-text-json.mdx",
   "sourceDirName": "serialization",
   "slug": "/serialization/system-text-json",
-  "permalink": "/docs/serialization/system-text-json",
+  "permalink": "/docs/3.1.1/serialization/system-text-json",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/serialization/system-text-json.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Newtonsoft.Json",
-    "permalink": "/docs/serialization/newtonsoft"
+    "permalink": "/docs/3.1.1/serialization/newtonsoft"
   },
   "next": {
     "title": "Validation",
-    "permalink": "/docs/category/validation"
+    "permalink": "/docs/3.1.1/category/validation"
   }
 }

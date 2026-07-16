@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/core-concepts/modular-composition.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/modular-composition",
-  "permalink": "/docs/core-concepts/modular-composition",
+  "permalink": "/docs/3.1.1/core-concepts/modular-composition",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/core-concepts/modular-composition.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Fluent Configuration",
-    "permalink": "/docs/core-concepts/fluent-configuration"
+    "permalink": "/docs/3.1.1/core-concepts/fluent-configuration"
   },
   "next": {
     "title": "Guards & Validation",
-    "permalink": "/docs/core-concepts/guards"
+    "permalink": "/docs/3.1.1/core-concepts/guards"
   }
 }

@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/event-handling/mediatr.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/mediatr",
-  "permalink": "/docs/event-handling/mediatr",
+  "permalink": "/docs/3.1.1/event-handling/mediatr",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/event-handling/mediatr.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Transactional Outbox",
-    "permalink": "/docs/event-handling/transactional-outbox"
+    "permalink": "/docs/3.1.1/event-handling/transactional-outbox"
   },
   "next": {
     "title": "MassTransit",
-    "permalink": "/docs/event-handling/masstransit"
+    "permalink": "/docs/3.1.1/event-handling/masstransit"
   }
 }

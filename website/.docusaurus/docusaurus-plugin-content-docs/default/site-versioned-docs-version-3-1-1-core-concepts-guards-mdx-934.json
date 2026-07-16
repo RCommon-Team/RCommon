@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/core-concepts/guards.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/guards",
-  "permalink": "/docs/core-concepts/guards",
+  "permalink": "/docs/3.1.1/core-concepts/guards",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/core-concepts/guards.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Modular Composition",
-    "permalink": "/docs/core-concepts/modular-composition"
+    "permalink": "/docs/3.1.1/core-concepts/modular-composition"
   },
   "next": {
     "title": "GUID Generation",
-    "permalink": "/docs/core-concepts/guid-generation"
+    "permalink": "/docs/3.1.1/core-concepts/guid-generation"
   }
 }

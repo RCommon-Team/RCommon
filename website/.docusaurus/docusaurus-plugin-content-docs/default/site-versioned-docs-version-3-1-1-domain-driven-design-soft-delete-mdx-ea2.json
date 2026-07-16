@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/domain-driven-design/soft-delete.mdx",
   "sourceDirName": "domain-driven-design",
   "slug": "/domain-driven-design/soft-delete",
-  "permalink": "/docs/domain-driven-design/soft-delete",
+  "permalink": "/docs/3.1.1/domain-driven-design/soft-delete",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/domain-driven-design/soft-delete.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Auditing",
-    "permalink": "/docs/domain-driven-design/auditing"
+    "permalink": "/docs/3.1.1/domain-driven-design/auditing"
   },
   "next": {
     "title": "Persistence",
-    "permalink": "/docs/category/persistence"
+    "permalink": "/docs/3.1.1/category/persistence"
   }
 }

@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/architecture-guides/clean-architecture.mdx",
   "sourceDirName": "architecture-guides",
   "slug": "/architecture-guides/clean-architecture",
-  "permalink": "/docs/architecture-guides/clean-architecture",
+  "permalink": "/docs/3.1.1/architecture-guides/clean-architecture",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/architecture-guides/clean-architecture.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Architecture Guides",
-    "permalink": "/docs/category/architecture-guides"
+    "permalink": "/docs/3.1.1/category/architecture-guides"
   },
   "next": {
     "title": "Microservices",
-    "permalink": "/docs/architecture-guides/microservices"
+    "permalink": "/docs/3.1.1/architecture-guides/microservices"
   }
 }

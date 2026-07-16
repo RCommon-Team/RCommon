@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/event-handling/in-memory.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/in-memory",
-  "permalink": "/docs/event-handling/in-memory",
+  "permalink": "/docs/3.1.1/event-handling/in-memory",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/event-handling/in-memory.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Overview",
-    "permalink": "/docs/event-handling/overview"
+    "permalink": "/docs/3.1.1/event-handling/overview"
   },
   "next": {
     "title": "Distributed Events",
-    "permalink": "/docs/event-handling/distributed"
+    "permalink": "/docs/3.1.1/event-handling/distributed"
   }
 }

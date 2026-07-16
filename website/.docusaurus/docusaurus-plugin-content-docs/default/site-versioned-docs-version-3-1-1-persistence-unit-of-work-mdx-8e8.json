@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/persistence/unit-of-work.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/unit-of-work",
-  "permalink": "/docs/persistence/unit-of-work",
+  "permalink": "/docs/3.1.1/persistence/unit-of-work",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/persistence/unit-of-work.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Specifications",
-    "permalink": "/docs/persistence/specifications"
+    "permalink": "/docs/3.1.1/persistence/specifications"
   },
   "next": {
     "title": "Entity Framework Core",
-    "permalink": "/docs/persistence/efcore"
+    "permalink": "/docs/3.1.1/persistence/efcore"
   }
 }

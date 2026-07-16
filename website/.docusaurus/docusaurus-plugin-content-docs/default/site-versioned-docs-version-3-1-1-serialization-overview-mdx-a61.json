@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/serialization/overview.mdx",
   "sourceDirName": "serialization",
   "slug": "/serialization/overview",
-  "permalink": "/docs/serialization/overview",
+  "permalink": "/docs/3.1.1/serialization/overview",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/serialization/overview.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Serialization",
-    "permalink": "/docs/category/serialization"
+    "permalink": "/docs/3.1.1/category/serialization"
   },
   "next": {
     "title": "Newtonsoft.Json",
-    "permalink": "/docs/serialization/newtonsoft"
+    "permalink": "/docs/3.1.1/serialization/newtonsoft"
   }
 }

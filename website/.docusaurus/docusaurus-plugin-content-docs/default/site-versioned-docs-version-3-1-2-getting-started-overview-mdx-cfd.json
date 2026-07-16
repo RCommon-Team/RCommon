@@ -1,0 +1,29 @@
+{
+  "id": "getting-started/overview",
+  "title": "Overview & Philosophy",
+  "description": "Learn what RCommon provides — pluggable .NET abstractions for persistence, CQRS, domain events, messaging, and caching with a fluent DI-first configuration API.",
+  "source": "@site/versioned_docs/version-3.1.2/getting-started/overview.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/overview",
+  "permalink": "/docs/getting-started/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/getting-started/overview.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview & Philosophy",
+    "sidebar_position": 1,
+    "description": "Learn what RCommon provides — pluggable .NET abstractions for persistence, CQRS, domain events, messaging, and caching with a fluent DI-first configuration API."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Getting Started",
+    "permalink": "/docs/category/getting-started"
+  },
+  "next": {
+    "title": "Installation",
+    "permalink": "/docs/getting-started/installation"
+  }
+}

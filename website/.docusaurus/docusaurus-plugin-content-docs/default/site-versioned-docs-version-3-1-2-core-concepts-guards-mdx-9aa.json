@@ -1,0 +1,29 @@
+{
+  "id": "core-concepts/guards",
+  "title": "Guards & Validation",
+  "description": "Use RCommon Guard clauses for defensive programming — null checks, string, GUID, numeric, date, collection, type, and custom condition validation in .NET.",
+  "source": "@site/versioned_docs/version-3.1.2/core-concepts/guards.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/guards",
+  "permalink": "/docs/core-concepts/guards",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/core-concepts/guards.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Guards & Validation",
+    "sidebar_position": 2,
+    "description": "Use RCommon Guard clauses for defensive programming — null checks, string, GUID, numeric, date, collection, type, and custom condition validation in .NET."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Modular Composition",
+    "permalink": "/docs/core-concepts/modular-composition"
+  },
+  "next": {
+    "title": "GUID Generation",
+    "permalink": "/docs/core-concepts/guid-generation"
+  }
+}

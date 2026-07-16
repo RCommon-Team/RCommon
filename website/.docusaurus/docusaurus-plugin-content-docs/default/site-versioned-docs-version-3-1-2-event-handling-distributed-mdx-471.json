@@ -1,0 +1,29 @@
+{
+  "id": "event-handling/distributed",
+  "title": "Distributed Events",
+  "description": "Extend RCommon event handling to message brokers with MassTransit or Wolverine, mixing transports in one app while keeping ISubscriber handler code broker-agnostic.",
+  "source": "@site/versioned_docs/version-3.1.2/event-handling/distributed.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/distributed",
+  "permalink": "/docs/event-handling/distributed",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/event-handling/distributed.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Distributed Events",
+    "sidebar_position": 3,
+    "description": "Extend RCommon event handling to message brokers with MassTransit or Wolverine, mixing transports in one app while keeping ISubscriber handler code broker-agnostic."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "In-Memory Events",
+    "permalink": "/docs/event-handling/in-memory"
+  },
+  "next": {
+    "title": "Transactional Outbox",
+    "permalink": "/docs/event-handling/transactional-outbox"
+  }
+}

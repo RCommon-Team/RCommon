@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/core-concepts/execution-results.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/execution-results",
-  "permalink": "/docs/core-concepts/execution-results",
+  "permalink": "/docs/3.1.1/core-concepts/execution-results",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/core-concepts/execution-results.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "System Time Abstraction",
-    "permalink": "/docs/core-concepts/system-time"
+    "permalink": "/docs/3.1.1/core-concepts/system-time"
   },
   "next": {
     "title": "Domain-Driven Design",
-    "permalink": "/docs/category/domain-driven-design"
+    "permalink": "/docs/3.1.1/category/domain-driven-design"
   }
 }

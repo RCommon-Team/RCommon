@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/multi-tenancy/overview.mdx",
   "sourceDirName": "multi-tenancy",
   "slug": "/multi-tenancy/overview",
-  "permalink": "/docs/multi-tenancy/overview",
+  "permalink": "/docs/3.1.1/multi-tenancy/overview",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/multi-tenancy/overview.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Multi-Tenancy",
-    "permalink": "/docs/category/multi-tenancy"
+    "permalink": "/docs/3.1.1/category/multi-tenancy"
   },
   "next": {
     "title": "Finbuckle",
-    "permalink": "/docs/multi-tenancy/finbuckle"
+    "permalink": "/docs/3.1.1/multi-tenancy/finbuckle"
   }
 }

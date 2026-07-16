@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/core-concepts/system-time.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/system-time",
-  "permalink": "/docs/core-concepts/system-time",
+  "permalink": "/docs/3.1.1/core-concepts/system-time",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/core-concepts/system-time.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "GUID Generation",
-    "permalink": "/docs/core-concepts/guid-generation"
+    "permalink": "/docs/3.1.1/core-concepts/guid-generation"
   },
   "next": {
     "title": "Execution Results & Models",
-    "permalink": "/docs/core-concepts/execution-results"
+    "permalink": "/docs/3.1.1/core-concepts/execution-results"
   }
 }

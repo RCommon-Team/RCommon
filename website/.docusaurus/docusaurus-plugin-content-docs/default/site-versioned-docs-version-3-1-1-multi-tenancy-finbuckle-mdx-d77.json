@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/multi-tenancy/finbuckle.mdx",
   "sourceDirName": "multi-tenancy",
   "slug": "/multi-tenancy/finbuckle",
-  "permalink": "/docs/multi-tenancy/finbuckle",
+  "permalink": "/docs/3.1.1/multi-tenancy/finbuckle",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/multi-tenancy/finbuckle.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Overview",
-    "permalink": "/docs/multi-tenancy/overview"
+    "permalink": "/docs/3.1.1/multi-tenancy/overview"
   },
   "next": {
     "title": "Security & Web",
-    "permalink": "/docs/category/security--web"
+    "permalink": "/docs/3.1.1/category/security--web"
   }
 }

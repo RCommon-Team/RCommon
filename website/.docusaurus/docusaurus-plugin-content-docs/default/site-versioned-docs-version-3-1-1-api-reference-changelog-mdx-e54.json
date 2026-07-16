@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/api-reference/changelog.mdx",
   "sourceDirName": "api-reference",
   "slug": "/api-reference/changelog",
-  "permalink": "/docs/api-reference/changelog",
+  "permalink": "/docs/3.1.1/api-reference/changelog",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/api-reference/changelog.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "NuGet Packages",
-    "permalink": "/docs/api-reference/nuget-packages"
+    "permalink": "/docs/3.1.1/api-reference/nuget-packages"
   },
   "next": {
     "title": "Migration Guide",
-    "permalink": "/docs/api-reference/migration-guide"
+    "permalink": "/docs/3.1.1/api-reference/migration-guide"
   }
 }

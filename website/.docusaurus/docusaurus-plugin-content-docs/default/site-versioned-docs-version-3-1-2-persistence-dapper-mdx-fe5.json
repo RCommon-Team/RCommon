@@ -1,0 +1,29 @@
+{
+  "id": "persistence/dapper",
+  "title": "Dapper",
+  "description": "Use RCommon's Dapper provider for lightweight SQL data access with Dommel-generated queries, raw SQL via ISqlMapperRepository, and automatic soft-delete handling.",
+  "source": "@site/versioned_docs/version-3.1.2/persistence/dapper.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/dapper",
+  "permalink": "/docs/persistence/dapper",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.2/persistence/dapper.mdx",
+  "tags": [],
+  "version": "3.1.2",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Dapper",
+    "sidebar_position": 5,
+    "description": "Use RCommon's Dapper provider for lightweight SQL data access with Dommel-generated queries, raw SQL via ISqlMapperRepository, and automatic soft-delete handling."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Aggregate Repository",
+    "permalink": "/docs/persistence/aggregate-repository"
+  },
+  "next": {
+    "title": "Linq2Db",
+    "permalink": "/docs/persistence/linq2db"
+  }
+}

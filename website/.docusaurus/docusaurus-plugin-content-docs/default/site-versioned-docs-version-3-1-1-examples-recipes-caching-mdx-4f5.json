@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/examples-recipes/caching.mdx",
   "sourceDirName": "examples-recipes",
   "slug": "/examples-recipes/caching",
-  "permalink": "/docs/examples-recipes/caching",
+  "permalink": "/docs/3.1.1/examples-recipes/caching",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/examples-recipes/caching.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Event Handling Examples",
-    "permalink": "/docs/examples-recipes/event-handling"
+    "permalink": "/docs/3.1.1/examples-recipes/event-handling"
   },
   "next": {
     "title": "Messaging Examples",
-    "permalink": "/docs/examples-recipes/messaging"
+    "permalink": "/docs/3.1.1/examples-recipes/messaging"
   }
 }

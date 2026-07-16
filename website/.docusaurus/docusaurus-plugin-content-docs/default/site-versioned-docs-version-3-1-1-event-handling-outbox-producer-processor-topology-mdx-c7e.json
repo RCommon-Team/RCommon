@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/event-handling/outbox-producer-processor-topology.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/outbox-producer-processor-topology",
-  "permalink": "/docs/event-handling/outbox-producer-processor-topology",
+  "permalink": "/docs/3.1.1/event-handling/outbox-producer-processor-topology",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/event-handling/outbox-producer-processor-topology.mdx",

@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/testing/overview.mdx",
   "sourceDirName": "testing",
   "slug": "/testing/overview",
-  "permalink": "/docs/testing/overview",
+  "permalink": "/docs/3.1.1/testing/overview",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/testing/overview.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Testing",
-    "permalink": "/docs/category/testing"
+    "permalink": "/docs/3.1.1/category/testing"
   },
   "next": {
     "title": "Test Base Classes",
-    "permalink": "/docs/testing/test-base-classes"
+    "permalink": "/docs/3.1.1/testing/test-base-classes"
   }
 }

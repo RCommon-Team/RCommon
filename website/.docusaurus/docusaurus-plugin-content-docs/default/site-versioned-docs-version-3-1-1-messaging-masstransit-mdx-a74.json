@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/messaging/masstransit.mdx",
   "sourceDirName": "messaging",
   "slug": "/messaging/masstransit",
-  "permalink": "/docs/messaging/masstransit",
+  "permalink": "/docs/3.1.1/messaging/masstransit",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/messaging/masstransit.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "State Machines",
-    "permalink": "/docs/messaging/state-machines"
+    "permalink": "/docs/3.1.1/messaging/state-machines"
   },
   "next": {
     "title": "Wolverine",
-    "permalink": "/docs/messaging/wolverine"
+    "permalink": "/docs/3.1.1/messaging/wolverine"
   }
 }

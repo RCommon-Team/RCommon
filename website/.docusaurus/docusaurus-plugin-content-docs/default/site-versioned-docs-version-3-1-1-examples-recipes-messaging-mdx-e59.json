@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/examples-recipes/messaging.mdx",
   "sourceDirName": "examples-recipes",
   "slug": "/examples-recipes/messaging",
-  "permalink": "/docs/examples-recipes/messaging",
+  "permalink": "/docs/3.1.1/examples-recipes/messaging",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/examples-recipes/messaging.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Caching Examples",
-    "permalink": "/docs/examples-recipes/caching"
+    "permalink": "/docs/3.1.1/examples-recipes/caching"
   },
   "next": {
     "title": "Testing",
-    "permalink": "/docs/category/testing"
+    "permalink": "/docs/3.1.1/category/testing"
   }
 }

@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/examples-recipes/hr-leave-management.mdx",
   "sourceDirName": "examples-recipes",
   "slug": "/examples-recipes/hr-leave-management",
-  "permalink": "/docs/examples-recipes/hr-leave-management",
+  "permalink": "/docs/3.1.1/examples-recipes/hr-leave-management",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/examples-recipes/hr-leave-management.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Examples & Recipes",
-    "permalink": "/docs/category/examples--recipes"
+    "permalink": "/docs/3.1.1/category/examples--recipes"
   },
   "next": {
     "title": "Event Handling Examples",
-    "permalink": "/docs/examples-recipes/event-handling"
+    "permalink": "/docs/3.1.1/examples-recipes/event-handling"
   }
 }

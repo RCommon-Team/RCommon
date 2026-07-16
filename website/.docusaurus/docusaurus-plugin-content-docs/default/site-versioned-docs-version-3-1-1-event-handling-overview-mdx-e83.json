@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-3.1.1/event-handling/overview.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/overview",
-  "permalink": "/docs/event-handling/overview",
+  "permalink": "/docs/3.1.1/event-handling/overview",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/event-handling/overview.mdx",
@@ -20,10 +20,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Event Handling",
-    "permalink": "/docs/category/event-handling"
+    "permalink": "/docs/3.1.1/category/event-handling"
   },
   "next": {
     "title": "In-Memory Events",
-    "permalink": "/docs/event-handling/in-memory"
+    "permalink": "/docs/3.1.1/event-handling/in-memory"
   }
 }
