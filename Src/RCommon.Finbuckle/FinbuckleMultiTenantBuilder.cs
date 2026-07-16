@@ -21,8 +21,11 @@ namespace RCommon.Finbuckle
         {
             Services = services ?? throw new System.ArgumentNullException(nameof(services));
 
-            // Replace NullTenantIdAccessor with the Finbuckle implementation
-            Services.AddTransient<ITenantIdAccessor, FinbuckleTenantIdAccessor<TTenantInfo>>();
+            // Replace NullTenantIdAccessor with the Finbuckle implementation, wrapped so that
+            // TenantScope.Bypass() suspends its resolution for the scope's lifetime.
+            Services.AddTransient<FinbuckleTenantIdAccessor<TTenantInfo>>();
+            Services.AddTransient<ITenantIdAccessor>(sp =>
+                new TenantScopeAwareTenantIdAccessor(sp.GetRequiredService<FinbuckleTenantIdAccessor<TTenantInfo>>()));
         }
 
         /// <inheritdoc />

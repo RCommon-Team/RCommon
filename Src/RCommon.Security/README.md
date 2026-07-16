@@ -11,6 +11,7 @@ Provides claims-based security abstractions for RCommon, including current user 
 - **Configurable claim types** -- `ClaimTypesConst` allows customizing which claim URIs map to user ID, tenant ID, client ID, roles, etc.
 - **ClaimsIdentity extensions** -- helper methods for finding user/tenant/client IDs and for safely adding or replacing claims
 - **Tenant ID accessor** -- `ITenantIdAccessor` provides runtime access to the current tenant ID for repository filtering; `ClaimsTenantIdAccessor` resolves it from claims, `NullTenantIdAccessor` is the default no-op
+- **Scoped tenant bypass** -- `TenantScope.Bypass()` suspends tenant filtering/stamping for a scoped, ambient, per-call lifetime (including across `await`); `TenantScopeAwareTenantIdAccessor` is the decorator that makes an accessor honor it -- see [Multi-Tenancy](https://rcommon.com/docs/multi-tenancy/overview#bypassing-tenant-isolation-for-one-call-tenantscopebypass)
 - **Authorization exception** -- `AuthorizationException` with configurable severity, error codes, and fluent data attachment
 - **Fluent builder API** -- integrates with the `AddRCommon()` builder pattern for one-line DI registration
 
@@ -93,6 +94,31 @@ public class TenantAwareService
 
 The default `NullTenantIdAccessor` returns `null`, which causes all tenant filtering to be bypassed. This allows the application to operate without multitenancy configured.
 
+### Bypassing tenant isolation for a single call
+
+Swapping accessor registrations disables filtering globally. For a single cross-tenant call -- an admin listing all tenants, or creating the first row for a brand-new tenant -- use `TenantScope.Bypass()` instead:
+
+```csharp
+using RCommon.Security.Claims;
+
+using (TenantScope.Bypass())
+{
+    // ITenantIdAccessor.GetTenantId() resolves to null for the lifetime of this scope
+    // (including across await continuations), so filtering and stamping are both skipped.
+    await _repository.AddAsync(newTenantRootEntity);
+}
+```
+
+`ClaimsTenantIdAccessor` is wrapped with `TenantScopeAwareTenantIdAccessor` automatically by `WithClaimsAndPrincipalAccessor()`. A custom `ITenantIdAccessor` implementation can opt in with one line at its own registration site:
+
+```csharp
+services.AddTransient<MyCustomTenantIdAccessor>();
+services.AddTransient<ITenantIdAccessor>(sp =>
+    new TenantScopeAwareTenantIdAccessor(sp.GetRequiredService<MyCustomTenantIdAccessor>()));
+```
+
+`TenantScope.Bypass()` has no authorization check of its own -- gate any code path that calls it behind your own authorization check.
+
 ### Customizing Claim Types
 
 ```csharp
@@ -119,6 +145,8 @@ ClaimTypesConst.ClientId = "azp";
 | `ITenantIdAccessor` | Runtime accessor returning the current tenant ID (`string?`) for repository filtering |
 | `ClaimsTenantIdAccessor` | Claims-based implementation resolving tenant ID from `ICurrentPrincipalAccessor` |
 | `NullTenantIdAccessor` | Default no-op implementation returning `null` (tenant filtering bypassed) |
+| `TenantScope` | `Bypass()` suspends tenant scoping for a scoped, ambient, per-call lifetime |
+| `TenantScopeAwareTenantIdAccessor` | Decorator making any `ITenantIdAccessor` honor `TenantScope.Bypass()` |
 
 ## Documentation
 

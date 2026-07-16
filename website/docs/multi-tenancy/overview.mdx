@@ -46,6 +46,15 @@ At query time the repository reads the current `TenantId` from `ITenantIdAccesso
 
 When `GetTenantId()` returns `null` or an empty string all tenant filtering is bypassed, which is intentional for administrative scenarios where a privileged caller needs cross-tenant access.
 
+### Stamping semantics
+
+The exact guard applied when a repository writes an entity (`MultiTenantHelper.SetTenantIdIfApplicable`) is:
+
+- If the resolved tenant ID is `null` or empty, stamping is **skipped entirely** — the entity's existing `TenantId` (if any) is left untouched, not overwritten with `null`.
+- If the resolved tenant ID is non-empty, it **unconditionally overwrites** whatever the entity's `TenantId` already was.
+
+This asymmetry is what makes `TenantScope.Bypass()` (below) safe to use for the tenant-bootstrap scenario: suspending resolution down to `null` for the scope's lifetime means stamping is skipped, so an aggregate's explicitly-set `TenantId` survives `AddAsync` unmodified.
+
 ## Installation
 
 <NuGetInstall packageName="RCommon.MultiTenancy" />
@@ -124,9 +133,71 @@ Repository writes stamp the current tenant ID automatically:
 await _repository.AddAsync(new Product { Name = "Widget", Price = 9.99m }, cancellationToken);
 ```
 
-### Bypassing tenant isolation
+### Bypassing tenant isolation for one call: `TenantScope.Bypass()`
 
-For administrative or cross-tenant operations, resolve `ITenantIdAccessor` from your own infrastructure that returns `null`. Because `NullTenantIdAccessor` is the default when no provider is registered, you can also run without calling `WithMultiTenancy<T>` to keep filtering off globally during development.
+Swapping in a different `ITenantIdAccessor` registration is an all-or-nothing, DI-configuration-time change — it affects every request for the life of the process. Most cross-tenant needs are narrower than that: one specific call (list every tenant a super-admin belongs to, create the first row for a brand-new tenant) that should skip ambient scoping without touching anything else.
+
+`TenantScope.Bypass()` (`RCommon.Security.Claims`) is a scoped, per-call primitive for exactly this. While the scope returned by `Bypass()` is active — including across `await` continuations, via `AsyncLocal<bool>` — any accessor wrapped with `TenantScopeAwareTenantIdAccessor` resolves to `null`, which every repository already treats as "skip filtering / skip stamping":
+
+```csharp
+using RCommon.Security.Claims;
+
+public class TenantAdminService
+{
+    private readonly IGraphRepository<Tenant> _tenants;
+
+    public async Task<ICollection<Tenant>> ListAllTenantsAsync(CancellationToken ct)
+    {
+        // Requires the caller to already be authorized for cross-tenant access --
+        // TenantScope.Bypass() has no authorization check of its own.
+        using (TenantScope.Bypass())
+        {
+            return await _tenants.FindAsync(t => true, ct);
+        }
+    }
+}
+```
+
+Always dispose the returned handle — a `using` block is strongly recommended. If it is never disposed (e.g. an exception path that skips the `using` block due to a bug in calling code), the bypass remains active for the rest of the current logical call context. Nested scopes compose correctly: disposing an inner scope while an outer scope is still active restores "bypassed," not "not bypassed."
+
+RCommon wraps its own built-in accessors with `TenantScopeAwareTenantIdAccessor` automatically at their existing registration sites — `ClaimsTenantIdAccessor` (via `WithClaimsAndPrincipalAccessor()`) and `FinbuckleTenantIdAccessor<TTenantInfo>` (via `FinbuckleMultiTenantBuilder<TTenantInfo>`) both honor `TenantScope.Bypass()` with no code change required. `NullTenantIdAccessor` is intentionally not wrapped, since it always returns `null` already.
+
+#### Worked scenario: tenant bootstrap
+
+Creating the very first row for a brand-new tenant is the one case where you *want* an explicitly-set `TenantId` to survive `AddAsync` untouched — not stamped with `null`, and not stamped with whatever tenant the caller happens to be ambiently scoped to:
+
+```csharp
+public class CreateTenantCommandHandler
+{
+    private readonly IAggregateRepository<Tenant, Guid> _tenants;
+
+    public async Task HandleAsync(CreateTenantCommand cmd, CancellationToken ct)
+    {
+        using (TenantScope.Bypass())
+        {
+            var tenant = new Tenant(cmd.NewTenantId, cmd.Name);
+            // tenant.TenantId is set explicitly by the aggregate's own constructor. With the
+            // bypass active, ITenantIdAccessor.GetTenantId() resolves to null, so the stamping
+            // guard above skips stamping entirely -- the explicitly-set TenantId is left as-is.
+            await _tenants.AddAsync(tenant, ct);
+        }
+    }
+}
+```
+
+#### Opting in a custom `ITenantIdAccessor`
+
+If you've written your own `ITenantIdAccessor` implementation instead of using `ClaimsTenantIdAccessor` or Finbuckle's accessor, wrap it with `TenantScopeAwareTenantIdAccessor` at your own registration site to get the same bypass support — RCommon has no way to intercept a registration it doesn't own:
+
+```csharp
+services.AddTransient<MyCustomTenantIdAccessor>();
+services.AddTransient<ITenantIdAccessor>(sp =>
+    new TenantScopeAwareTenantIdAccessor(sp.GetRequiredService<MyCustomTenantIdAccessor>()));
+```
+
+:::danger Authorization is the caller's responsibility
+`TenantScope.Bypass()` removes tenant isolation for its scope with no authorization check of its own — the same trust model as `ITenantIdAccessor` itself. Gate any code path that calls `Bypass()` behind your own authorization check (e.g. an admin role). RCommon has no way to know which callers should be allowed to see cross-tenant data.
+:::
 
 ## API Summary
 
@@ -135,6 +206,8 @@ For administrative or cross-tenant operations, resolve `ITenantIdAccessor` from 
 | `ITenantIdAccessor` | `RCommon.Security` | Returns the current tenant ID; `null` disables all filtering |
 | `NullTenantIdAccessor` | `RCommon.Security` | Default implementation; always returns `null` |
 | `ClaimsTenantIdAccessor` | `RCommon.Security` | Reads tenant ID from the authenticated user's claims |
+| `TenantScope` | `RCommon.Security` | `Bypass()` suspends tenant scoping for a scoped, ambient, per-call lifetime |
+| `TenantScopeAwareTenantIdAccessor` | `RCommon.Security` | Decorator making any `ITenantIdAccessor` honor `TenantScope.Bypass()` |
 | `IMultiTenantBuilder` | `RCommon.MultiTenancy` | Builder interface that provider packages implement |
 | `MultiTenancyBuilderExtensions` | `RCommon.MultiTenancy` | Provides `WithMultiTenancy<TBuilder>()` on `IRCommonBuilder` |
 | `IMultiTenant` | `RCommon.Entities` | Entity marker interface; exposes `string? TenantId` |

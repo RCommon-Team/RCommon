@@ -14,6 +14,12 @@ import NuGetInstall from '@site/src/components/NuGetInstall';
 
 When you call `WithMultiTenancy<FinbuckleMultiTenantBuilder<TTenantInfo>>` at startup, `FinbuckleMultiTenantBuilder<TTenantInfo>` replaces the default `NullTenantIdAccessor` registration with `FinbuckleTenantIdAccessor<TTenantInfo>`. From that point on every repository operation that touches an `IMultiTenant` entity is automatically scoped to whichever tenant Finbuckle has resolved for the current request.
 
+:::warning RCommon.Finbuckle does not wire Finbuckle's EF Core integration
+Tenant enforcement here is entirely repository-level: `MultiTenantHelper`, driven by `ITenantIdAccessor.GetTenantId()`. `RCommon.Finbuckle` never touches Finbuckle's own EF Core integration (`IMultiTenantDbContext` / `EnforceMultiTenant()`) — `RCommonDbContext` does not implement it and nothing in this package configures it.
+
+If you layer Finbuckle's `IMultiTenantDbContext`/`EnforceMultiTenant()` on top of `RCommonDbContext` yourself, be aware that `EnforceMultiTenant()` is Finbuckle's own mechanism and can throw *before* Finbuckle's `TenantMismatchMode` is consulted, independent of anything RCommon does. That behavior belongs to Finbuckle, not to `RCommon.Finbuckle`, and nothing in this package mitigates it.
+:::
+
 ### How tenant resolution flows
 
 1. An HTTP request arrives. ASP.NET Core runs the Finbuckle middleware which identifies the tenant using the strategy you configured (header, route segment, hostname, etc.) and sets `IMultiTenantContextAccessor<TTenantInfo>.MultiTenantContext`.
