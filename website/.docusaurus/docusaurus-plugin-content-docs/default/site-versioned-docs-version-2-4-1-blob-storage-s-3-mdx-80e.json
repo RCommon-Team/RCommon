@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/blob-storage/s3.mdx",
   "sourceDirName": "blob-storage",
   "slug": "/blob-storage/s3",
-  "permalink": "/docs/blob-storage/s3",
+  "permalink": "/docs/2.4.1/blob-storage/s3",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/blob-storage/s3.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Azure Blob Storage",
-    "permalink": "/docs/blob-storage/azure"
+    "permalink": "/docs/2.4.1/blob-storage/azure"
   },
   "next": {
     "title": "Serialization",
-    "permalink": "/docs/category/serialization"
+    "permalink": "/docs/2.4.1/category/serialization"
   }
 }

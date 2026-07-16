@@ -1,0 +1,29 @@
+{
+  "id": "persistence/aggregate-repository",
+  "title": "Aggregate Repository",
+  "description": "Use IAggregateRepository for DDD-constrained aggregate root persistence across EF Core, Dapper, and Linq2Db, with provider-specific capability differences documented explicitly.",
+  "source": "@site/docs/persistence/aggregate-repository.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/aggregate-repository",
+  "permalink": "/docs/next/persistence/aggregate-repository",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/docs/persistence/aggregate-repository.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Aggregate Repository",
+    "sidebar_position": 2,
+    "description": "Use IAggregateRepository for DDD-constrained aggregate root persistence across EF Core, Dapper, and Linq2Db, with provider-specific capability differences documented explicitly."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Entity Framework Core",
+    "permalink": "/docs/next/persistence/efcore"
+  },
+  "next": {
+    "title": "Dapper",
+    "permalink": "/docs/next/persistence/dapper"
+  }
+}

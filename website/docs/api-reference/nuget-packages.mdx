@@ -1,4 +1,4 @@
----
+﻿---
 title: NuGet Packages
 sidebar_position: 1
 description: Complete NuGet package listing for RCommon covering persistence, caching, messaging, mediator, serialization, email, security, multitenancy, and blob storage providers.
@@ -34,7 +34,7 @@ Drop-in implementations of the persistence abstractions for the ORM or SQL mappe
 
 | Package | ORM / Driver | Description |
 |---|---|---|
-| [RCommon.EFCore](https://www.nuget.org/packages/RCommon.EFCore) | Entity Framework Core | `EFCoreRepository<T>`, `RCommonDbContext`, `EFCorePerisistenceBuilder`; full LINQ, eager loading, change tracking, and bulk delete |
+| [RCommon.EFCore](https://www.nuget.org/packages/RCommon.EFCore) | Entity Framework Core | `EFCoreRepository<T>`, `RCommonDbContext`, `EFCorePersistenceBuilder`; full LINQ, eager loading, change tracking, and bulk delete |
 | [RCommon.Dapper](https://www.nuget.org/packages/RCommon.Dapper) | Dapper + Dommel | `DapperRepository<T>`, `RDbConnection`, `DapperPersistenceBuilder`; expression-based CRUD via Dommel |
 | [RCommon.Linq2Db](https://www.nuget.org/packages/RCommon.Linq2Db) | Linq2Db | `Linq2DbRepository<T>`, `RCommonDataConnection`, `Linq2DbPersistenceBuilder`; full LINQ, eager loading via `LoadWith`, and paginated queries |
 
@@ -47,7 +47,7 @@ Best when you need full change tracking, navigation properties, eager loading wi
 
 ```csharp
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<AppDbContext>("AppDb", options =>
             options.UseSqlServer(connectionString));
@@ -179,10 +179,11 @@ RCommon.Core
        └─ RCommon.Persistence
             ├─ RCommon.EFCore
             ├─ RCommon.Dapper
-            └─ RCommon.Linq2Db
+            ├─ RCommon.Linq2Db
+            └─ RCommon.ApplicationServices (IUnitOfWorkFactory, for AddUnitOfWorkToCommandBus())
 
 RCommon.Models
-  └─ RCommon.ApplicationServices
+  └─ RCommon.ApplicationServices (also depends on RCommon.Persistence, above)
        └─ RCommon.FluentValidation (optional validation pipeline)
 
 RCommon.Mediator

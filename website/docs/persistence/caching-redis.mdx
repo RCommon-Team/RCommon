@@ -1,4 +1,4 @@
----
+﻿---
 title: Caching with Redis
 sidebar_position: 8
 description: Back RCommon's repository caching decorators with Redis via RedisCacheService for a distributed, out-of-process cache shared across multiple service instances and restarts.
@@ -46,7 +46,7 @@ Call `AddRedisPersistenceCaching` on the persistence builder **after** configuri
 
 ```csharp
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<AppDbContext>(
             "AppDb",

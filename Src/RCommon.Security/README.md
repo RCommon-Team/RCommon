@@ -132,7 +132,7 @@ ClaimTypesConst.ClientId = "azp";
 
 | Type | Description |
 |------|-------------|
-| `ICurrentUser` | Provides the authenticated user's ID, tenant ID, roles, and claim lookups |
+| `ICurrentUser` | Provides the authenticated user's ID, tenant ID, roles, and claim lookups -- full member-by-member reference: [rcommon.com/docs/security-web/authorization#icurrentuser-member-reference](https://rcommon.com/docs/security-web/authorization#icurrentuser-member-reference) |
 | `CurrentUser` | Default implementation that reads from the current `ClaimsPrincipal` |
 | `ICurrentClient` | Provides the authenticated client application's ID and authentication status |
 | `CurrentClient` | Default implementation that reads the `client_id` claim from the principal |

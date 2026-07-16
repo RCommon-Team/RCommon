@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/domain-driven-design/domain-events.mdx",
   "sourceDirName": "domain-driven-design",
   "slug": "/domain-driven-design/domain-events",
-  "permalink": "/docs/domain-driven-design/domain-events",
+  "permalink": "/docs/2.4.1/domain-driven-design/domain-events",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/domain-driven-design/domain-events.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Entities & Aggregate Roots",
-    "permalink": "/docs/domain-driven-design/entities-aggregates"
+    "permalink": "/docs/2.4.1/domain-driven-design/entities-aggregates"
   },
   "next": {
     "title": "Value Objects",
-    "permalink": "/docs/domain-driven-design/value-objects"
+    "permalink": "/docs/2.4.1/domain-driven-design/value-objects"
   }
 }

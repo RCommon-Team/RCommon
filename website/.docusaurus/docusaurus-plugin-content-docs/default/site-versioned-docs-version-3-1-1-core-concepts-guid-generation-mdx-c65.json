@@ -1,0 +1,29 @@
+{
+  "id": "core-concepts/guid-generation",
+  "title": "GUID Generation",
+  "description": "RCommon's IGuidGenerator abstraction for testable GUID creation — sequential GUIDs for SQL Server, MySQL, PostgreSQL, and Oracle to reduce index fragmentation.",
+  "source": "@site/versioned_docs/version-3.1.1/core-concepts/guid-generation.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/guid-generation",
+  "permalink": "/docs/core-concepts/guid-generation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/core-concepts/guid-generation.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "GUID Generation",
+    "sidebar_position": 3,
+    "description": "RCommon's IGuidGenerator abstraction for testable GUID creation — sequential GUIDs for SQL Server, MySQL, PostgreSQL, and Oracle to reduce index fragmentation."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Guards & Validation",
+    "permalink": "/docs/core-concepts/guards"
+  },
+  "next": {
+    "title": "System Time Abstraction",
+    "permalink": "/docs/core-concepts/system-time"
+  }
+}

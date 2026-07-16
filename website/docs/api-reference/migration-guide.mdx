@@ -1,4 +1,4 @@
----
+﻿---
 title: Migration Guide
 sidebar_position: 3
 description: Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades.
@@ -60,7 +60,7 @@ public sealed class OrderingModule : IServiceModule
 {
     public void Configure(IServiceCollection services) =>
         services.AddRCommon()
-            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 ef.AddDbContext<OrderingDbContext>("Ordering", o => o.UseInMemoryDatabase("ord")));
 }
 
@@ -68,12 +68,12 @@ public sealed class InventoryModule : IServiceModule
 {
     public void Configure(IServiceCollection services) =>
         services.AddRCommon()
-            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 ef.AddDbContext<InventoryDbContext>("Inventory", o => o.UseInMemoryDatabase("inv")));
 }
 ```
 
-Both modules call `AddRCommon()` and `WithPersistence<EFCorePerisistenceBuilder>`. The persistence sub-builder's constructor runs exactly once; both `AddDbContext` calls accumulate registrations.
+Both modules call `AddRCommon()` and `WithPersistence<EFCorePersistenceBuilder>`. The persistence sub-builder's constructor runs exactly once; both `AddDbContext` calls accumulate registrations.
 
 See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and new helper APIs.
 
@@ -120,7 +120,7 @@ services.AddRCommon()
 
 // After
 services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<AppDbContext>("AppDb", /* ... */);
         ef.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
@@ -226,7 +226,7 @@ builder.Services.AddRCommon(config =>
 {
     config
         .WithClaimsAndPrincipalAccessorForWeb()
-        .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        .WithPersistence<EFCorePersistenceBuilder>(ef =>
         {
             ef.AddDbContext<AppDbContext>("AppDb", options =>
                 options.UseSqlServer(connectionString));

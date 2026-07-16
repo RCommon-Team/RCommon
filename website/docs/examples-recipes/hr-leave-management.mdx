@@ -1,4 +1,4 @@
----
+﻿---
 title: HR Leave Management Sample
 sidebar_position: 1
 description: Explore RCommon's HR Leave Management reference app demonstrating Clean Architecture, CQRS, EF Core, FluentValidation, JWT auth, and SendGrid email integration.
@@ -420,7 +420,7 @@ public class LeaveTypesController : ControllerBase
 Everything is wired in `Program.cs`. This is the only place in the system where concrete implementations are referenced by name:
 
 :::tip Modular composition
-The HR Leave Management sample keeps all wiring in a single `Program.cs` for clarity, but RCommon also supports splitting this across modules. For example, an `IdentityServicesRegistration.AddIdentityServices(services)` extension could call `services.AddRCommon().WithClaimsAndPrincipalAccessor()` while a separate `PersistenceServicesRegistration` calls `services.AddRCommon().WithPersistence<EFCorePerisistenceBuilder>(...)`. The bootstrapper merges both into the same builder. See [Modular Composition](../core-concepts/modular-composition.mdx) for the contract.
+The HR Leave Management sample keeps all wiring in a single `Program.cs` for clarity, but RCommon also supports splitting this across modules. For example, an `IdentityServicesRegistration.AddIdentityServices(services)` extension could call `services.AddRCommon().WithClaimsAndPrincipalAccessor()` while a separate `PersistenceServicesRegistration` calls `services.AddRCommon().WithPersistence<EFCorePersistenceBuilder>(...)`. The bootstrapper merges both into the same builder. See [Modular Composition](../core-concepts/modular-composition.mdx) for the contract.
 :::
 
 ```csharp
@@ -452,7 +452,7 @@ builder.Services.AddRCommon()
         mediator.AddLoggingToRequestPipeline();
         mediator.AddUnitOfWorkToRequestPipeline();
     })
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<LeaveManagementDbContext>(
             DataStoreNamesConst.LeaveManagement,

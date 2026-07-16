@@ -1,4 +1,4 @@
-# RCommon.MultiTenancy
+﻿# RCommon.MultiTenancy
 
 Multitenancy builder abstraction for the RCommon framework. Provides the `WithMultiTenancy<T>()` fluent API for registering tenant resolution providers (such as Finbuckle) that supply the current `ITenantIdAccessor` implementation.
 
@@ -26,7 +26,7 @@ using Finbuckle.MultiTenant;
 
 builder.Services.AddRCommon(config =>
 {
-    config.WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    config.WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<ApplicationDbContext>("ApplicationDb", options =>
             options.UseSqlServer(connectionString));

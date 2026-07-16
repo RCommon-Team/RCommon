@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/getting-started/installation.mdx",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/installation",
-  "permalink": "/docs/getting-started/installation",
+  "permalink": "/docs/2.4.1/getting-started/installation",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/getting-started/installation.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Overview & Philosophy",
-    "permalink": "/docs/getting-started/overview"
+    "permalink": "/docs/2.4.1/getting-started/overview"
   },
   "next": {
     "title": "Quick Start Guide",
-    "permalink": "/docs/getting-started/quick-start"
+    "permalink": "/docs/2.4.1/getting-started/quick-start"
   }
 }

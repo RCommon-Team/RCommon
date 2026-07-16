@@ -23,7 +23,7 @@
     "permalink": "/docs/next/event-handling/distributed"
   },
   "next": {
-    "title": "MediatR",
-    "permalink": "/docs/next/event-handling/mediatr"
+    "title": "Outbox Producer/Processor Topology",
+    "permalink": "/docs/next/event-handling/outbox-producer-processor-topology"
   }
 }

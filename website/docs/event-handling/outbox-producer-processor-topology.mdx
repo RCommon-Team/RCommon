@@ -1,4 +1,4 @@
----
+﻿---
 title: Outbox Producer/Processor Topology
 sidebar_position: 8
 description: How RCommon's built-in persistence outbox dispatches and marks events across multiple hosts, and why producer-only hosts must set OutboxOptions.ImmediateDispatch = false for reliable cross-host delivery.
@@ -42,7 +42,7 @@ The correct model: **when a durable poller is the delivery mechanism, the poller
 ```csharp
 // Producer-only host: persist to the outbox, but let the poller host dispatch and mark.
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(db =>
+    .WithPersistence<EFCorePersistenceBuilder>(db =>
     {
         // ... data store configuration ...
         db.AddOutbox<EFCoreOutboxStore>(outbox =>

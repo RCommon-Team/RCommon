@@ -1,4 +1,4 @@
-# RCommon.EFCore
+﻿# RCommon.EFCore
 
 Entity Framework Core implementation of the RCommon persistence abstractions. Provides a fully-featured repository with LINQ queries, eager loading, change tracking, and automatic domain event integration -- all backed by EF Core's `DbContext`.
 
@@ -112,7 +112,7 @@ await _customerRepo.DeleteAsync(customer, isSoftDelete: true);
 | `EFCoreAggregateRepository<TAggregate,TKey>` | DDD-constrained repository for `IAggregateRepository<TAggregate,TKey>` -- see [Aggregate Repository](https://rcommon.com/docs/persistence/aggregate-repository) for the full persistence contract, including which operations persist child collections and which don't |
 | `RCommonDbContext` | Abstract `DbContext` base class implementing `IDataStore` for named data store resolution |
 | `EFCorePersistenceBuilder` | Fluent builder for registering EF Core DbContexts and repository services in DI |
-| `EFCorePerisistenceBuilder` | Obsolete, misspelled alias for `EFCorePersistenceBuilder`, kept as a forwarding subclass for backward compatibility |
+| `EFCorePersistenceBuilder` | Obsolete, misspelled alias for `EFCorePersistenceBuilder`, kept as a forwarding subclass for backward compatibility |
 | `IEFCorePersistenceBuilder` | Builder interface exposing `AddDbContext<T>()` for registering named DbContexts |
 
 ## Documentation

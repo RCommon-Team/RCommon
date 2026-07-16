@@ -1,4 +1,4 @@
----
+﻿---
 title: Sagas
 sidebar_position: 8
 description: Orchestrate long-running business processes with RCommon's saga framework using state machines, durable SagaState persistence, correlation IDs, and automatic compensation.
@@ -211,7 +211,7 @@ public class OrderFulfillmentSaga
 
 ```csharp
 services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<OrderDbContext>("OrderDb", options =>
             options.UseSqlServer(connectionString));

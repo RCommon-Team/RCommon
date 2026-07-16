@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/architecture-guides/event-driven.mdx",
   "sourceDirName": "architecture-guides",
   "slug": "/architecture-guides/event-driven",
-  "permalink": "/docs/architecture-guides/event-driven",
+  "permalink": "/docs/2.4.1/architecture-guides/event-driven",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/architecture-guides/event-driven.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Microservices",
-    "permalink": "/docs/architecture-guides/microservices"
+    "permalink": "/docs/2.4.1/architecture-guides/microservices"
   },
   "next": {
     "title": "Examples & Recipes",
-    "permalink": "/docs/category/examples--recipes"
+    "permalink": "/docs/2.4.1/category/examples--recipes"
   }
 }

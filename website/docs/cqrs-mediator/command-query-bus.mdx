@@ -163,10 +163,12 @@ public class OrderApplicationService
 | `AddCommandHandler<THandler, TCommand, TResult>()` | Registers a single command handler as a transient service. |
 | `AddCommand<TCommand, THandler, TResult>()` | Alias for `AddCommandHandler` with command-first type parameter order. |
 | `AddCommandHandlers(Assembly, Predicate<Type>?)` | Scans an assembly and registers all `ICommandHandler<TResult, TCommand>` implementations. Excludes decorator types. |
+| `AddCommandHandlers(params Type[])` | Registers the provided command handler types explicitly. |
 | `AddCommandHandlers(IEnumerable<Type>)` | Registers the provided command handler types explicitly. |
 | `AddQueryHandler<THandler, TQuery, TResult>()` | Registers a single query handler as a transient service. |
 | `AddQuery<TQuery, THandler, TResult>()` | Alias for `AddQueryHandler` with query-first type parameter order. |
 | `AddQueryHandlers(Assembly, Predicate<Type>?)` | Scans an assembly and registers all `IQueryHandler<TQuery, TResult>` implementations. Excludes decorator types. |
+| `AddQueryHandlers(params Type[])` | Registers the provided query handler types explicitly. |
 | `AddQueryHandlers(IEnumerable<Type>)` | Registers the provided query handler types explicitly. |
 | `AddUnitOfWorkToCommandBus()` | Opt-in. Wraps `ICommandBus.DispatchCommandAsync` in an `IUnitOfWork`, committed after a successful dispatch. Commands only; `IQueryBus` is untouched. |
 

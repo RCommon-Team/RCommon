@@ -1,0 +1,29 @@
+{
+  "id": "messaging/transactional-outbox",
+  "title": "Transactional Outbox",
+  "description": "Ensure messages reach the broker only when the database transaction commits using the transactional outbox for MassTransit or Wolverine with EF Core integration.",
+  "source": "@site/versioned_docs/version-3.1.1/messaging/transactional-outbox.mdx",
+  "sourceDirName": "messaging",
+  "slug": "/messaging/transactional-outbox",
+  "permalink": "/docs/messaging/transactional-outbox",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/messaging/transactional-outbox.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Transactional Outbox",
+    "sidebar_position": 2,
+    "description": "Ensure messages reach the broker only when the database transaction commits using the transactional outbox for MassTransit or Wolverine with EF Core integration."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/messaging/overview"
+  },
+  "next": {
+    "title": "State Machines",
+    "permalink": "/docs/messaging/state-machines"
+  }
+}

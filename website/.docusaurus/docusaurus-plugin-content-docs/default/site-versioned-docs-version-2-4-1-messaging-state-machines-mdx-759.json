@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/messaging/state-machines.mdx",
   "sourceDirName": "messaging",
   "slug": "/messaging/state-machines",
-  "permalink": "/docs/messaging/state-machines",
+  "permalink": "/docs/2.4.1/messaging/state-machines",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/messaging/state-machines.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Transactional Outbox",
-    "permalink": "/docs/messaging/transactional-outbox"
+    "permalink": "/docs/2.4.1/messaging/transactional-outbox"
   },
   "next": {
     "title": "MassTransit",
-    "permalink": "/docs/messaging/masstransit"
+    "permalink": "/docs/2.4.1/messaging/masstransit"
   }
 }

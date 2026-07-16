@@ -1,0 +1,29 @@
+{
+  "id": "domain-driven-design/domain-events",
+  "title": "Domain Events",
+  "description": "Raise, accumulate, and dispatch domain events in RCommon using the DomainEvent base record, ISubscriber handlers, and the post-persistence event routing pipeline.",
+  "source": "@site/versioned_docs/version-3.1.1/domain-driven-design/domain-events.mdx",
+  "sourceDirName": "domain-driven-design",
+  "slug": "/domain-driven-design/domain-events",
+  "permalink": "/docs/domain-driven-design/domain-events",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/domain-driven-design/domain-events.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Domain Events",
+    "sidebar_position": 2,
+    "description": "Raise, accumulate, and dispatch domain events in RCommon using the DomainEvent base record, ISubscriber handlers, and the post-persistence event routing pipeline."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Entities & Aggregate Roots",
+    "permalink": "/docs/domain-driven-design/entities-aggregates"
+  },
+  "next": {
+    "title": "Value Objects",
+    "permalink": "/docs/domain-driven-design/value-objects"
+  }
+}

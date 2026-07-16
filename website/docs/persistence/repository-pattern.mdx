@@ -1,4 +1,4 @@
----
+﻿---
 title: Repository Pattern
 sidebar_position: 1
 description: Use RCommon's provider-agnostic repository interfaces for async CRUD, paging, eager loading, and soft delete across EF Core, Dapper, and Linq2Db without coupling to a specific ORM.
@@ -34,7 +34,7 @@ Repositories are registered automatically when you configure a provider. Call `W
 
 ```csharp
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<LeaveManagementDbContext>(
             "LeaveManagement",

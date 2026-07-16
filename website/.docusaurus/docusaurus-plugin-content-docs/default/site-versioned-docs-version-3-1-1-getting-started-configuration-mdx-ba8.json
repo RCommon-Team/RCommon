@@ -1,0 +1,29 @@
+{
+  "id": "getting-started/configuration",
+  "title": "Configuration & Bootstrapping",
+  "description": "Configure RCommon with AddRCommon() — fluent builder methods for GUID generation, system time, persistence, unit of work, mediator, and event handling.",
+  "source": "@site/versioned_docs/version-3.1.1/getting-started/configuration.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/configuration",
+  "permalink": "/docs/getting-started/configuration",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/getting-started/configuration.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "title": "Configuration & Bootstrapping",
+    "sidebar_position": 4,
+    "description": "Configure RCommon with AddRCommon() — fluent builder methods for GUID generation, system time, persistence, unit of work, mediator, and event handling."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Quick Start Guide",
+    "permalink": "/docs/getting-started/quick-start"
+  },
+  "next": {
+    "title": "Dependency Injection",
+    "permalink": "/docs/getting-started/dependency-injection"
+  }
+}

@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/core-concepts/fluent-configuration.mdx",
   "sourceDirName": "core-concepts",
   "slug": "/core-concepts/fluent-configuration",
-  "permalink": "/docs/core-concepts/fluent-configuration",
+  "permalink": "/docs/2.4.1/core-concepts/fluent-configuration",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/core-concepts/fluent-configuration.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Core Concepts",
-    "permalink": "/docs/category/core-concepts"
+    "permalink": "/docs/2.4.1/category/core-concepts"
   },
   "next": {
     "title": "Guards & Validation",
-    "permalink": "/docs/core-concepts/guards"
+    "permalink": "/docs/2.4.1/core-concepts/guards"
   }
 }

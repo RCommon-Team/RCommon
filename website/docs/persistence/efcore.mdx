@@ -1,4 +1,4 @@
----
+﻿---
 title: Entity Framework Core
 sidebar_position: 4
 description: Configure RCommon's EF Core provider to register named DbContexts, inject IGraphRepository with full LINQ support, eager loading, soft delete, and change-tracking control.
@@ -89,7 +89,7 @@ Register the EF Core persistence provider in your application startup:
 
 ```csharp
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<LeaveManagementDbContext>(
             "LeaveManagement",
@@ -115,23 +115,23 @@ ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Ordering");
 
 ## Modular composition
 
-`WithPersistence<EFCorePerisistenceBuilder>` is cache-aware. When two modules both call it, the second call reuses the cached `EFCorePerisistenceBuilder` rather than constructing a new one — both configuration delegates run against the same instance, so each module can declare its own DbContexts side by side:
+`WithPersistence<EFCorePersistenceBuilder>` is cache-aware. When two modules both call it, the second call reuses the cached `EFCorePersistenceBuilder` rather than constructing a new one — both configuration delegates run against the same instance, so each module can declare its own DbContexts side by side:
 
 ```csharp
 // In OrderingModule.Configure
 services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
         ef.AddDbContext<OrderingDbContext>("Ordering",
             o => o.UseSqlServer(orderingConn)));
 
 // In InventoryModule.Configure
 services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
         ef.AddDbContext<InventoryDbContext>("Inventory",
             o => o.UseNpgsql(inventoryConn)));
 ```
 
-After both modules run, `IDataStoreFactory` resolves `"Ordering"` and `"Inventory"` to their respective contexts. The `EFCorePerisistenceBuilder` itself is constructed exactly once.
+After both modules run, `IDataStoreFactory` resolves `"Ordering"` and `"Inventory"` to their respective contexts. The `EFCorePersistenceBuilder` itself is constructed exactly once.
 
 `AddDbContext<TDbContext>(name, ...)` has the following conflict semantics across modules:
 
@@ -244,12 +244,57 @@ var spec = new AllocationExistsSpec(userId, leaveTypeId, year);
 long count = await _allocationRepo.GetCountAsync(spec, cancellationToken);
 ```
 
+### Read models
+
+Alongside `IGraphRepository<TEntity>`, `EFCorePersistenceBuilder`'s constructor also registers `IReadModelRepository<TReadModel>` (backed by `EFCoreReadModelRepository<TReadModel>`) for every type — no separate opt-in call is required. It targets `IReadModel`-marked projection/query types rather than full aggregates, and is specification-driven rather than exposing raw LINQ:
+
+```csharp
+using RCommon.Persistence.Crud;
+
+public class LeaveBalanceSummary : IReadModel
+{
+    public Guid EmployeeId { get; set; }
+    public int  RemainingDays { get; set; }
+}
+
+public class LeaveBalanceQueryHandler
+{
+    private readonly IReadModelRepository<LeaveBalanceSummary> _readModels;
+
+    public LeaveBalanceQueryHandler(IReadModelRepository<LeaveBalanceSummary> readModels)
+    {
+        _readModels = readModels;
+    }
+
+    public async Task<LeaveBalanceSummary?> HandleAsync(Guid employeeId, CancellationToken cancellationToken)
+    {
+        return await _readModels.FindAsync(new EmployeeBalanceSpec(employeeId), cancellationToken);
+    }
+}
+```
+
+| Member | Description |
+|---|---|
+| `FindAsync(ISpecification<TReadModel>, CancellationToken)` | Returns the first match, or `null`. |
+| `FindAllAsync(ISpecification<TReadModel>, CancellationToken)` | Returns all matches as a read-only list. |
+| `GetPagedAsync(IPagedSpecification<TReadModel>, CancellationToken)` | Returns a paged result set. |
+| `GetCountAsync(ISpecification<TReadModel>, CancellationToken)` | Returns the count of matches. |
+| `AnyAsync(ISpecification<TReadModel>, CancellationToken)` | Returns whether any match exists. |
+| `Include<TProperty>(Expression<Func<TReadModel,TProperty>>)` | Eager-loads a navigation property; chainable. |
+
+`IReadModelRepository<TReadModel>` also implements `INamedDataSource`, so `DataStoreName` can be set the same way as on `IGraphRepository<TEntity>` to target a specific registered `DbContext`.
+
+Aggregates are also registered automatically: `IAggregateRepository<TAggregate,TKey>` (via `EFCoreAggregateRepository<,>`) for loading and persisting aggregate roots with their child collections — see [Aggregate Repository](aggregate-repository.mdx) — and `ISagaStore<TState,TKey>` (via `EFCoreSagaStore<,>`) for saga/process-manager state — see [Sagas](sagas.mdx).
+
 ## API Summary
 
 | Type | Purpose |
 |------|---------|
 | `IEFCorePersistenceBuilder` | Fluent startup builder with `AddDbContext<TDbContext>` and `SetDefaultDataStore` |
-| `EFCorePerisistenceBuilder` | Concrete implementation that registers EF Core repositories in the DI container |
+| `EFCorePersistenceBuilder` | Concrete implementation that registers EF Core repositories in the DI container. (The obsolete, misspelled `EFCorePerisistenceBuilder` name still compiles as a deprecated alias, but new code should use this corrected spelling.) |
 | `RCommonDbContext` | Abstract base class for all EF Core contexts; implements `IDataStore` |
 | `EFCoreRepository<TEntity>` | Concrete repository; implements `IGraphRepository<TEntity>` and lower interfaces |
 | `IGraphRepository<TEntity>` | Full CRUD + LINQ + paging + eager loading + `Tracking` property |
+| `IReadModelRepository<TReadModel>` | Specification-driven read access for `IReadModel` projection types; registered automatically alongside the write-side repositories |
+| `IAggregateRepository<TAggregate,TKey>` | Loads/persists aggregate roots and their child collections; see [Aggregate Repository](aggregate-repository.mdx) |
+| `ISagaStore<TState,TKey>` | Persists saga/process-manager state; see [Sagas](sagas.mdx) |

@@ -1,4 +1,4 @@
----
+﻿---
 title: Event Handling Examples
 sidebar_position: 2
 description: Step-by-step event handling examples for RCommon using InMemoryEventBus and MediatR providers with ISyncEvent, IEventProducer, and ISubscriber patterns.
@@ -225,7 +225,7 @@ builder.Services.AddRCommon()
         eventHandling.AddSubscriber<OrderPlacedEvent, SendConfirmationEmailHandler>();
         eventHandling.AddSubscriber<OrderPlacedEvent, UpdateDashboardHandler>();
     })
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<AppDbContext>("AppDb", options =>
         {

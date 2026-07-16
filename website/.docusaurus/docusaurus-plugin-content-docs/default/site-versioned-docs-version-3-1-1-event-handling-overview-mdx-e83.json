@@ -1,0 +1,29 @@
+{
+  "id": "event-handling/overview",
+  "title": "Overview",
+  "description": "Understand RCommon's unified event handling pipeline — IEventBus, IEventProducer, IEventRouter, and ISubscriber — and how to choose between in-process and broker transports.",
+  "source": "@site/versioned_docs/version-3.1.1/event-handling/overview.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/overview",
+  "permalink": "/docs/event-handling/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/event-handling/overview.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1,
+    "description": "Understand RCommon's unified event handling pipeline — IEventBus, IEventProducer, IEventRouter, and ISubscriber — and how to choose between in-process and broker transports."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Event Handling",
+    "permalink": "/docs/category/event-handling"
+  },
+  "next": {
+    "title": "In-Memory Events",
+    "permalink": "/docs/event-handling/in-memory"
+  }
+}

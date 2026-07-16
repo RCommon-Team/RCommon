@@ -68,7 +68,7 @@ export default {
   "themes": [
     "@docusaurus/theme-mermaid",
     [
-      "C:\\Users\\jason.webb\\source\\repos\\RCommon\\website\\node_modules\\.pnpm\\@easyops-cn+docusaurus-sear_41bb1d9dc0aabd6a6ecbfd28cc33860e\\node_modules\\@easyops-cn\\docusaurus-search-local\\dist\\server\\server\\index.js",
+      "C:\\Users\\jason\\Documents\\Code\\RCommon\\website\\node_modules\\.pnpm\\@easyops-cn+docusaurus-sear_41bb1d9dc0aabd6a6ecbfd28cc33860e\\node_modules\\@easyops-cn\\docusaurus-search-local\\dist\\server\\server\\index.js",
       {
         "hashed": true,
         "language": [

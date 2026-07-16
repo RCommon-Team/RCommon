@@ -1,4 +1,4 @@
----
+﻿---
 title: Caching Examples
 sidebar_position: 3
 description: Practical RCommon caching examples covering IMemoryCache, distributed memory cache, Redis, and ICachingGraphRepository for caching EF Core repository query results.
@@ -222,7 +222,7 @@ Add `AddInMemoryPersistenceCaching()` to the EF Core persistence builder. This r
 
 ```csharp
 services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<TestDbContext>("TestDbContext", options =>
         {

@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/messaging/overview.mdx",
   "sourceDirName": "messaging",
   "slug": "/messaging/overview",
-  "permalink": "/docs/messaging/overview",
+  "permalink": "/docs/2.4.1/messaging/overview",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/messaging/overview.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Messaging",
-    "permalink": "/docs/category/messaging"
+    "permalink": "/docs/2.4.1/category/messaging"
   },
   "next": {
     "title": "Transactional Outbox",
-    "permalink": "/docs/messaging/transactional-outbox"
+    "permalink": "/docs/2.4.1/messaging/transactional-outbox"
   }
 }

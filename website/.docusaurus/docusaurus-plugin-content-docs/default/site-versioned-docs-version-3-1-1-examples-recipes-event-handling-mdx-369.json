@@ -1,0 +1,29 @@
+{
+  "id": "examples-recipes/event-handling",
+  "title": "Event Handling Examples",
+  "description": "Step-by-step event handling examples for RCommon using InMemoryEventBus and MediatR providers with ISyncEvent, IEventProducer, and ISubscriber patterns.",
+  "source": "@site/versioned_docs/version-3.1.1/examples-recipes/event-handling.mdx",
+  "sourceDirName": "examples-recipes",
+  "slug": "/examples-recipes/event-handling",
+  "permalink": "/docs/examples-recipes/event-handling",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/examples-recipes/event-handling.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Event Handling Examples",
+    "sidebar_position": 2,
+    "description": "Step-by-step event handling examples for RCommon using InMemoryEventBus and MediatR providers with ISyncEvent, IEventProducer, and ISubscriber patterns."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "HR Leave Management Sample",
+    "permalink": "/docs/examples-recipes/hr-leave-management"
+  },
+  "next": {
+    "title": "Caching Examples",
+    "permalink": "/docs/examples-recipes/caching"
+  }
+}

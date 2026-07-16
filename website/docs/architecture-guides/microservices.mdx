@@ -1,4 +1,4 @@
----
+﻿---
 title: Microservices
 sidebar_position: 2
 description: Build .NET microservices with RCommon using MassTransit or Wolverine for messaging, per-service persistence, and transport-agnostic IEventProducer abstractions.
@@ -280,7 +280,7 @@ Each microservice owns its own database and schema. The `WithPersistence<>` buil
 ```csharp
 // Order Service
 services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<OrderDbContext>("Orders", options =>
         {
@@ -291,7 +291,7 @@ services.AddRCommon()
 
 // Inventory Service
 services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<InventoryDbContext>("Inventory", options =>
         {

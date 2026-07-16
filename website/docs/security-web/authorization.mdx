@@ -164,6 +164,27 @@ public class OrderCommandHandler
 }
 ```
 
+### `ICurrentUser` member reference
+
+`ICurrentUser` exposes seven members. All of them read from whatever `ClaimsPrincipal` the configured `ICurrentPrincipalAccessor` currently returns:
+
+- **`string? Id { get; }`** — the current user's unique identifier, read from the `ClaimTypesConst.UserId` claim. `null` if no user is authenticated or the claim is absent.
+- **`bool IsAuthenticated { get; }`** — whether the underlying `IIdentity.IsAuthenticated` reports `true`. Check this before trusting any other member.
+- **`string[] Roles { get; }`** — the distinct set of role names from `ClaimTypesConst.Role` claims. Empty array (never `null`) if the user has no role claims.
+- **`string? TenantId { get; }`** — the tenant identifier from the `ClaimTypesConst.TenantId` claim on the current principal. See the callout below — this is a different concept from `IMultiTenant.TenantId`.
+- **`Claim? FindClaim(string claimType)`** — the first claim matching `claimType`, or `null` if none is present.
+- **`Claim[] FindClaims(string claimType)`** — all claims matching `claimType`. Empty array if none match.
+- **`Claim[] GetAllClaims()`** — every claim on the current principal, regardless of type. Empty array if the user has no claims.
+
+:::info `ICurrentUser.TenantId` vs. `IMultiTenant.TenantId`
+These are two unrelated properties that happen to share a name:
+
+- **`ICurrentUser.TenantId`** (`RCommon.Security`) is the *caller's* tenant — a claim read off the current `ClaimsPrincipal`, describing who is making the current request.
+- **`IMultiTenant.TenantId`** (`RCommon.Entities`) is a *persistence-layer* property stamped onto an individual entity, describing which tenant that row belongs to.
+
+RCommon's multi-tenancy pipeline uses `ITenantIdAccessor` (typically backed by `ICurrentUser.TenantId` via `ClaimsTenantIdAccessor`) to decide which `IMultiTenant.TenantId` value to stamp on new entities and to filter queries by. The two properties usually hold the same value at runtime, but they live at different layers and are set independently — see [Multi-Tenancy Overview](../multi-tenancy/overview.mdx) for how the accessor bridges them.
+:::
+
 ### Reading roles
 
 ```csharp
@@ -298,7 +319,7 @@ string? client = principal.FindClientId();  // reads ClaimTypesConst.ClientId
 | `CurrentPrincipalAccessorBase` | `RCommon.Security` | Abstract base implementing `Change()` with `AsyncLocal` storage |
 | `ThreadCurrentPrincipalAccessor` | `RCommon.Security` | Default implementation; reads `Thread.CurrentPrincipal` |
 | `CurrentPrincipalAccessorExtensions` | `RCommon.Security` | `Change(Claim)`, `Change(IEnumerable<Claim>)`, `Change(ClaimsIdentity)` overloads |
-| `ICurrentUser` | `RCommon.Security` | Exposes `Id`, `IsAuthenticated`, `Roles`, `TenantId`, `FindClaim`, `FindClaims`, `GetAllClaims` |
+| `ICurrentUser` | `RCommon.Security` | Exposes `Id`, `IsAuthenticated`, `Roles`, `TenantId`, `FindClaim`, `FindClaims`, `GetAllClaims` — see [member reference](#icurrentuser-member-reference) above |
 | `CurrentUser` | `RCommon.Security` | Default `ICurrentUser` implementation backed by `ICurrentPrincipalAccessor` |
 | `CurrentUserExtensions` | `RCommon.Security` | `FindClaimValue(string)`, `GetId()` |
 | `ICurrentClient` | `RCommon.Security` | Exposes `Id` and `IsAuthenticated` for OAuth client identities |

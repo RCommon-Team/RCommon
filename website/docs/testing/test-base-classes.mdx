@@ -1,4 +1,4 @@
----
+﻿---
 title: Test Base Classes
 sidebar_position: 2
 description: Reference guide for RCommon.TestBase, TestBootstrapper, TestFixture for xUnit, TestRepository for EF Core integration tests, and TestDataActions fake data generation.
@@ -220,7 +220,7 @@ public class CustomerRepositoryIntegrationTests : TestFixture, IDisposable
 
         services.AddSingleton<IEntityEventTracker, InMemoryEntityEventTracker>();
 
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
         builder.AddDbContext<AppDbContext>("AppDb", options =>
             options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
         builder.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");

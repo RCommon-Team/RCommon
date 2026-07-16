@@ -1,0 +1,29 @@
+{
+  "id": "testing/test-base-classes",
+  "title": "Test Base Classes",
+  "description": "Reference guide for RCommon.TestBase, TestBootstrapper, TestFixture for xUnit, TestRepository for EF Core integration tests, and TestDataActions fake data generation.",
+  "source": "@site/versioned_docs/version-3.1.1/testing/test-base-classes.mdx",
+  "sourceDirName": "testing",
+  "slug": "/testing/test-base-classes",
+  "permalink": "/docs/testing/test-base-classes",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/testing/test-base-classes.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Test Base Classes",
+    "sidebar_position": 2,
+    "description": "Reference guide for RCommon.TestBase, TestBootstrapper, TestFixture for xUnit, TestRepository for EF Core integration tests, and TestDataActions fake data generation."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/testing/overview"
+  },
+  "next": {
+    "title": "API Reference",
+    "permalink": "/docs/category/api-reference"
+  }
+}

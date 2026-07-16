@@ -1,0 +1,29 @@
+{
+  "id": "multi-tenancy/finbuckle",
+  "title": "Finbuckle",
+  "description": "RCommon.Finbuckle integrates Finbuckle.MultiTenant with RCommon's persistence layer, automatically scoping queries and entity writes to the request-resolved tenant.",
+  "source": "@site/versioned_docs/version-3.1.1/multi-tenancy/finbuckle.mdx",
+  "sourceDirName": "multi-tenancy",
+  "slug": "/multi-tenancy/finbuckle",
+  "permalink": "/docs/multi-tenancy/finbuckle",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/multi-tenancy/finbuckle.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Finbuckle",
+    "sidebar_position": 2,
+    "description": "RCommon.Finbuckle integrates Finbuckle.MultiTenant with RCommon's persistence layer, automatically scoping queries and entity writes to the request-resolved tenant."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/multi-tenancy/overview"
+  },
+  "next": {
+    "title": "Security & Web",
+    "permalink": "/docs/category/security--web"
+  }
+}

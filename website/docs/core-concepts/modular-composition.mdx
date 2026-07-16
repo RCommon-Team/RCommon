@@ -1,4 +1,4 @@
----
+﻿---
 title: Modular Composition
 sidebar_position: 2
 description: Compose AddRCommon across multiple modules in a single process — registrations merge, never duplicate or throw on agreement.
@@ -25,7 +25,7 @@ The net effect: modular apps had to funnel all RCommon wiring through a single s
 
 ## The solution
 
-`AddRCommon()` is now idempotent. The first call constructs an `IRCommonBuilder` and stashes it on `IServiceCollection`; subsequent calls return the same cached instance. Sub-builders are cached by concrete builder type, so a second `WithPersistence<EFCorePerisistenceBuilder>(ef => ...)` reuses the same `EFCorePerisistenceBuilder` and the new action delegate runs against it. Singleton-style verbs record the impl type they registered; same-type re-registration is a no-op, different-type calls throw `RCommonBuilderException` with both type names in the message.
+`AddRCommon()` is now idempotent. The first call constructs an `IRCommonBuilder` and stashes it on `IServiceCollection`; subsequent calls return the same cached instance. Sub-builders are cached by concrete builder type, so a second `WithPersistence<EFCorePersistenceBuilder>(ef => ...)` reuses the same `EFCorePersistenceBuilder` and the new action delegate runs against it. Singleton-style verbs record the impl type they registered; same-type re-registration is a no-op, different-type calls throw `RCommonBuilderException` with both type names in the message.
 
 Conflict semantics are predictable across the entire surface — see the matrix below.
 
@@ -45,7 +45,7 @@ public sealed class OrderingModule : IServiceModule
     {
         services.AddRCommon()
             .WithSimpleGuidGenerator()
-            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 ef.AddDbContext<OrderingDbContext>(
                     "Ordering",
                     o => o.UseInMemoryDatabase("ordering")))
@@ -60,7 +60,7 @@ public sealed class InventoryModule : IServiceModule
     {
         services.AddRCommon()
             .WithSimpleGuidGenerator()          // Same impl as Ordering — idempotent no-op.
-            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 ef.AddDbContext<InventoryDbContext>(
                     "Inventory",
                     o => o.UseInMemoryDatabase("inventory")))
@@ -93,7 +93,7 @@ What happens at runtime:
 
 - `AddRCommon()` runs twice but returns the same builder on the second call.
 - `WithSimpleGuidGenerator()` runs twice; the second call detects the impl is already registered and is a no-op.
-- `WithPersistence<EFCorePerisistenceBuilder>` runs twice; the same persistence sub-builder is reused and `AddDbContext` accumulates both `"Ordering"` and `"Inventory"` data stores.
+- `WithPersistence<EFCorePersistenceBuilder>` runs twice; the same persistence sub-builder is reused and `AddDbContext` accumulates both `"Ordering"` and `"Inventory"` data stores.
 - Only the modules that opt in to event handling and caching pay the cost.
 
 A runnable three-module version of this example — including a producer registered twice and deduplicated — lives under `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/`.
@@ -105,7 +105,7 @@ The table below documents every verb category and what happens when it is called
 | Verb category | Same impl re-registered | Different impl |
 |---|---|---|
 | `AddRCommon()` | Returns the cached `IRCommonBuilder`. | n/a |
-| Sub-builder verbs (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, `WithCQRS<T>`, `WithValidation<T>`, `WithBlobStorage<T>`, `WithMultiTenancy<T>`, `WithUnitOfWork<T>`, `WithMemoryCaching<T>`, `WithDistributedCaching<T>`) | Cached sub-builder is reused; the supplied `Action<T>` runs against the same instance, so registrations accumulate. | Both sub-builders register side by side (e.g. `WithPersistence<EFCorePerisistenceBuilder>` + `WithPersistence<DapperPersistenceBuilder>`). |
+| Sub-builder verbs (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, `WithCQRS<T>`, `WithValidation<T>`, `WithBlobStorage<T>`, `WithMultiTenancy<T>`, `WithUnitOfWork<T>`, `WithMemoryCaching<T>`, `WithDistributedCaching<T>`) | Cached sub-builder is reused; the supplied `Action<T>` runs against the same instance, so registrations accumulate. | Both sub-builders register side by side (e.g. `WithPersistence<EFCorePersistenceBuilder>` + `WithPersistence<DapperPersistenceBuilder>`). |
 | Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) | Idempotent no-op. | Throws `RCommonBuilderException` with both impl type names and a remediation hint. |
 | `AddDbContext<TDbContext>(name, ...)` | Idempotent for the same `(name, TDbContext)` pair. | Throws `UnsupportedDataStoreException` when the same `name` is re-bound to a different `TDbContext`. |
 | `AddProducer<T>` | Same `T` is registered exactly once via descriptor scan. | Distinct `T` types coexist. |

@@ -23,7 +23,7 @@
     "permalink": "/docs/next/persistence/unit-of-work"
   },
   "next": {
-    "title": "Dapper",
-    "permalink": "/docs/next/persistence/dapper"
+    "title": "Aggregate Repository",
+    "permalink": "/docs/next/persistence/aggregate-repository"
   }
 }

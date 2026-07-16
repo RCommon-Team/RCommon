@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/cqrs-mediator/command-query-bus.mdx",
   "sourceDirName": "cqrs-mediator",
   "slug": "/cqrs-mediator/command-query-bus",
-  "permalink": "/docs/cqrs-mediator/command-query-bus",
+  "permalink": "/docs/2.4.1/cqrs-mediator/command-query-bus",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/cqrs-mediator/command-query-bus.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "CQRS & Mediator",
-    "permalink": "/docs/category/cqrs--mediator"
+    "permalink": "/docs/2.4.1/category/cqrs--mediator"
   },
   "next": {
     "title": "Commands & Handlers",
-    "permalink": "/docs/cqrs-mediator/commands-handlers"
+    "permalink": "/docs/2.4.1/cqrs-mediator/commands-handlers"
   }
 }

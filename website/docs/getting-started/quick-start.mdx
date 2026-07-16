@@ -1,4 +1,4 @@
----
+﻿---
 title: Quick Start Guide
 sidebar_position: 3
 description: "Build a .NET web API with RCommon in minutes — define entities, configure EF Core persistence, and query via ILinqRepository using a single fluent builder chain."
@@ -73,7 +73,7 @@ builder.Services.AddRCommon()
     .WithSequentialGuidGenerator(guid =>
         guid.DefaultSequentialGuidType = SequentialGuidType.SequentialAsString)
     .WithDateTimeSystem(dt => dt.Kind = DateTimeKind.Utc)
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<AppDbContext>("AppDb", options =>
         {
@@ -103,7 +103,7 @@ app.Run();
 
 ## 6. Inject and use the repository
 
-RCommon automatically registers `ILinqRepository<T>` for every entity once `EFCorePerisistenceBuilder` is configured. Inject it directly into your controllers, application services, or handlers.
+RCommon automatically registers `ILinqRepository<T>` for every entity once `EFCorePersistenceBuilder` is configured. Inject it directly into your controllers, application services, or handlers.
 
 ```csharp
 using RCommon.Persistence.Crud;
@@ -149,7 +149,7 @@ public class ProductsController : ControllerBase
 - `AddRCommon()` creates an `RCommonBuilder` and registers the core services: the in-memory event bus, the `EventSubscriptionManager`, and the `InMemoryTransactionalEventRouter`.
 - `WithSequentialGuidGenerator` registers `IGuidGenerator` as a transient `SequentialGuidGenerator`, useful for database-friendly ordered GUIDs.
 - `WithDateTimeSystem` registers `ISystemTime` so that auditing and time-dependent logic is testable.
-- `WithPersistence<EFCorePerisistenceBuilder>` registers the open-generic repository types (`ILinqRepository<>`, `IReadOnlyRepository<>`, `IWriteOnlyRepository<>`) backed by EF Core, and maps the named DbContext to the data store factory.
+- `WithPersistence<EFCorePersistenceBuilder>` registers the open-generic repository types (`ILinqRepository<>`, `IReadOnlyRepository<>`, `IWriteOnlyRepository<>`) backed by EF Core, and maps the named DbContext to the data store factory.
 - `WithUnitOfWork<DefaultUnitOfWorkBuilder>` registers `IUnitOfWork` and `IUnitOfWorkFactory` for transactional coordination.
 
 From here you can add CQRS mediation, event handling, validation, or any other RCommon feature by chaining additional `With*` calls on the builder.

@@ -1,4 +1,4 @@
----
+﻿---
 title: Dependency Injection
 sidebar_position: 5
 description: "How RCommon integrates with Microsoft.Extensions.DependencyInjection — service lifetimes, injecting repositories, IEventBus, ISystemTime, and named data stores."
@@ -17,7 +17,7 @@ When you call `AddRCommon()`, the `RCommonBuilder` receives the application's `I
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef => { ... })
+    .WithPersistence<EFCorePersistenceBuilder>(ef => { ... })
     .WithMediator<MediatRBuilder>(m => { ... });
 
 var app = builder.Build();
@@ -48,7 +48,7 @@ Understanding which lifetime each service uses helps you reason about when insta
 
 ### Repositories
 
-After calling `WithPersistence<EFCorePerisistenceBuilder>`, the open-generic repository interfaces are available for injection anywhere:
+After calling `WithPersistence<EFCorePersistenceBuilder>`, the open-generic repository interfaces are available for injection anywhere:
 
 ```csharp
 public class OrderService
@@ -177,7 +177,7 @@ RCommon does not prevent you from registering services before or after `AddRComm
 builder.Services.AddScoped<IOrderValidator, OrderValidator>();
 
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef => { ... });
+    .WithPersistence<EFCorePersistenceBuilder>(ef => { ... });
 
 builder.Services.AddScoped<INotificationService, EmailNotificationService>();
 ```
@@ -187,7 +187,7 @@ builder.Services.AddScoped<INotificationService, EmailNotificationService>();
 When you register multiple DbContexts (for example a write model and a read model), each gets a name:
 
 ```csharp
-.WithPersistence<EFCorePerisistenceBuilder>(ef =>
+.WithPersistence<EFCorePersistenceBuilder>(ef =>
 {
     ef.AddDbContext<WriteDbContext>("WriteDb", options =>
         options.UseSqlServer(writeConnectionString));
@@ -226,7 +226,7 @@ public sealed class OrderingModule : IServiceModule
     {
         services.AddRCommon()
             .WithSimpleGuidGenerator()
-            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 ef.AddDbContext<OrderingDbContext>(
                     "Ordering",
                     o => o.UseInMemoryDatabase("ordering")));
@@ -239,7 +239,7 @@ public sealed class InventoryModule : IServiceModule
     {
         services.AddRCommon()
             .WithSimpleGuidGenerator()          // Same impl — idempotent no-op.
-            .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 ef.AddDbContext<InventoryDbContext>(
                     "Inventory",
                     o => o.UseInMemoryDatabase("inventory")));
@@ -257,7 +257,7 @@ var host = Host.CreateDefaultBuilder(args)
     .Build();
 ```
 
-Both `WithPersistence<EFCorePerisistenceBuilder>` calls share the same persistence sub-builder, so both `AddDbContext` calls accumulate against one `DataStoreFactoryOptions`. The duplicate `WithSimpleGuidGenerator()` is a no-op because the impl type matches.
+Both `WithPersistence<EFCorePersistenceBuilder>` calls share the same persistence sub-builder, so both `AddDbContext` calls accumulate against one `DataStoreFactoryOptions`. The duplicate `WithSimpleGuidGenerator()` is a no-op because the impl type matches.
 
 See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable three-module example.
 

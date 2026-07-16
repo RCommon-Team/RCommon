@@ -19,8 +19,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "Transactional Outbox",
-    "permalink": "/docs/next/event-handling/transactional-outbox"
+    "title": "Outbox Producer/Processor Topology",
+    "permalink": "/docs/next/event-handling/outbox-producer-processor-topology"
   },
   "next": {
     "title": "MassTransit",

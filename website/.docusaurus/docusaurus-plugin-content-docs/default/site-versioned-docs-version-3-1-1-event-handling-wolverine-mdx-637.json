@@ -1,0 +1,29 @@
+{
+  "id": "event-handling/wolverine",
+  "title": "Wolverine",
+  "description": "Use Wolverine as an event transport in RCommon's event handling pipeline, registering ISubscriber handlers and choosing between fan-out publish or point-to-point send.",
+  "source": "@site/versioned_docs/version-3.1.1/event-handling/wolverine.mdx",
+  "sourceDirName": "event-handling",
+  "slug": "/event-handling/wolverine",
+  "permalink": "/docs/event-handling/wolverine",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/event-handling/wolverine.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "title": "Wolverine",
+    "sidebar_position": 7,
+    "description": "Use Wolverine as an event transport in RCommon's event handling pipeline, registering ISubscriber handlers and choosing between fan-out publish or point-to-point send."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "MassTransit",
+    "permalink": "/docs/event-handling/masstransit"
+  },
+  "next": {
+    "title": "Messaging",
+    "permalink": "/docs/category/messaging"
+  }
+}

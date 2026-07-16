@@ -1,4 +1,4 @@
----
+﻿---
 title: Overview
 sidebar_position: 1
 description: Learn how to test .NET applications built on RCommon using mocks, EF Core InMemory, and xUnit or NUnit base classes for unit and integration test strategies.
@@ -138,7 +138,7 @@ public class OrderRepositoryIntegrationTests : IDisposable
         services.AddLogging();
         services.AddSingleton<IEntityEventTracker, InMemoryEntityEventTracker>();
 
-        var builder = new EFCorePerisistenceBuilder(services);
+        var builder = new EFCorePersistenceBuilder(services);
         builder.AddDbContext<AppDbContext>("AppDb", options =>
             options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
         builder.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");

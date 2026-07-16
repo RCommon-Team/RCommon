@@ -9,15 +9,572 @@ export default [
   },
   {
     path: '/docs',
-    component: ComponentCreator('/docs', '732'),
+    component: ComponentCreator('/docs', 'd83'),
     routes: [
       {
+        path: '/docs/2.4.1',
+        component: ComponentCreator('/docs/2.4.1', '86f'),
+        routes: [
+          {
+            path: '/docs/2.4.1',
+            component: ComponentCreator('/docs/2.4.1', '37d'),
+            routes: [
+              {
+                path: '/docs/2.4.1',
+                component: ComponentCreator('/docs/2.4.1', '3b8'),
+                exact: true
+              },
+              {
+                path: '/docs/2.4.1/api-reference/changelog',
+                component: ComponentCreator('/docs/2.4.1/api-reference/changelog', '1bd'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/api-reference/migration-guide',
+                component: ComponentCreator('/docs/2.4.1/api-reference/migration-guide', '297'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/api-reference/nuget-packages',
+                component: ComponentCreator('/docs/2.4.1/api-reference/nuget-packages', '336'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/architecture-guides/clean-architecture',
+                component: ComponentCreator('/docs/2.4.1/architecture-guides/clean-architecture', 'f1e'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/architecture-guides/event-driven',
+                component: ComponentCreator('/docs/2.4.1/architecture-guides/event-driven', '972'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/architecture-guides/microservices',
+                component: ComponentCreator('/docs/2.4.1/architecture-guides/microservices', 'a57'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/blob-storage/azure',
+                component: ComponentCreator('/docs/2.4.1/blob-storage/azure', 'b8d'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/blob-storage/overview',
+                component: ComponentCreator('/docs/2.4.1/blob-storage/overview', '6d4'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/blob-storage/s3',
+                component: ComponentCreator('/docs/2.4.1/blob-storage/s3', '7a1'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/caching/memory',
+                component: ComponentCreator('/docs/2.4.1/caching/memory', 'd09'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/caching/overview',
+                component: ComponentCreator('/docs/2.4.1/caching/overview', '1cc'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/caching/redis',
+                component: ComponentCreator('/docs/2.4.1/caching/redis', '91c'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/api-reference',
+                component: ComponentCreator('/docs/2.4.1/category/api-reference', 'bda'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/architecture-guides',
+                component: ComponentCreator('/docs/2.4.1/category/architecture-guides', '17d'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/blob-storage',
+                component: ComponentCreator('/docs/2.4.1/category/blob-storage', 'eca'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/caching',
+                component: ComponentCreator('/docs/2.4.1/category/caching', 'b54'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/core-concepts',
+                component: ComponentCreator('/docs/2.4.1/category/core-concepts', 'eeb'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/cqrs--mediator',
+                component: ComponentCreator('/docs/2.4.1/category/cqrs--mediator', '363'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/domain-driven-design',
+                component: ComponentCreator('/docs/2.4.1/category/domain-driven-design', '37c'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/email',
+                component: ComponentCreator('/docs/2.4.1/category/email', 'ddc'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/event-handling',
+                component: ComponentCreator('/docs/2.4.1/category/event-handling', '689'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/examples--recipes',
+                component: ComponentCreator('/docs/2.4.1/category/examples--recipes', '62b'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/getting-started',
+                component: ComponentCreator('/docs/2.4.1/category/getting-started', '339'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/messaging',
+                component: ComponentCreator('/docs/2.4.1/category/messaging', '2df'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/multi-tenancy',
+                component: ComponentCreator('/docs/2.4.1/category/multi-tenancy', '9ee'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/persistence',
+                component: ComponentCreator('/docs/2.4.1/category/persistence', '774'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/security--web',
+                component: ComponentCreator('/docs/2.4.1/category/security--web', '01f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/serialization',
+                component: ComponentCreator('/docs/2.4.1/category/serialization', 'dfc'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/state-machines',
+                component: ComponentCreator('/docs/2.4.1/category/state-machines', '7c7'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/testing',
+                component: ComponentCreator('/docs/2.4.1/category/testing', 'd69'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/category/validation',
+                component: ComponentCreator('/docs/2.4.1/category/validation', '4bf'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/core-concepts/execution-results',
+                component: ComponentCreator('/docs/2.4.1/core-concepts/execution-results', '559'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/core-concepts/fluent-configuration',
+                component: ComponentCreator('/docs/2.4.1/core-concepts/fluent-configuration', 'd7c'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/core-concepts/guards',
+                component: ComponentCreator('/docs/2.4.1/core-concepts/guards', 'd0f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/core-concepts/guid-generation',
+                component: ComponentCreator('/docs/2.4.1/core-concepts/guid-generation', 'd9c'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/core-concepts/system-time',
+                component: ComponentCreator('/docs/2.4.1/core-concepts/system-time', 'fff'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/cqrs-mediator/command-query-bus',
+                component: ComponentCreator('/docs/2.4.1/cqrs-mediator/command-query-bus', '192'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/cqrs-mediator/commands-handlers',
+                component: ComponentCreator('/docs/2.4.1/cqrs-mediator/commands-handlers', 'f5f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/cqrs-mediator/mediatr',
+                component: ComponentCreator('/docs/2.4.1/cqrs-mediator/mediatr', '91f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/cqrs-mediator/queries-handlers',
+                component: ComponentCreator('/docs/2.4.1/cqrs-mediator/queries-handlers', '3b7'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/cqrs-mediator/wolverine',
+                component: ComponentCreator('/docs/2.4.1/cqrs-mediator/wolverine', '089'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/domain-driven-design/auditing',
+                component: ComponentCreator('/docs/2.4.1/domain-driven-design/auditing', 'cbb'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/domain-driven-design/domain-events',
+                component: ComponentCreator('/docs/2.4.1/domain-driven-design/domain-events', 'c9f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/domain-driven-design/entities-aggregates',
+                component: ComponentCreator('/docs/2.4.1/domain-driven-design/entities-aggregates', '086'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/domain-driven-design/soft-delete',
+                component: ComponentCreator('/docs/2.4.1/domain-driven-design/soft-delete', 'de7'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/domain-driven-design/value-objects',
+                component: ComponentCreator('/docs/2.4.1/domain-driven-design/value-objects', '635'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/email/overview',
+                component: ComponentCreator('/docs/2.4.1/email/overview', 'a99'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/email/sendgrid',
+                component: ComponentCreator('/docs/2.4.1/email/sendgrid', '98d'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/event-handling/distributed',
+                component: ComponentCreator('/docs/2.4.1/event-handling/distributed', '52b'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/event-handling/in-memory',
+                component: ComponentCreator('/docs/2.4.1/event-handling/in-memory', 'efa'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/event-handling/masstransit',
+                component: ComponentCreator('/docs/2.4.1/event-handling/masstransit', '5c2'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/event-handling/mediatr',
+                component: ComponentCreator('/docs/2.4.1/event-handling/mediatr', 'e13'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/event-handling/overview',
+                component: ComponentCreator('/docs/2.4.1/event-handling/overview', '4aa'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/event-handling/transactional-outbox',
+                component: ComponentCreator('/docs/2.4.1/event-handling/transactional-outbox', '3e6'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/event-handling/wolverine',
+                component: ComponentCreator('/docs/2.4.1/event-handling/wolverine', '30a'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/examples-recipes/caching',
+                component: ComponentCreator('/docs/2.4.1/examples-recipes/caching', 'd1a'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/examples-recipes/event-handling',
+                component: ComponentCreator('/docs/2.4.1/examples-recipes/event-handling', 'aa7'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/examples-recipes/hr-leave-management',
+                component: ComponentCreator('/docs/2.4.1/examples-recipes/hr-leave-management', 'eb2'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/examples-recipes/messaging',
+                component: ComponentCreator('/docs/2.4.1/examples-recipes/messaging', '0ef'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/getting-started/configuration',
+                component: ComponentCreator('/docs/2.4.1/getting-started/configuration', 'a30'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/getting-started/dependency-injection',
+                component: ComponentCreator('/docs/2.4.1/getting-started/dependency-injection', '5e4'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/getting-started/installation',
+                component: ComponentCreator('/docs/2.4.1/getting-started/installation', '8f4'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/getting-started/overview',
+                component: ComponentCreator('/docs/2.4.1/getting-started/overview', '925'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/getting-started/quick-start',
+                component: ComponentCreator('/docs/2.4.1/getting-started/quick-start', '1d4'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/messaging/masstransit',
+                component: ComponentCreator('/docs/2.4.1/messaging/masstransit', '746'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/messaging/overview',
+                component: ComponentCreator('/docs/2.4.1/messaging/overview', '526'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/messaging/state-machines',
+                component: ComponentCreator('/docs/2.4.1/messaging/state-machines', '5aa'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/messaging/transactional-outbox',
+                component: ComponentCreator('/docs/2.4.1/messaging/transactional-outbox', '190'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/messaging/wolverine',
+                component: ComponentCreator('/docs/2.4.1/messaging/wolverine', 'b04'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/multi-tenancy/finbuckle',
+                component: ComponentCreator('/docs/2.4.1/multi-tenancy/finbuckle', 'adb'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/multi-tenancy/overview',
+                component: ComponentCreator('/docs/2.4.1/multi-tenancy/overview', '0ec'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/caching-memory',
+                component: ComponentCreator('/docs/2.4.1/persistence/caching-memory', '336'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/caching-redis',
+                component: ComponentCreator('/docs/2.4.1/persistence/caching-redis', '91f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/dapper',
+                component: ComponentCreator('/docs/2.4.1/persistence/dapper', '69d'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/efcore',
+                component: ComponentCreator('/docs/2.4.1/persistence/efcore', 'c84'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/linq2db',
+                component: ComponentCreator('/docs/2.4.1/persistence/linq2db', '9e0'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/repository-pattern',
+                component: ComponentCreator('/docs/2.4.1/persistence/repository-pattern', '815'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/sagas',
+                component: ComponentCreator('/docs/2.4.1/persistence/sagas', 'a34'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/specifications',
+                component: ComponentCreator('/docs/2.4.1/persistence/specifications', '485'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/persistence/unit-of-work',
+                component: ComponentCreator('/docs/2.4.1/persistence/unit-of-work', '0e5'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/security-web/authorization',
+                component: ComponentCreator('/docs/2.4.1/security-web/authorization', '7c7'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/security-web/web-utilities',
+                component: ComponentCreator('/docs/2.4.1/security-web/web-utilities', '861'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/serialization/newtonsoft',
+                component: ComponentCreator('/docs/2.4.1/serialization/newtonsoft', '5a0'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/serialization/overview',
+                component: ComponentCreator('/docs/2.4.1/serialization/overview', '7d4'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/serialization/system-text-json',
+                component: ComponentCreator('/docs/2.4.1/serialization/system-text-json', '749'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/state-machines/overview',
+                component: ComponentCreator('/docs/2.4.1/state-machines/overview', '957'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/state-machines/stateless',
+                component: ComponentCreator('/docs/2.4.1/state-machines/stateless', '5b1'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/testing/overview',
+                component: ComponentCreator('/docs/2.4.1/testing/overview', '8f9'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/testing/test-base-classes',
+                component: ComponentCreator('/docs/2.4.1/testing/test-base-classes', 'eaa'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/2.4.1/validation/fluent-validation',
+                component: ComponentCreator('/docs/2.4.1/validation/fluent-validation', '090'),
+                exact: true,
+                sidebar: "docsSidebar"
+              }
+            ]
+          }
+        ]
+      },
+      {
         path: '/docs/next',
-        component: ComponentCreator('/docs/next', '1a8'),
+        component: ComponentCreator('/docs/next', 'ca4'),
         routes: [
           {
             path: '/docs/next',
-            component: ComponentCreator('/docs/next', 'bf6'),
+            component: ComponentCreator('/docs/next', '055'),
             routes: [
               {
                 path: '/docs/next',
@@ -343,6 +900,12 @@ export default [
                 sidebar: "docsSidebar"
               },
               {
+                path: '/docs/next/event-handling/outbox-producer-processor-topology',
+                component: ComponentCreator('/docs/next/event-handling/outbox-producer-processor-topology', 'fbb'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
                 path: '/docs/next/event-handling/overview',
                 component: ComponentCreator('/docs/next/event-handling/overview', '4d3'),
                 exact: true,
@@ -453,6 +1016,12 @@ export default [
               {
                 path: '/docs/next/multi-tenancy/overview',
                 component: ComponentCreator('/docs/next/multi-tenancy/overview', '2b4'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/next/persistence/aggregate-repository',
+                component: ComponentCreator('/docs/next/persistence/aggregate-repository', '83b'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
@@ -576,86 +1145,86 @@ export default [
       },
       {
         path: '/docs',
-        component: ComponentCreator('/docs', '06f'),
+        component: ComponentCreator('/docs', 'e7a'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', 'b2c'),
+            component: ComponentCreator('/docs', '3b2'),
             routes: [
               {
                 path: '/docs',
-                component: ComponentCreator('/docs', '71c'),
+                component: ComponentCreator('/docs', '20e'),
                 exact: true
               },
               {
                 path: '/docs/api-reference/changelog',
-                component: ComponentCreator('/docs/api-reference/changelog', 'f90'),
+                component: ComponentCreator('/docs/api-reference/changelog', '565'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/api-reference/migration-guide',
-                component: ComponentCreator('/docs/api-reference/migration-guide', 'e22'),
+                component: ComponentCreator('/docs/api-reference/migration-guide', '15d'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/api-reference/nuget-packages',
-                component: ComponentCreator('/docs/api-reference/nuget-packages', '922'),
+                component: ComponentCreator('/docs/api-reference/nuget-packages', '75c'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/architecture-guides/clean-architecture',
-                component: ComponentCreator('/docs/architecture-guides/clean-architecture', '393'),
+                component: ComponentCreator('/docs/architecture-guides/clean-architecture', '142'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/architecture-guides/event-driven',
-                component: ComponentCreator('/docs/architecture-guides/event-driven', '4d7'),
+                component: ComponentCreator('/docs/architecture-guides/event-driven', '6e9'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/architecture-guides/microservices',
-                component: ComponentCreator('/docs/architecture-guides/microservices', 'f82'),
+                component: ComponentCreator('/docs/architecture-guides/microservices', '7c5'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/blob-storage/azure',
-                component: ComponentCreator('/docs/blob-storage/azure', '371'),
+                component: ComponentCreator('/docs/blob-storage/azure', '871'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/blob-storage/overview',
-                component: ComponentCreator('/docs/blob-storage/overview', 'c52'),
+                component: ComponentCreator('/docs/blob-storage/overview', 'c02'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/blob-storage/s3',
-                component: ComponentCreator('/docs/blob-storage/s3', '2a4'),
+                component: ComponentCreator('/docs/blob-storage/s3', 'b3a'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/caching/memory',
-                component: ComponentCreator('/docs/caching/memory', '04d'),
+                component: ComponentCreator('/docs/caching/memory', '005'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/caching/overview',
-                component: ComponentCreator('/docs/caching/overview', '06f'),
+                component: ComponentCreator('/docs/caching/overview', 'a23'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/caching/redis',
-                component: ComponentCreator('/docs/caching/redis', 'f95'),
+                component: ComponentCreator('/docs/caching/redis', '416'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
@@ -775,355 +1344,366 @@ export default [
               },
               {
                 path: '/docs/core-concepts/execution-results',
-                component: ComponentCreator('/docs/core-concepts/execution-results', '762'),
+                component: ComponentCreator('/docs/core-concepts/execution-results', '900'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/core-concepts/fluent-configuration',
-                component: ComponentCreator('/docs/core-concepts/fluent-configuration', 'c31'),
+                component: ComponentCreator('/docs/core-concepts/fluent-configuration', '795'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/core-concepts/guards',
-                component: ComponentCreator('/docs/core-concepts/guards', '75e'),
+                component: ComponentCreator('/docs/core-concepts/guards', '276'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/core-concepts/guid-generation',
-                component: ComponentCreator('/docs/core-concepts/guid-generation', '1f1'),
+                component: ComponentCreator('/docs/core-concepts/guid-generation', '491'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/core-concepts/modular-composition',
+                component: ComponentCreator('/docs/core-concepts/modular-composition', '509'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/core-concepts/system-time',
-                component: ComponentCreator('/docs/core-concepts/system-time', '4cf'),
+                component: ComponentCreator('/docs/core-concepts/system-time', 'a78'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/cqrs-mediator/command-query-bus',
-                component: ComponentCreator('/docs/cqrs-mediator/command-query-bus', 'bc1'),
+                component: ComponentCreator('/docs/cqrs-mediator/command-query-bus', 'b33'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/cqrs-mediator/commands-handlers',
-                component: ComponentCreator('/docs/cqrs-mediator/commands-handlers', '083'),
+                component: ComponentCreator('/docs/cqrs-mediator/commands-handlers', 'eae'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/cqrs-mediator/mediatr',
-                component: ComponentCreator('/docs/cqrs-mediator/mediatr', 'e5f'),
+                component: ComponentCreator('/docs/cqrs-mediator/mediatr', '099'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/cqrs-mediator/queries-handlers',
-                component: ComponentCreator('/docs/cqrs-mediator/queries-handlers', 'af8'),
+                component: ComponentCreator('/docs/cqrs-mediator/queries-handlers', 'be0'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/cqrs-mediator/wolverine',
-                component: ComponentCreator('/docs/cqrs-mediator/wolverine', 'cad'),
+                component: ComponentCreator('/docs/cqrs-mediator/wolverine', 'b6a'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/domain-driven-design/auditing',
-                component: ComponentCreator('/docs/domain-driven-design/auditing', '07c'),
+                component: ComponentCreator('/docs/domain-driven-design/auditing', 'ef5'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/domain-driven-design/domain-events',
-                component: ComponentCreator('/docs/domain-driven-design/domain-events', '083'),
+                component: ComponentCreator('/docs/domain-driven-design/domain-events', 'e58'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/domain-driven-design/entities-aggregates',
-                component: ComponentCreator('/docs/domain-driven-design/entities-aggregates', '1b5'),
+                component: ComponentCreator('/docs/domain-driven-design/entities-aggregates', '521'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/domain-driven-design/soft-delete',
-                component: ComponentCreator('/docs/domain-driven-design/soft-delete', '3d7'),
+                component: ComponentCreator('/docs/domain-driven-design/soft-delete', '479'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/domain-driven-design/value-objects',
-                component: ComponentCreator('/docs/domain-driven-design/value-objects', '2a9'),
+                component: ComponentCreator('/docs/domain-driven-design/value-objects', '159'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/email/overview',
-                component: ComponentCreator('/docs/email/overview', '1da'),
+                component: ComponentCreator('/docs/email/overview', 'e52'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/email/sendgrid',
-                component: ComponentCreator('/docs/email/sendgrid', 'c9e'),
+                component: ComponentCreator('/docs/email/sendgrid', 'bdc'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/event-handling/distributed',
-                component: ComponentCreator('/docs/event-handling/distributed', '077'),
+                component: ComponentCreator('/docs/event-handling/distributed', 'a37'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/event-handling/in-memory',
-                component: ComponentCreator('/docs/event-handling/in-memory', '2d2'),
+                component: ComponentCreator('/docs/event-handling/in-memory', 'f5b'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/event-handling/masstransit',
-                component: ComponentCreator('/docs/event-handling/masstransit', 'f04'),
+                component: ComponentCreator('/docs/event-handling/masstransit', 'a58'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/event-handling/mediatr',
-                component: ComponentCreator('/docs/event-handling/mediatr', 'ff9'),
+                component: ComponentCreator('/docs/event-handling/mediatr', '74f'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
+                path: '/docs/event-handling/outbox-producer-processor-topology',
+                component: ComponentCreator('/docs/event-handling/outbox-producer-processor-topology', '1ba'),
+                exact: true
+              },
+              {
                 path: '/docs/event-handling/overview',
-                component: ComponentCreator('/docs/event-handling/overview', '79d'),
+                component: ComponentCreator('/docs/event-handling/overview', 'de6'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/event-handling/transactional-outbox',
-                component: ComponentCreator('/docs/event-handling/transactional-outbox', 'dde'),
+                component: ComponentCreator('/docs/event-handling/transactional-outbox', '7cb'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/event-handling/wolverine',
-                component: ComponentCreator('/docs/event-handling/wolverine', '94e'),
+                component: ComponentCreator('/docs/event-handling/wolverine', '81e'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/examples-recipes/caching',
-                component: ComponentCreator('/docs/examples-recipes/caching', 'ea3'),
+                component: ComponentCreator('/docs/examples-recipes/caching', 'ff5'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/examples-recipes/event-handling',
-                component: ComponentCreator('/docs/examples-recipes/event-handling', '5b6'),
+                component: ComponentCreator('/docs/examples-recipes/event-handling', '57f'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/examples-recipes/hr-leave-management',
-                component: ComponentCreator('/docs/examples-recipes/hr-leave-management', '3bd'),
+                component: ComponentCreator('/docs/examples-recipes/hr-leave-management', '1d2'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/examples-recipes/messaging',
-                component: ComponentCreator('/docs/examples-recipes/messaging', '63c'),
+                component: ComponentCreator('/docs/examples-recipes/messaging', 'c04'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/getting-started/configuration',
-                component: ComponentCreator('/docs/getting-started/configuration', '91a'),
+                component: ComponentCreator('/docs/getting-started/configuration', 'b9d'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/getting-started/dependency-injection',
-                component: ComponentCreator('/docs/getting-started/dependency-injection', 'e67'),
+                component: ComponentCreator('/docs/getting-started/dependency-injection', '6bf'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/getting-started/installation',
-                component: ComponentCreator('/docs/getting-started/installation', 'c31'),
+                component: ComponentCreator('/docs/getting-started/installation', '713'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/getting-started/overview',
-                component: ComponentCreator('/docs/getting-started/overview', '4a5'),
+                component: ComponentCreator('/docs/getting-started/overview', '388'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/getting-started/quick-start',
-                component: ComponentCreator('/docs/getting-started/quick-start', '099'),
+                component: ComponentCreator('/docs/getting-started/quick-start', '196'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/messaging/masstransit',
-                component: ComponentCreator('/docs/messaging/masstransit', '39e'),
+                component: ComponentCreator('/docs/messaging/masstransit', '9e4'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/messaging/overview',
-                component: ComponentCreator('/docs/messaging/overview', 'a4d'),
+                component: ComponentCreator('/docs/messaging/overview', '6f6'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/messaging/state-machines',
-                component: ComponentCreator('/docs/messaging/state-machines', '7fb'),
+                component: ComponentCreator('/docs/messaging/state-machines', 'ef5'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/messaging/transactional-outbox',
-                component: ComponentCreator('/docs/messaging/transactional-outbox', '4ed'),
+                component: ComponentCreator('/docs/messaging/transactional-outbox', '855'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/messaging/wolverine',
-                component: ComponentCreator('/docs/messaging/wolverine', '02a'),
+                component: ComponentCreator('/docs/messaging/wolverine', '842'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/multi-tenancy/finbuckle',
-                component: ComponentCreator('/docs/multi-tenancy/finbuckle', '00b'),
+                component: ComponentCreator('/docs/multi-tenancy/finbuckle', '9c2'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/multi-tenancy/overview',
-                component: ComponentCreator('/docs/multi-tenancy/overview', 'f0d'),
+                component: ComponentCreator('/docs/multi-tenancy/overview', '4d2'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/caching-memory',
-                component: ComponentCreator('/docs/persistence/caching-memory', '50a'),
+                component: ComponentCreator('/docs/persistence/caching-memory', '750'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/caching-redis',
-                component: ComponentCreator('/docs/persistence/caching-redis', '3fb'),
+                component: ComponentCreator('/docs/persistence/caching-redis', 'b17'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/dapper',
-                component: ComponentCreator('/docs/persistence/dapper', '502'),
+                component: ComponentCreator('/docs/persistence/dapper', '738'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/efcore',
-                component: ComponentCreator('/docs/persistence/efcore', '24d'),
+                component: ComponentCreator('/docs/persistence/efcore', 'bc2'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/linq2db',
-                component: ComponentCreator('/docs/persistence/linq2db', '70e'),
+                component: ComponentCreator('/docs/persistence/linq2db', 'fc9'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/repository-pattern',
-                component: ComponentCreator('/docs/persistence/repository-pattern', '47e'),
+                component: ComponentCreator('/docs/persistence/repository-pattern', '17e'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/sagas',
-                component: ComponentCreator('/docs/persistence/sagas', '194'),
+                component: ComponentCreator('/docs/persistence/sagas', '300'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/specifications',
-                component: ComponentCreator('/docs/persistence/specifications', 'e4c'),
+                component: ComponentCreator('/docs/persistence/specifications', 'fef'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/persistence/unit-of-work',
-                component: ComponentCreator('/docs/persistence/unit-of-work', '11a'),
+                component: ComponentCreator('/docs/persistence/unit-of-work', '27a'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/security-web/authorization',
-                component: ComponentCreator('/docs/security-web/authorization', '8d4'),
+                component: ComponentCreator('/docs/security-web/authorization', '906'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/security-web/web-utilities',
-                component: ComponentCreator('/docs/security-web/web-utilities', 'ea2'),
+                component: ComponentCreator('/docs/security-web/web-utilities', '6c7'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/serialization/newtonsoft',
-                component: ComponentCreator('/docs/serialization/newtonsoft', '8ec'),
+                component: ComponentCreator('/docs/serialization/newtonsoft', 'e2d'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/serialization/overview',
-                component: ComponentCreator('/docs/serialization/overview', '740'),
+                component: ComponentCreator('/docs/serialization/overview', 'd60'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/serialization/system-text-json',
-                component: ComponentCreator('/docs/serialization/system-text-json', '9c2'),
+                component: ComponentCreator('/docs/serialization/system-text-json', 'b35'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/state-machines/overview',
-                component: ComponentCreator('/docs/state-machines/overview', 'f5e'),
+                component: ComponentCreator('/docs/state-machines/overview', 'acf'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/state-machines/stateless',
-                component: ComponentCreator('/docs/state-machines/stateless', '1cc'),
+                component: ComponentCreator('/docs/state-machines/stateless', '16f'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/testing/overview',
-                component: ComponentCreator('/docs/testing/overview', '522'),
+                component: ComponentCreator('/docs/testing/overview', 'c28'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/testing/test-base-classes',
-                component: ComponentCreator('/docs/testing/test-base-classes', '1cd'),
+                component: ComponentCreator('/docs/testing/test-base-classes', '729'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
               {
                 path: '/docs/validation/fluent-validation',
-                component: ComponentCreator('/docs/validation/fluent-validation', '1bf'),
+                component: ComponentCreator('/docs/validation/fluent-validation', 'fd8'),
                 exact: true,
                 sidebar: "docsSidebar"
               }

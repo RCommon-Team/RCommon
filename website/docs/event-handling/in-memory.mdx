@@ -48,6 +48,28 @@ builder.Services.AddRCommon()
 
 Additional subscribers can be registered for the same event type; all of them will be called.
 
+### Additional AddSubscriber / AddProducer overloads
+
+If your handler needs constructor arguments that DI can't resolve on its own, use the factory-delegate overload of `AddSubscriber` instead of the parameterless one:
+
+```csharp
+eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>(
+    sp => new OrderPlacedHandler(sp.GetRequiredService<ILogger<OrderPlacedHandler>>(), extraArg: 42));
+```
+
+`AddProducer<T>` has two additional overloads beyond the parameterless `AddProducer<T>()` shown above:
+
+```csharp
+// Factory delegate -- same idea as AddSubscriber's factory overload.
+eventHandling.AddProducer<MyCustomProducer>(sp => new MyCustomProducer(sp.GetRequiredService<ISomeDependency>()));
+
+// Pre-built instance.
+var producer = new MyCustomProducer(preconfiguredClient);
+eventHandling.AddProducer(producer);
+```
+
+The instance overload (`AddProducer<T>(T producer)`) has a behaviorally significant side effect: if the instance you pass also implements `IHostedService`, it is additionally registered as a hosted service, so it participates in the host's start/stop lifecycle alongside being resolvable as `IEventProducer`. The parameterless and factory-delegate overloads do not do this.
+
 If you're registering a *different* producer (not `PublishWithEventBusEventProducer`) alongside subscribers on a custom `IEventHandlingBuilder`, RCommon's startup diagnostics will warn (once) if it ever finds a builder type with recorded subscriptions but zero registered producers — since that combination means the subscribers will silently never fire.
 
 :::tip Modular composition
@@ -175,3 +197,13 @@ eventBus.SubscribeAllHandledEvents<OrderPlacedHandler>();
 | `InMemoryTransactionalEventRouter` | Default `IEventRouter`; registered automatically by `AddRCommon` |
 | `ISyncEvent` | Marker; events produced sequentially |
 | `IAsyncEvent` | Marker; events produced concurrently |
+
+### `AddSubscriber` / `AddProducer` overloads
+
+| Method | Description |
+|---|---|
+| `AddSubscriber<TEvent,TEventHandler>()` | Registers `TEventHandler` as a scoped `ISubscriber<TEvent>`; auto-registers `PublishWithEventBusEventProducer`. |
+| `AddSubscriber<TEvent,TEventHandler>(Func<IServiceProvider,TEventHandler>)` | Same as above, constructing the handler via a factory delegate. |
+| `AddProducer<T>()` | Registers `T` as a singleton `IEventProducer`, deduplicated by concrete type. |
+| `AddProducer<T>(Func<IServiceProvider,T>)` | Same as above, constructing the producer via a factory delegate. |
+| `AddProducer<T>(T producer)` | Registers a pre-built producer instance. Also registers it as `IHostedService` if `producer` implements that interface. |

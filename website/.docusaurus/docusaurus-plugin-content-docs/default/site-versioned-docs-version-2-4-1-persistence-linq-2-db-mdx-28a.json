@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/persistence/linq2db.mdx",
   "sourceDirName": "persistence",
   "slug": "/persistence/linq2db",
-  "permalink": "/docs/persistence/linq2db",
+  "permalink": "/docs/2.4.1/persistence/linq2db",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/persistence/linq2db.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "Dapper",
-    "permalink": "/docs/persistence/dapper"
+    "permalink": "/docs/2.4.1/persistence/dapper"
   },
   "next": {
     "title": "Sagas",
-    "permalink": "/docs/persistence/sagas"
+    "permalink": "/docs/2.4.1/persistence/sagas"
   }
 }

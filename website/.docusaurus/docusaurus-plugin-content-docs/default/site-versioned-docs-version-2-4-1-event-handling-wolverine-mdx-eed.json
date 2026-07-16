@@ -5,7 +5,7 @@
   "source": "@site/versioned_docs/version-2.4.1/event-handling/wolverine.mdx",
   "sourceDirName": "event-handling",
   "slug": "/event-handling/wolverine",
-  "permalink": "/docs/event-handling/wolverine",
+  "permalink": "/docs/2.4.1/event-handling/wolverine",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-2.4.1/event-handling/wolverine.mdx",
@@ -19,10 +19,10 @@
   "sidebar": "docsSidebar",
   "previous": {
     "title": "MassTransit",
-    "permalink": "/docs/event-handling/masstransit"
+    "permalink": "/docs/2.4.1/event-handling/masstransit"
   },
   "next": {
     "title": "Messaging",
-    "permalink": "/docs/category/messaging"
+    "permalink": "/docs/2.4.1/category/messaging"
   }
 }

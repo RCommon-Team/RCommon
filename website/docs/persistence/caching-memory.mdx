@@ -1,4 +1,4 @@
----
+﻿---
 title: Caching with Memory
 sidebar_position: 7
 description: Decorate RCommon repositories with in-process memory caching using ICachingGraphRepository and caller-supplied cache keys, with write operations always bypassing the cache.
@@ -35,7 +35,7 @@ Call `AddInMemoryPersistenceCaching` or `AddDistributedMemoryPersistenceCaching`
 
 ```csharp
 builder.Services.AddRCommon()
-    .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
     {
         ef.AddDbContext<AppDbContext>(
             "AppDb",

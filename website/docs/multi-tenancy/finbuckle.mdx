@@ -1,4 +1,4 @@
----
+﻿---
 title: Finbuckle
 sidebar_position: 2
 description: RCommon.Finbuckle integrates Finbuckle.MultiTenant with RCommon's persistence layer, automatically scoping queries and entity writes to the request-resolved tenant.
@@ -56,7 +56,7 @@ builder.Services.AddRCommon(config =>
 {
     config
         .WithClaimsAndPrincipalAccessorForWeb()
-        .WithPersistence<EFCorePerisistenceBuilder>(ef =>
+        .WithPersistence<EFCorePersistenceBuilder>(ef =>
         {
             ef.AddDbContext<AppDbContext>(
                 "App",

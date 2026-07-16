@@ -1,0 +1,29 @@
+{
+  "id": "persistence/sagas",
+  "title": "Sagas",
+  "description": "Orchestrate long-running business processes with RCommon's saga framework using state machines, durable SagaState persistence, correlation IDs, and automatic compensation.",
+  "source": "@site/versioned_docs/version-3.1.1/persistence/sagas.mdx",
+  "sourceDirName": "persistence",
+  "slug": "/persistence/sagas",
+  "permalink": "/docs/persistence/sagas",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/RCommon-Team/RCommon/tree/main/website/versioned_docs/version-3.1.1/persistence/sagas.mdx",
+  "tags": [],
+  "version": "3.1.1",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "title": "Sagas",
+    "sidebar_position": 8,
+    "description": "Orchestrate long-running business processes with RCommon's saga framework using state machines, durable SagaState persistence, correlation IDs, and automatic compensation."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Linq2Db",
+    "permalink": "/docs/persistence/linq2db"
+  },
+  "next": {
+    "title": "Caching with Memory",
+    "permalink": "/docs/persistence/caching-memory"
+  }
+}
