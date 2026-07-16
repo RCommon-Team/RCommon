@@ -39,15 +39,20 @@ services.AddRCommon(builder =>
 });
 ```
 
-To enable automatic validation in the CQRS pipeline:
+To enable automatic validation in the CQRS pipeline, call `UseWithCqrs` on the validation builder inside the same configuration lambda:
 
 ```csharp
 services.AddRCommon(builder =>
 {
-    builder.WithValidation<FluentValidationBuilder>(options =>
+    builder.WithValidation<FluentValidationBuilder>(validation =>
     {
-        options.ValidateCommands = true;
-        options.ValidateQueries = true;
+        validation.AddValidatorsFromAssembly(typeof(CreateOrderDtoValidator).Assembly);
+
+        validation.UseWithCqrs(options =>
+        {
+            options.ValidateCommands = true;
+            options.ValidateQueries = true;
+        });
     });
 });
 ```
@@ -88,7 +93,7 @@ public class OrderService
 | `FluentValidationBuilder` | Registers `FluentValidationProvider` into the DI container |
 | `IFluentValidationBuilder` | Builder interface exposing `IServiceCollection` for validator registration |
 | `FluentValidationBuilderExtensions` | Provides `AddValidator<T, TValidator>()`, `AddValidatorsFromAssembly()`, and assembly scanning methods |
-| `ValidationBuilderExtensions` | Provides `WithValidation<T>()` on `IRCommonBuilder` for pipeline registration |
+| `ValidationBuilderExtensions` | `WithValidation<T>()` and `WithValidation<T>(Action<T>)` live in `RCommon.ApplicationServices`; use `UseWithCqrs(Action<CqrsValidationOptions>)` inside the latter's lambda to enable CQRS pipeline validation |
 
 ## Documentation
 

@@ -73,34 +73,28 @@ builder.Services.AddRCommon()
 
 ### Enable automatic CQRS pipeline validation
 
-Pass `CqrsValidationOptions` to activate validation in the command bus, the query bus, or both:
+Call `UseWithCqrs` on the validation builder, inside the same `WithValidation<T>(Action<T>)` lambda used to register validators, to activate validation in the command bus, the query bus, or both:
 
 ```csharp
 builder.Services.AddRCommon()
     .WithValidation<FluentValidationBuilder>(validation =>
     {
         validation.AddValidatorsFromAssemblyContaining(typeof(MyCommand));
-    })
-    // Enable auto-validation for commands only.
-    .WithValidation<FluentValidationBuilder>(opts =>
-    {
-        opts.ValidateCommands = true;
-        opts.ValidateQueries = false;
+
+        // Enable auto-validation for commands only.
+        validation.UseWithCqrs(opts =>
+        {
+            opts.ValidateCommands = true;
+            opts.ValidateQueries = false;
+        });
     });
 ```
 
-Alternatively, pass `CqrsValidationOptions` in the single `WithValidation` overload that accepts it:
+Both `ValidateCommands` and `ValidateQueries` default to `false`. `UseWithCqrs` is declared on `RCommon.ApplicationServices.ValidationBuilderExtensions` and extends `IValidationBuilder`, so it's available on `validation` inside the lambda without any additional `using`.
 
-```csharp
-builder.Services.AddRCommon()
-    .WithValidation<FluentValidationBuilder>(opts =>
-    {
-        opts.ValidateCommands = true;
-        opts.ValidateQueries = true;
-    });
-```
-
-Both `ValidateCommands` and `ValidateQueries` default to `false`.
+:::warning Migrating from `WithValidation<T>(Action<CqrsValidationOptions>)`
+An older overload — `.WithValidation<FluentValidationBuilder>(opts => { opts.ValidateCommands = true; })` passing `CqrsValidationOptions` directly to `WithValidation` — is `[Obsolete]`. It's still functional, but collided with `RCommon.ApplicationServices`'s own `WithValidation<T>(Action<T>)` overload in a way that made the zero-arg `.WithValidation<T>()` call ambiguous (CS0121) whenever both packages were referenced. Replace it with `UseWithCqrs` inside the `Action<T>` lambda as shown above — same effect, no ambiguity.
+:::
 
 :::tip Modular composition
 `WithValidation<T>` is cache-aware. Both the `RCommon.ApplicationServices` overload (`WithValidation<TBuilder>(...)`) and the `RCommon.FluentValidation` extension share the same builder cache, so when multiple modules call `WithValidation<FluentValidationBuilder>(...)` the cached `FluentValidationBuilder` is reused and each module's `AddValidator<T, TValidator>`, `AddValidatorsFromAssemblyContaining(...)`, and `AddValidatorsFromAssemblies(...)` registrations accumulate on the same instance. Each module can scan its own assembly for validators without coordinating with other modules. `CqrsValidationOptions` is a shared singleton: the last module to call the options overload wins for `ValidateCommands` / `ValidateQueries`. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
@@ -212,8 +206,10 @@ catch (ValidationException ex)
 
 | Method | Description |
 |--------|-------------|
-| `WithValidation<T>()` | Registers the validation provider with default `CqrsValidationOptions`. |
-| `WithValidation<T>(Action<CqrsValidationOptions>)` | Registers the validation provider and configures CQRS pipeline validation. |
+| `WithValidation<T>()` | Registers the validation provider with default `CqrsValidationOptions`. Declared once, in `RCommon.ApplicationServices`. |
+| `WithValidation<T>(Action<T>)` | Registers the validation provider and applies the given configuration action against it. Declared in `RCommon.ApplicationServices`. |
+| `UseWithCqrs(Action<CqrsValidationOptions>)` | Extension on `IValidationBuilder` (call inside the `Action<T>` lambda above) that configures CQRS pipeline validation. Declared in `RCommon.ApplicationServices`. |
+| `WithValidation<T>(Action<CqrsValidationOptions>)` | **Obsolete.** Declared in `RCommon.FluentValidation`; use `UseWithCqrs` inside `WithValidation<T>(Action<T>)` instead (see the migration note above). |
 
 ### `IFluentValidationBuilder` extension methods
 

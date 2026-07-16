@@ -73,34 +73,28 @@ builder.Services.AddRCommon()
 
 ### Enable automatic CQRS pipeline validation
 
-Pass `CqrsValidationOptions` to activate validation in the command bus, the query bus, or both:
+Call `UseWithCqrs` on the validation builder, inside the same `WithValidation<T>(Action<T>)` lambda used to register validators, to activate validation in the command bus, the query bus, or both:
 
 ```csharp
 builder.Services.AddRCommon()
     .WithValidation<FluentValidationBuilder>(validation =>
     {
         validation.AddValidatorsFromAssemblyContaining(typeof(MyCommand));
-    })
-    // Enable auto-validation for commands only.
-    .WithValidation<FluentValidationBuilder>(opts =>
-    {
-        opts.ValidateCommands = true;
-        opts.ValidateQueries = false;
-    });
-```
 
-Alternatively, pass `CqrsValidationOptions` in the single `WithValidation` overload that accepts it:
-
-```csharp
-builder.Services.AddRCommon()
-    .WithValidation<FluentValidationBuilder>(opts =>
-    {
-        opts.ValidateCommands = true;
-        opts.ValidateQueries = true;
+        // Enable auto-validation for commands only.
+        validation.UseWithCqrs(opts =>
+        {
+            opts.ValidateCommands = true;
+            opts.ValidateQueries = false;
+        });
     });
 ```
 
 Both `ValidateCommands` and `ValidateQueries` default to `false`.
+
+:::warning Migrating from `WithValidation<T>(Action<CqrsValidationOptions>)`
+An older overload — `.WithValidation<FluentValidationBuilder>(opts => { opts.ValidateCommands = true; })` passing `CqrsValidationOptions` directly to `WithValidation` — is `[Obsolete]` as of 3.1.2. It's still functional, but collided with `RCommon.ApplicationServices`'s own `WithValidation<T>(Action<T>)` overload in a way that made the zero-arg `.WithValidation<T>()` call ambiguous (CS0121) whenever both packages were referenced. Replace it with `UseWithCqrs` inside the `Action<T>` lambda as shown above — same effect, no ambiguity.
+:::
 
 :::tip Modular composition
 `WithValidation<T>` is cache-aware. Both the `RCommon.ApplicationServices` overload (`WithValidation<TBuilder>(...)`) and the `RCommon.FluentValidation` extension share the same builder cache, so when multiple modules call `WithValidation<FluentValidationBuilder>(...)` the cached `FluentValidationBuilder` is reused and each module's `AddValidator<T, TValidator>`, `AddValidatorsFromAssemblyContaining(...)`, and `AddValidatorsFromAssemblies(...)` registrations accumulate on the same instance. Each module can scan its own assembly for validators without coordinating with other modules. `CqrsValidationOptions` is a shared singleton: the last module to call the options overload wins for `ValidateCommands` / `ValidateQueries`. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
