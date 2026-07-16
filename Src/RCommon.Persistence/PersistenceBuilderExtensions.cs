@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using RCommon.Entities;
 using RCommon.EventHandling.Producers;
 using RCommon.EventHandling.Subscribers;
@@ -45,6 +46,11 @@ namespace RCommon
         {
             // Register NullTenantIdAccessor as default; concrete multitenancy packages override this
             builder.Services.TryAddTransient<ITenantIdAccessor, NullTenantIdAccessor>();
+
+            // Infers DefaultDataStoreOptions.DefaultDataStoreName when exactly one data store is
+            // registered and no explicit SetDefaultDataStore(...) call was made.
+            builder.Services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IPostConfigureOptions<DefaultDataStoreOptions>, DefaultDataStoreOptionsPostConfigure>());
 
             var dataConfiguration = builder.GetOrAddBuilder<TObjectAccess>(
                 () => (TObjectAccess)Activator.CreateInstance(typeof(TObjectAccess), new object[] { builder.Services })!);

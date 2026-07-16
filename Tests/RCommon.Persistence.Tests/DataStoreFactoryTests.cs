@@ -109,6 +109,55 @@ public class DataStoreFactoryTests
     }
 
     [Fact]
+    public void Resolve_WithEmptyName_ThrowsWithRemediationMessage()
+    {
+        // Arrange
+        _options.Register<TestDataStoreBase, TestDataStore>("Store1");
+        var factory = new DataStoreFactory(_mockServiceProvider.Object, _mockOptions.Object);
+
+        // Act
+        var action = () => factory.Resolve<TestDataStoreBase>(string.Empty);
+
+        // Assert -- names both remediation paths and lists what's actually registered
+        action.Should().Throw<DataStoreNotFoundException>()
+            .WithMessage("*DataStoreName*")
+            .WithMessage("*SetDefaultDataStore*")
+            .WithMessage("*Store1*");
+    }
+
+    [Fact]
+    public void Resolve_WithEmptyName_AndNoRegisteredStores_ListsNoneRegistered()
+    {
+        // Arrange
+        var factory = new DataStoreFactory(_mockServiceProvider.Object, _mockOptions.Object);
+
+        // Act
+        var action = () => factory.Resolve<TestDataStoreBase>(string.Empty);
+
+        // Assert
+        action.Should().Throw<DataStoreNotFoundException>()
+            .WithMessage("*(none)*");
+    }
+
+    [Fact]
+    public void Resolve_WithWrongNameOrType_MessageListsRegisteredNames()
+    {
+        // Arrange
+        _options.Register<TestDataStoreBase, TestDataStore>("Store1");
+        _options.Register<TestDataStoreBase, TestDataStore>("Store2");
+        var factory = new DataStoreFactory(_mockServiceProvider.Object, _mockOptions.Object);
+
+        // Act
+        var action = () => factory.Resolve<TestDataStoreBase>("NoSuchStore");
+
+        // Assert
+        action.Should().Throw<DataStoreNotFoundException>()
+            .WithMessage("*NoSuchStore*")
+            .WithMessage("*Store1*")
+            .WithMessage("*Store2*");
+    }
+
+    [Fact]
     public void Resolve_WithMultipleRegistrations_ReturnsCorrectDataStore()
     {
         // Arrange
