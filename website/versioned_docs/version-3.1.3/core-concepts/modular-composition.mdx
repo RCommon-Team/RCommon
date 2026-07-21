@@ -1,0 +1,191 @@
+﻿---
+title: Modular Composition
+sidebar_position: 2
+description: Compose AddRCommon across multiple modules in a single process — registrations merge, never duplicate or throw on agreement.
+---
+
+# Modular Composition
+
+## Overview
+
+RCommon's bootstrapper supports modular composition: any number of modules in the same process can independently call `services.AddRCommon().WithX(...)` and the registrations merge predictably. Sub-builders are cached by concrete type, singleton-style verbs are idempotent on same-type re-registration, and conflicts (different impls competing for the same slot) throw with a diagnostic message that names both types.
+
+This page documents the contract. For the underlying builder API itself, see [Fluent Configuration](./fluent-configuration.mdx).
+
+## The problem
+
+Before modular composition, `AddRCommon()` assumed a single composition root. Applications that organized startup around feature-folders or per-module wiring could not safely invoke `AddRCommon()` from more than one place:
+
+- Calling `AddRCommon()` twice double-registered `IEventBus`, `EventSubscriptionManager`, and `IEventRouter`.
+- Internal guard flags on the builder reset on the second call, masking subsequent conflicts.
+- `DataStoreFactoryOptions` accepted duplicate `(name, base)` mappings and silently overwrote earlier ones.
+- Singleton-style verbs such as `WithSimpleGuidGenerator` and `WithDateTimeSystem` threw on every second call — even when the second call agreed with the first.
+
+The net effect: modular apps had to funnel all RCommon wiring through a single static method, which defeated the purpose of modular composition.
+
+## The solution
+
+`AddRCommon()` is now idempotent. The first call constructs an `IRCommonBuilder` and stashes it on `IServiceCollection`; subsequent calls return the same cached instance. Sub-builders are cached by concrete builder type, so a second `WithPersistence<EFCorePersistenceBuilder>(ef => ...)` reuses the same `EFCorePersistenceBuilder` and the new action delegate runs against it. Singleton-style verbs record the impl type they registered; same-type re-registration is a no-op, different-type calls throw `RCommonBuilderException` with both type names in the message.
+
+Conflict semantics are predictable across the entire surface — see the matrix below.
+
+## A two-module example
+
+Define a minimal module contract and let each module configure RCommon independently:
+
+```csharp
+public interface IServiceModule
+{
+    void Configure(IServiceCollection services);
+}
+
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
+                ef.AddDbContext<OrderingDbContext>(
+                    "Ordering",
+                    o => o.UseInMemoryDatabase("ordering")))
+            .WithEventHandling<InMemoryEventBusBuilder>(eh =>
+                eh.AddProducer<AuditProducer>());
+    }
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services)
+    {
+        services.AddRCommon()
+            .WithSimpleGuidGenerator()          // Same impl as Ordering — idempotent no-op.
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
+                ef.AddDbContext<InventoryDbContext>(
+                    "Inventory",
+                    o => o.UseInMemoryDatabase("inventory")))
+            .WithMemoryCaching<InMemoryCachingBuilder>();
+    }
+}
+```
+
+Compose them inside `Host.CreateDefaultBuilder`:
+
+```csharp
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        IServiceModule[] modules =
+        {
+            new OrderingModule(),
+            new InventoryModule(),
+        };
+
+        foreach (var module in modules)
+        {
+            module.Configure(services);
+        }
+    })
+    .Build();
+```
+
+What happens at runtime:
+
+- `AddRCommon()` runs twice but returns the same builder on the second call.
+- `WithSimpleGuidGenerator()` runs twice; the second call detects the impl is already registered and is a no-op.
+- `WithPersistence<EFCorePersistenceBuilder>` runs twice; the same persistence sub-builder is reused and `AddDbContext` accumulates both `"Ordering"` and `"Inventory"` data stores.
+- Only the modules that opt in to event handling and caching pay the cost.
+
+A runnable three-module version of this example — including a producer registered twice and deduplicated — lives under `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/`.
+
+## Conflict semantics
+
+The table below documents every verb category and what happens when it is called more than once.
+
+| Verb category | Same impl re-registered | Different impl |
+|---|---|---|
+| `AddRCommon()` | Returns the cached `IRCommonBuilder`. | n/a |
+| Sub-builder verbs (`WithPersistence<T>`, `WithMediator<T>`, `WithEventHandling<T>`, `WithCQRS<T>`, `WithValidation<T>`, `WithBlobStorage<T>`, `WithMultiTenancy<T>`, `WithUnitOfWork<T>`, `WithMemoryCaching<T>`, `WithDistributedCaching<T>`) | Cached sub-builder is reused; the supplied `Action<T>` runs against the same instance, so registrations accumulate. | Both sub-builders register side by side (e.g. `WithPersistence<EFCorePersistenceBuilder>` + `WithPersistence<DapperPersistenceBuilder>`). |
+| Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) | Idempotent no-op. | Throws `RCommonBuilderException` with both impl type names and a remediation hint. |
+| `AddDbContext<TDbContext>(name, ...)` | Idempotent for the same `(name, TDbContext)` pair. | Throws `UnsupportedDataStoreException` when the same `name` is re-bound to a different `TDbContext`. |
+| `AddProducer<T>` | Same `T` is registered exactly once via descriptor scan. | Distinct `T` types coexist. |
+| Parameterless verbs (`WithStatelessStateMachine`, `WithMassTransitStateMachine`, `WithClaimsAndPrincipalAccessor`) | `TryAdd`-hardened — idempotent. | n/a |
+
+The "Same impl" column is what makes modular composition usable: modules can independently declare their requirements without coordinating with other modules.
+
+## New helper APIs
+
+### `IServiceCollection.IsRCommonInitialized()`
+
+Returns `true` if any module in the process has already called `AddRCommon()`. Useful when a module's behavior depends on whether RCommon is in play:
+
+```csharp
+if (!services.IsRCommonInitialized())
+{
+    // First module to wire RCommon — set up shared infrastructure once.
+}
+services.AddRCommon().WithSimpleGuidGenerator();
+```
+
+You rarely need to call this guard in normal usage because `AddRCommon()` is idempotent. It is most valuable in libraries that want to skip optional wiring entirely when RCommon is absent.
+
+### `IRCommonBuilder.GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder>)`
+
+The hook that third-party `WithX<T>` extensions use to opt into sub-builder caching. The factory is invoked at most once per `TSubBuilder` per process:
+
+```csharp
+public static IRCommonBuilder WithMyFeature<TBuilder>(
+    this IRCommonBuilder builder,
+    Action<TBuilder> configure)
+    where TBuilder : class, IMyFeatureBuilder, new()
+{
+    var sub = builder.GetOrAddBuilder<TBuilder>(() => new TBuilder { Services = builder.Services });
+    configure(sub);
+    return builder;
+}
+```
+
+When two modules call `WithMyFeature<MyBuilder>(...)`, only the first call constructs `MyBuilder`. The second call retrieves the cached instance and runs its `configure` delegate against it.
+
+### `IRCommonBuilder.GetBootstrapDiagnostics()`
+
+After the host starts, an internal `IHostedService` scans the registered descriptors for soft duplicates and stashes a human-readable report on the builder. Retrieve it like this:
+
+```csharp
+var host = builder.Build();
+await host.StartAsync();
+
+var rcommon = host.Services.GetRequiredService<IRCommonBuilder>();
+var report = rcommon.GetBootstrapDiagnostics();
+if (!string.IsNullOrEmpty(report))
+{
+    Console.WriteLine("Bootstrap diagnostics:");
+    Console.WriteLine(report);
+}
+```
+
+When the descriptor scan finds nothing suspicious, `GetBootstrapDiagnostics()` returns `string.Empty`. The same report is also emitted as a single warning via `ILoggerFactory` during host startup.
+
+## Diagnostics at startup
+
+The duplicate-descriptor scanner runs once when the host starts. It is registered automatically by `AddRCommon()` as a hosted service and:
+
+1. Walks `IServiceCollection` after all modules have configured services.
+2. Groups descriptors by `(ServiceType, ImplementationType, Lifetime)`.
+3. Emits a single warning through `ILoggerFactory` when duplicates are present.
+4. Stashes the same report on the builder so application code can read it via `GetBootstrapDiagnostics()`.
+
+"Soft duplicates" are descriptors that share `ServiceType` + `ImplementationType` but were not deduped automatically — typically a sign that a custom extension is bypassing the cache. Hardened built-in verbs do not produce soft duplicates.
+
+## What's NOT thread-safe
+
+Bootstrap is single-threaded by contract. The cached builder and its sub-builders are not protected by locks. Modules must run their `Configure(IServiceCollection)` calls serially, exactly as `Host.CreateDefaultBuilder(args).ConfigureServices(...)` does. Once `host.Build()` returns, the service provider is fully constructed and standard DI thread-safety applies.
+
+If you parallelize module wiring you will see intermittent missing registrations and lost configuration actions. Don't.
+
+## See also
+
+- `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` — a runnable three-module demonstration including producer deduplication and the diagnostic report.
+- [Fluent Configuration](./fluent-configuration.mdx) — the underlying builder API.
+- [GUID Generation](./guid-generation.mdx) — singleton-style verb that participates in the conflict matrix.
+- [System Time](./system-time.mdx) — same.
