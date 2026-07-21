@@ -88,7 +88,11 @@ public class TransferService
 }
 ```
 
-Disposing the `IUnitOfWork` without calling `CommitAsync` rolls back the transaction.
+Disposing the `IUnitOfWork` without calling `CommitAsync` rolls back the transaction. When `AutoCompleteScope` is `false`, this rollback discards any writes made in the scope with no exception — a forgotten `CommitAsync` (or a repository write invoked outside a committing scope) is otherwise silent. RCommon logs a **Warning** on this dispose-without-commit path so the discarded work is visible; enable `AutoCompleteScope` or call `CommitAsync` if the changes were meant to persist.
+
+:::warning Use `CommitAsync`, not the obsolete `Commit()`
+The synchronous `Commit()` is `[Obsolete]` and completes the transaction only — it does **not** run outbox persistence or domain-event dispatch, so any pending domain events on tracked entities are dropped. When events are pending it now logs a Warning, but always prefer `CommitAsync`, which persists and dispatches events correctly. (The `AutoCompleteScope`-on-dispose path routes through `Commit()`, so if you rely on auto-complete with domain events, commit explicitly with `CommitAsync`.)
+:::
 
 ### Specifying transaction mode and isolation level
 

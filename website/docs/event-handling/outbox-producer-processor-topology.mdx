@@ -82,6 +82,18 @@ This is a narrow guard, **not** the cross-host fix. An in-process producer that 
 
 The poller dispatches through the in-process producer, which publishes to the in-memory bus. The bus resolves **all** `ISubscriber<TEvent>` registrations from the DI container for the event's runtime type. That means a subscriber registered directly with `services.AddScoped<ISubscriber<TEvent>, THandler>()` is resolved by the poller just as one registered through an event-handling builder's `AddSubscriber<TEvent, THandler>()`.
 
+Because the poller is the terminal dispatcher, **every** event type that flows through the outbox must have its subscriber registered on the poller (processor) host. A common mistake with `ImmediateDispatch = false` is registering a subscriber only on the producer host: the poller drains the row, finds no matching subscriber, marks it processed, and the event is silently dropped. The poller now logs a **Warning once per event type** in this case:
+
+> Outbox poller drained event type `{EventType}` but no matching subscriber/producer is registered on this host; the message will be marked processed and not delivered. Ensure the subscriber for this event type is registered on the poller (processor) host.
+
+## Outbox routing must not be overridden
+
+`AddOutbox` binds `IEventRouter` to the outbox router. Because DI is last-registration-wins, an event-handling registration applied *after* `AddOutbox` can silently rebind `IEventRouter` to the in-memory router, which defeats the outbox entirely — events would fire in-process and never be persisted. To catch this, `AddOutbox` registers a startup diagnostic that logs a **Warning** when the effective `IEventRouter` is the in-memory router:
+
+> RCommon outbox is configured (AddOutbox) but the effective IEventRouter is the in-memory router; a later registration overrode the outbox router. Domain events will be dispatched in-memory and NOT persisted to the outbox. Register AddOutbox after any event-handling configuration that binds IEventRouter, or re-assert the outbox router last.
+
+If you see this warning, ensure `AddOutbox<TOutboxStore>(...)` runs **after** any `WithEventHandling<...>` configuration that binds `IEventRouter`.
+
 ## Related
 
 - [Transactional Outbox](./transactional-outbox.mdx) — the MassTransit/Wolverine transport-integrated outbox (different mechanism)
