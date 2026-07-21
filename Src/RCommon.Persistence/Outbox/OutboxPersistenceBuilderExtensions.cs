@@ -51,6 +51,12 @@ public static class OutboxPersistenceBuilderExtensions
         // Background processing service (singleton)
         builder.Services.AddHostedService<OutboxProcessingService>();
 
+        // Startup diagnostic: warn if a later registration silently overrode the outbox IEventRouter.
+        builder.Services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService>(sp =>
+            new OutboxRoutingDiagnosticsHostedService(
+                builder.Services,
+                sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>()));
+
         // Options
         if (configure != null)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,7 @@ public class OutboxProcessingService : BackgroundService
     private readonly IBackoffStrategy _backoffStrategy;
     private readonly string _instanceId = Guid.NewGuid().ToString("N");
     private DateTimeOffset _lastCleanupUtc = DateTimeOffset.MinValue;
+    private readonly HashSet<string> _warnedEventTypesWithoutSubscriber = new();
 
     public OutboxProcessingService(
         IServiceProvider serviceProvider,
@@ -84,9 +86,23 @@ public class OutboxProcessingService : BackgroundService
                 }
 
                 var @event = serializer.Deserialize(message.EventType, message.EventPayload);
-                var filteredProducers = subscriptionManager.HasSubscriptions
+                var filteredProducers = (subscriptionManager.HasSubscriptions
                     ? subscriptionManager.GetProducersForEvent(producers, @event.GetType())
-                    : producers;
+                    : producers).ToList();
+
+                // The poller is the terminal dispatcher: if no producer/subscriber on this host matches the
+                // event, the row is marked processed below and nothing ever handles it. In a producer/processor
+                // topology (ImmediateDispatch = false) this usually means a subscriber was registered on the
+                // producer host but not on the poller host. Surface it (once per event type) instead of
+                // silently dropping the event.
+                if (filteredProducers.Count == 0 && _warnedEventTypesWithoutSubscriber.Add(message.EventType))
+                {
+                    _logger.LogWarning(
+                        "Outbox poller drained event type {EventType} but no matching subscriber/producer is " +
+                        "registered on this host; the message will be marked processed and not delivered. " +
+                        "Ensure the subscriber for this event type is registered on the poller (processor) host.",
+                        message.EventType);
+                }
 
                 foreach (var producer in filteredProducers)
                 {

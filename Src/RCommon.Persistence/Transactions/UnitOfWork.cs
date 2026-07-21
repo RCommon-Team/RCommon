@@ -82,8 +82,47 @@ namespace RCommon.Persistence.Transactions
             Guard.Against<UnitOfWorkException>(_state == UnitOfWorkState.Completed,
                 "This unit of work scope has been marked completed. A child scope participating in the " +
                 "transaction has rolledback and the transaction aborted. The parent scope cannot be commited.");
+
+            // The synchronous Commit() path only completes the transaction scope; it deliberately does NOT
+            // run the outbox persistence (Phase 1) or dispatch (Phase 3) that CommitAsync performs. If the
+            // tracker holds entities with pending domain events, those events would be silently dropped
+            // here (and equally on the AutoComplete-on-dispose path, which routes through this method).
+            // Fail loud so the data loss is visible instead of silent.
+            if (HasPendingTrackedEvents())
+            {
+                _logger.LogWarning(
+                    "UnitOfWork {TransactionId}: synchronous Commit() cannot persist or dispatch pending " +
+                    "domain events (Phase 1/Phase 3 are skipped); {Count} tracked entity(ies) carry events " +
+                    "that will be discarded. Call CommitAsync instead to route events through the outbox.",
+                    TransactionId,
+                    _eventTracker!.TrackedEntities.Count);
+            }
+
             _state = UnitOfWorkState.CommitAttempted;
             this.Complete();
+        }
+
+        /// <summary>
+        /// Determines whether the event tracker is holding any tracked entity that carries un-dispatched
+        /// local (domain) events — i.e. events that a synchronous commit would silently discard.
+        /// </summary>
+        private bool HasPendingTrackedEvents()
+        {
+            var tracked = _eventTracker?.TrackedEntities;
+            if (tracked == null)
+            {
+                return false;
+            }
+
+            foreach (var entity in tracked)
+            {
+                if (entity?.LocalEvents?.Count > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
@@ -172,6 +211,22 @@ namespace RCommon.Persistence.Transactions
                     {
                         //Scope either tried a commit before or auto complete is turned off. Trying to rollback.
                         //If an exception occurs here, the finally block will clean things up for us.
+
+                        // A UnitOfWork disposed in the Created state (no commit ever attempted) with
+                        // AutoComplete off means the ambient transaction is about to roll back — any
+                        // repository writes made in this scope are silently discarded with no error.
+                        // Surface it so a forgotten CommitAsync (or a missing [UnitOfWork] filter) is
+                        // not a silent no-op.
+                        if (_state == UnitOfWorkState.Created)
+                        {
+                            _logger.LogWarning(
+                                "UnitOfWork {TransactionId} was disposed without a successful CommitAsync and " +
+                                "AutoComplete is off; the transaction did not complete and any writes made in " +
+                                "this scope were rolled back. Call CommitAsync (or enable AutoComplete) if the " +
+                                "changes were meant to persist.",
+                                TransactionId);
+                        }
+
                         this.Rollback();
                     }
                 }

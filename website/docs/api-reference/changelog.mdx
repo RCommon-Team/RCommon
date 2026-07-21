@@ -12,6 +12,20 @@ The authoritative release history for all RCommon packages is maintained on GitH
 
 ## Recent Changes
 
+### 3.1.3
+
+Outbox silent-failure hardening. Every change is observability-only (new warnings and a startup diagnostic); no method or interface signatures changed and no runtime behavior changed on the success path — fully backward-compatible.
+
+**Fixed**
+
+- **Synchronous `UnitOfWork.Commit()` silently dropped pending domain events.** The obsolete `Commit()` completes the transaction but deliberately skips outbox persistence (Phase 1) and dispatch (Phase 3), so any tracked entity carrying domain events lost them with no error. `Commit()` now logs a `Warning` when the event tracker holds entities with un-dispatched local events, directing callers to `CommitAsync`. Because the `AutoComplete`-on-dispose path routes through `Commit()`, that path is now covered too.
+- **`UnitOfWork` disposed without a successful commit was a silent rollback.** With `AutoComplete` off, disposing a unit of work that never called `CommitAsync` rolls back the ambient transaction and discards any writes made in the scope with no error (e.g. a repository write invoked outside a committing `[UnitOfWork]` scope). The dispose-without-commit path now logs a `Warning` so the discarded work is visible.
+- **Outbox poller silently dropped events with no subscriber.** When the durable `OutboxProcessingService` drains a message whose event type has no matching subscriber/producer on the poller (processor) host, it marks the row processed and moves on. It now logs a `Warning` once per event type, surfacing the common producer/processor topology mistake of registering a subscriber only on the producer host.
+
+**Added**
+
+- **Outbox routing startup diagnostic.** `AddOutbox` now registers a hosted diagnostic that warns at startup when the effective `IEventRouter` is the in-memory router instead of the outbox router — i.e. a later event-handling registration silently overrode outbox routing (DI is last-registration-wins), which would cause events to fire in-memory and never persist to the outbox.
+
 ### 3.1.2
 
 Modular composition, bootstrapping ergonomics, opt-in CQRS transactions, and a docs consolidation pass covering navigation, eight new runnable examples, an end-to-end DDD recipe, and a machine-readable full API reference. All changes in this release are backward-compatible.

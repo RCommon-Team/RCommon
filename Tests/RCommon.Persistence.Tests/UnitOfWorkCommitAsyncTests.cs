@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using RCommon.Entities;
 using RCommon.EventHandling;
+using RCommon.Models.Events;
 using RCommon.Persistence.Transactions;
 using Xunit;
 
@@ -83,6 +85,96 @@ public class UnitOfWorkCommitAsyncTests
         #pragma warning restore CS0618
         uow.State.Should().Be(UnitOfWorkState.Completed);
         mockTracker.Verify(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private static Mock<IEntityEventTracker> TrackerWithPendingEvents()
+    {
+        var entity = new Mock<IBusinessEntity>();
+        entity.Setup(e => e.LocalEvents).Returns(new List<ISerializableEvent> { Mock.Of<ISerializableEvent>() });
+        var mockTracker = new Mock<IEntityEventTracker>();
+        mockTracker.Setup(t => t.TrackedEntities).Returns(new List<IBusinessEntity> { entity.Object });
+        return mockTracker;
+    }
+
+    private void VerifyWarningLogged(Times times)
+    {
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times);
+    }
+
+    [Fact]
+    public void Commit_Obsolete_Warns_When_Tracker_Has_Pending_Events()
+    {
+        // Sync Commit() skips Phase 1 (outbox persistence) and Phase 3 (dispatch), so pending domain
+        // events are silently dropped. It must fail loud rather than silently discard them.
+        var mockTracker = TrackerWithPendingEvents();
+        using var uow = new UnitOfWork(
+            _mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object, mockTracker.Object);
+        #pragma warning disable CS0618
+        uow.Commit();
+        #pragma warning restore CS0618
+        uow.State.Should().Be(UnitOfWorkState.Completed);
+        VerifyWarningLogged(Times.Once());
+    }
+
+    [Fact]
+    public void Commit_Obsolete_Does_Not_Warn_When_No_Pending_Events()
+    {
+        // A tracked entity with no local events loses nothing on a sync commit -> no false-positive warning.
+        var entity = new Mock<IBusinessEntity>();
+        entity.Setup(e => e.LocalEvents).Returns(new List<ISerializableEvent>());
+        var mockTracker = new Mock<IEntityEventTracker>();
+        mockTracker.Setup(t => t.TrackedEntities).Returns(new List<IBusinessEntity> { entity.Object });
+        using var uow = new UnitOfWork(
+            _mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object, mockTracker.Object);
+        #pragma warning disable CS0618
+        uow.Commit();
+        #pragma warning restore CS0618
+        VerifyWarningLogged(Times.Never());
+    }
+
+    [Fact]
+    public void Dispose_Without_Commit_Warns_That_Transaction_Was_Rolled_Back()
+    {
+        // AutoComplete is off. Disposing without a successful CommitAsync rolls back the ambient
+        // transaction, silently discarding any writes made in the scope with no error. Fail loud.
+        _settings.AutoCompleteScope = false;
+        using (new UnitOfWork(_mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object))
+        {
+            // no commit attempted
+        }
+        VerifyWarningLogged(Times.Once());
+    }
+
+    [Fact]
+    public async Task Dispose_After_CommitAsync_Does_Not_Warn_About_Rollback()
+    {
+        _settings.AutoCompleteScope = false;
+        var uow = new UnitOfWork(_mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object);
+        await uow.CommitAsync();
+        uow.Dispose();
+        VerifyWarningLogged(Times.Never());
+    }
+
+    [Fact]
+    public void Dispose_AutoComplete_Warns_When_Tracker_Has_Pending_Events()
+    {
+        // AutoComplete-on-dispose routes through the obsolete sync Commit(), so it too silently drops
+        // pending events. The warning must surface on this path as well.
+        _settings.AutoCompleteScope = true;
+        var mockTracker = TrackerWithPendingEvents();
+        using (new UnitOfWork(
+            _mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object, mockTracker.Object))
+        {
+            // no explicit commit; dispose auto-completes
+        }
+        VerifyWarningLogged(Times.Once());
     }
 
     [Fact]
