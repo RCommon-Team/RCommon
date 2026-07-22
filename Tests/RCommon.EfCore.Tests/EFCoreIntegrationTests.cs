@@ -301,6 +301,8 @@ public class TestEntityEventTracker : IEntityEventTracker
     {
         return Task.FromResult(true);
     }
+
+    public Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 }
 
 /// <summary>

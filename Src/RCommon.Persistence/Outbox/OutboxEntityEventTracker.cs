@@ -94,4 +94,12 @@ public class OutboxEntityEventTracker : IEntityEventTracker
         await _outboxRouter.RouteEventsAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// No-op for the outbox tracker (Phase-2 mechanism-first). Pre-commit in-process domain dispatch for
+    /// outbox-owning datastores is wired by the Phase-3 route map, not here; the Phase-1 persist/relay behavior
+    /// of <see cref="PersistEventsAsync"/> and <see cref="EmitTransactionalEventsAsync"/> is preserved.
+    /// </remarks>
+    public Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 }

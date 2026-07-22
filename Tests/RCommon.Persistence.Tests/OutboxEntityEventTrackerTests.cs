@@ -84,6 +84,34 @@ public class OutboxEntityEventTrackerTests
     }
 
     [Fact]
+    public async Task DispatchDomainEventsAsync_Is_A_NoOp_For_The_Outbox_Tracker()
+    {
+        // Phase-2 mechanism-first: pre-commit domain dispatch for outbox-owning datastores is wired by the
+        // Phase-3 route map, so the outbox tracker's DispatchDomainEventsAsync must NOT touch the store or
+        // otherwise disturb Phase-1 behavior. Use a strict store mock to assert zero interaction.
+        var strictStore = new Mock<IOutboxStore>(MockBehavior.Strict);
+        var tenantMock = new Mock<ITenantIdAccessor>();
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        var strictRouter = new OutboxEventRouter(
+            strictStore.Object,
+            new JsonOutboxSerializer(),
+            _guidGenMock.Object,
+            tenantMock.Object,
+            serviceProviderMock.Object,
+            new EventSubscriptionManager(),
+            NullLogger<OutboxEventRouter>.Instance,
+            Options.Create(new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
+        var innerTracker = new InMemoryEntityEventTracker(strictRouter);
+        var tracker = new OutboxEntityEventTracker(innerTracker, strictRouter);
+        tracker.AddEntity(new TrackerTestEntity(new TrackerTestEvent("a")), "A");
+
+        await tracker.DispatchDomainEventsAsync();
+
+        strictStore.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task PersistEventsAsync_PersistsEachEntityEventToItsOwnDataStore()
     {
         var perStore = new Dictionary<string, int>();

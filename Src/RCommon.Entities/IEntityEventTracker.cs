@@ -56,5 +56,14 @@ namespace RCommon.Entities
         /// <param name="cancellationToken">A token to observe for cancellation requests.</param>
         /// <returns>True if successful</returns>
         Task<bool> EmitTransactionalEventsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Dispatches the in-process domain events for every tracked entity graph <em>before</em> the unit of work
+        /// commits. Events already present on the tracked entities at commit time are seeded into the event router's
+        /// FIFO queue, and any events raised by handlers running during the drain (for example, a handler that mutates
+        /// a seeded entity) flow into the same queue so they are dispatched in the same pre-commit pass.
+        /// </summary>
+        /// <param name="cancellationToken">A token to observe for cancellation requests.</param>
+        Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default);
     }
 }

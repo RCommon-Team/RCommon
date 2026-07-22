@@ -246,22 +246,22 @@ public class InMemoryEntityEventTrackerTests
     }
 
     [Fact]
-    public async Task EmitTransactionalEventsAsync_WithTrackedEntity_CallsRouteEventsAsync()
+    public async Task DispatchDomainEventsAsync_WithTrackedEntity_CallsRouteEventsAsync()
     {
-        // Arrange
+        // Arrange — dispatch moved to DispatchDomainEventsAsync (pre-commit)
         var tracker = new InMemoryEntityEventTracker(_mockEventRouter.Object);
         var entity = new TestEntity(_faker.Random.Int(1, 1000));
         tracker.AddEntity(entity);
 
         // Act
-        await tracker.EmitTransactionalEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
 
         // Assert
         _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task EmitTransactionalEventsAsync_WithEntityHavingLocalEvents_AddsEventsToRouter()
+    public async Task DispatchDomainEventsAsync_WithEntityHavingLocalEvents_AddsEventsToRouter()
     {
         // Arrange
         var tracker = new InMemoryEntityEventTracker(_mockEventRouter.Object);
@@ -271,11 +271,11 @@ public class InMemoryEntityEventTrackerTests
         tracker.AddEntity(entity);
 
         // Act
-        await tracker.EmitTransactionalEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
 
-        // Assert
+        // Assert — seeded per-event via AddTransactionalEvent (singular)
         _mockEventRouter.Verify(
-            x => x.AddTransactionalEvents(It.IsAny<IEnumerable<ISerializableEvent>>()),
+            x => x.AddTransactionalEvent(testEvent),
             Times.AtLeastOnce);
     }
 
@@ -297,7 +297,7 @@ public class InMemoryEntityEventTrackerTests
     }
 
     [Fact]
-    public async Task EmitTransactionalEventsAsync_WithMultipleEntities_ProcessesAllEntities()
+    public async Task DispatchDomainEventsAsync_WithMultipleEntities_ProcessesAllEntities()
     {
         // Arrange
         var tracker = new InMemoryEntityEventTracker(_mockEventRouter.Object);
@@ -316,15 +316,14 @@ public class InMemoryEntityEventTrackerTests
         }
 
         // Act
-        var result = await tracker.EmitTransactionalEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
 
-        // Assert
-        result.Should().BeTrue();
+        // Assert — a single drain covers all tracked entities
         _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task EmitTransactionalEventsAsync_WithEntityWithoutEvents_StillCallsRouteEvents()
+    public async Task DispatchDomainEventsAsync_WithEntityWithoutEvents_StillCallsRouteEvents()
     {
         // Arrange
         var tracker = new InMemoryEntityEventTracker(_mockEventRouter.Object);
@@ -333,14 +332,14 @@ public class InMemoryEntityEventTrackerTests
         tracker.AddEntity(entity);
 
         // Act
-        await tracker.EmitTransactionalEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
 
         // Assert
         _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task EmitTransactionalEventsAsync_WithMultipleEventsOnSingleEntity_AddsAllEvents()
+    public async Task DispatchDomainEventsAsync_WithMultipleEventsOnSingleEntity_AddsAllEvents()
     {
         // Arrange
         var tracker = new InMemoryEntityEventTracker(_mockEventRouter.Object);
@@ -358,12 +357,12 @@ public class InMemoryEntityEventTrackerTests
         tracker.AddEntity(entity);
 
         // Act
-        await tracker.EmitTransactionalEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
 
-        // Assert
+        // Assert — each local event is seeded individually via AddTransactionalEvent (singular)
         _mockEventRouter.Verify(
-            x => x.AddTransactionalEvents(It.Is<IEnumerable<ISerializableEvent>>(e => e.Count() == 5)),
-            Times.AtLeastOnce);
+            x => x.AddTransactionalEvent(It.IsAny<ISerializableEvent>()),
+            Times.Exactly(5));
     }
 
     #endregion
@@ -411,16 +410,15 @@ public class InMemoryEntityEventTrackerTests
         // Act
         tracker.AddEntity(entity1);
         tracker.AddEntity(entity2);
-        var result = await tracker.EmitTransactionalEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
 
         // Assert
-        result.Should().BeTrue();
         tracker.TrackedEntities.Should().HaveCount(2);
         _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task EmitTransactionalEventsAsync_CalledMultipleTimes_CallsRouteEventsEachTime()
+    public async Task DispatchDomainEventsAsync_CalledMultipleTimes_CallsRouteEventsEachTime()
     {
         // Arrange
         var tracker = new InMemoryEntityEventTracker(_mockEventRouter.Object);
@@ -428,9 +426,9 @@ public class InMemoryEntityEventTrackerTests
         tracker.AddEntity(entity);
 
         // Act
-        await tracker.EmitTransactionalEventsAsync();
-        await tracker.EmitTransactionalEventsAsync();
-        await tracker.EmitTransactionalEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
 
         // Assert
         _mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Exactly(3));

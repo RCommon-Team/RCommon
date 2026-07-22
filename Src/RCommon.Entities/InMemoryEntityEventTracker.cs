@@ -13,7 +13,7 @@ namespace RCommon.Entities
     /// </summary>
     /// <remarks>
     /// Entities are held in memory for the lifetime of this tracker instance. When
-    /// <see cref="EmitTransactionalEventsAsync"/> is called, the tracker traverses each entity's
+    /// <see cref="DispatchDomainEventsAsync"/> is called (pre-commit), the tracker traverses each entity's
     /// object graph to collect all local events and routes them via the configured
     /// <see cref="IEventRouter"/>.
     /// <para>
@@ -80,24 +80,64 @@ namespace RCommon.Entities
 
         /// <inheritdoc />
         /// <remarks>
-        /// Traverses the object graph of each tracked entity to discover nested <see cref="IBusinessEntity"/>
-        /// instances, collects their local events, and routes all events through the <see cref="IEventRouter"/>.
+        /// No-op for the in-memory tracker. In-process domain-event dispatch now happens pre-commit in
+        /// <see cref="DispatchDomainEventsAsync"/>; this method is retained for interface and outbox-decorator
+        /// compatibility and always reports success.
         /// </remarks>
-        public async Task<bool> EmitTransactionalEventsAsync(CancellationToken cancellationToken = default)
-        {
-            // Walk each tracked root entity and traverse its object graph for nested IBusinessEntity instances
-            foreach (var (entity, _) in _trackedPairs)
-            {
-                var entityGraph = entity.TraverseGraphFor<IBusinessEntity>();
+        public Task<bool> EmitTransactionalEventsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(true);
 
-                // Collect local events from every entity in the graph (root + children)
-                foreach (var graphEntity in entityGraph)
+        /// <inheritdoc />
+        /// <remarks>
+        /// Subscribes to <see cref="BusinessEntity.TransactionalEventAdded"/> on every entity in every tracked graph
+        /// so that events raised DURING the drain (by a handler mutating a seeded entity) flow into the same
+        /// <see cref="IEventRouter"/> FIFO. The queue is first seeded from the local events already present at commit
+        /// time, then drained to empty via <see cref="IEventRouter.RouteEventsAsync(CancellationToken)"/>. Handlers
+        /// are always unsubscribed afterwards.
+        /// <para>
+        /// The entire seed loop (attach handler + enqueue existing local events for every graph entity) completes
+        /// before the drain is awaited, so by the time any handler runs all seeded entities are already subscribed.
+        /// Seeding reads <see cref="IBusinessEntity.LocalEvents"/> directly (it does not call
+        /// <c>AddLocalEvent</c>), so no event is double-enqueued. The mid-drain capture only applies to entities
+        /// deriving from <see cref="BusinessEntity"/> (the source of the <c>TransactionalEventAdded</c> notification);
+        /// their already-present local events are seeded regardless of concrete type.
+        /// </para>
+        /// </remarks>
+        public async Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default)
+        {
+            var subscribed = new List<BusinessEntity>();
+            void Handler(object? sender, TransactionalEventsChangedEventArgs args)
+                => _eventRouter.AddTransactionalEvent(args.EventData);
+
+            try
+            {
+                foreach (var (entity, _) in _trackedPairs)
                 {
-                    _eventRouter.AddTransactionalEvents(graphEntity.LocalEvents);
+                    foreach (var graphEntity in entity.TraverseGraphFor<IBusinessEntity>())
+                    {
+                        // Subscribe for mid-drain capture where the notification is available (BusinessEntity).
+                        if (graphEntity is BusinessEntity businessEntity)
+                        {
+                            businessEntity.TransactionalEventAdded += Handler;
+                            subscribed.Add(businessEntity);
+                        }
+
+                        foreach (var localEvent in graphEntity.LocalEvents)
+                        {
+                            _eventRouter.AddTransactionalEvent(localEvent); // seed => generation 0
+                        }
+                    }
+                }
+
+                await _eventRouter.RouteEventsAsync(cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                foreach (var entity in subscribed)
+                {
+                    entity.TransactionalEventAdded -= Handler;
                 }
             }
-            await _eventRouter.RouteEventsAsync(cancellationToken).ConfigureAwait(false);
-            return true;
         }
     }
 }
