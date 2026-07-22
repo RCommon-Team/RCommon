@@ -119,84 +119,78 @@ public class MassTransitOutboxCoordinationSpikeTests
     public async Task Publish_inside_RCommon_UnitOfWork_stages_atomically_into_MassTransit_outbox()
     {
         await using var provider = BuildProvider();
-        var bus = provider.GetRequiredService<IBusControl>();
-        await bus.StartAsync();
-        try
+
+        // NOTE: the bus is deliberately NOT started here. Bus-outbox STAGING is performed by the
+        // scoped IPublishEndpoint plus the DbContext SavingChanges interceptor during SaveChanges;
+        // it does not require IBusControl.StartAsync(). Starting the bus would spin up the
+        // BusOutboxDeliveryService sweeper, which could deliver+DELETE the staged OutboxMessage row
+        // before CountRowsAsync reads it -- a flaky 1->0 false-negative. Not starting the bus means
+        // no sweeper runs, so the staged row is stable for the assertion. (The rollback test proves
+        // the interceptor path also works with the bus stopped, confirming staging is independent of
+        // bus start.)
+        await EnsureSchemaAsync(provider);
+
+        using (var scope = provider.CreateScope())
         {
-            await EnsureSchemaAsync(provider);
+            var sp = scope.ServiceProvider;
+            var uowFactory = sp.GetRequiredService<IUnitOfWorkFactory>();
+            var ctx = sp.GetRequiredService<SpikeDbContext>();
+            // The scoped IPublishEndpoint is the bus-outbox endpoint (stages to the DbContext).
+            var publish = sp.GetRequiredService<IPublishEndpoint>();
 
-            using (var scope = provider.CreateScope())
-            {
-                var sp = scope.ServiceProvider;
-                var uowFactory = sp.GetRequiredService<IUnitOfWorkFactory>();
-                var ctx = sp.GetRequiredService<SpikeDbContext>();
-                // The scoped IPublishEndpoint is the bus-outbox endpoint (stages to the DbContext).
-                var publish = sp.GetRequiredService<IPublishEndpoint>();
+            using var uow = uowFactory.Create();
 
-                using var uow = uowFactory.Create();
+            ctx.Widgets.Add(new SpikeWidget { Name = "atomic" });
+            await publish.Publish(new SpikeIntegrationEvent(Guid.NewGuid(), "atomic"));
 
-                ctx.Widgets.Add(new SpikeWidget { Name = "atomic" });
-                await publish.Publish(new SpikeIntegrationEvent(Guid.NewGuid(), "atomic"));
+            // The bus outbox writes OutboxMessage rows during THIS DbContext's SaveChanges.
+            // That SaveChanges must enlist in the ambient TransactionScope for atomicity.
+            await ctx.SaveChangesAsync();
 
-                // The bus outbox writes OutboxMessage rows during THIS DbContext's SaveChanges.
-                // That SaveChanges must enlist in the ambient TransactionScope for atomicity.
-                await ctx.SaveChangesAsync();
-
-                await uow.CommitAsync();
-            }
-
-            var (widgets, outboxMessages) = await CountRowsAsync(provider);
-
-            // SPIKE FINDING (atomic commit): expect BOTH the business row and one MT outbox row.
-            // If Npgsql enlisted SaveChanges in RCommon's ambient TransactionScope, both are present.
-            widgets.Should().Be(1, "the business row should be committed");
-            outboxMessages.Should().Be(1,
-                "the MassTransit bus-outbox row should have been staged in the same SaveChanges/transaction");
+            await uow.CommitAsync();
         }
-        finally
-        {
-            await bus.StopAsync();
-        }
+
+        var (widgets, outboxMessages) = await CountRowsAsync(provider);
+
+        // SPIKE FINDING (atomic commit): expect BOTH the business row and one MT outbox row.
+        // If Npgsql enlisted SaveChanges in RCommon's ambient TransactionScope, both are present.
+        widgets.Should().Be(1, "the business row should be committed");
+        outboxMessages.Should().Be(1,
+            "the MassTransit bus-outbox row should have been staged in the same SaveChanges/transaction");
     }
 
     [Fact]
     public async Task Publish_inside_rolled_back_UnitOfWork_persists_neither()
     {
         await using var provider = BuildProvider();
-        var bus = provider.GetRequiredService<IBusControl>();
-        await bus.StartAsync();
-        try
+
+        // Bus deliberately NOT started (see the atomic-commit test): staging goes through the
+        // SaveChanges interceptor, not the bus delivery service.
+        await EnsureSchemaAsync(provider);
+
+        using (var scope = provider.CreateScope())
         {
-            await EnsureSchemaAsync(provider);
+            var sp = scope.ServiceProvider;
+            var uowFactory = sp.GetRequiredService<IUnitOfWorkFactory>();
+            var ctx = sp.GetRequiredService<SpikeDbContext>();
+            var publish = sp.GetRequiredService<IPublishEndpoint>();
 
-            using (var scope = provider.CreateScope())
-            {
-                var sp = scope.ServiceProvider;
-                var uowFactory = sp.GetRequiredService<IUnitOfWorkFactory>();
-                var ctx = sp.GetRequiredService<SpikeDbContext>();
-                var publish = sp.GetRequiredService<IPublishEndpoint>();
+            using var uow = uowFactory.Create();
 
-                using var uow = uowFactory.Create();
+            ctx.Widgets.Add(new SpikeWidget { Name = "rollback" });
+            await publish.Publish(new SpikeIntegrationEvent(Guid.NewGuid(), "rollback"));
+            await ctx.SaveChangesAsync();
 
-                ctx.Widgets.Add(new SpikeWidget { Name = "rollback" });
-                await publish.Publish(new SpikeIntegrationEvent(Guid.NewGuid(), "rollback"));
-                await ctx.SaveChangesAsync();
-
-                // Deliberately do NOT commit. Disposing the UoW without CommitAsync rolls back the
-                // ambient TransactionScope (AutoComplete is off by default).
-            }
-
-            var (widgets, outboxMessages) = await CountRowsAsync(provider);
-
-            // SPIKE FINDING (rollback): expect NEITHER row to survive if SaveChanges enlisted in the
-            // rolled-back TransactionScope.
-            widgets.Should().Be(0, "the business row should have been rolled back");
-            outboxMessages.Should().Be(0, "the MT outbox row should have been rolled back");
+            // Deliberately do NOT commit. Disposing the UoW without CommitAsync rolls back the
+            // ambient TransactionScope (AutoComplete is off by default).
         }
-        finally
-        {
-            await bus.StopAsync();
-        }
+
+        var (widgets, outboxMessages) = await CountRowsAsync(provider);
+
+        // SPIKE FINDING (rollback): expect NEITHER row to survive if SaveChanges enlisted in the
+        // rolled-back TransactionScope.
+        widgets.Should().Be(0, "the business row should have been rolled back");
+        outboxMessages.Should().Be(0, "the MT outbox row should have been rolled back");
     }
 
     /// <summary>
