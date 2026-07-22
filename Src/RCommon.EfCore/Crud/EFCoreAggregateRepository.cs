@@ -158,7 +158,7 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public override async Task AddAsync(TAggregate entity, CancellationToken token = default)
         {
-            EventTracker.AddEntity(entity);
+            EventTracker.AddEntity(entity, this.DataStoreName);
             MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
             await ObjectSet.AddAsync(entity, token).ConfigureAwait(false);
             await SaveAsync(token).ConfigureAwait(false);
@@ -179,7 +179,7 @@ namespace RCommon.Persistence.EFCore.Crud
                 return;
             }
 
-            EventTracker.AddEntity(entity);
+            EventTracker.AddEntity(entity, this.DataStoreName);
             ObjectSet.Remove(entity);
             await SaveAsync().ConfigureAwait(false);
         }
@@ -199,7 +199,7 @@ namespace RCommon.Persistence.EFCore.Crud
             if (!isSoftDelete)
             {
                 // Bypass auto-detection — force a physical delete
-                EventTracker.AddEntity(entity);
+                EventTracker.AddEntity(entity, this.DataStoreName);
                 ObjectSet.Remove(entity);
                 await SaveAsync().ConfigureAwait(false);
                 return;
@@ -284,7 +284,7 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public async override Task UpdateAsync(TAggregate entity, CancellationToken token = default)
         {
-            EventTracker.AddEntity(entity);
+            EventTracker.AddEntity(entity, this.DataStoreName);
             TrackForUpdate(entity);
             await SaveAsync(token).ConfigureAwait(false);
         }
@@ -579,7 +579,7 @@ namespace RCommon.Persistence.EFCore.Crud
             // track each entity and stamp tenant prior to adding
             foreach (var entity in entities)
             {
-                EventTracker.AddEntity(entity);
+                EventTracker.AddEntity(entity, this.DataStoreName);
                 MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
             }
 
@@ -620,7 +620,7 @@ namespace RCommon.Persistence.EFCore.Crud
         /// </summary>
         async Task IAggregateRepository<TAggregate, TKey>.AddAsync(TAggregate aggregate, CancellationToken cancellationToken)
         {
-            EventTracker.AddEntity(aggregate);
+            EventTracker.AddEntity(aggregate, this.DataStoreName);
             MultiTenantHelper.SetTenantIdIfApplicable(aggregate, _tenantIdAccessor.GetTenantId());
             await ObjectSet.AddAsync(aggregate, cancellationToken).ConfigureAwait(false);
             await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -643,13 +643,13 @@ namespace RCommon.Persistence.EFCore.Crud
             if (SoftDeleteHelper.IsSoftDeletable<TAggregate>())
             {
                 SoftDeleteHelper.MarkAsDeleted(aggregate);
-                EventTracker.AddEntity(aggregate);
+                EventTracker.AddEntity(aggregate, this.DataStoreName);
                 TrackForUpdate(aggregate);
                 await SaveAsync(cancellationToken).ConfigureAwait(false);
                 return;
             }
 
-            EventTracker.AddEntity(aggregate);
+            EventTracker.AddEntity(aggregate, this.DataStoreName);
             ObjectSet.Remove(aggregate);
             await SaveAsync(cancellationToken).ConfigureAwait(false);
         }

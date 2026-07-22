@@ -78,15 +78,16 @@ public class AggregateEventTrackingDiscoverabilityTests : IDisposable
         // Act
         await lineItemRepository.AddAsync(lineItem);
 
-        // Assert -- the child itself is registered for event tracking (existing, correct behavior)...
-        _mockEventTracker.Verify(t => t.AddEntity(lineItem), Times.Once);
+        // Assert -- the child itself is registered for event tracking with its datastore name
+        // (AC-8: repository now passes DataStoreName to the tracker)...
+        _mockEventTracker.Verify(t => t.AddEntity(lineItem, _dataStoreName), Times.Once);
 
         // ...but the parent aggregate is never touched -- if it raised a domain event before this
         // call (e.g. order.AddLineItem(lineItem) internally calling AddDomainEvent), that event
         // will never be dispatched unless the caller explicitly calls
         // IEntityEventTracker.AddEntity(order) themselves, per the documented contract.
-        _mockEventTracker.Verify(t => t.AddEntity(order), Times.Never);
-        _mockEventTracker.Verify(t => t.AddEntity(It.Is<IBusinessEntity>(e => e == (IBusinessEntity)order)), Times.Never);
+        _mockEventTracker.Verify(t => t.AddEntity(order, It.IsAny<string?>()), Times.Never);
+        _mockEventTracker.Verify(t => t.AddEntity(It.Is<IBusinessEntity>(e => e == (IBusinessEntity)order), It.IsAny<string?>()), Times.Never);
     }
 
     [Fact]

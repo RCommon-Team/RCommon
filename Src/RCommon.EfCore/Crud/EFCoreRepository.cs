@@ -159,7 +159,7 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public override async Task AddAsync(TEntity entity, CancellationToken token = default)
         {
-            EventTracker.AddEntity(entity);
+            EventTracker.AddEntity(entity, this.DataStoreName);
             MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
             await ObjectSet.AddAsync(entity, token).ConfigureAwait(false);
             await SaveAsync(token).ConfigureAwait(false);
@@ -180,7 +180,7 @@ namespace RCommon.Persistence.EFCore.Crud
                 return;
             }
 
-            EventTracker.AddEntity(entity);
+            EventTracker.AddEntity(entity, this.DataStoreName);
             ObjectSet.Remove(entity);
             await SaveAsync().ConfigureAwait(false);
         }
@@ -200,7 +200,7 @@ namespace RCommon.Persistence.EFCore.Crud
             if (!isSoftDelete)
             {
                 // Bypass auto-detection — force a physical delete
-                EventTracker.AddEntity(entity);
+                EventTracker.AddEntity(entity, this.DataStoreName);
                 ObjectSet.Remove(entity);
                 await SaveAsync().ConfigureAwait(false);
                 return;
@@ -285,7 +285,7 @@ namespace RCommon.Persistence.EFCore.Crud
         /// <inheritdoc />
         public async override Task UpdateAsync(TEntity entity, CancellationToken token = default)
         {
-            EventTracker.AddEntity(entity);
+            EventTracker.AddEntity(entity, this.DataStoreName);
             TrackForUpdate(entity);
             await SaveAsync(token).ConfigureAwait(false);
         }
@@ -580,7 +580,7 @@ namespace RCommon.Persistence.EFCore.Crud
             // track each entity and stamp tenant prior to adding
             foreach (var entity in entities)
             {
-                EventTracker.AddEntity(entity);
+                EventTracker.AddEntity(entity, this.DataStoreName);
                 MultiTenantHelper.SetTenantIdIfApplicable(entity, _tenantIdAccessor.GetTenantId());
             }
 
