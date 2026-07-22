@@ -216,6 +216,72 @@ public class OutboxEventRouterTests
     }
 
     [Fact]
+    public async Task PersistBufferedEventsAsync_GroupsEventsByDataStore()
+    {
+        var perStore = new List<string>();
+        _storeMock.Setup(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<IOutboxMessage, string, CancellationToken>((_, name, _) => perStore.Add(name));
+
+        var router = CreateRouter();
+        router.AddTransactionalEvent(new RouterTestEvent("a1"), "A");
+        router.AddTransactionalEvent(new RouterTestEvent("a2"), "A");
+        router.AddTransactionalEvent(new RouterTestEvent("b1"), "B");
+
+        await router.PersistBufferedEventsAsync();
+
+        _storeMock.Verify(
+            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), "A", It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+        _storeMock.Verify(
+            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), "B", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task PersistBufferedEventsAsync_NullDataStore_ResolvesToDefault()
+    {
+        var router = new OutboxEventRouter(
+            _storeMock.Object,
+            _serializer,
+            _guidGenMock.Object,
+            _tenantMock.Object,
+            _serviceProviderMock.Object,
+            _subscriptionManager,
+            NullLogger<OutboxEventRouter>.Instance,
+            Options.Create(new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "AppDb" }));
+        _guidGenMock.Setup(g => g.Create()).Returns(Guid.NewGuid());
+
+        router.AddTransactionalEvent(new RouterTestEvent("x"), null);
+
+        await router.PersistBufferedEventsAsync();
+
+        _storeMock.Verify(
+            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), "AppDb", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task PersistBufferedEventsAsync_RecordsTargetProducers()
+    {
+        var producerMock = new Mock<IEventProducer>();
+        _serviceProviderMock.Setup(sp => sp.GetService(typeof(IEnumerable<IEventProducer>)))
+            .Returns(new[] { producerMock.Object });
+
+        IOutboxMessage? captured = null;
+        _storeMock.Setup(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<IOutboxMessage, string, CancellationToken>((msg, _, _) => captured = msg);
+
+        var router = CreateRouter();
+        router.AddTransactionalEvent(new RouterTestEvent("x"));
+
+        await router.PersistBufferedEventsAsync();
+
+        captured.Should().NotBeNull();
+        captured!.TargetProducers.Should().Contain(producerMock.Object.GetType().FullName);
+    }
+
+    [Fact]
     public async Task RouteEventsAsync_NoInProcessProducer_DoesNotMarkProcessed()
     {
         // Secondary hardening (defense-in-depth): when nothing was dispatched in-process,

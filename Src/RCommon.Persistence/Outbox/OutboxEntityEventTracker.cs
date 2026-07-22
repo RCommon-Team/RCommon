@@ -67,13 +67,15 @@ public class OutboxEntityEventTracker : IEntityEventTracker
     /// </remarks>
     public async Task PersistEventsAsync(CancellationToken cancellationToken = default)
     {
-        // Walk entity graph and collect events into the router buffer
-        foreach (var entity in _inner.TrackedEntities)
+        // Walk each entity's graph and buffer its harvested events WITH that entity's datastore name, so the
+        // router persists each event to its own entity's store (AC-8). A null datastore name is the
+        // "use-default, resolve-downstream" sentinel and is resolved to the default by the router.
+        foreach (var (entity, dataStoreName) in _inner.TrackedEntitiesWithDataStore)
         {
             var entityGraph = entity.TraverseGraphFor<IBusinessEntity>();
             foreach (var graphEntity in entityGraph)
             {
-                _outboxRouter.AddTransactionalEvents(graphEntity.LocalEvents);
+                _outboxRouter.AddTransactionalEvents(graphEntity.LocalEvents, dataStoreName);
             }
         }
 

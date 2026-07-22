@@ -13,6 +13,14 @@ namespace RCommon.Persistence.Tests;
 
 public record TrackerTestEvent(string Data) : ISerializableEvent;
 
+public class TrackerTestEntity : BusinessEntity<int>
+{
+    public TrackerTestEntity(ISerializableEvent localEvent)
+    {
+        AddLocalEvent(localEvent);
+    }
+}
+
 public class OutboxEntityEventTrackerTests
 {
     private readonly Mock<IOutboxStore> _storeMock = new();
@@ -73,5 +81,26 @@ public class OutboxEntityEventTrackerTests
         var result = await tracker.EmitTransactionalEventsAsync();
 
         result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task PersistEventsAsync_PersistsEachEntityEventToItsOwnDataStore()
+    {
+        var perStore = new Dictionary<string, int>();
+        _storeMock.Setup(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<IOutboxMessage, string, CancellationToken>((_, name, _) =>
+            {
+                perStore.TryGetValue(name, out var count);
+                perStore[name] = count + 1;
+            });
+
+        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter);
+        tracker.AddEntity(new TrackerTestEntity(new TrackerTestEvent("a")), "A");
+        tracker.AddEntity(new TrackerTestEntity(new TrackerTestEvent("b")), "B");
+
+        await tracker.PersistEventsAsync();
+
+        _storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), "A", It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), "B", It.IsAny<CancellationToken>()), Times.Once);
     }
 }
