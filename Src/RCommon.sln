@@ -175,8 +175,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.Finbuckle.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCommon.IntegrationTests", "..\Tests\RCommon.IntegrationTests\RCommon.IntegrationTests.csproj", "{BADF6EAD-2F8D-4F13-B933-44232A602EAC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RCommon.EfCore", "RCommon.EfCore", "{FD1C677B-F14D-CF12-6AD3-86013BC001CA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
