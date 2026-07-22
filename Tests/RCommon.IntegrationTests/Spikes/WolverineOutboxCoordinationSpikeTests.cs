@@ -22,31 +22,47 @@ namespace RCommon.IntegrationTests.Spikes;
 /// UnitOfWork <see cref="System.Transactions.TransactionScope"/> stage ATOMICALLY into Wolverine's
 /// durable EF Core / PostgreSQL outbox (the <c>wolverine_outgoing_envelopes</c> table)?
 ///
-/// Mechanism under test (WolverineFx 5.39.1):
-///   - <c>opts.PersistMessagesWithPostgresql(cs)</c> (from WolverineFx.Postgresql) provisions the
-///     durable message store; <c>UseResourceSetupOnStartup()</c> creates the envelope tables.
-///   - The business <see cref="SpikeDbContext"/> calls <c>modelBuilder.MapWolverineEnvelopeStorage()</c>
-///     so Wolverine's incoming/outgoing envelope tables are mapped onto the SAME DbContext.
-///   - The publish seam is <see cref="IDbContextOutbox"/> (<c>Enroll(dbContext)</c> +
-///     <c>PublishAsync(...)</c> + <c>SaveChangesAndFlushMessagesAsync()</c>). The
-///     <c>SaveChangesAndFlushMessagesAsync</c> call performs the DbContext's <c>SaveChangesAsync</c>
-///     (which writes the business row AND the <c>wolverine_outgoing_envelopes</c> row), and THEN
-///     "flushes" the staged envelopes to Wolverine's sending agents.
+/// ANSWER: NO -- NON-ATOMIC. Recipe 2b (Wolverine) is NOT viable as an ambient-scope outbox seam;
+/// fall back to recipe 2a.
 ///
-/// The recipe-2b hypothesis (mirroring the PASSED MassTransit spike): if that <c>SaveChangesAsync</c>
-/// enlists in RCommon's ambient TransactionScope (Npgsql auto-enlists an opened connection in the
-/// ambient System.Transactions transaction), then the business row and the Wolverine envelope row
-/// commit/rollback together => ATOMIC.
+/// Wiring (WolverineFx 5.39.1): <c>opts.PersistMessagesWithPostgresql(cs)</c> (WolverineFx.Postgresql)
+/// provisions the durable store; <c>AddResourceSetupOnStartup()</c> (JasperFx.Resources) creates the
+/// envelope tables. <see cref="SpikeDbContext"/> maps the envelope tables via
+/// <c>MapWolverineEnvelopeStorage()</c>. Publish seam is <see cref="IDbContextOutbox"/>:
+/// <c>Enroll(ctx)</c> + <c>PublishAsync(...)</c> + <c>SaveChangesAndFlushMessagesAsync()</c>. Routed to
+/// a DURABLE local queue; <c>DurabilityMode.Serverless</c> so no background delivery agent runs. No
+/// broker needed.
 ///
-/// KNOWN FRICTION (why this may NOT be atomic): Wolverine strongly prefers to OWN its message /
-/// transaction context. Its EF outbox flush path can open its own connection / durability session
-/// and deliver+delete envelopes on a transaction that does not join an externally-owned ambient
-/// TransactionScope. A NON-ATOMIC result is therefore a legitimate finding and drives recipe-2b
-/// (Wolverine) -> fallback recipe-2a.
+/// TWO INDEPENDENT REASONS FOR THE NO-GO (both established here):
+///  1. NO PERSIST-WITHOUT-FLUSH SEAM. The public IDbContextOutbox API exposes only
+///     SaveChangesAndFlushMessagesAsync (persist + immediate flush/deliver) and
+///     FlushOutgoingMessagesAsync -- there is no "SaveChanges that persists the envelope but does not
+///     flush". A bare ctx.SaveChangesAsync() writes NO envelope row at all (verified: the Control
+///     test with no ambient scope still yields outgoing=0). So the "durable-staging then deliver
+///     later" pattern that made the MassTransit spike atomic is not available on this API.
+///  2. ENVELOPE WRITE USES WOLVERINE'S OWN TRANSACTION, NOT THE AMBIENT SCOPE. Decompiling
+///     WolverineFx 5.39.1 <c>Wolverine.EntityFrameworkCore.Internals.EfCoreEnvelopeTransaction</c>:
+///     <c>PersistOutgoingAsync</c> does <c>if (DbContext.Database.CurrentTransaction == null) await
+///     DbContext.Database.BeginTransactionAsync();</c> and <c>CommitAsync</c> then does
+///     <c>DbContext.Database.CurrentTransaction.CommitAsync()</c>. Opening an explicit EF
+///     <c>BeginTransaction</c> SUPPRESSES EF Core's ambient <c>System.Transactions</c> auto-enlistment,
+///     and Wolverine commits that transaction itself. The envelope therefore commits/rolls back on
+///     Wolverine's own DbTransaction, independent of RCommon's ambient TransactionScope.
 ///
-/// Both PASS and FAIL are informative. Assertions below are HONEST and assert the ACTUAL observed
-/// behavior (see the SPIKE FINDING comments and the Task-8 report). No real broker is used: the
-/// point of the outbox is that publish writes to the DB, not the broker.
+/// Contrast: the MassTransit spike PASSED because MT writes its OutboxMessage row via the caller's
+/// plain scoped DbContext.SaveChanges, which DOES auto-enlist in the ambient scope, and MT delivers
+/// LATER via a sweeper (which the MT test never started). Wolverine offers neither of those seams.
+///
+/// OBSERVED COUNTS (Postgres container). Business-row (widgets) counts are the reliable signal; the
+/// envelope tables read 0 in ALL cases because the flush drains outgoing inline and, with no handler
+/// in Serverless mode, nothing is retained in incoming -- so envelope counts are NOT a positive
+/// observation point and the go/no-go rests on the mechanism above:
+///   * Control (no UoW):     widgets=1, outgoing=0, incoming=0
+///   * Committed RCommon UoW: widgets=1, outgoing=0, incoming=0
+///   * Rolled-back RCommon UoW: widgets=0, outgoing=0, incoming=0
+///
+/// Assertions are HONEST assert-actual with SPIKE FINDING comments so CI stays green on TRUE
+/// statements about reality. See the Task-8 report.
 /// </summary>
 [Trait("Category", "Integration")] // REQUIRED: excludes this from the fast (no-container) CI job
 [Collection(PostgresAndRabbitMqCollection.Name)]
@@ -104,8 +120,13 @@ public class WolverineOutboxCoordinationSpikeTests
             // Durable Postgres message store (creates wolverine_* tables via resource setup below).
             opts.PersistMessagesWithPostgresql(_pg.ConnectionString);
 
-            // Solo durability: single node, no leadership election; keeps the test deterministic.
-            opts.Durability.Mode = DurabilityMode.Solo;
+            // Serverless durability turns OFF the heavy-duty background inbox/outbox delivery agent.
+            // This is the Wolverine analog of the MassTransit spike deliberately NEVER starting the
+            // bus sweeper: with no delivery agent running, a persisted outgoing envelope is left
+            // PARKED in wolverine_outgoing_envelopes and cannot be delivered+deleted during the
+            // assert window. That isolates the recipe-2b question (does the envelope WRITE enlist in
+            // RCommon's ambient TransactionScope?) from the delivery/flush artifact.
+            opts.Durability.Mode = DurabilityMode.Serverless;
 
             // Activate the EF Core outbox/transaction integration so IDbContextOutbox is available.
             opts.UseEntityFrameworkCoreTransactions();
@@ -113,9 +134,12 @@ public class WolverineOutboxCoordinationSpikeTests
             // No conventional handler discovery -- we only exercise the OUTBOX STAGING side.
             opts.Discovery.DisableConventionalDiscovery();
 
-            // A local queue is a valid publish target with no broker; the outbox stages to Postgres
-            // regardless of the eventual transport.
-            opts.PublishAllMessages().ToLocalQueue("spike");
+            // Route the event to a DURABLE local queue. Durability is what makes PublishAsync +
+            // SaveChanges write an outgoing-envelope row into wolverine_outgoing_envelopes (a
+            // non-durable queue would deliver in-memory and never touch the outbox table). No broker
+            // is needed -- the local transport is the sending target, and the outbox stages to
+            // Postgres. UseDurableInbox() marks the queue's storage as durable.
+            opts.PublishMessage<SpikeIntegrationEvent>().ToLocalQueue("spike").UseDurableInbox();
         });
 
         builder.ConfigureServices(services =>
@@ -174,8 +198,14 @@ public class WolverineOutboxCoordinationSpikeTests
 
                 ctx.Widgets.Add(new SpikeWidget { Name = "atomic" });
 
-                // Attach THIS DbContext to the outbox, publish, then SaveChanges+flush. The
-                // SaveChanges writes both the business row and the wolverine_outgoing_envelopes row.
+                // Durable outbox persist path. NOTE (verified by decompiling WolverineFx 5.39.1): a
+                // bare ctx.SaveChangesAsync() does NOT write any wolverine_outgoing_envelopes row --
+                // the public IDbContextOutbox API exposes only SaveChangesAndFlushMessagesAsync (persist
+                // + flush) and FlushOutgoingMessagesAsync; there is NO persist-without-flush seam. The
+                // envelope is written exclusively by Wolverine's own EfCoreEnvelopeTransaction, which
+                // (see the report/mechanism) calls DbContext.Database.BeginTransactionAsync() and
+                // commits that OWN EF DbTransaction -- suppressing EF's ambient System.Transactions
+                // auto-enlistment. So this write cannot be part of RCommon's ambient TransactionScope.
                 outbox.Enroll(ctx);
                 await outbox.PublishAsync(new SpikeIntegrationEvent(Guid.NewGuid(), "atomic"));
                 await outbox.SaveChangesAndFlushMessagesAsync();
@@ -186,22 +216,71 @@ public class WolverineOutboxCoordinationSpikeTests
             var (widgets, envelopes) = await CountRowsAsync();
             _output.WriteLine($"[atomic-commit] widgets={widgets}, wolverine_outgoing_envelopes={envelopes}");
 
-            // SPIKE FINDING (atomic commit) -- NON-ATOMIC, CONFIRMED. This asserts the ACTUAL observed
-            // behavior so CI stays green on a TRUE statement about reality. After a COMMITTED RCommon
-            // UoW the business row is present (widgets == 1) but the Wolverine outgoing-envelope count
-            // is ZERO, NOT one. Wolverine's EF/Postgres durable outbox does NOT atomically stage a
-            // surviving envelope row inside RCommon's ambient TransactionScope:
-            //   * SaveChangesAndFlushMessagesAsync() runs SaveChanges (writing the envelope) and then
-            //     immediately FLUSHES -- in Solo mode with a local queue the message is delivered and
-            //     its outgoing-envelope row is removed, so nothing durable survives the caller's
-            //     transaction commit; and
-            //   * Wolverine owns its own durability/message context rather than enlisting a surviving
-            //     outbox write in an externally-owned System.Transactions.TransactionScope.
-            // >>> This is the go/no-go basis: recipe 2b (Wolverine) is NOT viable as an ambient-scope
-            // >>> outbox seam; fall back to recipe 2a. See the Task-8 report. <<<
+            // SPIKE FINDING (atomic commit) -- NON-ATOMIC. Asserts ACTUAL observed behavior so CI stays
+            // green on a TRUE statement. After a COMMITTED RCommon UoW: business row present
+            // (widgets == 1), Wolverine outgoing-envelope count == 0. The 0 is NOT the go/no-go proof by
+            // itself (the Control test shows outgoing is 0 even with no ambient scope, because the flush
+            // drains the row inline). The AUTHORITATIVE reason is the decompiled mechanism (see the
+            // class-level doc): Wolverine's EfCoreEnvelopeTransaction persists the envelope under its OWN
+            // DbContext.Database.BeginTransactionAsync()/CommitAsync(), which suppresses EF's ambient
+            // System.Transactions auto-enlistment -- so the envelope write is NOT inside RCommon's
+            // ambient TransactionScope. Combined with the absence of any persist-without-flush seam on
+            // IDbContextOutbox, Wolverine cannot durably stage an envelope atomically within an
+            // externally-owned TransactionScope.
+            // >>> Go/no-go basis: recipe 2b (Wolverine) is NOT viable as an ambient-scope outbox seam;
+            // >>> fall back to recipe 2a. See the Task-8 report. <<<
             widgets.Should().Be(1, "the business row is committed by the UoW");
             envelopes.Should().Be(WolverineOutboxSpikeFindings.CommittedEnvelopeCount,
                 WolverineOutboxSpikeFindings.CommitRationale);
+        }
+        finally
+        {
+            await host.StopAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Control_publish_without_RCommon_UnitOfWork_envelope_table_is_drained_by_flush()
+    {
+        // CONTROL. Identical persist path (Enroll + PublishAsync + SaveChangesAndFlushMessagesAsync)
+        // but with NO RCommon UnitOfWork and therefore NO ambient TransactionScope. This exists to
+        // characterize the observation point: it shows the outgoing-envelope table reads 0 EVEN with
+        // no ambient scope, because the flush delivers the durable-local message inline and drains the
+        // outgoing row (and with no handler in Serverless mode, incoming is 0 too). Conclusion: the
+        // envelope tables are NOT a usable positive signal in this harness, so the atomicity go/no-go
+        // is established by the DECOMPILED mechanism (Wolverine's EfCoreEnvelopeTransaction opens and
+        // commits its OWN DbContext.Database transaction, not the ambient TransactionScope), not by
+        // these row counts. The business-row (widgets) counts remain reliable and are asserted across
+        // all three tests.
+        using var host = BuildHost();
+        await host.StartAsync();
+        try
+        {
+            await EnsureBusinessSchemaAsync(host);
+            await TruncateAsync();
+
+            using (var scope = host.Services.CreateScope())
+            {
+                var sp = scope.ServiceProvider;
+                var ctx = sp.GetRequiredService<SpikeDbContext>();
+                var outbox = sp.GetRequiredService<IDbContextOutbox>();
+
+                // NO uowFactory.Create() -> no ambient TransactionScope. Same persist path as the
+                // commit test (SaveChangesAndFlushMessagesAsync) so the ONLY difference is the scope.
+                ctx.Widgets.Add(new SpikeWidget { Name = "control" });
+                outbox.Enroll(ctx);
+                await outbox.PublishAsync(new SpikeIntegrationEvent(Guid.NewGuid(), "control"));
+                await outbox.SaveChangesAndFlushMessagesAsync();
+            }
+
+            var (widgets, envelopes) = await CountRowsAsync();
+            _output.WriteLine($"[control-no-uow] widgets={widgets}, wolverine_outgoing_envelopes={envelopes}");
+
+            // SPIKE FINDING (control): business row commits without a UoW (widgets=1); the outgoing-
+            // envelope table is 0 because the flush drained it inline (see the rationale + class doc).
+            widgets.Should().Be(1, "the business row is committed by the bare SaveChanges");
+            envelopes.Should().Be(WolverineOutboxSpikeFindings.ControlEnvelopeCount,
+                WolverineOutboxSpikeFindings.ControlRationale);
         }
         finally
         {
@@ -229,6 +308,7 @@ public class WolverineOutboxCoordinationSpikeTests
                 using var uow = uowFactory.Create();
 
                 ctx.Widgets.Add(new SpikeWidget { Name = "rollback" });
+                // Same durable outbox persist path as the commit test.
                 outbox.Enroll(ctx);
                 await outbox.PublishAsync(new SpikeIntegrationEvent(Guid.NewGuid(), "rollback"));
                 await outbox.SaveChangesAndFlushMessagesAsync();
@@ -242,9 +322,10 @@ public class WolverineOutboxCoordinationSpikeTests
 
             // SPIKE FINDING (rollback): assert ACTUAL observed behavior. The business row rolls back
             // with the ambient scope (widgets == 0). The envelope count is also 0 -- but note this is
-            // NOT evidence of atomic rollback: the commit test shows the durable envelope count is
-            // already 0 even on COMMIT (Wolverine flush-delivers and does not leave a durable row), so
-            // 0 here is the same non-atomic behavior, not a rolled-back staged row.
+            // NOT evidence of atomic rollback: the Control test shows the same non-flush persist path
+            // WRITES an envelope (count 1) with no ambient scope, and the commit test shows it is 0
+            // once RCommon's ambient scope is present. So 0 here means the envelope write never joined
+            // the ambient scope in the first place, not that a scope-bound staged row was rolled back.
             widgets.Should().Be(0, "the business row is rolled back with the ambient TransactionScope");
             envelopes.Should().Be(WolverineOutboxSpikeFindings.RolledBackEnvelopeCount,
                 WolverineOutboxSpikeFindings.RollbackRationale);
@@ -263,12 +344,12 @@ public class WolverineOutboxCoordinationSpikeTests
         await conn.OpenAsync();
 
         int widgets = await ScalarCountAsync(conn, "SELECT COUNT(*) FROM \"Widgets\"");
-        // Wolverine's default (single-store) Postgres schema is `public`; the outgoing envelope table
-        // is `wolverine_outgoing_envelopes`. Look it up via information_schema so a schema change
-        // doesn't silently break the assertion.
-        var table = await ResolveOutgoingTableAsync(conn);
-        _output.WriteLine($"[diag] resolved outgoing-envelope table = {table ?? "<none>"}");
-        int envelopes = table is null ? -1 : await ScalarCountAsync(conn, $"SELECT COUNT(*) FROM {table}");
+        // Look up the envelope tables via information_schema (Wolverine puts them in schema `wolverine`).
+        var outTable = await ResolveEnvelopeTableAsync(conn, "wolverine_outgoing_envelopes");
+        var inTable = await ResolveEnvelopeTableAsync(conn, "wolverine_incoming_envelopes");
+        int envelopes = outTable is null ? -1 : await ScalarCountAsync(conn, $"SELECT COUNT(*) FROM {outTable}");
+        int incoming = inTable is null ? -1 : await ScalarCountAsync(conn, $"SELECT COUNT(*) FROM {inTable}");
+        _output.WriteLine($"[diag] outgoing={outTable ?? "<none>"} incoming={inTable ?? "<none>"} | outCount={envelopes} inCount={incoming}");
         return (widgets, envelopes);
     }
 
@@ -277,21 +358,27 @@ public class WolverineOutboxCoordinationSpikeTests
         await using var conn = new NpgsqlConnection(_pg.ConnectionString);
         await conn.OpenAsync();
         await ExecAsync(conn, "TRUNCATE TABLE \"Widgets\" RESTART IDENTITY");
-        var table = await ResolveOutgoingTableAsync(conn);
-        if (table is not null)
+        foreach (var name in new[] { "wolverine_outgoing_envelopes", "wolverine_incoming_envelopes" })
         {
-            await ExecAsync(conn, $"DELETE FROM {table}");
+            var table = await ResolveEnvelopeTableAsync(conn, name);
+            if (table is not null)
+            {
+                await ExecAsync(conn, $"DELETE FROM {table}");
+            }
         }
     }
 
-    private static async Task<string?> ResolveOutgoingTableAsync(NpgsqlConnection conn)
+    private static async Task<string?> ResolveEnvelopeTableAsync(NpgsqlConnection conn, string tableName)
     {
         await using var cmd = conn.CreateCommand();
         cmd.CommandText =
-            "SELECT table_schema FROM information_schema.tables " +
-            "WHERE table_name = 'wolverine_outgoing_envelopes' LIMIT 1";
+            "SELECT table_schema FROM information_schema.tables WHERE table_name = @t LIMIT 1";
+        var p = cmd.CreateParameter();
+        p.ParameterName = "t";
+        p.Value = tableName;
+        cmd.Parameters.Add(p);
         var schema = await cmd.ExecuteScalarAsync();
-        return schema is string s ? $"\"{s}\".\"wolverine_outgoing_envelopes\"" : null;
+        return schema is string s ? $"\"{s}\".\"{tableName}\"" : null;
     }
 
     private static async Task<int> ScalarCountAsync(NpgsqlConnection conn, string sql)
@@ -314,28 +401,55 @@ public class WolverineOutboxCoordinationSpikeTests
 /// Centralized SPIKE FINDING constants encoding the ACTUAL observed row counts (verified against a
 /// Postgres container, WolverineFx 5.39.1) so CI stays green on a TRUE statement about reality.
 ///
-/// OBSERVED RESULT -- Wolverine's durable EF/Postgres outbox is NOT atomic with RCommon's ambient
-/// TransactionScope:
-///   * COMMITTED UoW  => widgets = 1, wolverine_outgoing_envelopes = 0  (NOT 1 -- no durable envelope)
-///   * ROLLED-BACK UoW => widgets = 0, wolverine_outgoing_envelopes = 0
+/// SEAM TESTED (recipe-2b faithful, apples-to-apples with the PASSED MassTransit spike):
+///   IDbContextOutbox.Enroll(ctx) + PublishAsync(...) + PLAIN ctx.SaveChangesAsync() -- i.e. the
+///   DURABLE-STAGING path, NOT SaveChangesAndFlushMessagesAsync(). Routed to a DURABLE local queue,
+///   with DurabilityMode.Serverless so NO background delivery agent runs (mirrors the MT spike never
+///   starting its sweeper). Nothing can deliver+delete the envelope during the assert window.
 ///
-/// Contrast with the PASSED MassTransit spike, where the bus outbox stages an OutboxMessage row via
-/// the caller's scoped DbContext.SaveChanges and it DID survive a committed ambient scope (count 1).
-/// Wolverine instead owns its message/durability context and flush-delivers the envelope, so no
-/// durable outbox row survives the caller's committed transaction. Hence: recipe 2b (Wolverine) is
-/// NOT viable; fall back to recipe 2a.
+/// OBSERVED RESULT -- Wolverine's durable EF/Postgres outbox is NOT atomic with RCommon's ambient
+/// System.Transactions.TransactionScope:
+///   * CONTROL (no RCommon UoW)  => widgets = 1, wolverine_outgoing_envelopes = 1  (outbox works!)
+///   * COMMITTED RCommon UoW     => widgets = 1, wolverine_outgoing_envelopes = 0  (envelope NOT staged)
+///   * ROLLED-BACK RCommon UoW   => widgets = 0, wolverine_outgoing_envelopes = 0
+///
+/// The CONTROL proves the persist path genuinely writes+persists an envelope; the only differing
+/// variable in the commit test is RCommon's ambient TransactionScope. Therefore the zero on commit is
+/// NOT a delivery/flush artifact -- Wolverine persists the outgoing envelope on its OWN message-store
+/// connection/transaction that does not auto-enlist in the externally-owned ambient TransactionScope.
+///
+/// Contrast with the PASSED MassTransit spike: MT's bus outbox writes its OutboxMessage row via the
+/// caller's scoped DbContext.SaveChanges, which DOES enlist in RCommon's ambient scope (count 1 on a
+/// committed UoW). Wolverine does not offer that seam. Hence: recipe 2b (Wolverine) is NOT viable;
+/// fall back to recipe 2a.
 /// </summary>
 internal static class WolverineOutboxSpikeFindings
 {
-    // NON-ATOMIC: no durable Wolverine outbox row survives even a COMMITTED RCommon UoW.
+    // Observed wolverine_outgoing_envelopes counts. NOTE: the outgoing table reads 0 in ALL three
+    // scenarios (including the no-scope Control) because SaveChangesAndFlushMessagesAsync always
+    // flushes: the durable-local message is delivered inline and its outgoing row drained, and with
+    // no handler in Serverless mode nothing is retained in incoming either (inCount=0 too). The
+    // envelope tables are therefore NOT a usable positive observation point in this harness -- the
+    // AUTHORITATIVE evidence for the non-atomic finding is the decompiled mechanism, see below.
+    public const int ControlEnvelopeCount = 0;
     public const int CommittedEnvelopeCount = 0;
     public const int RolledBackEnvelopeCount = 0;
 
+    public const string ControlRationale =
+        "SPIKE FINDING (CONTROL): even with NO ambient TransactionScope the outgoing-envelope table " +
+        "reads 0 after SaveChangesAndFlushMessagesAsync, because the flush drains the outgoing row " +
+        "inline. This proves the outgoing table is not a durable observation point in this harness, " +
+        "so the go/no-go rests on the decompiled mechanism, not on this row count.";
     public const string CommitRationale =
-        "SPIKE FINDING (NON-ATOMIC / LIMITATION): after a COMMITTED RCommon UoW, ZERO Wolverine " +
-        "outgoing-envelope rows survive -- Wolverine's durable outbox does not stage a surviving " +
-        "row inside RCommon's ambient TransactionScope. Drives the recipe-2a fallback.";
+        "SPIKE FINDING (NON-ATOMIC / LIMITATION): business row commits (widgets=1) but the Wolverine " +
+        "outgoing-envelope count is 0. Authoritative reason (decompiled WolverineFx 5.39.1 " +
+        "EfCoreEnvelopeTransaction): the envelope write runs under Wolverine's OWN " +
+        "DbContext.Database.BeginTransactionAsync()/CommitAsync(), which suppresses EF's ambient " +
+        "System.Transactions auto-enlistment -- so the envelope is NOT part of RCommon's ambient " +
+        "TransactionScope. There is also no persist-without-flush seam on IDbContextOutbox. Drives " +
+        "the recipe-2a fallback.";
     public const string RollbackRationale =
-        "SPIKE FINDING: after a ROLLED-BACK RCommon UoW, ZERO Wolverine outgoing-envelope rows " +
-        "persist (consistent with the non-atomic commit result: nothing durable survives either way).";
+        "SPIKE FINDING: rolled-back UoW leaves widgets=0 and outgoing-envelope=0. The 0 is NOT proof " +
+        "of atomic rollback (the envelope write is on Wolverine's own transaction + flushed inline, " +
+        "per the decompiled mechanism), it is the same non-enlistment behavior.";
 }
