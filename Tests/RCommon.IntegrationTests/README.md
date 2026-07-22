@@ -50,7 +50,7 @@ The Docker-compatible endpoint on Windows is a named pipe. The dev machine for
 this repo uses the default machine name `podman-machine-default`, so:
 
 ```
-DOCKER_HOST=npipe:////./pipe/podman-machine-default
+DOCKER_HOST=npipe://./pipe/podman-machine-default
 ```
 
 Confirm the machine is running:
@@ -116,7 +116,7 @@ the socket permissions require it.
 ### PowerShell (Windows)
 
 ```powershell
-$env:DOCKER_HOST = "npipe:////./pipe/podman-machine-default"
+$env:DOCKER_HOST = "npipe://./pipe/podman-machine-default"
 $env:TESTCONTAINERS_RYUK_DISABLED = "true"
 dotnet test Tests/RCommon.IntegrationTests
 ```
