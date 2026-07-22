@@ -22,20 +22,6 @@ public class Linq2DbOutboxStoreTests
     {
         var act = () => new Linq2DbOutboxStore(
             null!,
-            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }),
-            Options.Create(new OutboxOptions()),
-            _lockProviderMock.Object);
-
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Fact]
-    public void Constructor_ThrowsOnNullDefaultDataStoreOptions()
-    {
-        var factoryMock = new Mock<IDataStoreFactory>();
-        var act = () => new Linq2DbOutboxStore(
-            factoryMock.Object,
-            Options.Create(new DefaultDataStoreOptions()),
             Options.Create(new OutboxOptions()),
             _lockProviderMock.Object);
 
@@ -48,7 +34,6 @@ public class Linq2DbOutboxStoreTests
         var factoryMock = new Mock<IDataStoreFactory>();
         var store = new Linq2DbOutboxStore(
             factoryMock.Object,
-            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }),
             Options.Create(new OutboxOptions()),
             _lockProviderMock.Object);
 
@@ -61,7 +46,6 @@ public class Linq2DbOutboxStoreTests
         var factoryMock = new Mock<IDataStoreFactory>();
         var act = () => new Linq2DbOutboxStore(
             factoryMock.Object,
-            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }),
             Options.Create(new OutboxOptions()),
             null!);
         act.Should().Throw<ArgumentNullException>().WithParameterName("lockStatementProvider");

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RCommon;
 using RCommon.EventHandling.Producers;
 using RCommon.Models.Events;
 using RCommon.Security.Claims;
@@ -42,6 +43,7 @@ public class OutboxEventRouter : IEventRouter
     private readonly EventSubscriptionManager _subscriptionManager;
     private readonly ILogger<OutboxEventRouter> _logger;
     private readonly OutboxOptions _options;
+    private readonly string _dataStoreName;
     private readonly ConcurrentQueue<ISerializableEvent> _buffer = new();
     private readonly List<(Guid MessageId, ISerializableEvent Event)> _persistedEvents = new();
 
@@ -53,7 +55,8 @@ public class OutboxEventRouter : IEventRouter
         IServiceProvider serviceProvider,
         EventSubscriptionManager subscriptionManager,
         ILogger<OutboxEventRouter> logger,
-        IOptions<OutboxOptions> options)
+        IOptions<OutboxOptions> options,
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
     {
         _outboxStore = outboxStore ?? throw new ArgumentNullException(nameof(outboxStore));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -63,6 +66,17 @@ public class OutboxEventRouter : IEventRouter
         _subscriptionManager = subscriptionManager ?? throw new ArgumentNullException(nameof(subscriptionManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+
+        // Default-datastore threading only: real per-event grouping is a later task. Guard against
+        // a missing/empty configured name so store calls always receive a usable data store name.
+        var defaultName = defaultDataStoreOptions?.Value?.DefaultDataStoreName;
+        if (string.IsNullOrWhiteSpace(defaultName))
+        {
+            throw new ArgumentException(
+                "DefaultDataStoreOptions.DefaultDataStoreName must be configured for the outbox router.",
+                nameof(defaultDataStoreOptions));
+        }
+        _dataStoreName = defaultName;
     }
 
     /// <inheritdoc />
@@ -108,7 +122,7 @@ public class OutboxEventRouter : IEventRouter
             };
 
             _logger.LogDebug("Persisting outbox message {Id} for event {EventType}", message.Id, message.EventType);
-            await _outboxStore.SaveAsync(message, cancellationToken).ConfigureAwait(false);
+            await _outboxStore.SaveAsync(message, _dataStoreName, cancellationToken).ConfigureAwait(false);
             _persistedEvents.Add((message.Id, @event));
         }
     }
@@ -168,7 +182,7 @@ public class OutboxEventRouter : IEventRouter
                     await producer.ProduceEventAsync(@event, cancellationToken).ConfigureAwait(false);
                 }
 
-                await _outboxStore.MarkProcessedAsync(messageId, cancellationToken).ConfigureAwait(false);
+                await _outboxStore.MarkProcessedAsync(messageId, _dataStoreName, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

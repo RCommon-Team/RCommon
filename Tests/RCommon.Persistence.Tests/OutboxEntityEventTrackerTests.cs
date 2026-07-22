@@ -34,7 +34,8 @@ public class OutboxEntityEventTrackerTests
             serviceProviderMock.Object,
             new EventSubscriptionManager(),
             NullLogger<OutboxEventRouter>.Instance,
-            Options.Create(new OutboxOptions()));
+            Options.Create(new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
 
         _innerTracker = new InMemoryEntityEventTracker(_outboxRouter);
     }
@@ -58,7 +59,7 @@ public class OutboxEntityEventTrackerTests
 
         await tracker.PersistEventsAsync();
 
-        _storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

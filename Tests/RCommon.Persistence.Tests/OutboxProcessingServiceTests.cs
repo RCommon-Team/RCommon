@@ -46,7 +46,8 @@ public class OutboxProcessingServiceTests
             provider,
             Options.Create(opts),
             NullLogger<OutboxProcessingService>.Instance,
-            _backoffMock.Object);
+            _backoffMock.Object,
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
 
         return (service, provider);
     }
@@ -65,7 +66,8 @@ public class OutboxProcessingServiceTests
 
         var logger = new Mock<ILogger<OutboxProcessingService>>();
         var service = new OutboxProcessingService(
-            provider, Options.Create(opts), logger.Object, _backoffMock.Object);
+            provider, Options.Create(opts), logger.Object, _backoffMock.Object,
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
         return (service, logger);
     }
 
@@ -93,7 +95,7 @@ public class OutboxProcessingServiceTests
     public async Task ProcessBatchAsync_Warns_When_No_Producer_Matches()
     {
         var msg = MakeMessage(new PollerTestEvent("orphan"));
-        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<IOutboxMessage> { msg });
 
         var (service, logger) = CreateServiceWithNoProducer();
@@ -101,7 +103,7 @@ public class OutboxProcessingServiceTests
 
         VerifyWarning(logger, Times.Once());
         // The row is still marked processed so the poller does not re-claim it forever.
-        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -109,7 +111,7 @@ public class OutboxProcessingServiceTests
     {
         var msg1 = MakeMessage(new PollerTestEvent("orphan-1"));
         var msg2 = MakeMessage(new PollerTestEvent("orphan-2"));
-        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<IOutboxMessage> { msg1, msg2 });
 
         var (service, logger) = CreateServiceWithNoProducer();
@@ -130,14 +132,14 @@ public class OutboxProcessingServiceTests
             EventPayload = _serializer.Serialize(@event),
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
-        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<IOutboxMessage> { msg });
 
         var (service, _) = CreateService();
         await service.ProcessBatchAsync(CancellationToken.None);
 
         _producerMock.Verify(p => p.ProduceEventAsync(It.IsAny<PollerTestEvent>(), It.IsAny<CancellationToken>()), Times.Once);
-        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -152,7 +154,7 @@ public class OutboxProcessingServiceTests
             CreatedAtUtc = DateTimeOffset.UtcNow,
             RetryCount = 0
         };
-        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<IOutboxMessage> { msg });
         _producerMock.Setup(p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("transport error"));
@@ -161,7 +163,7 @@ public class OutboxProcessingServiceTests
         var (service, _) = CreateService();
         await service.ProcessBatchAsync(CancellationToken.None);
 
-        _storeMock.Verify(s => s.MarkFailedAsync(msg.Id, It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(s => s.MarkFailedAsync(msg.Id, It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -176,7 +178,7 @@ public class OutboxProcessingServiceTests
             CreatedAtUtc = DateTimeOffset.UtcNow,
             RetryCount = 5
         };
-        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<IOutboxMessage> { msg });
         _producerMock.Setup(p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("still down"));
@@ -185,7 +187,7 @@ public class OutboxProcessingServiceTests
         var (service, _) = CreateService(opts);
         await service.ProcessBatchAsync(CancellationToken.None);
 
-        _storeMock.Verify(s => s.MarkDeadLetteredAsync(msg.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(s => s.MarkDeadLetteredAsync(msg.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -200,7 +202,7 @@ public class OutboxProcessingServiceTests
             CreatedAtUtc = DateTimeOffset.UtcNow,
             RetryCount = 0
         };
-        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<IOutboxMessage> { msg });
 
         var inboxMock = new Mock<IInboxStore>();
@@ -211,7 +213,7 @@ public class OutboxProcessingServiceTests
         await service.ProcessBatchAsync(CancellationToken.None);
 
         // Should mark processed (as duplicate), but NOT dispatch
-        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         _producerMock.Verify(p => p.ProduceEventAsync(It.IsAny<PollerTestEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -227,7 +229,7 @@ public class OutboxProcessingServiceTests
             CreatedAtUtc = DateTimeOffset.UtcNow,
             RetryCount = 0
         };
-        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+        _storeMock.Setup(s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<IOutboxMessage> { msg });
 
         // No inboxStoreMock — inbox not registered
@@ -235,6 +237,6 @@ public class OutboxProcessingServiceTests
         await service.ProcessBatchAsync(CancellationToken.None);
 
         _producerMock.Verify(p => p.ProduceEventAsync(It.IsAny<PollerTestEvent>(), It.IsAny<CancellationToken>()), Times.Once);
-        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(s => s.MarkProcessedAsync(msg.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

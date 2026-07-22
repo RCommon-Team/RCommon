@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RCommon;
 using RCommon.EventHandling.Producers;
 using RCommon.Models.Events;
 using RCommon.Persistence.Inbox;
@@ -19,6 +20,7 @@ public class OutboxProcessingService : BackgroundService
     private readonly OutboxOptions _options;
     private readonly ILogger<OutboxProcessingService> _logger;
     private readonly IBackoffStrategy _backoffStrategy;
+    private readonly string _dataStoreName;
     private readonly string _instanceId = Guid.NewGuid().ToString("N");
     private DateTimeOffset _lastCleanupUtc = DateTimeOffset.MinValue;
     private readonly HashSet<string> _warnedEventTypesWithoutSubscriber = new();
@@ -27,12 +29,24 @@ public class OutboxProcessingService : BackgroundService
         IServiceProvider serviceProvider,
         IOptions<OutboxOptions> options,
         ILogger<OutboxProcessingService> logger,
-        IBackoffStrategy backoffStrategy)
+        IBackoffStrategy backoffStrategy,
+        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _backoffStrategy = backoffStrategy ?? throw new ArgumentNullException(nameof(backoffStrategy));
+
+        // Default-datastore threading only: real multi-datastore polling is a later task. Guard against
+        // a missing/empty configured name so store calls always receive a usable data store name.
+        var defaultName = defaultDataStoreOptions?.Value?.DefaultDataStoreName;
+        if (string.IsNullOrWhiteSpace(defaultName))
+        {
+            throw new ArgumentException(
+                "DefaultDataStoreOptions.DefaultDataStoreName must be configured for the outbox processor.",
+                nameof(defaultDataStoreOptions));
+        }
+        _dataStoreName = defaultName;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -63,7 +77,7 @@ public class OutboxProcessingService : BackgroundService
         var subscriptionManager = scope.ServiceProvider.GetRequiredService<EventSubscriptionManager>();
         var inboxStore = scope.ServiceProvider.GetService<IInboxStore>();
 
-        var pending = await store.ClaimAsync(_instanceId, _options.BatchSize, _options.LockDuration, cancellationToken).ConfigureAwait(false);
+        var pending = await store.ClaimAsync(_instanceId, _options.BatchSize, _options.LockDuration, _dataStoreName, cancellationToken).ConfigureAwait(false);
 
         foreach (var message in pending)
         {
@@ -73,7 +87,7 @@ public class OutboxProcessingService : BackgroundService
                 {
                     _logger.LogWarning("Outbox message {Id} exceeded max retries ({Max}). Dead-lettering.",
                         message.Id, _options.MaxRetries);
-                    await store.MarkDeadLetteredAsync(message.Id, cancellationToken).ConfigureAwait(false);
+                    await store.MarkDeadLetteredAsync(message.Id, _dataStoreName, cancellationToken).ConfigureAwait(false);
                     continue;
                 }
 
@@ -81,7 +95,7 @@ public class OutboxProcessingService : BackgroundService
                 if (inboxStore != null && await inboxStore.ExistsAsync(message.Id, cancellationToken: cancellationToken).ConfigureAwait(false))
                 {
                     _logger.LogDebug("Outbox message {Id} already in inbox, marking processed", message.Id);
-                    await store.MarkProcessedAsync(message.Id, cancellationToken).ConfigureAwait(false);
+                    await store.MarkProcessedAsync(message.Id, _dataStoreName, cancellationToken).ConfigureAwait(false);
                     continue;
                 }
 
@@ -120,7 +134,7 @@ public class OutboxProcessingService : BackgroundService
                     }, cancellationToken).ConfigureAwait(false);
                 }
 
-                await store.MarkProcessedAsync(message.Id, cancellationToken).ConfigureAwait(false);
+                await store.MarkProcessedAsync(message.Id, _dataStoreName, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -129,12 +143,12 @@ public class OutboxProcessingService : BackgroundService
 
                 if (message.RetryCount + 1 >= _options.MaxRetries)
                 {
-                    await store.MarkDeadLetteredAsync(message.Id, cancellationToken).ConfigureAwait(false);
+                    await store.MarkDeadLetteredAsync(message.Id, _dataStoreName, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     var delay = _backoffStrategy.ComputeDelay(message.RetryCount + 1);
-                    await store.MarkFailedAsync(message.Id, ex.Message, DateTimeOffset.UtcNow + delay, cancellationToken).ConfigureAwait(false);
+                    await store.MarkFailedAsync(message.Id, ex.Message, DateTimeOffset.UtcNow + delay, _dataStoreName, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -142,8 +156,8 @@ public class OutboxProcessingService : BackgroundService
         // Periodic cleanup (throttled by CleanupInterval)
         if (DateTimeOffset.UtcNow - _lastCleanupUtc >= _options.CleanupInterval)
         {
-            await store.DeleteProcessedAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
-            await store.DeleteDeadLetteredAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
+            await store.DeleteProcessedAsync(_options.CleanupAge, _dataStoreName, cancellationToken).ConfigureAwait(false);
+            await store.DeleteDeadLetteredAsync(_options.CleanupAge, _dataStoreName, cancellationToken).ConfigureAwait(false);
             if (inboxStore != null)
             {
                 await inboxStore.CleanupAsync(_options.CleanupAge, cancellationToken).ConfigureAwait(false);
