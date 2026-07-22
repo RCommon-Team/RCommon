@@ -43,6 +43,8 @@ This redesign establishes a single, coherent, **recipe-driven** event-handling m
 - Imposing an `IIntegrationEvent`/`IDomainEvent` type split (explicitly rejected).
 - A discrete first-class `AddOutboxProducer`/`AddOutboxProcessor` API split (U6) — topology is formalized via per-datastore registration and the recipes; the discrete split can fold in later.
 - Replacing MassTransit's/Wolverine's outbox internals (we wrap and coordinate, not reinvent).
+- Building a mediator-native outbox. MediatR / the native Mediator are in-process and have no outbox; durability for a mediator route, when wanted, is provided by RCommon's per-datastore outbox (relayed post-commit) — not a new mediator persistence mechanism.
+- The MediatR/native-mediator **CQRS request pipeline** (command/query handling, `AddUnitOfWorkToRequestPipeline`) is out of scope here; this design concerns the mediator only as an **event-handling** (producer/subscriber) transport.
 
 ---
 
@@ -52,11 +54,16 @@ This redesign establishes a single, coherent, **recipe-driven** event-handling m
 - **Capture path** — how an event enters a unit of work; tracked explicitly:
   - **Entity-sourced** — raised on an aggregate/entity (`AddLocalEvent`/`AddDomainEvent`), harvested by `IEntityEventTracker`.
   - **Router-added** — added imperatively via `IEventRouter.AddTransactionalEvent` (the non-DDD / transaction-script path).
-- **Route** — an event→producer binding (modeled by `EventSubscriptionManager`). Two kinds:
-  - **In-process** (in-memory bus, in-process MediatR) → *domain-event semantics*: dispatched to `ISubscriber<T>`, **no outbox**.
-  - **Durable/outbound** (a producer with `.UseOutbox(...)`, or a broker producer) → *integration-event semantics*: persisted to the outbox in the transaction, relayed after commit.
-- **Domain vs integration** = purely which route(s) an event is bound to; developer-configured. The same event can be both.
+- **Route** — an event→producer binding (modeled by `EventSubscriptionManager`). Two orthogonal properties describe a route:
+  - **Transport** — one of three destination categories:
+    1. **In-process bus** (`InMemoryEventBusBuilder`) — `IEventBus` pub/sub to `ISubscriber<T>`.
+    2. **In-process mediator** (`MediatREventHandlingBuilder`, native `MediatorEventHandlingBuilder`) — dispatch through the mediator pipeline; `Publish` = notification/fan-out, `Send` = request/point-to-point. Still in-process. **No native outbox.**
+    3. **Broker** (`MassTransitEventHandlingBuilder`, `WolverineEventHandlingBuilder`) — crosses the process boundary; has a native outbox.
+  - **Durability** — transient (no outbox) or durable. Durability is *orthogonal to transport*: any route can be made durable via RCommon's per-datastore outbox (`.UseOutbox`); only broker transports additionally offer their *native* outbox (`UseBrokerOutbox`).
+- **Domain vs integration** = purely which route(s) an event is bound to; developer-configured. A transient in-process route (bus or mediator) is domain handling; a route that leaves the process, or is made durable, is integration handling. The same event can be both.
 - **Outbox** = a property of a durable route; physically **per-datastore** (co-located with the state change for atomicity), each row recording its **target producer(s)**.
+
+> **In-process mediator note (MediatR / native Mediator).** These implement the producer/subscriber pattern entirely in memory and have **no outbox of their own**. They behave like the in-memory bus for the purposes of this design: transient mediator routes participate in the **pre-commit, ordered domain dispatch** (§2) alongside bus subscribers; a mediator route made durable via `.UseOutbox("store")` is persisted to RCommon's per-datastore outbox and **relayed post-commit** by the poller invoking the mediator producer. `UseBrokerOutbox` does not apply to mediator transports (they are not brokers). This is the "account for MediatR" case: durability, when wanted, always comes from RCommon's outbox — never a mediator-native one.
 
 ```mermaid
 flowchart LR
@@ -185,6 +192,8 @@ Delivery strategy and durability are independent and never conflated.
 
 `Publish` always means fan-out; `Send` always means point-to-point; neither implies anything about the outbox. `Publish<T>()`/`Send<T>()` auto-register their corresponding producer for the builder (as `AddSubscriber` already auto-registers the in-memory producer).
 
+**`Publish`/`Send` are transport-agnostic delivery verbs.** They apply on the **in-process mediator** builders (`MediatREventHandlingBuilder`, native `MediatorEventHandlingBuilder`) exactly as on broker builders — `Publish` maps to the mediator's notification/fan-out producer, `Send` to its request/point-to-point producer. The only difference is durability: a mediator route may take the per-event `.UseOutbox("store")` modifier (RCommon outbox), but **not** `UseBrokerOutbox` (there is no mediator-native outbox). Consuming from a mediator is just in-process handler registration (`AddSubscriber<T,H>()`); `Consume<T,H>()` is broker-only.
+
 ### Inbound vs outbound
 
 ```mermaid
@@ -290,6 +299,7 @@ Each recipe ships with a mermaid diagram (reused in docs) and an e2e `.Tests` pr
 | 2b — DDD + UoW + broker-native outbox (RCommon-wrapped) | new `…Messaging.*.NativeOutbox` (or variant) | B3 |
 | 3 — Transaction-script / CRUD + UoW (router-added events) | new `Examples.EventHandling.TransactionScript` | non-DDD path |
 | 4 — No UoW (direct publish / standalone outbox) | new `Examples.EventHandling.NoUnitOfWork` | escape hatch |
+| 5 — DDD + UoW + in-process mediator (MediatR / native) | extend `Examples.EventHandling.MediatR` / `Examples.Mediator.MediatR` | in-process mediator transport; `Publish`/`Send` in-process; optional `.UseOutbox` for durable relay; no mediator-native outbox |
 
 ### Testing strategy
 
