@@ -78,7 +78,8 @@ namespace RCommon.EventHandling
         /// </returns>
         /// <remarks>
         /// Calling <c>Publish&lt;T&gt;()</c> alone does <em>not</em> mark the event durable —
-        /// it remains transient until <see cref="IEventRouteHandle.UseOutbox"/> is chained.
+        /// it remains transient until <see cref="IEventRouteHandle.UseOutbox"/> is chained,
+        /// or a builder-level default has been set via <see cref="UseRCommonOutbox"/>.
         /// </remarks>
         public static IEventRouteHandle Publish<TEvent>(this IInMemoryEventBusBuilder builder)
             where TEvent : class, ISerializableEvent
@@ -94,7 +95,65 @@ namespace RCommon.EventHandling
             // Resolve the routing registry so the caller can optionally mark durability
             var registry = builder.Services.GetRoutingRegistry();
 
-            return new EventRouteHandle(typeof(TEvent), registry);
+            // Retrieve (or create) per-builder-type config-time state for builder-default support
+            var concreteRegistry = registry as RCommon.EventHandling.Routing.EventRoutingRegistry;
+            var builderState = concreteRegistry?.GetOrCreateBuilderState(builder.GetType());
+
+            // Record this event as published on this builder; get the current default (if already set)
+            var currentDefault = builderState?.RecordPublished(typeof(TEvent));
+
+            // If a builder-level default is already set and this event has not been explicitly
+            // configured, apply it now (order-independent: UseRCommonOutbox before Publish)
+            if (currentDefault is not null)
+            {
+                registry?.MarkDurable(typeof(TEvent), currentDefault);
+            }
+
+            return new EventRouteHandle(typeof(TEvent), registry, builderState);
+        }
+
+        /// <summary>
+        /// Sets a builder-level default outbox store for all events published on this builder
+        /// that do not have an explicit per-event <c>.UseOutbox()</c> override.
+        /// </summary>
+        /// <param name="builder">The in-memory event bus builder.</param>
+        /// <param name="dataStoreName">
+        /// The default outbox datastore name. Must not be <c>null</c>, empty, or whitespace.
+        /// </param>
+        /// <returns>The builder, for method chaining.</returns>
+        /// <remarks>
+        /// <para>
+        /// Order-independent: events already published before this call are retroactively marked
+        /// durable (unless they were given an explicit <c>.UseOutbox()</c> override). Events
+        /// published after this call inherit the default automatically.
+        /// </para>
+        /// <para>
+        /// Precedence: per-event <c>.UseOutbox("x")</c> always beats the builder default, whether
+        /// the per-event call comes before or after <c>UseRCommonOutbox</c>.
+        /// </para>
+        /// </remarks>
+        public static IInMemoryEventBusBuilder UseRCommonOutbox(this IInMemoryEventBusBuilder builder, string dataStoreName)
+        {
+            if (dataStoreName is null)
+                throw new ArgumentNullException(nameof(dataStoreName));
+            if (string.IsNullOrWhiteSpace(dataStoreName))
+                throw new ArgumentException("Data store name must not be empty or whitespace.", nameof(dataStoreName));
+
+            var registry = builder.Services.GetRoutingRegistry();
+            var concreteRegistry = registry as RCommon.EventHandling.Routing.EventRoutingRegistry;
+            var builderState = concreteRegistry?.GetOrCreateBuilderState(builder.GetType());
+
+            if (builderState is not null)
+            {
+                // Set the default and get back the already-published events that are not explicit
+                var retroactiveTypes = builderState.SetDefault(dataStoreName);
+                foreach (var eventType in retroactiveTypes)
+                {
+                    registry!.MarkDurable(eventType, dataStoreName);
+                }
+            }
+
+            return builder;
         }
     }
 }

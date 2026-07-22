@@ -20,6 +20,10 @@ namespace RCommon.EventHandling.Routing
         // Maps event CLR type -> outbox datastore name
         private readonly ConcurrentDictionary<Type, string> _durableEvents = new();
 
+        // Per-builder-type config-time state used to implement order-independent builder defaults.
+        // Key: builder CLR type. Value: mutable state bag for that builder's Publish/UseRCommonOutbox calls.
+        private readonly ConcurrentDictionary<Type, BuilderOutboxState> _builderState = new();
+
         /// <inheritdoc />
         public void MarkDurable(Type eventType, string dataStoreName)
         {
@@ -53,5 +57,89 @@ namespace RCommon.EventHandling.Routing
         /// <inheritdoc />
         public IReadOnlyCollection<string> DurableStoreNames =>
             _durableEvents.Values.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+        // -------------------------------------------------------------------
+        // Internal config-time helpers for builder-level default outbox support
+        // -------------------------------------------------------------------
+
+        /// <summary>
+        /// Returns (creating if necessary) the per-builder-type config-time state bag.
+        /// Internal: consumed only by <see cref="InMemoryEventBusBuilderExtensions"/> and
+        /// <see cref="EventRouteHandle"/> during the DI configuration phase.
+        /// </summary>
+        internal BuilderOutboxState GetOrCreateBuilderState(Type builderType)
+            => _builderState.GetOrAdd(builderType, _ => new BuilderOutboxState());
+    }
+
+    /// <summary>
+    /// Mutable config-time state that tracks the builder-level outbox default and per-event
+    /// explicit overrides for a single builder type.
+    /// </summary>
+    internal sealed class BuilderOutboxState
+    {
+        private readonly object _lock = new();
+
+        // Builder-level default store name (null = not set).
+        private string? _defaultStoreName;
+
+        // All event types that were Publish<T>()'d on this builder type.
+        private readonly HashSet<Type> _publishedEventTypes = new();
+
+        // Event types that received an explicit per-event .UseOutbox() call.
+        private readonly HashSet<Type> _explicitEventTypes = new();
+
+        /// <summary>
+        /// The builder-level default outbox store name, or <c>null</c> if not set.
+        /// </summary>
+        internal string? DefaultStoreName
+        {
+            get { lock (_lock) return _defaultStoreName; }
+        }
+
+        /// <summary>
+        /// Records that an event type was published on this builder.
+        /// Returns the current default store name (null if none set yet).
+        /// </summary>
+        internal string? RecordPublished(Type eventType)
+        {
+            lock (_lock)
+            {
+                _publishedEventTypes.Add(eventType);
+                return _defaultStoreName;
+            }
+        }
+
+        /// <summary>
+        /// Records that an event type received an explicit per-event .UseOutbox() call.
+        /// Explicit events are never overwritten by a builder-level default.
+        /// </summary>
+        internal void RecordExplicit(Type eventType)
+        {
+            lock (_lock) { _explicitEventTypes.Add(eventType); }
+        }
+
+        /// <summary>
+        /// Returns true if the event type was marked with an explicit per-event .UseOutbox().
+        /// </summary>
+        internal bool IsExplicit(Type eventType)
+        {
+            lock (_lock) { return _explicitEventTypes.Contains(eventType); }
+        }
+
+        /// <summary>
+        /// Sets the builder-level default store name and returns all already-published event types
+        /// that are NOT in the explicit set (so they can be retroactively marked durable).
+        /// </summary>
+        internal IReadOnlyList<Type> SetDefault(string defaultStoreName)
+        {
+            lock (_lock)
+            {
+                _defaultStoreName = defaultStoreName;
+                // Return published types not yet explicitly set
+                return _publishedEventTypes
+                    .Where(t => !_explicitEventTypes.Contains(t))
+                    .ToList();
+            }
+        }
     }
 }
