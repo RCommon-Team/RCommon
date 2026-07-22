@@ -45,6 +45,7 @@ namespace RCommon
                 return new InMemoryEventBus(sp);
             });
             Services.AddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
+            Services.AddOptions<EventHandlingOptions>();
         }
 
         /// <inheritdoc />
