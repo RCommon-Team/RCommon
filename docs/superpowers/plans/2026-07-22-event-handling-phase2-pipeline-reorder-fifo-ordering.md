@@ -273,13 +273,20 @@ git commit -m "feat(events): add DispatchGenerationLimitException cycle-breaker 
   2. Resolve `eventProducers = _serviceProvider.GetServices<IEventProducer>().ToList()` once (keep the existing zero-producer warning behavior).
   3. Loop while `_queue.TryPeek(out var head)`:
      - `_currentGeneration = head.Generation;`
-     - If `head.Event is IAsyncEvent`: dequeue the **maximal contiguous run** of events whose `Generation == head.Generation` **and** which are `IAsyncEvent`; dispatch that run concurrently (`ProduceAsyncEvents(run, eventProducers, ct)`).
-     - Else (`ISyncEvent` or untagged→sync): dequeue exactly one; dispatch it via `ProduceSyncEvents(new[]{ evt }, eventProducers, ct)`.
-  4. Keep the existing `try/catch(EventProductionException)` / `catch(Exception)` wrapping semantics from the batch `RouteEventsAsync(IEnumerable)` so a handler exception still surfaces as before (and, crucially, propagates out so `CommitAsync` can roll back — AC-6). **`DispatchGenerationLimitException` must propagate unwrapped** (do not re-wrap it as `EventProductionException`); add it to the catch filter or rethrow.
+     - **Always dequeue the head first** (guarantees forward progress — the loop can never spin on a peeked-but-not-consumed head).
+     - If `head.Event is IAsyncEvent`: after consuming the head, extend it into a **maximal contiguous run** by dequeuing each subsequent event while `Generation == head.Generation && Event is IAsyncEvent`; dispatch the whole run concurrently (`ProduceAsyncEvents(run, eventProducers, ct)`).
+     - Else (`ISyncEvent` or untagged→sync): dispatch the single consumed head via `ProduceSyncEvents(new[]{ headEvent }, eventProducers, ct)`.
+  4. Keep the existing `try/catch(EventProductionException)` / `catch(Exception)` wrapping semantics from the batch `RouteEventsAsync(IEnumerable)` so a handler exception still surfaces as before (and, crucially, propagates out so `CommitAsync` can roll back — AC-6). **`DispatchGenerationLimitException` must propagate unwrapped.** The limit check lives in `AddTransactionalEvent`, which handlers call **on their own threads during a concurrent `ProduceAsyncEvents` run** — so the exception can arrive at the drain loop already unwrapped via `Task.WhenAll`. The `catch(Exception)` clause therefore **must exclude it**: write `catch (Exception ex) when (ex is not DispatchGenerationLimitException)` (and likewise do not let `ProduceAsyncEvents`/`ProduceSyncEvents` wrap it). Otherwise a limit trip inside an async handler gets re-wrapped as `EventProductionException` and the cycle-breaker's type is lost.
 - Delete `RemoveEvents` and `RemoveEvent` (the retry-dequeue helpers) — the drain dequeues directly.
-- Keep the batch `RouteEventsAsync(IEnumerable<ISerializableEvent>, ct)` method (used by `OutboxEventRouter`/direct callers) as-is; it does not participate in generation tracking.
+- Keep the batch `RouteEventsAsync(IEnumerable<ISerializableEvent>, ct)` method (used by `OutboxEventRouter`/direct callers) **as-is** — it does not participate in generation tracking.
 
-> **Contiguous-run helper:** dequeue into a `List<ISerializableEvent> run` while `_queue.TryPeek(out var next) && next.Generation == head.Generation && next.Event is IAsyncEvent`, calling `_queue.TryDequeue(...)` for each. This preserves raise-order within the async run and stops at the first sync event or generation change.
+> **Behavior-change note (do NOT "harmonize" the two methods).** The retained batch `RouteEventsAsync(IEnumerable)` partitions into *all* sync then *all* async (current lines 51-53), so raise-order `[syncA, asyncB, syncC]` dispatches as `[syncA, syncC, asyncB]`. The new FIFO drain deliberately does **not** do this — it preserves raise-order via per-generation contiguous runs, which is precisely what AC-3 requires. AC-3's sequencing is delivered **only** by the new drain, not the batch overload; leave the batch overload's partition logic alone (its callers don't need raise-order).
+
+> **Contiguous-run helper:** after consuming the head, dequeue into a `List<ISerializableEvent> run` (seeded with the head event) while `_queue.TryPeek(out var next) && next.Generation == head.Generation && next.Event is IAsyncEvent`, calling `_queue.TryDequeue(...)` for each. This preserves raise-order within the async run and stops at the first sync event or generation change.
+
+> **Thread-safety (verified during plan review):** during a concurrent async run the drain loop sets `_currentGeneration` once *before* dispatching and does not mutate it while awaiting `Task.WhenAll`, so concurrent handler reads of `_currentGeneration` in `AddTransactionalEvent` are stable; `_draining` is `volatile`; `ConcurrentQueue` handles concurrent enqueue. This is sound — do not add locking.
+
+> **Call-site break (guaranteed, not conditional):** adding the 4th constructor parameter (`IOptions<EventHandlingOptions>`) breaks **every** `new InMemoryTransactionalEventRouter(...)` in `InMemoryTransactionalEventRouterTests.cs` (~18 three-arg call sites) plus the null-arg guard tests. Step 3 MUST update all of them (pass `Options.Create(new EventHandlingOptions())`, or a per-test override) and add a null-check guard test for the new `IOptions` param following the existing guard-test pattern, so the Core test project compiles.
 
 - [ ] **Step 1: Write the failing tests** (add to `InMemoryTransactionalEventRouterTests.cs`)
 
@@ -306,15 +313,26 @@ public async Task Drain_Processes_Events_Raised_By_Handlers_In_Same_Pass()
     // Assert: both E1 and E2 were dispatched; queue is empty at the end.
 }
 
-// (c) Cascade exceeding the generation limit fails loud
+// (c) Cascade exceeding the generation limit fails loud (SYNC cascade)
 [Fact]
-public async Task Drain_Throws_DispatchGenerationLimitException_On_Runaway_Cascade()
+public async Task Drain_Throws_DispatchGenerationLimitException_On_Runaway_Sync_Cascade()
 {
     // Arrange: MaxDispatchGenerations = 3; a producer that ALWAYS raises a new sync event
     //          (each raise => generation+1) => unbounded cascade.
     // Act: Func<Task> act = () => router.RouteEventsAsync();
-    // Assert: await act.Should().ThrowAsync<DispatchGenerationLimitException>();
+    // Assert: await act.Should().ThrowAsync<DispatchGenerationLimitException>()
     //         .Which.MaxDispatchGenerations.Should().Be(3);
+}
+
+// (c2) Cascade limit fails loud via an ASYNC cascade too — proves the exception is NOT re-wrapped
+//      as EventProductionException when it surfaces through Task.WhenAll on a handler thread.
+[Fact]
+public async Task Drain_Throws_DispatchGenerationLimitException_On_Runaway_Async_Cascade()
+{
+    // Arrange: MaxDispatchGenerations = 3; a producer whose async handler ALWAYS raises a new
+    //          IAsyncEvent (each raise => generation+1) => unbounded async cascade.
+    // Act: Func<Task> act = () => router.RouteEventsAsync();
+    // Assert: await act.Should().ThrowAsync<DispatchGenerationLimitException>();  // NOT EventProductionException
 }
 
 // (d) Async events in a contiguous run are awaited concurrently (rendezvous — deterministic)
@@ -332,7 +350,7 @@ public async Task Drain_Awaits_A_Run_Of_Async_Events_Concurrently()
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `dotnet test Tests/RCommon.Core.Tests/RCommon.Core.Tests.csproj --filter "FullyQualifiedName~InMemoryTransactionalEventRouterTests"`
-Expected: FAIL — constructor signature change / new behavior not present (and the async-concurrency test would time out or the cascade test would loop under the old code).
+Expected: **FAIL at compile time first** — the new tests reference the 4-arg constructor (`Options.Create(...)`) and `DispatchGenerationLimitException` (from Tasks 1-2), which the current router/test call sites don't satisfy. Do NOT expect a clean runtime red for the cascade tests under the old code — the old re-harvest loop has no generation concept and a self-raising producer would **loop forever and hang the test run**, not fail. Getting the project to compile (Step 3's call-site updates) is what turns the cascade/concurrency tests into real reds/greens.
 
 - [ ] **Step 3: Implement the drain** (per the design above). Update the constructor, add the fields, reshape `RouteEventsAsync()`, update `AddTransactionalEvent`, delete `RemoveEvents`/`RemoveEvent`.
 
@@ -403,7 +421,9 @@ public async Task DispatchDomainEventsAsync(CancellationToken cancellationToken 
 ```
 - `EmitTransactionalEventsAsync` on the in-memory tracker becomes a no-op returning `true` (dispatch moved to `DispatchDomainEventsAsync`). Keep the method (interface + outbox use it). Update its XML doc to say dispatch now happens pre-commit in `DispatchDomainEventsAsync`.
 
-> **Note on `TransactionalEventsChangedEventArgs.EventData`:** confirm the property name that carries the added `ISerializableEvent` (per the Phase-2 map it is `EventData`). If it differs, use the actual accessor.
+> **Note on `TransactionalEventsChangedEventArgs.EventData`:** the property that carries the added `ISerializableEvent` is `EventData` (verified: `TransactionalEventsChangedEventArgs.cs:36`). Use it directly.
+
+> **Subscription-timing invariant (must hold):** the seed loop attaches `+= Handler` to *every* graph entity **and** the entire seed loop completes **before** `RouteEventsAsync()` is awaited. So by the time any handler runs, all seeded entities are already subscribed — an async handler for entity A that raises on entity B mid-drain is safely captured because B was subscribed during seeding. Do not interleave seeding with dispatch. Seeding does not call `AddLocalEvent` (it reads `LocalEvents` and enqueues), so no event is double-enqueued.
 
 **Outbox implementation:** `public Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;` (no-op — Phase-2 mechanism-first; Phase-1 persist/relay behavior preserved). Add an XML-doc line stating pre-commit domain dispatch for outbox-owning datastores is wired by the Phase-3 route map.
 
@@ -500,6 +520,11 @@ New atomicity test (AC-6):
 public async Task CommitAsync_When_PreCommit_Dispatch_Throws_Does_Not_Commit_Or_Persist_Or_Emit()
 {
     var mockTracker = new Mock<IEntityEventTracker>();
+    // Stub the other two members with non-null completed tasks so that BEFORE the reorder (the red run)
+    // the current code path (PersistEventsAsync -> Complete -> EmitTransactionalEventsAsync) does not NRE
+    // and mask the real assertion; AFTER the reorder they must never be reached.
+    mockTracker.Setup(t => t.PersistEventsAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+    mockTracker.Setup(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
     mockTracker.Setup(t => t.DispatchDomainEventsAsync(It.IsAny<CancellationToken>()))
                .ThrowsAsync(new InvalidOperationException("handler failed"));
 
@@ -517,7 +542,7 @@ public async Task CommitAsync_When_PreCommit_Dispatch_Throws_Does_Not_Commit_Or_
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `dotnet test Tests/RCommon.Persistence.Tests/RCommon.Persistence.Tests.csproj --filter "FullyQualifiedName~UnitOfWorkCommitAsyncTests"`
-Expected: FAIL — `CommitAsync` does not yet call `DispatchDomainEventsAsync`; the atomicity test fails because persist/emit are still reachable.
+Expected: FAIL — the renamed ordering test fails because `CommitAsync` does not yet call `DispatchDomainEventsAsync` (so `callOrder` lacks it); the atomicity test fails because pre-reorder `CommitAsync` never invokes `DispatchDomainEventsAsync`, so no exception is thrown and `ThrowAsync<InvalidOperationException>()` fails. (The stubs above keep the pre-reorder path from NRE-ing so the failure is the clean assertion, not a null-task crash.)
 
 - [ ] **Step 3: Reorder `CommitAsync`** per the block above.
 
