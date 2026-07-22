@@ -17,4 +17,5 @@ public interface IOutboxMessage
     DateTimeOffset? NextRetryAtUtc { get; set; }
     string? LockedByInstanceId { get; set; }
     DateTimeOffset? LockedUntilUtc { get; set; }
+    string? TargetProducers { get; set; }
 }

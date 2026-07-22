@@ -413,5 +413,22 @@ public class EFCoreOutboxStoreTests : IDisposable
         remaining.Should().BeEquivalentTo(new[] { recentDeadLettered.Id, pending.Id });
     }
 
+    [Fact]
+    public async Task SaveAsync_persists_TargetProducers()
+    {
+        var msg = new OutboxMessage
+        {
+            Id = Guid.NewGuid(),
+            EventType = "Test.Event",
+            EventPayload = "{}",
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            TargetProducers = "Ns.MyProducer"
+        };
+        await _store.SaveAsync(msg);
+
+        var saved = await _dbContext.Set<OutboxMessage>().FindAsync(msg.Id);
+        saved!.TargetProducers.Should().Be("Ns.MyProducer");
+    }
+
     public void Dispose() => _dbContext.Dispose();
 }

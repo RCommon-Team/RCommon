@@ -25,6 +25,7 @@ public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage
         builder.Property(x => x.NextRetryAtUtc);
         builder.Property(x => x.LockedByInstanceId).HasMaxLength(64);
         builder.Property(x => x.LockedUntilUtc);
+        builder.Property(x => x.TargetProducers);
 
         builder.HasIndex(x => new { x.ProcessedAtUtc, x.DeadLetteredAtUtc, x.NextRetryAtUtc, x.LockedUntilUtc, x.CreatedAtUtc })
             .HasDatabaseName("IX_OutboxMessages_Pending");

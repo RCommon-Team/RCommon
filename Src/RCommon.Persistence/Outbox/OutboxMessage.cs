@@ -17,4 +17,5 @@ public class OutboxMessage : IOutboxMessage
     public DateTimeOffset? NextRetryAtUtc { get; set; }
     public string? LockedByInstanceId { get; set; }
     public DateTimeOffset? LockedUntilUtc { get; set; }
+    public string? TargetProducers { get; set; }
 }
