@@ -96,6 +96,58 @@ jobs:
             Src/**/*.nupkg
             !Src/**/*.symbols.nupkg
 
+  # Runs the container-backed integration suite using Podman (not Docker).
+  # Kept as a separate job so a container/Podman failure never blocks the fast unit-test lane.
+  # Gated to main pushes and PRs targeting main; tag pushes are excluded (those go to publish only).
+  # Ryuk is disabled because rootless Podman on GitHub runners doesn't support the Ryuk reaper
+  # container; fixture Dispose() handles cleanup instead.
+  integration-tests:
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.base_ref == 'main')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore Src/RCommon.sln
+
+      - name: Build solution (all target frameworks)
+        run: dotnet build Src/RCommon.sln --configuration Release --no-restore
+
+      # GitHub-hosted ubuntu-latest ships Docker but not a pre-configured rootless Podman socket.
+      # We install Podman, start its socket service directly (systemctl --user is unreliable on
+      # these runners), and export DOCKER_HOST so Testcontainers picks it up transparently.
+      - name: Provision Podman socket
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq podman
+          # Start the rootless Podman socket in the background; point DOCKER_HOST at it.
+          podman system service --time=0 unix:///tmp/podman.sock &
+          # Give the socket a moment to become ready.
+          sleep 2
+          echo "DOCKER_HOST=unix:///tmp/podman.sock" >> $GITHUB_ENV
+          echo "TESTCONTAINERS_RYUK_DISABLED=true" >> $GITHUB_ENV
+
+      - name: Run integration tests
+        run: |
+          dotnet test Src/RCommon.sln \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --filter "Category=Integration"
+
   publish:
     needs: build-and-test
     runs-on: ubuntu-latest
