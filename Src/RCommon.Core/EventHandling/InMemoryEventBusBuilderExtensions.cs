@@ -64,5 +64,37 @@ namespace RCommon.EventHandling
             var subscriptionManager = builder.Services.GetSubscriptionManager();
             subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
         }
+
+        /// <summary>
+        /// Declares that <typeparamref name="TEvent"/> should be published on the in-memory bus,
+        /// ensuring <see cref="PublishWithEventBusEventProducer"/> is registered (idempotent) and
+        /// recording the event-to-producer subscription in the <see cref="EventSubscriptionManager"/>.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type to publish. Must implement <see cref="ISerializableEvent"/>.</typeparam>
+        /// <param name="builder">The in-memory event bus builder.</param>
+        /// <returns>
+        /// An <see cref="IEventRouteHandle"/> that allows further configuration, such as
+        /// marking the event as durable via <c>.UseOutbox("storeName")</c>.
+        /// </returns>
+        /// <remarks>
+        /// Calling <c>Publish&lt;T&gt;()</c> alone does <em>not</em> mark the event durable —
+        /// it remains transient until <see cref="IEventRouteHandle.UseOutbox"/> is chained.
+        /// </remarks>
+        public static IEventRouteHandle Publish<TEvent>(this IInMemoryEventBusBuilder builder)
+            where TEvent : class, ISerializableEvent
+        {
+            // Ensure the standard in-memory producer is registered -- idempotent via AddProducer<T>'s
+            // own already-registered check, matching what AddSubscriber does.
+            builder.AddProducer<PublishWithEventBusEventProducer>();
+
+            // Register event-to-producer subscription so the router sends this event to the right producers
+            var subscriptionManager = builder.Services.GetSubscriptionManager();
+            subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
+
+            // Resolve the routing registry so the caller can optionally mark durability
+            var registry = builder.Services.GetRoutingRegistry();
+
+            return new EventRouteHandle(typeof(TEvent), registry);
+        }
     }
 }
