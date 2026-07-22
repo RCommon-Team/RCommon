@@ -13,6 +13,10 @@
     <!-- Postgres EF Core provider compatible with EF Core 10.0.8. -->
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
 
+    <!-- Wolverine PostgreSQL durable message store (PersistMessagesWithPostgresql lives here; it is
+         NOT a transitive dependency of WolverineFx.EntityFrameworkCore, which only brings WolverineFx.RDBMS). -->
+    <PackageReference Include="WolverineFx.Postgresql" Version="5.39.1" />
+
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
