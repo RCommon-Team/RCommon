@@ -1,9 +1,7 @@
-﻿using RCommon.EventHandling.Producers;
+using RCommon.EventHandling.Producers;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,10 +16,18 @@ namespace RCommon.Entities
     /// <see cref="EmitTransactionalEventsAsync"/> is called, the tracker traverses each entity's
     /// object graph to collect all local events and routes them via the configured
     /// <see cref="IEventRouter"/>.
+    /// <para>
+    /// As of AC-8, each entity is stored alongside its associated datastore name so that
+    /// downstream outbox routing can group events by datastore. A null datastore name is a
+    /// sentinel meaning "use default, resolve downstream" — no dependency on
+    /// <c>DefaultDataStoreOptions</c> or <c>RCommon.Persistence</c> is introduced here.
+    /// </para>
     /// </remarks>
     public class InMemoryEntityEventTracker : IEntityEventTracker
     {
-        private readonly ICollection<IBusinessEntity> _businessEntities = new List<IBusinessEntity>();
+        private readonly List<(IBusinessEntity Entity, string? DataStoreName)> _trackedPairs
+            = new List<(IBusinessEntity Entity, string? DataStoreName)>();
+
         private readonly IEventRouter _eventRouter;
 
         /// <summary>
@@ -31,24 +37,38 @@ namespace RCommon.Entities
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="eventRouter"/> is <c>null</c>.</exception>
         public InMemoryEntityEventTracker(IEventRouter eventRouter)
         {
-            this._eventRouter = eventRouter ?? throw new ArgumentNullException(nameof(eventRouter));
+            _eventRouter = eventRouter ?? throw new ArgumentNullException(nameof(eventRouter));
         }
 
         /// <inheritdoc />
-        public void AddEntity(IBusinessEntity entity)
+        /// <remarks>
+        /// Delegates to <see cref="AddEntity(IBusinessEntity, string?)"/> with a null datastore
+        /// sentinel (AC-17 back-compat — resolves default downstream).
+        /// </remarks>
+        public void AddEntity(IBusinessEntity entity) => AddEntity(entity, null);
+
+        /// <inheritdoc />
+        public void AddEntity(IBusinessEntity entity, string? dataStoreName)
         {
             Guard.Against<ArgumentNullException>(entity == null, $"Entity of type {entity?.GetGenericTypeName()} cannot be null");
 
             // Only track entities that have opted in to event tracking
             if (entity!.AllowEventTracking)
             {
-                _businessEntities.Add(entity);
+                _trackedPairs.Add((entity, dataStoreName));
             }
-
         }
 
         /// <inheritdoc />
-        public ICollection<IBusinessEntity> TrackedEntities { get => _businessEntities; }
+        /// <remarks>
+        /// Back-compat projection over <see cref="TrackedEntitiesWithDataStore"/>.
+        /// </remarks>
+        public ICollection<IBusinessEntity> TrackedEntities
+            => _trackedPairs.Select(p => p.Entity).ToList();
+
+        /// <inheritdoc />
+        public IReadOnlyCollection<(IBusinessEntity Entity, string? DataStoreName)> TrackedEntitiesWithDataStore
+            => _trackedPairs.AsReadOnly();
 
         /// <inheritdoc />
         /// <remarks>
@@ -66,7 +86,7 @@ namespace RCommon.Entities
         public async Task<bool> EmitTransactionalEventsAsync(CancellationToken cancellationToken = default)
         {
             // Walk each tracked root entity and traverse its object graph for nested IBusinessEntity instances
-            foreach (var entity in this._businessEntities)
+            foreach (var (entity, _) in _trackedPairs)
             {
                 var entityGraph = entity.TraverseGraphFor<IBusinessEntity>();
 

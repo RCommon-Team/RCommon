@@ -50,7 +50,14 @@ public class OutboxEntityEventTracker : IEntityEventTracker
     public void AddEntity(IBusinessEntity entity) => _inner.AddEntity(entity);
 
     /// <inheritdoc />
+    public void AddEntity(IBusinessEntity entity, string? dataStoreName) => _inner.AddEntity(entity, dataStoreName);
+
+    /// <inheritdoc />
     public ICollection<IBusinessEntity> TrackedEntities => _inner.TrackedEntities;
+
+    /// <inheritdoc />
+    public IReadOnlyCollection<(IBusinessEntity Entity, string? DataStoreName)> TrackedEntitiesWithDataStore
+        => _inner.TrackedEntitiesWithDataStore;
 
     /// <inheritdoc />
     /// <remarks>
