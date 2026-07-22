@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.EFCore;
@@ -43,6 +44,11 @@ namespace RCommon
 
             // Default tenant accessor (no-op); overridden when multitenancy is configured
             services.TryAddTransient<ITenantIdAccessor, NullTenantIdAccessor>();
+
+            // Startup verification: fail loud if any registered outbox datastore is missing the
+            // OutboxMessage mapping. Registered unconditionally; the service is a no-op when no
+            // outbox is configured (empty registry), so registration is always safe.
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, OutboxSchemaVerificationHostedService>());
 
             // EF Core Repository
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
