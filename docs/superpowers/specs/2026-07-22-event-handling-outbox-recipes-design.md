@@ -284,6 +284,15 @@ Whether a `Publish`/`Send` issued inside RCommon's `TransactionScope`-based UoW 
 - The plan **front-loads a coordination spike** — a Testcontainers integration test (real Postgres) asserting: state + broker-outbox rows commit atomically, and a rollback leaves neither. Recipe 2b is "done" only when that test is green.
 - If the seam does not enclose cleanly for a given broker, the documented fallback is **recipe 2a** (broker as a producer behind RCommon's own outbox), which has no such coupling. Developers always have a correct path.
 
+### Spike outcome (verified 2026-07-22)
+
+Both broker coordination spikes are GREEN. See [`Tests/RCommon.IntegrationTests/Spikes/SPIKE-FINDINGS.md`](../../Tests/RCommon.IntegrationTests/Spikes/SPIKE-FINDINGS.md) for the full findings, wiring, observed counts, and decompiled evidence.
+
+- **MassTransit 8.5.9 — GO (recipe 2b viable).** With `UseBusOutbox()`, MassTransit's `SavingChanges` interceptor writes the `OutboxMessage` row during the caller's scoped `DbContext.SaveChangesAsync`. Because that call executes inside RCommon's ambient `TransactionScope`, Npgsql auto-enlists the connection and the business row and outbox row commit atomically. Rollback leaves neither. Recipe 2b proceeds as designed for MassTransit.
+- **WolverineFx 5.39.1 — NO-GO (recipe 2a fallback).** Two independent reasons: (1) `IDbContextOutbox` has no persist-without-flush seam — `SaveChangesAndFlushMessagesAsync` always delivers inline, and a bare `ctx.SaveChangesAsync` writes no envelope row. (2) Decompiled `EfCoreEnvelopeTransaction.PersistOutgoingAsync` opens its own `DbContext.Database.BeginTransactionAsync()` and commits it via `CommitAsync()`, which suppresses EF Core's ambient `System.Transactions` auto-enlistment. The envelope write is therefore never part of RCommon's `TransactionScope`. For Wolverine, use **recipe 2a**: RCommon's per-datastore outbox writes the row atomically; a post-commit processor relays it via Wolverine.
+
+This result gates Phase 4: MassTransit recipe 2b is implemented as designed; Wolverine recipe 2b is dropped in favour of recipe 2a only.
+
 ---
 
 ## 6. Recipe catalog, testing, versioning
