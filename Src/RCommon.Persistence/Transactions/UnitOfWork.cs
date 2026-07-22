@@ -135,30 +135,30 @@ namespace RCommon.Persistence.Transactions
 
             _state = UnitOfWorkState.CommitAttempted;
 
-            // Phase 1: persist events to outbox (within active transaction)
             if (_eventTracker != null)
             {
+                // Step 1 (PRE-COMMIT, in txn): dispatch in-process domain handlers, ordered, drained to empty.
+                // A handler throwing here propagates out BEFORE Complete() => full rollback (AC-6).
+                await _eventTracker.DispatchDomainEventsAsync(cancellationToken).ConfigureAwait(false);
+
+                // Step 2 (PRE-COMMIT, in txn): persist outbox-bound events (incl. any a domain handler raised
+                // via AddTransactionalEvent) so state + outbox rows commit atomically (AC-5).
                 await _eventTracker.PersistEventsAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            // Phase 2: commit transaction (domain writes + outbox writes atomically)
+            // Step 3: commit (state + outbox rows atomic).
             _transactionScope.Complete();
             _transactionScope.Dispose();
             _transactionScopeDisposed = true;
             _state = UnitOfWorkState.Completed;
 
-            // Phase 3: immediate dispatch attempt (best-effort, failures handled by poller)
+            // Step 4 (POST-COMMIT): relay outbox rows to their producers (best-effort; poller retries).
             if (_eventTracker != null)
             {
-                var dispatched = await _eventTracker
-                    .EmitTransactionalEventsAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
+                var dispatched = await _eventTracker.EmitTransactionalEventsAsync(cancellationToken).ConfigureAwait(false);
                 if (!dispatched)
                 {
-                    _logger.LogWarning(
-                        "UnitOfWork {TransactionId}: domain event dispatch returned false.",
-                        TransactionId);
+                    _logger.LogWarning("UnitOfWork {TransactionId}: domain event dispatch returned false.", TransactionId);
                 }
             }
         }
