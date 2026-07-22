@@ -38,6 +38,8 @@ Testcontainers-for-.NET speaks the Docker API; Podman exposes a compatible socke
 
 > Note: `Tests/Directory.Build.props` already provides xUnit, AwesomeAssertions, Moq, Microsoft.NET.Test.Sdk, coverlet, and net10.0. The new csproj only adds Testcontainers, Npgsql, and the broker packages, plus project references.
 
+> **CRITICAL — CI trait convention.** The new project is added to `Src/RCommon.sln`, and the existing **fast** CI job runs `dotnet test Src/RCommon.sln … --filter "Category!=Integration"` on a runner with **no container runtime**. Per the repo's established convention (see `Tests/RCommon.Azure.Blobs.Tests/AzureBlobStorageServiceTests.cs`), **every** container-dependent test class in this project MUST carry a class-level `[Trait("Category", "Integration")]` so the fast job excludes it. Omitting the trait makes the fast job discover and run these container tests on a Podman-less runner and go red on the very PR that introduces them. Every test class below (`HarnessSmokeTests`, `MassTransitOutboxCoordinationSpikeTests`, `WolverineOutboxCoordinationSpikeTests`) carries this trait. (`CollectCoverage=false` only affects coverage collection, not test discovery — it is not the exclusion mechanism.)
+
 ---
 
 ### Task 1: Create the integration test project
@@ -203,6 +205,7 @@ using Xunit;
 
 namespace RCommon.IntegrationTests;
 
+[Trait("Category", "Integration")]   // REQUIRED: excludes this from the fast (no-container) CI job
 [Collection(PostgreSqlCollection.Name)]
 public class HarnessSmokeTests
 {
@@ -287,6 +290,7 @@ A `DbContext` that includes both a business entity and MassTransit's outbox enti
 
 ```csharp
 // Skeleton — exact MT config confirmed via context7 for 8.5.9.
+[Trait("Category", "Integration")]   // REQUIRED: excludes this from the fast (no-container) CI job
 [Collection(PostgresAndRabbitMqCollection.Name)]
 public class MassTransitOutboxCoordinationSpikeTests
 {
@@ -335,7 +339,7 @@ git commit -m "test(spike): MassTransit EF outbox coordination under RCommon Uni
 
 > **Before wiring:** confirm the exact WolverineFx 5.39.1 EF Core outbox API via context7 (`UseEntityFrameworkCoreTransactions()`, `AddDbContextWithWolverineIntegration<TDbContext>()` / `IDbContextOutbox`, and how Wolverine enlists in an ambient transaction vs. owning its own message context). The known friction is that Wolverine prefers to own the transaction/message context.
 
-- [ ] **Step 1: Write the atomic-commit spike test** — analogous to Task 6 Step 1, using Wolverine's durable EF outbox against Postgres; `PublishAsync` inside the RCommon UoW; assert business row + a Wolverine outgoing-envelope row both exist after commit.
+- [ ] **Step 1: Write the atomic-commit spike test** — analogous to Task 6 Step 1, using Wolverine's durable EF outbox against Postgres; `PublishAsync` inside the RCommon UoW; assert business row + a Wolverine outgoing-envelope row both exist after commit. The test class MUST carry class-level `[Trait("Category", "Integration")]` (see the CRITICAL note in File Structure).
 
 - [ ] **Step 2: Run it; record the result** (spike — either outcome informative).
 
@@ -360,7 +364,7 @@ git commit -m "test(spike): Wolverine EF outbox coordination under RCommon UnitO
 
 - [ ] **Step 1: Write findings** — for each broker: did atomic-commit hold? did rollback leave nothing? If atomic, note the exact wiring that worked (this becomes the basis for the Phase 4 `UseBrokerOutbox` wrapper). If not atomic, note the failure mode and confirm the fallback: recipe 2a (broker as a producer behind RCommon's own outbox), which has no such coupling.
 
-- [ ] **Step 2: Update §5 of the design doc** with a one-paragraph "Spike outcome (2026-07-xx)" note recording the go/no-go for recipe 2b per broker.
+- [ ] **Step 2: Update §5 of the design doc** with a one-paragraph "Spike outcome" note (use the **actual** current date, not a placeholder) recording the go/no-go for recipe 2b per broker.
 
 - [ ] **Step 3: Commit**
 
@@ -376,7 +380,7 @@ git commit -m "docs(spike): record broker-outbox coordination findings + recipe-
 **Files:**
 - Modify: `.github/workflows/build-dotnet8.yml`
 
-- [ ] **Step 1: Add an integration-test job** that provisions Podman on the runner (enable the user socket, export `DOCKER_HOST`), then runs `dotnet test Tests/RCommon.IntegrationTests`. Gate it to run on PRs to `main` and pushes to `main` (not every push) to control CI minutes, per the cost doc. Keep the existing fast unit-test job unchanged.
+- [ ] **Step 1: Add an integration-test job** that provisions Podman on the runner (enable the user socket, export `DOCKER_HOST`; note the GitHub-hosted `ubuntu-latest` runner ships Docker, not a preconfigured rootless Podman socket, so this step must install/enable Podman and may hit the documented Ryuk-under-Podman friction — set `TESTCONTAINERS_RYUK_DISABLED=true` if needed). Run the suite via the shared trait convention: `dotnet test Src/RCommon.sln --filter "Category=Integration"` (the inclusion half of the fast job's `Category!=Integration` exclusion), or target the project directly: `dotnet test Tests/RCommon.IntegrationTests`. Gate the job to run on PRs to `main` and pushes to `main` (not every push) to control CI minutes, per the cost doc. Keep the existing fast unit-test job unchanged.
 
 - [ ] **Step 2: Verify the workflow YAML parses** (lint locally or push a draft PR to observe the run).
 
