@@ -26,6 +26,11 @@ namespace RCommon.EventHandling.Producers
         private readonly int _maxGenerations;
         private readonly ConcurrentQueue<(ISerializableEvent Event, int Generation)> _queue;
         private volatile bool _draining;
+        // Single-writer invariant: only the drain loop writes _currentGeneration, and only at the top of
+        // an iteration AFTER the previous iteration's Task.WhenAll has fully completed. Handler threads in a
+        // concurrent async run only READ it (via AddTransactionalEvent), and the value is stable for the
+        // duration of that run. int reads/writes are atomic, so this is safe without volatile/locking — but
+        // preserve this invariant: do NOT write _currentGeneration from any thread other than the drain loop.
         private int _currentGeneration;
 
         /// <summary>
