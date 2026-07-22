@@ -187,12 +187,12 @@ Delivery strategy and durability are independent and never conflated.
 |---|---|---|---|
 | In-process domain handler | `AddSubscriber<T,H>()` | in-process pub/sub | none (transient, pre-commit) |
 | Fan-out integration event | `Publish<T>()` | pub/sub | `.UseOutbox("store")` or builder `UseBrokerOutbox(…)` |
-| Point-to-point / queued | `Send<T>()` | queue | `.UseOutbox("store")` or builder `UseBrokerOutbox(…)` |
+| Point-to-point | `Send<T>()` | point-to-point (queued on brokers; synchronous request on a mediator) | `.UseOutbox("store")` or builder `UseBrokerOutbox(…)` |
 | Inbound broker consumption | `Consume<T,H>()` | broker consumer (own scope, inbox idempotency) | n/a |
 
 `Publish` always means fan-out; `Send` always means point-to-point; neither implies anything about the outbox. `Publish<T>()`/`Send<T>()` auto-register their corresponding producer for the builder (as `AddSubscriber` already auto-registers the in-memory producer).
 
-**`Publish`/`Send` are transport-agnostic delivery verbs.** They apply on the **in-process mediator** builders (`MediatREventHandlingBuilder`, native `MediatorEventHandlingBuilder`) exactly as on broker builders — `Publish` maps to the mediator's notification/fan-out producer, `Send` to its request/point-to-point producer. The only difference is durability: a mediator route may take the per-event `.UseOutbox("store")` modifier (RCommon outbox), but **not** `UseBrokerOutbox` (there is no mediator-native outbox). Consuming from a mediator is just in-process handler registration (`AddSubscriber<T,H>()`); `Consume<T,H>()` is broker-only.
+**`Publish`/`Send` are transport-agnostic delivery verbs.** They apply on the **in-process mediator** builders (`MediatREventHandlingBuilder`, native `MediatorEventHandlingBuilder`) exactly as on broker builders — `Publish` maps to the mediator's notification/fan-out producer, `Send` to its request/point-to-point producer, each **auto-registered per builder** the same way the bus and broker producers are. The only difference is durability: a mediator route may take the per-event `.UseOutbox("store")` modifier (RCommon outbox), but **not** `UseBrokerOutbox` (there is no mediator-native outbox). Consuming from a mediator is just in-process handler registration (`AddSubscriber<T,H>()`); `Consume<T,H>()` is broker-only.
 
 ### Inbound vs outbound
 
@@ -299,7 +299,7 @@ Each recipe ships with a mermaid diagram (reused in docs) and an e2e `.Tests` pr
 | 2b — DDD + UoW + broker-native outbox (RCommon-wrapped) | new `…Messaging.*.NativeOutbox` (or variant) | B3 |
 | 3 — Transaction-script / CRUD + UoW (router-added events) | new `Examples.EventHandling.TransactionScript` | non-DDD path |
 | 4 — No UoW (direct publish / standalone outbox) | new `Examples.EventHandling.NoUnitOfWork` | escape hatch |
-| 5 — DDD + UoW + in-process mediator (MediatR / native) | extend `Examples.EventHandling.MediatR` / `Examples.Mediator.MediatR` | in-process mediator transport; `Publish`/`Send` in-process; optional `.UseOutbox` for durable relay; no mediator-native outbox |
+| 5 — DDD + UoW + in-process mediator (MediatR / native) | extend the **event-handling** example `Examples.EventHandling.MediatR` (not the CQRS-request `Examples.Mediator.MediatR`, which is a non-goal here) | in-process mediator transport; `Publish`/`Send` in-process; optional `.UseOutbox` for durable relay; no mediator-native outbox |
 
 ### Testing strategy
 
@@ -307,7 +307,7 @@ RCommon has **no real-DB integration harness today** (EF tests run on SQLite via
 
 - **RCommon `Tests/` — authoritative correctness gate (TDD, written first):**
   - *Unit tests* — FIFO queue ordering, pre-commit dispatch + cycle-breaker, per-datastore grouping/routing, target-producer recording, tracker datastore capture, multi-datastore poller, startup diagnostics. Fast, mock-based.
-  - *Integration tests (new Testcontainers harness: Postgres + RabbitMQ)* — cross-datastore atomicity (row co-located; rollback erases both), `TransactionScope` enlistment, and the recipe-2b broker-outbox coordination spike. SQLite cannot exercise multi-connection atomicity or brokers.
+  - *Integration tests (new Testcontainers harness on **Podman**: Postgres + RabbitMQ)* — cross-datastore atomicity (row co-located; rollback erases both), `TransactionScope` enlistment, and the recipe-2b broker-outbox coordination spike. SQLite cannot exercise multi-connection atomicity or brokers. The container runtime is **Podman** (not Docker); Testcontainers targets Podman via its Podman support (rootless socket / `DOCKER_HOST`), and CI/dev docs will document the Podman socket setup.
 - **Examples `+ .Tests` — executable proof-of-work per recipe:** each recipe is a runnable app with a lightweight end-to-end test (following the `Examples.EventHandling.Outbox.Tests` precedent) asserting the documented wiring composes and produces the recipe's observable outcome.
 
 RCommon tests prove internals/invariants and guard against regression independent of examples; example tests prove the public recipe as documented actually works. The coordination spike lives in RCommon integration tests as the gate and is demonstrated in the recipe-2b example.
@@ -316,7 +316,7 @@ RCommon tests prove internals/invariants and guard against regression independen
 
 - **Breaking:** `IOutboxStore.SaveAsync` gains `dataStoreName`; `CommitAsync` phase reorder (pre-commit domain dispatch); new fluent verbs.
 - **Softened with shims:** `AddEntity(entity)` overload kept (defaults to default datastore); `AddSubscriber` kept as `[Obsolete]` alias → `Consume` on broker builders; `EFCoreOutboxStore<TContext>`/subclass marked obsolete.
-- **Deliverables:** a migration guide (old→new mapping), the recipe conceptual guide + diagrams, and the Testcontainers CI change.
+- **Deliverables:** a migration guide (old→new mapping), the recipe conceptual guide + diagrams, and the Testcontainers-on-Podman CI change.
 
 ### Phasing (detailed by the writing-plans step)
 
@@ -350,6 +350,6 @@ Already shipped previously (context, not this work): B1 (`ImmediateDispatch`, 3.
 ## Risks & open questions
 
 - **Broker-outbox coordination (B3)** is the primary technical risk; mitigated by the front-loaded spike and the recipe-2a fallback.
-- **Testcontainers in CI** adds Docker as a CI dependency (Postgres + RabbitMQ); needs the build workflow updated and may lengthen CI.
+- **Testcontainers in CI** adds **Podman** as a CI dependency (Postgres + RabbitMQ); needs the build workflow updated (Podman socket / `DOCKER_HOST`, rootless considerations) and may lengthen CI. Podman is the chosen runtime over Docker; verify the Testcontainers ↔ Podman socket wiring on the CI runners early.
 - **Multi-target frameworks** (net8/net9/net10) — MassTransit/Wolverine and their EF outbox versions differ per TFM (as seen with Swashbuckle/OpenApi in 3.1.1); wrapper conditional compilation may be needed.
 - **`TransactionScope` + async** enlistment semantics across providers must be validated by the integration harness, not assumed.
