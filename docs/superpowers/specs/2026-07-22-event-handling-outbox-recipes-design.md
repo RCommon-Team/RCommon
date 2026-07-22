@@ -41,7 +41,7 @@ This redesign establishes a single, coherent, **recipe-driven** event-handling m
 ## Non-goals
 
 - Imposing an `IIntegrationEvent`/`IDomainEvent` type split (explicitly rejected).
-- A discrete first-class `AddOutboxProducer`/`AddOutboxProcessor` API split (U6) — topology is formalized via per-datastore registration and the recipes; the discrete split can fold in later.
+- (Resolved into scope during spec review) The discrete `AddOutboxProducer`/`AddOutboxProcessor` API split (U6) is now **in scope** for 3.2.0 — see the domain spec AC-21. It rides the registration rework rather than being deferred.
 - Replacing MassTransit's/Wolverine's outbox internals (we wrap and coordinate, not reinvent).
 - Building a mediator-native outbox. MediatR / the native Mediator are in-process and have no outbox; durability for a mediator route, when wanted, is provided by RCommon's per-datastore outbox (relayed post-commit) — not a new mediator persistence mechanism.
 - The MediatR/native-mediator **CQRS request pipeline** (command/query handling, `AddUnitOfWorkToRequestPipeline`) is out of scope here; this design concerns the mediator only as an **event-handling** (producer/subscriber) transport.
@@ -343,7 +343,7 @@ Two commitments must appear as **explicit, testable acceptance criteria** on the
 | D1 | Missing distributed-events/outbox conceptual guide | Completed via recipe catalog + diagrams (§6) |
 | U4 | Subscriber-registration duality confusing | Structurally clarified — `AddSubscriber` vs `Consume` (§4) |
 | U7 | `ISyncEvent` conflates ordering with transport | Reaffirmed + verified — sync = pre-commit ordered dispatch (§2) |
-| U6 | No first-class producer/processor split for `AddOutbox` | Partial/adjacent — topology formalized via per-datastore registration + recipes |
+| U6 | No first-class producer/processor split for `AddOutbox` | Directly resolved — `AddOutboxProducer`/`AddOutboxProcessor` folded into 3.2.0 (spec AC-21) |
 
 Already shipped previously (context, not this work): B1 (`ImmediateDispatch`, 3.1.1); B2, B5, U1, U2 (silent-failure hardening, 3.1.3).
 
