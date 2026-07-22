@@ -29,6 +29,8 @@
 
 ## File structure
 
+> **Path note (verified):** The EF Core outbox files (`EFCoreOutboxStore.cs`, `OutboxMessageConfiguration.cs`, `ModelBuilderExtensions.cs`) live under **`Src/RCommon.EfCore/Outbox/`** — their C# namespace is `RCommon.Persistence.EFCore.Outbox`, but there is **no** `Src/RCommon.Persistence.EFCore/` project/directory. Use the `Src/RCommon.EfCore/Outbox/` paths in all `git add` commands.
+
 **Core / persistence abstractions (`Src/RCommon.Persistence/`)**
 - Modify `Outbox/IOutboxMessage.cs` — add `string? TargetProducers`.
 - Modify `Outbox/OutboxMessage.cs` — add `TargetProducers` property.
@@ -80,7 +82,7 @@ Bottom-up so the solution keeps compiling and each layer's tests are green befor
 **Files:**
 - Modify: `Src/RCommon.Persistence/Outbox/IOutboxMessage.cs`
 - Modify: `Src/RCommon.Persistence/Outbox/OutboxMessage.cs`
-- Modify: `Src/RCommon.Persistence.EFCore/Outbox/OutboxMessageConfiguration.cs`
+- Modify: `Src/RCommon.EfCore/Outbox/OutboxMessageConfiguration.cs`
 - Test: `Tests/RCommon.EfCore.Tests/EFCoreOutboxStoreTests.cs`
 
 - [ ] **Step 1: Write the failing test** — extend an existing EFCore outbox store round-trip test (or add `SaveAsync_persists_TargetProducers`) asserting that a saved `OutboxMessage` with `TargetProducers = "Ns.MyProducer"` reads back with that value. (Use the existing in-memory/SQLite DbContext test harness in `EFCoreOutboxStoreTests.cs`.)
@@ -97,7 +99,7 @@ Run: `dotnet test Tests/RCommon.EfCore.Tests --filter "FullyQualifiedName~EFCore
 
 - [ ] **Step 5: Commit**
 ```bash
-git add Src/RCommon.Persistence/Outbox/IOutboxMessage.cs Src/RCommon.Persistence/Outbox/OutboxMessage.cs Src/RCommon.Persistence.EFCore/Outbox/OutboxMessageConfiguration.cs Tests/RCommon.EfCore.Tests/EFCoreOutboxStoreTests.cs
+git add Src/RCommon.Persistence/Outbox/IOutboxMessage.cs Src/RCommon.Persistence/Outbox/OutboxMessage.cs Src/RCommon.EfCore/Outbox/OutboxMessageConfiguration.cs Tests/RCommon.EfCore.Tests/EFCoreOutboxStoreTests.cs
 git commit -m "feat(outbox): add TargetProducers column to outbox message (AC-10)"
 ```
 
@@ -159,7 +161,7 @@ git commit -m "feat(outbox): registry of outbox-owning datastores + datastore-aw
 
 **Files:**
 - Modify: `Src/RCommon.Persistence/Outbox/IOutboxStore.cs`
-- Modify: `Src/RCommon.Persistence.EFCore/Outbox/EFCoreOutboxStore.cs`
+- Modify: `Src/RCommon.EfCore/Outbox/EFCoreOutboxStore.cs`
 - Modify: `Src/RCommon.Dapper/Outbox/DapperOutboxStore.cs`
 - Modify: `Src/RCommon.Linq2Db/Outbox/Linq2DbOutboxStore.cs`
 - Modify (callers, to keep building): `Src/RCommon.Persistence/Outbox/OutboxEventRouter.cs`, `Src/RCommon.Persistence/Outbox/OutboxProcessingService.cs`
@@ -173,7 +175,7 @@ git commit -m "feat(outbox): registry of outbox-owning datastores + datastore-aw
 Run: `dotnet test Tests/RCommon.EfCore.Tests --filter "FullyQualifiedName~EFCoreOutboxStoreTests"`
 
 - [ ] **Step 3: Implement**
-  - `IOutboxStore`: add `string dataStoreName` to each method signature (place it after `IOutboxMessage message` / before `CancellationToken`).
+  - `IOutboxStore`: add `string dataStoreName` to each method signature — **immediately before the trailing `CancellationToken`** (this rule applies uniformly to all 9 methods; several — `ClaimAsync`, `GetDeadLettersAsync`, `MarkProcessedAsync`, `DeleteProcessedAsync` — have no `IOutboxMessage message` parameter, and `MarkFailedAsync` has extra params).
   - `EFCoreOutboxStore`: delete the `_dataStoreName` field and its `DefaultDataStoreOptions` constructor dependency; change `private RCommonDbContext DbContext => ...` into `private RCommonDbContext Context(string name) => _dataStoreFactory.Resolve<RCommonDbContext>(name);` and use `Context(dataStoreName)` in each method.
   - `DapperOutboxStore` + `Linq2DbOutboxStore`: same — resolve per call from the argument; drop the pinned name/constructor option.
   - Update the two callers minimally to compile: `OutboxEventRouter` and `OutboxProcessingService` currently call `SaveAsync(message, ct)` / `ClaimAsync(instanceId, ...)` etc. — pass a datastore name through. For this task, thread the **default datastore name** so behavior is unchanged (real grouping/iteration lands in Tasks 6 and 9). Inject `IOptions<DefaultDataStoreOptions>` where needed for the interim default.
@@ -185,7 +187,7 @@ Expected: PASS (including the new two-datastore test).
 
 - [ ] **Step 5: Commit**
 ```bash
-git add Src/RCommon.Persistence/Outbox/IOutboxStore.cs Src/RCommon.Persistence.EFCore/Outbox/EFCoreOutboxStore.cs Src/RCommon.Dapper/Outbox/DapperOutboxStore.cs Src/RCommon.Linq2Db/Outbox/Linq2DbOutboxStore.cs Src/RCommon.Persistence/Outbox/OutboxEventRouter.cs Src/RCommon.Persistence/Outbox/OutboxProcessingService.cs Tests/RCommon.EfCore.Tests/ Tests/RCommon.Dapper.Tests/ Tests/RCommon.Linq2Db.Tests/
+git add Src/RCommon.Persistence/Outbox/IOutboxStore.cs Src/RCommon.EfCore/Outbox/EFCoreOutboxStore.cs Src/RCommon.Dapper/Outbox/DapperOutboxStore.cs Src/RCommon.Linq2Db/Outbox/Linq2DbOutboxStore.cs Src/RCommon.Persistence/Outbox/OutboxEventRouter.cs Src/RCommon.Persistence/Outbox/OutboxProcessingService.cs Tests/RCommon.EfCore.Tests/ Tests/RCommon.Dapper.Tests/ Tests/RCommon.Linq2Db.Tests/
 git commit -m "feat(outbox)!: make IOutboxStore datastore-parametric; resolve context per call (AC-8, U5)"
 ```
 
@@ -226,13 +228,13 @@ git commit -m "feat(outbox): capture datastore name at IEntityEventTracker.AddEn
 - Modify: `Src/RCommon.EfCore/Crud/EFCoreAggregateRepository.cs` (analogous `EventTracker.AddEntity` call sites)
 - Test: covered end-to-end by Task 11; add a focused unit test if the repo layer has an existing test harness (`Tests/RCommon.EfCore.Tests`).
 
-**Design:** Both repository base classes already expose `DataStoreName` (used at `_dataStoreFactory.Resolve<RCommonDbContext>(this.DataStoreName)`). Replace `EventTracker.AddEntity(entity)` with `EventTracker.AddEntity(entity, this.DataStoreName)` at every call site.
+**Design:** Both repository base classes already expose `DataStoreName` (used at `_dataStoreFactory.Resolve<RCommonDbContext>(this.DataStoreName)`). Replace `EventTracker.AddEntity(entity)` with `EventTracker.AddEntity(entity, this.DataStoreName)` at every call site. **There are more call sites than a quick glance suggests** — grep confirmed ~5 in `EFCoreRepository.cs` (≈162, 183, 203, 288, 583) and ~8 in `EFCoreAggregateRepository.cs` (≈161, 182, 202, 287, 582, 623, 646, 652). Change **all** of them; do not stop at the first three.
 
-- [ ] **Step 1: Write/adjust the failing test** — if a repository-level test harness exists, add one asserting that adding an entity through a repository configured for datastore `"B"` results in the tracker associating that entity with `"B"`. If no unit harness exists for the repository (it depends on EF wiring), state that and rely on Task 11's integration test as the red/green gate — but still make the change test-first at the integration level (write Task 11's failing assertion first if you reach this before Task 11; otherwise note the deferral explicitly).
+- [ ] **Step 1: Write the failing test** — prefer a lightweight in-memory/SQLite repository test (the EFCore test project already spins up DbContexts against SQLite/in-memory) so Task 5 is honestly red-green in isolation rather than landing green-untested until Task 11. Configure a repository for datastore `"B"`, add an entity, and assert the (spy/mock) tracker associated that entity with `"B"`. Only if a repo-level harness genuinely cannot be stood up without full EF wiring, fall back to writing **Task 11's** failing assertion first and note the deferral explicitly in the commit message.
 
 - [ ] **Step 2: Run — verify FAIL** (entity associated with default, not `"B"`).
 
-- [ ] **Step 3: Implement** — grep both files for `EventTracker.AddEntity(` and change each to pass `this.DataStoreName`. Confirm no other `AddEntity(` call sites in `Src/RCommon.EfCore` were missed.
+- [ ] **Step 3: Implement** — grep both files for `EventTracker.AddEntity(` and change **every** occurrence to pass `this.DataStoreName`. Confirm no other `AddEntity(` call sites in `Src/RCommon.EfCore` were missed.
 
 - [ ] **Step 4: Run — verify PASS**; `dotnet build Src/RCommon.sln` clean.
 
@@ -278,10 +280,18 @@ git commit -m "feat(outbox): group events by datastore and record target produce
 
 **Files:**
 - Modify: `Src/RCommon.EfCore/RCommonDbContext.cs`
-- (Reuse) `Src/RCommon.Persistence.EFCore/Outbox/ModelBuilderExtensions.cs` (`AddOutboxMessages`)
+- (Reuse) `Src/RCommon.EfCore/Outbox/ModelBuilderExtensions.cs` (`AddOutboxMessages`)
 - Test: `Tests/RCommon.EfCore.Tests/` (new test class or extend an existing model test)
 
-**Design (design §3 "Schema provisioning"):** In `OnModelCreating`, if this context's datastore name is present in `IOutboxDataStoreRegistry.Registrations`, call `modelBuilder.AddOutboxMessages(tableName)` automatically (no manual call). The context must know its own datastore name (it implements `IDataStore`; use its `Name`/registered name) and must be able to read the registry. Because `DbContext` can't take arbitrary scoped services in `OnModelCreating` cleanly, inject the registry via the context's constructor/`DbContextOptions` extension or a small accessor consistent with how RCommon already provides services to `RCommonDbContext`. Developer still owns migrations (RCommon only shapes the model).
+**Design (design §3 "Schema provisioning"):** In `OnModelCreating`, if this context's datastore name is present in `IOutboxDataStoreRegistry.Registrations`, call `modelBuilder.AddOutboxMessages(tableName)` automatically (no manual call).
+
+> **⚠ This is the hardest task in the phase — expect to build a genuinely new seam, not to reuse an existing one.** Verified facts the implementer must design around:
+> - `IDataStore` (`Src/RCommon.Persistence/IDataStore.cs`) exposes **only** `GetDbConnection()` — there is **no** `Name` property. `RCommonDbContext` (`Src/RCommon.EfCore/RCommonDbContext.cs`) currently has **no** datastore-name awareness and does **not** override `OnModelCreating`.
+> - Today the outbox mapping is applied **manually** by the developer calling `modelBuilder.AddOutboxMessages()` inside their own `OnModelCreating` (see `Examples.EventHandling.Outbox/AppDbContext.cs` and the EFCore test contexts). This task moves that into the base context, gated on registry membership — while leaving the manual call working for back-compat (idempotent / no double-map).
+> - Two sub-problems to solve: (a) **the context must learn its own registered datastore name** — it is registered via `IDataStoreFactory` under a string name, but the instance doesn't carry that name today; introduce a minimal way for the context to know its name (e.g. a name set during `AddDbContext(name, ...)` registration, or a lookup through `DataStoreFactoryOptions`). (b) **the context must read `IOutboxDataStoreRegistry` from `OnModelCreating`**, where scoped-service injection is awkward — pass the registry (and the resolved name) via the context constructor / a `DbContextOptions` extension / a small accessor, consistent with how RCommon already supplies services to `RCommonDbContext`.
+> - Prefer the **smallest** seam that satisfies the tests; do not broadly refactor `RCommonDbContext`. Document the seam you add in a code comment. If, once in the code, the clean approach is materially different from the sketch above (e.g. auto-map is better applied via a model-customization/convention registered at `AddDbContext` time rather than an `OnModelCreating` override), **that is acceptable** — the acceptance criterion is only that a registered outbox datastore's model ends up with `OutboxMessage` mapped and a non-registered one does not. If you find yourself blocked choosing between seams, report back for guidance rather than guessing.
+
+Developer still owns migrations (RCommon only shapes the model).
 
 - [ ] **Step 1: Write the failing test** — register an outbox on datastore `"A"`; build the model for A's `RCommonDbContext`; assert `model.FindEntityType(typeof(OutboxMessage))` is non-null (mapped). Register a context on `"C"` with **no** outbox; assert `OutboxMessage` is **not** mapped there.
 
@@ -303,10 +313,12 @@ git commit -m "feat(outbox): auto-map OutboxMessage on outbox-owning datastores 
 
 **Files:**
 - Create: `Src/RCommon.EfCore/Outbox/OutboxSchemaVerificationHostedService.cs`
-- Modify: `Src/RCommon.Persistence/Outbox/OutboxPersistenceBuilderExtensions.cs` (register it) — or register in the EFCore builder if it needs EF types
+- Create/Modify: an **EfCore-side registration seam** (see design note) — e.g. `Src/RCommon.EfCore/Outbox/EFCoreOutboxBuilderExtensions.cs` (new) or an existing `IEFCorePersistenceBuilder` extension.
 - Test: `Tests/RCommon.EfCore.Tests/OutboxSchemaVerificationHostedServiceTests.cs`
 
 **Design (design §3, AC-11; consistent with the 3.1.3 fail-loud `OutboxRoutingDiagnosticsHostedService`):** On startup, for each `IOutboxDataStoreRegistry` datastore, resolve its `RCommonDbContext` and verify the `OutboxMessage` entity is mapped **and** the underlying table is reachable. If missing, **fail loud** — throw on startup (or log a high-severity warning, matching the existing diagnostic's severity convention; prefer throw for a *registered-but-unmapped* datastore since that is a misconfiguration that silently drops events). Model the class on the existing `OutboxRoutingDiagnosticsHostedService` (internal sealed hosted service).
+
+> **⚠ Cross-project registration gap (must resolve):** This hosted service needs **EF types** (resolve `RCommonDbContext`, call `IModel.FindEntityType(typeof(OutboxMessage))`), so it must live in `RCommon.EfCore`. But the **only** `AddOutbox<TOutboxStore>` extension today lives in `Src/RCommon.Persistence/Outbox/OutboxPersistenceBuilderExtensions.cs`, and the dependency direction is `RCommon.EfCore → RCommon.Persistence` — so the Persistence-side `AddOutbox` **cannot** reference an EF-typed hosted service. There is no EfCore-side outbox registration hook today. **Resolution:** introduce a small EfCore-side registration extension (on the existing `IEFCorePersistenceBuilder`) that registers this hosted service — e.g. the developer's outbox setup on an EF datastore calls that extension, or `EFCorePersistenceBuilder` auto-registers it when an outbox is configured. Do NOT try to register an EF-typed service from `RCommon.Persistence`. Keep the Persistence-side `AddOutbox` (store/router/tracker/poller/registry, all provider-agnostic) as-is; add the EF-specific verification registration on the EfCore side.
 
 - [ ] **Step 1: Write the failing test** — registry has `"A"` (mapped) and `"Missing"` (a context without the outbox mapping); assert the service throws/logs loud for `"Missing"` and is silent for `"A"`. Use the existing hosted-service test pattern from `OutboxRoutingDiagnosticsHostedServiceTests.cs`.
 
