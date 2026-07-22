@@ -100,9 +100,10 @@ flowchart TD
 
 - **Single pass** — each event enqueued once, dequeued once; no repeated aggregate-graph re-walks.
 - **Intrinsic termination** — the queue empties; no before/after bookkeeping.
-- **Ordering for free** — FIFO *is* raise-order, so `ISyncEvent` sequencing is a data-structure property. `IAsyncEvent` batches dispatch concurrently.
+- **Ordering for free** — FIFO *is* raise-order, so `ISyncEvent` sequencing is a data-structure property.
+- **`IAsyncEvent` semantics** — async events are **dequeued in raise-order** but their handlers are **awaited concurrently** within a contiguous run of async events; the queue still advances one entry at a time, so an async handler that raises further events enqueues them to the *same* FIFO and the single-drain invariant is preserved (no separate queue, no re-harvest). Ordering guarantees apply to `ISyncEvent`; `IAsyncEvent` guarantees only that all handlers complete before the queue is considered empty.
 - **Leverages existing machinery** — `BusinessEntity.AddLocalEvent` already raises `TransactionalEventAdded`; the tracker subscribes and enqueues, so events raised mid-dispatch flow into the same queue. `OutboxEventRouter` already has a buffer queue.
-- **Cycle-breaker** — a configurable max-depth guard fails loud on unbounded cascades (A→B→A…); it is a safety net, not the termination mechanism.
+- **Cycle-breaker** — a guard fails loud on unbounded cascades (A→B→A…). "Depth" means **cascade generation** (the event that triggered the handler is generation *n*; events that handler raises are generation *n+1*), not total events dispatched — a wide fan-out at one generation is fine. The default limit and its config knob live on the event-handling options (default: 16 generations); exceeding it throws a descriptive exception (fail-loud), it is a safety net, not the termination mechanism (empty-queue is).
 
 ### Consequences
 
@@ -199,11 +200,17 @@ flowchart LR
 - `AddSubscriber<T,H>()` — in-process handler on the in-memory builder (domain, pre-commit, in the producer's UoW).
 - `Consume<T,H>()` — inbound broker consumer on a broker builder (runs on the consuming host in its own scope/transaction, with inbox idempotency). `AddSubscriber` is kept as an `[Obsolete]` alias forwarding to `Consume` on broker builders for continuity.
 
-### Durability selectors (broker builders)
+### Canonical durability verb set
 
-- `UseRCommonOutbox("<datastore>")` → recipe 2a (RCommon owns durability; broker relayed post-commit).
-- `UseBrokerOutbox(o => …)` → recipe 2b (broker's native outbox; RCommon coordinates the txn).
-- neither → the broker publishes without an outbox (fire-at-commit).
+There are exactly two levels at which durability is expressed, and one precedence rule:
+
+- **Per-event modifier** (chained on `Publish`/`Send`): `.UseOutbox("<datastore>")` — routes *this* event through RCommon's per-datastore outbox.
+- **Builder-level selector** (sets the default for every outbound route on that builder):
+  - `UseRCommonOutbox("<datastore>")` → recipe 2a (RCommon owns durability; broker relayed post-commit).
+  - `UseBrokerOutbox(o => …)` → recipe 2b (broker's native outbox; RCommon coordinates the txn).
+- **Precedence:** a per-event `.UseOutbox(...)` overrides the builder-level selector for that event (most specific wins). If neither a per-event modifier nor a builder-level selector applies, the broker publishes **without** an outbox (fire-at-commit).
+
+`.UseOutbox("store")` and `UseRCommonOutbox("store")` select the *same* RCommon per-datastore outbox mechanism; they differ only in scope (single route vs whole builder). `UseBrokerOutbox` is the only verb that selects the broker's native outbox.
 
 ### Example — Recipe 1 (RCommon outbox)
 
@@ -310,6 +317,8 @@ RCommon tests prove internals/invariants and guard against regression independen
 4. MassTransit/Wolverine wrappers + recipes 2a/2b.
 5. Recipes as examples + e2e tests.
 6. Docs (recipe guide + diagrams) + migration guide.
+
+Two commitments must appear as **explicit, testable acceptance criteria** on their phases (not prose): the fail-loud startup diagnostic for a missing outbox schema (§3, phase 1) and the recipe-2b atomicity/rollback coordination spike with the recipe-2a fallback path (§5, phase 0/4).
 
 ---
 
