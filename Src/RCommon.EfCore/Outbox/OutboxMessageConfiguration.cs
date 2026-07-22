@@ -32,6 +32,9 @@ public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage
 
         builder.HasIndex(x => x.DeadLetteredAtUtc)
             .HasDatabaseName("IX_OutboxMessages_DeadLettered")
-            .HasFilter("[DeadLetteredAtUtc] IS NOT NULL");
+            // Use SQL-standard double-quoted identifier quoting rather than SQL Server's [ ] brackets so
+            // the filtered index DDL is portable across providers. PostgreSQL rejects [ ] (syntax error);
+            // SQL Server (QUOTED_IDENTIFIER ON, EF Core's default) and SQLite both accept "..." quoting.
+            .HasFilter("\"DeadLetteredAtUtc\" IS NOT NULL");
     }
 }

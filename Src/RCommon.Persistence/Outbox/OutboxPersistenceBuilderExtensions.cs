@@ -41,28 +41,42 @@ public static class OutboxPersistenceBuilderExtensions
         string? dataStoreName = null)
         where TOutboxStore : class, IOutboxStore
     {
+        // AddOutbox may legitimately be called once per outbox-owning datastore so that several
+        // datastores share a SINGLE poller/diagnostics pair while each contributes its name to the
+        // registry (AC-9). To make that safe, every registration below is idempotent: the shared
+        // singletons (store binding, router, tracker, hosted services) are registered with Try* so a
+        // second call does not create duplicate pollers or diagnostics, while the datastore name is
+        // always appended (the one thing that must accumulate).
+
         // Outbox store (scoped — participates in per-request transaction)
-        builder.Services.AddScoped<IOutboxStore, TOutboxStore>();
+        builder.Services.TryAddScoped<IOutboxStore, TOutboxStore>();
 
         // Serializer (singleton, replaceable)
         builder.Services.TryAddSingleton<IOutboxSerializer, JsonOutboxSerializer>();
 
         // Outbox event router (scoped — replaces InMemoryTransactionalEventRouter)
-        builder.Services.AddScoped<OutboxEventRouter>();
-        builder.Services.AddScoped<IEventRouter>(sp => sp.GetRequiredService<OutboxEventRouter>());
+        builder.Services.TryAddScoped<OutboxEventRouter>();
+        builder.Services.TryAddScoped<IEventRouter>(sp => sp.GetRequiredService<OutboxEventRouter>());
 
         // Entity event tracker decorator (scoped — replaces InMemoryEntityEventTracker)
-        builder.Services.AddScoped<InMemoryEntityEventTracker>();
-        builder.Services.AddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
+        builder.Services.TryAddScoped<InMemoryEntityEventTracker>();
+        builder.Services.TryAddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
 
-        // Background processing service (singleton)
+        // Background processing service (singleton). AddHostedService uses TryAddEnumerable keyed on the
+        // implementation type, so calling AddOutbox twice still yields exactly ONE OutboxProcessingService
+        // (which drains every registered datastore).
         builder.Services.AddHostedService<OutboxProcessingService>();
 
         // Startup diagnostic: warn if a later registration silently overrode the outbox IEventRouter.
-        builder.Services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService>(sp =>
-            new OutboxRoutingDiagnosticsHostedService(
-                builder.Services,
-                sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>()));
+        // Registered via TryAddEnumerable with the typed factory overload so the descriptor's
+        // implementation type is OutboxRoutingDiagnosticsHostedService (not the IHostedService service
+        // type); TryAddEnumerable dedups on that implementation type, so a second AddOutbox call does not
+        // register a duplicate diagnostic.
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, OutboxRoutingDiagnosticsHostedService>(
+                sp => new OutboxRoutingDiagnosticsHostedService(
+                    builder.Services,
+                    sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>())));
 
         // Options
         if (configure != null)
