@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using RCommon.MassTransit;
 using RCommon.MassTransit.Outbox;
 
@@ -56,6 +57,11 @@ public static class MassTransitOutboxBuilderExtensions
         // Record the (datastore -> DbContext type) binding for the startup co-location validation (Task 2).
         builder.Services.Configure<MassTransitBrokerOutboxRegistrationOptions>(
             o => o.Register(opts.DataStoreName!, typeof(TDbContext)));
+
+        // Register the startup validator idempotently (TryAddEnumerable keyed on the implementation
+        // type ensures exactly one validator even across multiple UseBrokerOutbox calls).
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IHostedService, BrokerOutboxDataStoreValidationHostedService>());
 
         // Register MassTransit's native EF Core bus outbox (the proven recipe-2b wiring).
         builder.AddEntityFrameworkOutbox<TDbContext>(o =>
