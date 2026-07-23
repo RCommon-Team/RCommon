@@ -132,5 +132,42 @@ namespace RCommon.MediatR
             // Delegate the durability-recording logic to the shared, builder-agnostic helper
             return builder.Services.RecordPublishRoute(builder.GetType(), typeof(TEvent));
         }
+
+        /// <summary>
+        /// Declares that <typeparamref name="TEvent"/> should be sent via MediatR point-to-point semantics,
+        /// ensuring <see cref="SendWithMediatREventProducer"/> is registered (idempotent) and
+        /// recording the event-to-producer subscription in the <see cref="EventSubscriptionManager"/>.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type to send. Must implement <see cref="ISerializableEvent"/>.</typeparam>
+        /// <param name="builder">The MediatR event handling builder.</param>
+        /// <returns>
+        /// An <see cref="IEventRouteHandle"/> that allows further configuration, such as
+        /// marking the event as durable via <c>.UseOutbox("storeName")</c>.
+        /// </returns>
+        /// <remarks>
+        /// <para>
+        /// <c>Send&lt;T&gt;()</c> registers only the OUTBOUND producer; it does <em>not</em> wire a
+        /// MediatR <c>IRequestHandler</c> or CQRS request pipeline (spec MN-6) — the consuming side
+        /// is the developer's concern.
+        /// </para>
+        /// <para>
+        /// Calling <c>Send&lt;T&gt;()</c> alone does <em>not</em> mark the event durable — it remains
+        /// transient until <see cref="IEventRouteHandle.UseOutbox"/> is chained, or a builder-level
+        /// default has been set via <see cref="UseRCommonOutbox"/>.
+        /// </para>
+        /// </remarks>
+        public static IEventRouteHandle Send<TEvent>(this IMediatREventHandlingBuilder builder)
+            where TEvent : class, ISerializableEvent
+        {
+            // Ensure the MediatR send producer is registered -- idempotent via AddProducer<T>'s
+            // own already-registered check.
+            builder.AddProducer<SendWithMediatREventProducer>();
+
+            // Register event-to-producer subscription so the router sends this event to the right producers
+            builder.Services.GetSubscriptionManager()?.AddSubscription(builder.GetType(), typeof(TEvent));
+
+            // Delegate the durability-recording logic to the shared, builder-agnostic helper
+            return builder.Services.RecordPublishRoute(builder.GetType(), typeof(TEvent));
+        }
     }
 }
