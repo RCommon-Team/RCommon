@@ -108,11 +108,19 @@ public class MassTransitOutboxCoordinationSpikeTests
         return services.BuildServiceProvider(validateScopes: true);
     }
 
-    private static async Task EnsureSchemaAsync(IServiceProvider provider)
+    /// <summary>
+    /// Ensures the schema exists AND resets the tables these tests assert on. Both tests in this class
+    /// share one Postgres container (collection fixture), so without an explicit reset a committed row
+    /// from the atomic-commit test leaks into the rollback test and makes the assertions order-dependent.
+    /// Cleaning up front makes each test independent regardless of xUnit's execution order.
+    /// </summary>
+    private static async Task EnsureCleanSchemaAsync(IServiceProvider provider)
     {
         using var scope = provider.CreateScope();
         var ctx = scope.ServiceProvider.GetRequiredService<SpikeDbContext>();
         await ctx.Database.EnsureCreatedAsync(); // creates business + MT outbox tables
+        await ctx.Set<OutboxMessage>().ExecuteDeleteAsync();
+        await ctx.Widgets.ExecuteDeleteAsync();
     }
 
     [Fact]
@@ -128,7 +136,7 @@ public class MassTransitOutboxCoordinationSpikeTests
         // no sweeper runs, so the staged row is stable for the assertion. (The rollback test proves
         // the interceptor path also works with the bus stopped, confirming staging is independent of
         // bus start.)
-        await EnsureSchemaAsync(provider);
+        await EnsureCleanSchemaAsync(provider);
 
         using (var scope = provider.CreateScope())
         {
@@ -166,7 +174,7 @@ public class MassTransitOutboxCoordinationSpikeTests
 
         // Bus deliberately NOT started (see the atomic-commit test): staging goes through the
         // SaveChanges interceptor, not the bus delivery service.
-        await EnsureSchemaAsync(provider);
+        await EnsureCleanSchemaAsync(provider);
 
         using (var scope = provider.CreateScope())
         {
