@@ -137,6 +137,12 @@ flowchart LR
   BT -.->|poller| BUSB(("relay"))
 ```
 
+:::caution One transaction per datastore — no cross-datastore atomicity
+An outbox row is atomic with **its own** datastore's state change — they share one connection and one local transaction (co-location). There is **no** distributed atomicity **across** datastores. `UnitOfWork` wraps a single ambient `TransactionScope` (`Required`), so if one unit of work writes to a **second** datastore, a second connection enlists and the transaction **promotes to a distributed transaction (2PC/MSDTC)**. Across engines this is the classic failure — e.g. Postgres + SQL Server, where Npgsql issues `PREPARE TRANSACTION` and Postgres rejects it with `55000: prepared transactions are disabled` (and two databases on the *same* engine promote identically; the trigger is the second connection, not the engine pairing).
+
+So when one logical operation touches more than one datastore, **use a unit of work per datastore**. Each commits locally and atomically (state + that datastore's co-located outbox row); cross-datastore delivery is **eventual** (at-least-once via the poller). RCommon never forces cross-datastore 2PC, and it fails loud rather than half-committing.
+:::
+
 ---
 
 ## Recipe 2a — broker as producer behind the RCommon outbox
