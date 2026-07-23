@@ -193,6 +193,26 @@ public class InMemoryEventBusTests
     }
 
     [Fact]
+    public async Task PublishAsync_WhenHandlerThrows_SurfacesRealException_NotTargetInvocationException()
+    {
+        // Arrange -- a handler that throws a distinctive exception synchronously from HandleAsync.
+        // Reflection Invoke would wrap a synchronously-thrown exception in TargetInvocationException;
+        // the bus must unwrap it so callers see the real exception.
+        var services = new ServiceCollection();
+        services.AddScoped<ISubscriber<TestEvent>>(sp => new ThrowingTestEventHandler());
+        var serviceProvider = services.BuildServiceProvider();
+        var eventBus = new InMemoryEventBus(serviceProvider);
+
+        // Act
+        var act = async () => await eventBus.PublishAsync(new TestEvent());
+
+        // Assert -- the caught exception must be the real InvalidOperationException("boom"),
+        // NOT a System.Reflection.TargetInvocationException.
+        (await act.Should().ThrowAsync<InvalidOperationException>())
+            .WithMessage("boom");
+    }
+
+    [Fact]
     public async Task PublishAsync_PassesCancellationTokenToHandler()
     {
         // Arrange
@@ -324,6 +344,16 @@ public class InMemoryEventBusTests
         public Task HandleAsync(AnotherTestEvent @event, CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
+        }
+    }
+
+    public class ThrowingTestEventHandler : ISubscriber<TestEvent>
+    {
+        public Task HandleAsync(TestEvent @event, CancellationToken cancellationToken = default)
+        {
+            // Thrown synchronously (before returning a Task), which reflection Invoke wraps in
+            // TargetInvocationException unless the bus unwraps it.
+            throw new InvalidOperationException("boom");
         }
     }
 

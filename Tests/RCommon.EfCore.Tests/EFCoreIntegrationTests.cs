@@ -8,6 +8,8 @@ using RCommon.Persistence;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.EFCore.Crud;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Xunit;
 
@@ -278,13 +280,19 @@ public class EFCoreIntegrationTests : IDisposable
 /// </summary>
 public class TestEntityEventTracker : IEntityEventTracker
 {
-    private readonly List<IBusinessEntity> _trackedEntities = new();
+    private readonly List<(IBusinessEntity Entity, string? DataStoreName)> _trackedPairs = new();
 
-    public ICollection<IBusinessEntity> TrackedEntities => _trackedEntities;
+    public ICollection<IBusinessEntity> TrackedEntities
+        => _trackedPairs.Select(p => p.Entity).ToList();
 
-    public void AddEntity(IBusinessEntity entity)
+    public IReadOnlyCollection<(IBusinessEntity Entity, string? DataStoreName)> TrackedEntitiesWithDataStore
+        => _trackedPairs.AsReadOnly();
+
+    public void AddEntity(IBusinessEntity entity) => AddEntity(entity, null);
+
+    public void AddEntity(IBusinessEntity entity, string? dataStoreName)
     {
-        _trackedEntities.Add(entity);
+        _trackedPairs.Add((entity, dataStoreName));
     }
 
     public Task PersistEventsAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -293,6 +301,8 @@ public class TestEntityEventTracker : IEntityEventTracker
     {
         return Task.FromResult(true);
     }
+
+    public Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 }
 
 /// <summary>

@@ -205,10 +205,14 @@ public class UnitOfWorkCommitAsyncTests
     }
 
     [Fact]
-    public async Task CommitAsync_With_Tracker_Calls_PersistEventsAsync_Before_Commit()
+    public async Task CommitAsync_Dispatches_Then_Persists_Then_Emits()
     {
         var callOrder = new System.Collections.Generic.List<string>();
         var mockTracker = new Mock<IEntityEventTracker>();
+        mockTracker
+            .Setup(t => t.DispatchDomainEventsAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => callOrder.Add("DispatchDomainEventsAsync"))
+            .Returns(Task.CompletedTask);
         mockTracker
             .Setup(t => t.PersistEventsAsync(It.IsAny<CancellationToken>()))
             .Callback(() => callOrder.Add("PersistEventsAsync"))
@@ -222,8 +226,30 @@ public class UnitOfWorkCommitAsyncTests
             _mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object, mockTracker.Object);
         await uow.CommitAsync();
 
-        callOrder.Should().ContainInOrder("PersistEventsAsync", "EmitTransactionalEventsAsync");
+        callOrder.Should().ContainInOrder("DispatchDomainEventsAsync", "PersistEventsAsync", "EmitTransactionalEventsAsync");
+        mockTracker.Verify(t => t.DispatchDomainEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
         mockTracker.Verify(t => t.PersistEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
         mockTracker.Verify(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CommitAsync_When_PreCommit_Dispatch_Throws_Does_Not_Commit_Or_Persist_Or_Emit()
+    {
+        var mockTracker = new Mock<IEntityEventTracker>();
+        // Stub the other two with non-null completed tasks so the pre-reorder red run doesn't NRE and mask
+        // the assertion; after the reorder they must never be reached.
+        mockTracker.Setup(t => t.PersistEventsAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        mockTracker.Setup(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        mockTracker.Setup(t => t.DispatchDomainEventsAsync(It.IsAny<CancellationToken>()))
+                   .ThrowsAsync(new InvalidOperationException("handler failed"));
+
+        using var uow = new UnitOfWork(_mockLogger.Object, _mockGuidGenerator.Object, _mockSettings.Object, mockTracker.Object);
+
+        var act = () => uow.CommitAsync();
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        uow.State.Should().NotBe(UnitOfWorkState.Completed);        // transaction not completed => rolls back
+        mockTracker.Verify(t => t.PersistEventsAsync(It.IsAny<CancellationToken>()), Times.Never); // no outbox rows
+        mockTracker.Verify(t => t.EmitTransactionalEventsAsync(It.IsAny<CancellationToken>()), Times.Never); // no relay
     }
 }

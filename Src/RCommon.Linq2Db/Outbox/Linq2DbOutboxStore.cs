@@ -17,7 +17,6 @@ namespace RCommon.Persistence.Linq2Db.Outbox;
 public class Linq2DbOutboxStore : IOutboxStore
 {
     private readonly IDataStoreFactory _dataStoreFactory;
-    private readonly string _dataStoreName;
     private readonly string _tableName;
     private readonly int _maxRetries;
     private readonly ILockStatementProvider _lockProvider;
@@ -25,39 +24,35 @@ public class Linq2DbOutboxStore : IOutboxStore
     /// <summary>
     /// Initializes a new instance of <see cref="Linq2DbOutboxStore"/>.
     /// </summary>
-    /// <param name="dataStoreFactory">Factory used to resolve the <see cref="RCommonDataConnection"/> for the configured data store.</param>
-    /// <param name="defaultDataStoreOptions">Options specifying which data store to use when none is explicitly set.</param>
+    /// <param name="dataStoreFactory">Factory used to resolve the <see cref="RCommonDataConnection"/> for a given data store name per call.</param>
     /// <param name="outboxOptions">Options for outbox behaviour such as table name and max retries.</param>
     /// <param name="lockStatementProvider">Provider that determines the SQL locking dialect to use for <see cref="ClaimAsync"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when any required parameter is <c>null</c> or yields a null value.</exception>
     public Linq2DbOutboxStore(
         IDataStoreFactory dataStoreFactory,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
         IOptions<OutboxOptions> outboxOptions,
         ILockStatementProvider lockStatementProvider)
     {
         _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
-        _dataStoreName = defaultDataStoreOptions?.Value?.DefaultDataStoreName
-            ?? throw new ArgumentNullException(nameof(defaultDataStoreOptions));
         _tableName = outboxOptions?.Value?.TableName ?? "__OutboxMessages";
         _maxRetries = outboxOptions?.Value?.MaxRetries ?? 5;
         _lockProvider = lockStatementProvider ?? throw new ArgumentNullException(nameof(lockStatementProvider));
     }
 
     /// <summary>
-    /// Gets the <see cref="RCommonDataConnection"/> for the configured data store, resolved through the <see cref="IDataStoreFactory"/>.
+    /// Resolves the <see cref="RCommonDataConnection"/> for the named data store through the <see cref="IDataStoreFactory"/>.
     /// </summary>
-    private RCommonDataConnection DataConnection
-        => _dataStoreFactory.Resolve<RCommonDataConnection>(_dataStoreName);
+    private RCommonDataConnection Connection(string name)
+        => _dataStoreFactory.Resolve<RCommonDataConnection>(name);
 
     /// <summary>
-    /// Gets the Linq2Db <see cref="ITable{OutboxMessage}"/> scoped to the configured table name.
+    /// Gets the Linq2Db <see cref="ITable{OutboxMessage}"/> for the named data store, scoped to the configured table name.
     /// </summary>
-    private ITable<OutboxMessage> Table
-        => DataConnection.GetTable<OutboxMessage>().TableName(_tableName);
+    private ITable<OutboxMessage> Table(string name)
+        => Connection(name).GetTable<OutboxMessage>().TableName(_tableName);
 
     /// <inheritdoc />
-    public async Task SaveAsync(IOutboxMessage message, CancellationToken cancellationToken = default)
+    public async Task SaveAsync(IOutboxMessage message, string dataStoreName, CancellationToken cancellationToken = default)
     {
         var entity = message as OutboxMessage ?? new OutboxMessage
         {
@@ -75,13 +70,13 @@ public class Linq2DbOutboxStore : IOutboxStore
             LockedByInstanceId = message.LockedByInstanceId,
             LockedUntilUtc = message.LockedUntilUtc
         };
-        await DataConnection.InsertAsync(entity, _tableName, token: cancellationToken).ConfigureAwait(false);
+        await Connection(dataStoreName).InsertAsync(entity, _tableName, token: cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task MarkProcessedAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task MarkProcessedAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await Table
+        await Table(dataStoreName)
             .Where(m => m.Id == messageId)
             .Set(m => m.ProcessedAtUtc, DateTimeOffset.UtcNow)
             .UpdateAsync(cancellationToken)
@@ -89,9 +84,9 @@ public class Linq2DbOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task MarkFailedAsync(Guid messageId, string error, DateTimeOffset nextRetryAtUtc, CancellationToken cancellationToken = default)
+    public async Task MarkFailedAsync(Guid messageId, string error, DateTimeOffset nextRetryAtUtc, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await Table
+        await Table(dataStoreName)
             .Where(m => m.Id == messageId)
             .Set(m => m.ErrorMessage, error)
             .Set(m => m.RetryCount, m => m.RetryCount + 1)
@@ -103,9 +98,9 @@ public class Linq2DbOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task MarkDeadLetteredAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task MarkDeadLetteredAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await Table
+        await Table(dataStoreName)
             .Where(m => m.Id == messageId)
             .Set(m => m.DeadLetteredAtUtc, DateTimeOffset.UtcNow)
             .UpdateAsync(cancellationToken)
@@ -113,31 +108,31 @@ public class Linq2DbOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteProcessedAsync(TimeSpan olderThan, CancellationToken cancellationToken = default)
+    public async Task DeleteProcessedAsync(TimeSpan olderThan, string dataStoreName, CancellationToken cancellationToken = default)
     {
         var cutoff = DateTimeOffset.UtcNow - olderThan;
-        await Table
+        await Table(dataStoreName)
             .Where(m => m.ProcessedAtUtc != null && m.ProcessedAtUtc < cutoff)
             .DeleteAsync(cancellationToken)
             .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task DeleteDeadLetteredAsync(TimeSpan olderThan, CancellationToken cancellationToken = default)
+    public async Task DeleteDeadLetteredAsync(TimeSpan olderThan, string dataStoreName, CancellationToken cancellationToken = default)
     {
         var cutoff = DateTimeOffset.UtcNow - olderThan;
-        await Table
+        await Table(dataStoreName)
             .Where(m => m.DeadLetteredAtUtc != null && m.DeadLetteredAtUtc < cutoff)
             .DeleteAsync(cancellationToken)
             .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<IOutboxMessage>> ClaimAsync(string instanceId, int batchSize, TimeSpan lockDuration, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<IOutboxMessage>> ClaimAsync(string instanceId, int batchSize, TimeSpan lockDuration, string dataStoreName, CancellationToken cancellationToken = default)
     {
         var now = DateTimeOffset.UtcNow;
         var lockUntil = now + lockDuration;
-        var dc = DataConnection;
+        var dc = Connection(dataStoreName);
 
         string sql;
         if (_lockProvider.ProviderName == "PostgreSql")
@@ -187,9 +182,9 @@ public class Linq2DbOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<IOutboxMessage>> GetDeadLettersAsync(int batchSize, int offset = 0, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<IOutboxMessage>> GetDeadLettersAsync(int batchSize, int offset, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        return await Table
+        return await Table(dataStoreName)
             .Where(m => m.DeadLetteredAtUtc != null)
             .OrderByDescending(m => m.DeadLetteredAtUtc)
             .Skip(offset)
@@ -199,9 +194,9 @@ public class Linq2DbOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task ReplayDeadLetterAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task ReplayDeadLetterAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var rows = await Table
+        var rows = await Table(dataStoreName)
             .Where(m => m.Id == messageId && m.DeadLetteredAtUtc != null)
             .Set(m => m.DeadLetteredAtUtc, (DateTimeOffset?)null)
             .Set(m => m.ProcessedAtUtc, (DateTimeOffset?)null)

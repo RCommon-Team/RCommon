@@ -38,11 +38,12 @@ public class EFCoreOutboxStoreTests : IDisposable
         var factoryMock = new Mock<IDataStoreFactory>();
         factoryMock.Setup(f => f.Resolve<RCommonDbContext>(It.IsAny<string>()))
             .Returns(_dbContext);
-        var defaultOpts = Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" });
         var outboxOpts = Options.Create(new OutboxOptions { MaxRetries = 3 });
 
-        _store = new EFCoreOutboxStore(factoryMock.Object, defaultOpts, outboxOpts);
+        _store = new EFCoreOutboxStore(factoryMock.Object, outboxOpts);
     }
+
+    private const string DataStore = "test";
 
     [Fact]
     public async Task SaveAsync_PersistsMessage()
@@ -54,7 +55,7 @@ public class EFCoreOutboxStoreTests : IDisposable
             EventPayload = "{}",
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
-        await _store.SaveAsync(msg);
+        await _store.SaveAsync(msg, DataStore);
         var count = await _dbContext.Set<OutboxMessage>().CountAsync();
         count.Should().Be(1);
     }
@@ -72,7 +73,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().Add(msg);
         await _dbContext.SaveChangesAsync();
 
-        await _store.MarkProcessedAsync(msg.Id);
+        await _store.MarkProcessedAsync(msg.Id, DataStore);
 
         var updated = await _dbContext.Set<OutboxMessage>().FindAsync(msg.Id);
         updated!.ProcessedAtUtc.Should().NotBeNull();
@@ -95,7 +96,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         var nextRetry = DateTimeOffset.UtcNow.AddMinutes(10);
-        await _store.MarkFailedAsync(msg.Id, "error", nextRetry);
+        await _store.MarkFailedAsync(msg.Id, "error", nextRetry, DataStore);
 
         var updated = await _dbContext.Set<OutboxMessage>().FindAsync(msg.Id);
         updated!.RetryCount.Should().Be(2);
@@ -119,7 +120,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().Add(msg);
         await _dbContext.SaveChangesAsync();
 
-        await _store.MarkDeadLetteredAsync(msg.Id);
+        await _store.MarkDeadLetteredAsync(msg.Id, DataStore);
 
         var updated = await _dbContext.Set<OutboxMessage>().FindAsync(msg.Id);
         updated!.DeadLetteredAtUtc.Should().NotBeNull();
@@ -163,7 +164,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().AddRange(pending, processed, deadLettered, maxedOut);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _store.ClaimAsync("instance-1", 100, TimeSpan.FromMinutes(5));
+        var result = await _store.ClaimAsync("instance-1", 100, TimeSpan.FromMinutes(5), DataStore);
 
         result.Should().HaveCount(1);
         result[0].Id.Should().Be(pending.Id);
@@ -195,7 +196,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().AddRange(futureRetry, readyRetry);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _store.ClaimAsync("instance-1", 100, TimeSpan.FromMinutes(5));
+        var result = await _store.ClaimAsync("instance-1", 100, TimeSpan.FromMinutes(5), DataStore);
 
         result.Should().HaveCount(1);
         result[0].Id.Should().Be(readyRetry.Id);
@@ -227,7 +228,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().AddRange(locked, expiredLock);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _store.ClaimAsync("instance-1", 100, TimeSpan.FromMinutes(5));
+        var result = await _store.ClaimAsync("instance-1", 100, TimeSpan.FromMinutes(5), DataStore);
 
         result.Should().HaveCount(1);
         result[0].Id.Should().Be(expiredLock.Id);
@@ -263,7 +264,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().AddRange(deadLettered, pending, processed);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _store.GetDeadLettersAsync(100);
+        var result = await _store.GetDeadLettersAsync(100, 0, DataStore);
 
         result.Should().HaveCount(1);
         result[0].Id.Should().Be(deadLettered.Id);
@@ -286,7 +287,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Ordered descending by DeadLetteredAtUtc, skip 2, take 2
-        var result = await _store.GetDeadLettersAsync(batchSize: 2, offset: 2);
+        var result = await _store.GetDeadLettersAsync(batchSize: 2, offset: 2, dataStoreName: DataStore);
 
         result.Should().HaveCount(2);
         // The 3rd and 4th most recently dead-lettered messages (index 2 and 3 in descending order)
@@ -314,7 +315,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().Add(msg);
         await _dbContext.SaveChangesAsync();
 
-        await _store.ReplayDeadLetterAsync(msg.Id);
+        await _store.ReplayDeadLetterAsync(msg.Id, DataStore);
 
         var updated = await _dbContext.Set<OutboxMessage>().FindAsync(msg.Id);
         updated!.DeadLetteredAtUtc.Should().BeNull();
@@ -331,7 +332,7 @@ public class EFCoreOutboxStoreTests : IDisposable
     {
         var nonExistentId = Guid.NewGuid();
 
-        var act = async () => await _store.ReplayDeadLetterAsync(nonExistentId);
+        var act = async () => await _store.ReplayDeadLetterAsync(nonExistentId, DataStore);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"*{nonExistentId}*");
@@ -351,7 +352,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().Add(msg);
         await _dbContext.SaveChangesAsync();
 
-        var act = async () => await _store.ReplayDeadLetterAsync(msg.Id);
+        var act = async () => await _store.ReplayDeadLetterAsync(msg.Id, DataStore);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"*{msg.Id}*");
@@ -379,7 +380,7 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().AddRange(oldProcessed, recentProcessed, unprocessed);
         await _dbContext.SaveChangesAsync();
 
-        await _store.DeleteProcessedAsync(TimeSpan.FromDays(7));
+        await _store.DeleteProcessedAsync(TimeSpan.FromDays(7), DataStore);
 
         var remaining = await _dbContext.Set<OutboxMessage>().Select(m => m.Id).ToListAsync();
         remaining.Should().BeEquivalentTo(new[] { recentProcessed.Id, unprocessed.Id });
@@ -407,10 +408,68 @@ public class EFCoreOutboxStoreTests : IDisposable
         _dbContext.Set<OutboxMessage>().AddRange(oldDeadLettered, recentDeadLettered, pending);
         await _dbContext.SaveChangesAsync();
 
-        await _store.DeleteDeadLetteredAsync(TimeSpan.FromDays(7));
+        await _store.DeleteDeadLetteredAsync(TimeSpan.FromDays(7), DataStore);
 
         var remaining = await _dbContext.Set<OutboxMessage>().Select(m => m.Id).ToListAsync();
         remaining.Should().BeEquivalentTo(new[] { recentDeadLettered.Id, pending.Id });
+    }
+
+    [Fact]
+    public async Task SaveAsync_writes_to_the_named_datastore()
+    {
+        // Two distinct EF datastores registered under names "A" and "B".
+        var optionsA = new DbContextOptionsBuilder<TestOutboxDbContext>()
+            .UseSqlite("DataSource=:memory:").Options;
+        var contextA = new TestOutboxDbContext(optionsA);
+        contextA.Database.OpenConnection();
+        contextA.Database.EnsureCreated();
+
+        var optionsB = new DbContextOptionsBuilder<TestOutboxDbContext>()
+            .UseSqlite("DataSource=:memory:").Options;
+        var contextB = new TestOutboxDbContext(optionsB);
+        contextB.Database.OpenConnection();
+        contextB.Database.EnsureCreated();
+
+        var factoryMock = new Mock<IDataStoreFactory>();
+        factoryMock.Setup(f => f.Resolve<RCommonDbContext>("A")).Returns(contextA);
+        factoryMock.Setup(f => f.Resolve<RCommonDbContext>("B")).Returns(contextB);
+
+        var store = new EFCoreOutboxStore(
+            factoryMock.Object,
+            Options.Create(new OutboxOptions { MaxRetries = 3 }));
+
+        var msg = new OutboxMessage
+        {
+            Id = Guid.NewGuid(),
+            EventType = "Test.Event",
+            EventPayload = "{}",
+            CreatedAtUtc = DateTimeOffset.UtcNow
+        };
+
+        await store.SaveAsync(msg, "B");
+
+        (await contextB.Set<OutboxMessage>().CountAsync()).Should().Be(1, "the message was saved to datastore B");
+        (await contextA.Set<OutboxMessage>().CountAsync()).Should().Be(0, "datastore A must remain empty");
+
+        contextA.Dispose();
+        contextB.Dispose();
+    }
+
+    [Fact]
+    public async Task SaveAsync_persists_TargetProducers()
+    {
+        var msg = new OutboxMessage
+        {
+            Id = Guid.NewGuid(),
+            EventType = "Test.Event",
+            EventPayload = "{}",
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            TargetProducers = "Ns.MyProducer"
+        };
+        await _store.SaveAsync(msg, DataStore);
+
+        var saved = await _dbContext.Set<OutboxMessage>().FindAsync(msg.Id);
+        saved!.TargetProducers.Should().Be("Ns.MyProducer");
     }
 
     public void Dispose() => _dbContext.Dispose();

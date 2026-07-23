@@ -49,11 +49,12 @@ public class OutboxImmediateDispatchTests : IDisposable
         var factoryMock = new Mock<IDataStoreFactory>();
         factoryMock.Setup(f => f.Resolve<RCommonDbContext>(It.IsAny<string>()))
             .Returns(_dbContext);
-        var defaultOpts = Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" });
         var outboxOpts = Options.Create(new OutboxOptions());
 
-        _store = new EFCoreOutboxStore(factoryMock.Object, defaultOpts, outboxOpts);
+        _store = new EFCoreOutboxStore(factoryMock.Object, outboxOpts);
     }
+
+    private const string DataStore = "test";
 
     [Fact]
     public async Task ProducerHost_ImmediateDispatchDisabled_LeavesRowUnprocessed_ThenPollerDrainsIt()
@@ -79,14 +80,14 @@ public class OutboxImmediateDispatchTests : IDisposable
         // by OutboxProcessingServiceTests; we drive the loop directly here to keep the test hermetic and
         // focused on the cross-host visibility mechanism.
         var pollerSpy = new CapturingProducer();
-        var claimed = await _store.ClaimAsync("processor-host", batchSize: 100, lockDuration: TimeSpan.FromMinutes(5));
+        var claimed = await _store.ClaimAsync("processor-host", batchSize: 100, lockDuration: TimeSpan.FromMinutes(5), dataStoreName: DataStore);
 
         claimed.Should().ContainSingle("the poller must see the unprocessed row the producer left behind");
         foreach (var message in claimed)
         {
             var deserialized = _serializer.Deserialize(message.EventType, message.EventPayload);
             await pollerSpy.ProduceEventAsync(deserialized);
-            await _store.MarkProcessedAsync(message.Id);
+            await _store.MarkProcessedAsync(message.Id, DataStore);
         }
 
         pollerSpy.Produced.Should().ContainSingle("the poller is the sole dispatcher for cross-host delivery");
@@ -130,7 +131,8 @@ public class OutboxImmediateDispatchTests : IDisposable
             provider,
             new EventSubscriptionManager(),
             NullLogger<OutboxEventRouter>.Instance,
-            Options.Create(options));
+            Options.Create(options),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = DataStore }));
     }
 
     private sealed class CapturingProducer : IEventProducer

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Exclude from the default fast unit-test coverage sweep; these are heavy container tests. -->
+    <CollectCoverage>false</CollectCoverage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Container runtime harness (talks to Podman via DOCKER_HOST). -->
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.6.0" />
+    <PackageReference Include="Testcontainers.RabbitMq" Version="4.6.0" />
+
+    <!-- Postgres EF Core provider compatible with EF Core 10.0.8. -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+
+    <!-- Wolverine PostgreSQL durable message store (PersistMessagesWithPostgresql lives here; it is
+         NOT a transitive dependency of WolverineFx.EntityFrameworkCore, which only brings WolverineFx.RDBMS). -->
+    <PackageReference Include="WolverineFx.Postgresql" Version="5.39.1" />
+
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Src\RCommon.EfCore\RCommon.EFCore.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.MassTransit\RCommon.MassTransit.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.MassTransit.Outbox\RCommon.MassTransit.Outbox.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Wolverine\RCommon.Wolverine.csproj" />
+    <ProjectReference Include="..\..\Src\RCommon.Wolverine.Outbox\RCommon.Wolverine.Outbox.csproj" />
+  </ItemGroup>
+
+</Project>

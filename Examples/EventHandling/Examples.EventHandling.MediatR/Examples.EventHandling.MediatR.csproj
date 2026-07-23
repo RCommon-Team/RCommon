@@ -8,7 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Src\RCommon.Core\RCommon.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+    <!-- InMemory rather than SQLite: RCommon.Persistence's UnitOfWork wraps a System.Transactions
+         TransactionScope, and Microsoft.Data.Sqlite's ADO provider does not support ambient
+         transaction enlistment at all (a permanent SQLite provider limitation, not a configuration
+         issue): SaveChangesAsync throws AmbientTransactionWarning against it. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RCommon.EFCore brings the persistence/UnitOfWork stack (RCommonDbContext,
+         EFCorePersistenceBuilder, the repositories) transitively; RCommon.MediatR supplies the
+         in-process mediator event handling. -->
+    <ProjectReference Include="..\..\..\Src\RCommon.EfCore\RCommon.EFCore.csproj" />
     <ProjectReference Include="..\..\..\Src\RCommon.Mediatr\RCommon.MediatR.csproj" />
   </ItemGroup>
 

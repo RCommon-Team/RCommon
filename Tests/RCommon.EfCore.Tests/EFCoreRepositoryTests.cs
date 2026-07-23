@@ -172,7 +172,7 @@ public class EFCoreRepositoryTests : IDisposable
 
         // Assert
         _dbContext.TestEntities.Should().ContainSingle();
-        _mockEventTracker.Verify(x => x.AddEntity(entity), Times.Once);
+        _mockEventTracker.Verify(x => x.AddEntity(entity, _dataStoreName), Times.Once);
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public class EFCoreRepositoryTests : IDisposable
         await repository.AddAsync(entity);
 
         // Assert
-        _mockEventTracker.Verify(x => x.AddEntity(entity), Times.Once);
+        _mockEventTracker.Verify(x => x.AddEntity(entity, _dataStoreName), Times.Once);
     }
 
     [Fact]
@@ -236,7 +236,7 @@ public class EFCoreRepositoryTests : IDisposable
         await repository.AddRangeAsync(entities);
 
         // Assert
-        _mockEventTracker.Verify(x => x.AddEntity(It.IsAny<TestEntity>()), Times.Exactly(2));
+        _mockEventTracker.Verify(x => x.AddEntity(It.IsAny<TestEntity>(), _dataStoreName), Times.Exactly(2));
     }
 
     [Fact]
@@ -268,7 +268,7 @@ public class EFCoreRepositoryTests : IDisposable
         await repository.DeleteAsync(entity);
 
         // Assert
-        _mockEventTracker.Verify(x => x.AddEntity(entity), Times.Once);
+        _mockEventTracker.Verify(x => x.AddEntity(entity, _dataStoreName), Times.Once);
     }
 
     [Fact]
@@ -304,7 +304,7 @@ public class EFCoreRepositoryTests : IDisposable
         await repository.UpdateAsync(entity);
 
         // Assert
-        _mockEventTracker.Verify(x => x.AddEntity(entity), Times.Once);
+        _mockEventTracker.Verify(x => x.AddEntity(entity, _dataStoreName), Times.Once);
     }
 
     [Fact]

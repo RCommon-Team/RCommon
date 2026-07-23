@@ -77,6 +77,100 @@ Both modules call `AddRCommon()` and `WithPersistence<EFCorePersistenceBuilder>`
 
 See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and new helper APIs.
 
+## Upgrading to 3.2.0 (Event Handling & Outbox Redesign)
+
+3.2.0 reworks event handling and the transactional outbox. It **is a breaking release** for event-handling code: durability became opt-in, in-process dispatch moved before commit, and the outbox is now datastore-aware. Non-event-handling code (repositories, unit of work, multi-tenancy, blob storage, etc.) is unaffected.
+
+Read the new [Event Handling Recipes](../event-handling/recipes.mdx) guide first — it documents the six supported patterns and is the fastest way to see where your existing wiring maps.
+
+### 1. Durability is now opt-in (most important change)
+
+Before 3.2.0, a domain event raised on a tracked aggregate was **automatically** written to the outbox. In 3.2.0, `Publish<T>()`/`Send<T>()` are transient by default; you must opt in to durability.
+
+```csharp
+// Before 3.2.0 — the event was implicitly persisted to the outbox.
+events.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
+
+// After 3.2.0 — declare the durable route explicitly.
+events.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();   // in-process, pre-commit (transient)
+events.Publish<OrderPlacedEvent>().UseOutbox("AppDb");               // durable: persist + relay
+```
+
+There is no compiler error for this change — code compiles but silently stops persisting events. **Audit every place that relied on outbox persistence** and add `.UseOutbox("store")` (per event) or `UseRCommonOutbox("store")` (builder default). If neither is present, the event is transient.
+
+### 2. In-process dispatch is now pre-commit
+
+In-process `ISubscriber<T>` handlers now run **inside** the unit-of-work transaction, before it commits. A handler that throws rolls the whole transaction back (no state change, no outbox rows). Previously these ran after commit.
+
+Consequence: pre-commit handlers must be **in-process and side-effect-light** — no external I/O (HTTP calls, sending email, calling another service). Move any such work to a durable outbound route (`Publish<T>().UseOutbox(...)`) that is relayed after commit.
+
+### 3. `IOutboxStore.SaveAsync` gained a `dataStoreName` parameter
+
+If you implemented a custom `IOutboxStore`, update the signature:
+
+```csharp
+// Before
+Task SaveAsync(OutboxMessage message, CancellationToken cancellationToken = default);
+
+// After
+Task SaveAsync(OutboxMessage message, string dataStoreName, CancellationToken cancellationToken = default);
+```
+
+### 4. Outbox registration: use the non-generic store
+
+`EFCoreOutboxStore<TContext>` (the per-context subclass) is now `[Obsolete]`. A single non-generic `EFCoreOutboxStore` resolves the correct `DbContext` per datastore. Register it per datastore by name:
+
+```csharp
+// Before (per-context subclass, one type per datastore)
+ef.AddOutbox<EFCoreOutboxStore<AppDbContext>>();
+
+// After (one store type, named datastore)
+ef.AddOutbox<EFCoreOutboxStore>(dataStoreName: "AppDb");
+```
+
+The store generic is required — the design sketch's `AddOutbox(o => o.OnDataStore("AppDb"))` (no type argument) is not the shipped API. Use `AddOutbox<EFCoreOutboxStore>(...)`.
+
+### 5. Broker subscribers: `AddSubscriber` → `Consume`
+
+On broker builders (MassTransit/Wolverine), inbound consumers are now registered with `Consume<T,H>()`. `AddSubscriber<T,H>()` still works as an `[Obsolete]` alias that forwards to `Consume`, so existing code compiles with a warning.
+
+```csharp
+// Before
+mt.AddSubscriber<OrderConfirmed, OrderConfirmedConsumer>();
+
+// After
+mt.Consume<OrderConfirmed, OrderConfirmedConsumer>();
+```
+
+`AddSubscriber<T,H>()` remains the correct verb for **in-process** handlers on the in-memory and MediatR builders.
+
+### 6. Broker-native outbox: `UseBrokerOutbox<TDbContext>`
+
+The broker outbox is now configured through a datastore-aware wrapper instead of raw broker APIs. Note the `TDbContext` generic argument:
+
+```csharp
+// Before (raw MassTransit outbox on a DbContext)
+mt.AddOutbox<AppDbContext>(o => { o.UsePostgres(); o.UseBusOutbox(); });
+
+// After (RCommon wrapper bound to a named datastore)
+mt.UseBrokerOutbox<AppDbContext>(o => o.OnDataStore("Orders").UsePostgres());
+```
+
+Your `DbContext` still maps MassTransit's tables with `modelBuilder.AddTransactionalOutboxEntities()`.
+
+**Wolverine `UseBrokerOutbox` is unsupported** and throws `NotSupportedException`. Wolverine's EF Core envelope transaction does not enlist in RCommon's `TransactionScope`, so atomic staging cannot be guaranteed. Migrate Wolverine outbox code to [Recipe 2a](../event-handling/recipes.mdx#recipe-2a--broker-as-producer-behind-the-rcommon-outbox) — RCommon's own outbox with Wolverine as the relay transport — which gives the same at-least-once guarantee.
+
+### 7. New delivery verbs
+
+`Publish<T>()` (fan-out), `Send<T>()` (point-to-point), and `Consume<T,H>()` (inbound broker) join `AddSubscriber<T,H>()`. See the [recipes guide](../event-handling/recipes.mdx#two-orthogonal-choices) for the full matrix of which verb is available on which builder.
+
+### Known limitations
+
+Two limitations ship with 3.2.0, each with a supported workaround — see [Known Issues](./changelog.mdx#known-issues):
+
+- **Dapper outbox store is SQL Server–only.** On PostgreSQL, use `EFCoreOutboxStore` for the outbox datastore.
+- **MediatR `Send<T>()` may not resolve handlers.** Use `Publish<T>()` for in-process MediatR event delivery.
+
 ## Breaking Change Patterns
 
 The following sections describe the categories of breaking changes that appear in major RCommon releases and how to address them.

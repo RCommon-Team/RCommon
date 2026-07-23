@@ -9,8 +9,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
+using RCommon.EventHandling.Routing;
 using RCommon.EventHandling.Subscribers;
 using RCommon.MassTransit;
+using RCommon.MassTransit.Producers;
 using RCommon.MassTransit.Subscribers;
 using RCommon.Models.Events;
 using System;
@@ -119,23 +121,62 @@ namespace RCommon
         }
 
         /// <summary>
-        /// Registers a subscriber for a specific event type and adds the corresponding MassTransit consumer.
-        /// Also registers the event-to-producer subscription for correct event routing.
+        /// Declares that <typeparamref name="TEvent"/> is published via MassTransit fan-out (<c>IBus.Publish</c>).
+        /// Registers <see cref="PublishWithMassTransitEventProducer"/> (idempotent), records the event→producer
+        /// subscription, and returns a handle so the route can be made durable via <c>.UseOutbox("store")</c>.
         /// </summary>
-        /// <typeparam name="TEvent">The event type to subscribe to. Must implement <see cref="ISerializableEvent"/>.</typeparam>
-        /// <typeparam name="TEventHandler">The subscriber implementation that handles the event.</typeparam>
-        /// <param name="builder">The MassTransit event handling builder.</param>
-        public static void AddSubscriber<TEvent, TEventHandler>(this IMassTransitEventHandlingBuilder builder)
+        public static IEventRouteHandle Publish<TEvent>(this IMassTransitEventHandlingBuilder builder)
+            where TEvent : class, ISerializableEvent
+        {
+            builder.AddProducer<PublishWithMassTransitEventProducer>();
+            builder.Services.GetSubscriptionManager()?.AddSubscription(builder.GetType(), typeof(TEvent));
+            return builder.Services.RecordPublishRoute(builder.GetType(), typeof(TEvent));
+        }
+
+        /// <summary>
+        /// Declares that <typeparamref name="TEvent"/> is sent point-to-point via MassTransit (<c>IBus.Send</c>).
+        /// Registers <see cref="SendWithMassTransitEventProducer"/> (idempotent), records the subscription, and
+        /// returns a handle for <c>.UseOutbox("store")</c>.
+        /// </summary>
+        public static IEventRouteHandle Send<TEvent>(this IMassTransitEventHandlingBuilder builder)
+            where TEvent : class, ISerializableEvent
+        {
+            builder.AddProducer<SendWithMassTransitEventProducer>();
+            builder.Services.GetSubscriptionManager()?.AddSubscription(builder.GetType(), typeof(TEvent));
+            return builder.Services.RecordPublishRoute(builder.GetType(), typeof(TEvent));
+        }
+
+        /// <summary>
+        /// Sets a builder-level default RCommon outbox store (recipe 2a) for every outbound route on this builder
+        /// that has no explicit per-event <c>.UseOutbox()</c>. Order-independent; per-event overrides win.
+        /// </summary>
+        public static IMassTransitEventHandlingBuilder UseRCommonOutbox(this IMassTransitEventHandlingBuilder builder, string dataStoreName)
+        {
+            builder.Services.ApplyBuilderOutboxDefault(builder.GetType(), dataStoreName);
+            return builder;
+        }
+
+        /// <summary>
+        /// Registers an inbound MassTransit consumer for <typeparamref name="TEvent"/> handled by
+        /// <typeparamref name="TEventHandler"/>, and records the event→producer subscription for routing.
+        /// </summary>
+        public static void Consume<TEvent, TEventHandler>(this IMassTransitEventHandlingBuilder builder)
             where TEvent : class, ISerializableEvent
             where TEventHandler : class, ISubscriber<TEvent>
         {
             builder.Services.AddTransient<ISubscriber<TEvent>, TEventHandler>();
             builder.AddConsumer<MassTransitEventHandler<TEvent>>();
-
-            // Register event-to-producer subscription so the router only sends this event to producers on this builder
-            var subscriptionManager = builder.Services.GetSubscriptionManager();
-            subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
+            builder.Services.GetSubscriptionManager()?.AddSubscription(builder.GetType(), typeof(TEvent));
         }
+
+        /// <summary>
+        /// Obsolete alias for <see cref="Consume{TEvent,TEventHandler}"/>, retained for continuity (spec AC-17).
+        /// </summary>
+        [System.Obsolete("Use Consume<TEvent, TEventHandler>() instead. AddSubscriber is retained as a forwarding alias (AC-17).")]
+        public static void AddSubscriber<TEvent, TEventHandler>(this IMassTransitEventHandlingBuilder builder)
+            where TEvent : class, ISerializableEvent
+            where TEventHandler : class, ISubscriber<TEvent>
+            => builder.Consume<TEvent, TEventHandler>();
 
     }
 }

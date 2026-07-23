@@ -74,6 +74,7 @@ const sidebars: SidebarsConfig = {
       link: { type: 'generated-index' },
       items: [
         'event-handling/overview',
+        'event-handling/recipes',
         'event-handling/in-memory',
         'event-handling/distributed',
         'event-handling/transactional-outbox',

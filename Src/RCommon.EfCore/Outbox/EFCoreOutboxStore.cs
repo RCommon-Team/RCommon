@@ -16,38 +16,33 @@ namespace RCommon.Persistence.EFCore.Outbox;
 public class EFCoreOutboxStore : IOutboxStore
 {
     private readonly IDataStoreFactory _dataStoreFactory;
-    private readonly string _dataStoreName;
     private readonly int _maxRetries;
     private readonly string _tableName;
 
     /// <summary>
     /// Initializes a new instance of <see cref="EFCoreOutboxStore"/>.
     /// </summary>
-    /// <param name="dataStoreFactory">Factory used to resolve the <see cref="RCommonDbContext"/> for the configured data store.</param>
-    /// <param name="defaultDataStoreOptions">Options specifying which data store to use when none is explicitly set.</param>
+    /// <param name="dataStoreFactory">Factory used to resolve the <see cref="RCommonDbContext"/> for a given data store name per call.</param>
     /// <param name="outboxOptions">Options configuring outbox behavior such as maximum retries.</param>
     /// <exception cref="ArgumentNullException">Thrown when any required parameter is <c>null</c>.</exception>
     public EFCoreOutboxStore(
         IDataStoreFactory dataStoreFactory,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
         IOptions<OutboxOptions> outboxOptions)
     {
         _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
-        _dataStoreName = defaultDataStoreOptions?.Value?.DefaultDataStoreName
-            ?? throw new ArgumentNullException(nameof(defaultDataStoreOptions));
         _maxRetries = outboxOptions?.Value?.MaxRetries ?? 5;
         _tableName = outboxOptions?.Value?.TableName ?? "__OutboxMessages";
     }
 
     /// <summary>
-    /// Gets the <see cref="RCommonDbContext"/> for the configured data store, resolved through the <see cref="IDataStoreFactory"/>.
+    /// Resolves the <see cref="RCommonDbContext"/> for the named data store through the <see cref="IDataStoreFactory"/>.
     /// </summary>
-    private RCommonDbContext DbContext => _dataStoreFactory.Resolve<RCommonDbContext>(_dataStoreName);
+    private RCommonDbContext Context(string name) => _dataStoreFactory.Resolve<RCommonDbContext>(name);
 
     /// <inheritdoc />
-    public async Task SaveAsync(IOutboxMessage message, CancellationToken cancellationToken = default)
+    public async Task SaveAsync(IOutboxMessage message, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var dbContext = DbContext;
+        var dbContext = Context(dataStoreName);
         if (message is OutboxMessage entity)
         {
             dbContext.Set<OutboxMessage>().Add(entity);
@@ -75,9 +70,9 @@ public class EFCoreOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<IOutboxMessage>> ClaimAsync(string instanceId, int batchSize, TimeSpan lockDuration, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<IOutboxMessage>> ClaimAsync(string instanceId, int batchSize, TimeSpan lockDuration, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var dbContext = DbContext;
+        var dbContext = Context(dataStoreName);
         var now = DateTimeOffset.UtcNow;
         var lockUntil = now + lockDuration;
 
@@ -111,9 +106,9 @@ public class EFCoreOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task MarkProcessedAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task MarkProcessedAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var dbContext = DbContext;
+        var dbContext = Context(dataStoreName);
         var message = await dbContext.Set<OutboxMessage>()
             .FindAsync(new object[] { messageId }, cancellationToken).ConfigureAwait(false);
         if (message != null)
@@ -124,9 +119,9 @@ public class EFCoreOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task MarkFailedAsync(Guid messageId, string error, DateTimeOffset nextRetryAtUtc, CancellationToken cancellationToken = default)
+    public async Task MarkFailedAsync(Guid messageId, string error, DateTimeOffset nextRetryAtUtc, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var dbContext = DbContext;
+        var dbContext = Context(dataStoreName);
         var message = await dbContext.Set<OutboxMessage>()
             .FindAsync(new object[] { messageId }, cancellationToken).ConfigureAwait(false);
         if (message != null)
@@ -141,9 +136,9 @@ public class EFCoreOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task MarkDeadLetteredAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task MarkDeadLetteredAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var dbContext = DbContext;
+        var dbContext = Context(dataStoreName);
         var message = await dbContext.Set<OutboxMessage>()
             .FindAsync(new object[] { messageId }, cancellationToken).ConfigureAwait(false);
         if (message != null)
@@ -154,9 +149,9 @@ public class EFCoreOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<IOutboxMessage>> GetDeadLettersAsync(int batchSize, int offset = 0, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<IOutboxMessage>> GetDeadLettersAsync(int batchSize, int offset, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var results = await DbContext.Set<OutboxMessage>()
+        var results = await Context(dataStoreName).Set<OutboxMessage>()
             .Where(m => m.DeadLetteredAtUtc != null)
             .ToListAsync(cancellationToken).ConfigureAwait(false);
 
@@ -168,9 +163,9 @@ public class EFCoreOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task ReplayDeadLetterAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task ReplayDeadLetterAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var dbContext = DbContext;
+        var dbContext = Context(dataStoreName);
         var message = await dbContext.Set<OutboxMessage>()
             .FirstOrDefaultAsync(m => m.Id == messageId, cancellationToken).ConfigureAwait(false);
 
@@ -191,9 +186,9 @@ public class EFCoreOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteProcessedAsync(TimeSpan olderThan, CancellationToken cancellationToken = default)
+    public async Task DeleteProcessedAsync(TimeSpan olderThan, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var dbContext = DbContext;
+        var dbContext = Context(dataStoreName);
         var cutoff = DateTimeOffset.UtcNow - olderThan;
         // Filter the null-check in the database, then compare DateTimeOffset client-side. The SQLite
         // provider cannot translate ordering comparisons on DateTimeOffset; this mirrors the same
@@ -207,9 +202,9 @@ public class EFCoreOutboxStore : IOutboxStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteDeadLetteredAsync(TimeSpan olderThan, CancellationToken cancellationToken = default)
+    public async Task DeleteDeadLetteredAsync(TimeSpan olderThan, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        var dbContext = DbContext;
+        var dbContext = Context(dataStoreName);
         var cutoff = DateTimeOffset.UtcNow - olderThan;
         // See DeleteProcessedAsync: DateTimeOffset comparison is evaluated client-side for SQLite
         // compatibility while the null-check runs in the database.

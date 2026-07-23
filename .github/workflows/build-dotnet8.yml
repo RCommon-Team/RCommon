@@ -96,6 +96,105 @@ jobs:
             Src/**/*.nupkg
             !Src/**/*.symbols.nupkg
 
+  # Runs the container-backed integration suite. Two classes of backend are provisioned:
+  #   * Postgres + RabbitMQ are started on demand by Testcontainers via a rootless Podman socket.
+  #   * S3 (LocalStack) and Azure Blob (Azurite) are hardcoded-endpoint emulators, started with
+  #     explicit `docker run` on the runner's Docker daemon and reached over published localhost
+  #     ports. They are started BEFORE DOCKER_HOST is pointed at Podman, so `docker` targets the
+  #     real Docker daemon here; Testcontainers then uses the separate Podman socket. No port overlap.
+  # (Explicit `docker run` — not GitHub service containers — because Azurite needs a custom command
+  #  flag, --skipApiVersionCheck, which the `services:` syntax cannot express.)
+  # Kept as a separate job so a container failure never blocks the fast unit-test lane.
+  # Gated to main pushes and PRs targeting main; tag pushes are excluded (those go to publish only).
+  # Ryuk is disabled because rootless Podman on GitHub runners doesn't support the Ryuk reaper
+  # container; fixture Dispose() handles cleanup instead.
+  integration-tests:
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.base_ref == 'main')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore Src/RCommon.sln
+
+      - name: Build solution (all target frameworks)
+        run: dotnet build Src/RCommon.sln --configuration Release --no-restore
+
+      # Start the fixed-endpoint storage emulators on the runner's Docker daemon BEFORE the Podman
+      # socket is provisioned (so `docker` here talks to Docker, not Podman). Ports publish to
+      # localhost, which is where the S3/Azure test clients connect.
+      - name: Start storage emulators
+        run: |
+          # LocalStack (S3) for RCommon.Amazon.S3Objects.Tests (client targets http://localhost:4566).
+          docker run -d --name localstack -p 4566:4566 -e SERVICES=s3 localstack/localstack:3
+          # Azurite (Azure Blob) for RCommon.Azure.Blobs.Tests (UseDevelopmentStorage=true -> localhost:10000-10002).
+          # --skipApiVersionCheck: the Azure SDK sends an x-ms-version newer than Azurite's supported
+          # set, which Azurite rejects with 400 InvalidHeaderValue unless the check is disabled.
+          docker run -d --name azurite \
+            -p 10000:10000 -p 10001:10001 -p 10002:10002 \
+            mcr.microsoft.com/azure-storage/azurite:latest \
+            azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
+
+      # GitHub-hosted ubuntu-latest ships Docker but not a pre-configured rootless Podman socket.
+      # We install Podman, start its socket service directly (systemctl --user is unreliable on
+      # these runners), and export DOCKER_HOST so Testcontainers picks it up transparently.
+      - name: Provision Podman socket
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq podman
+          # Start the rootless Podman socket in the background; point DOCKER_HOST at it.
+          podman system service --time=0 unix:///tmp/podman.sock &
+          # Wait for the socket to exist instead of a fixed sleep (the sleep raced startup).
+          for i in $(seq 1 30); do
+            [ -S /tmp/podman.sock ] && break
+            sleep 1
+          done
+          test -S /tmp/podman.sock || { echo "Podman socket did not come up"; exit 1; }
+          echo "DOCKER_HOST=unix:///tmp/podman.sock" >> $GITHUB_ENV
+          echo "TESTCONTAINERS_RYUK_DISABLED=true" >> $GITHUB_ENV
+
+      # Service containers are started before the job's steps, but readiness is not guaranteed.
+      # Poll each emulator so the S3/Azure tests don't race a not-yet-listening backend.
+      - name: Wait for storage emulators
+        run: |
+          echo "Waiting for LocalStack (S3) on :4566 ..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:4566/_localstack/health >/dev/null 2>&1; then
+              echo "LocalStack ready"; break
+            fi
+            sleep 2
+          done
+          curl -sf http://localhost:4566/_localstack/health >/dev/null 2>&1 || { echo "LocalStack did not become ready"; exit 1; }
+          echo "Waiting for Azurite (Blob) on :10000 ..."
+          for i in $(seq 1 60); do
+            if (exec 3<>/dev/tcp/localhost/10000) 2>/dev/null; then
+              echo "Azurite ready"; exec 3>&- 3<&-; break
+            fi
+            sleep 2
+          done
+          (exec 3<>/dev/tcp/localhost/10000) 2>/dev/null || { echo "Azurite did not become ready"; exit 1; }
+
+      - name: Run integration tests
+        run: |
+          dotnet test Src/RCommon.sln \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --filter "Category=Integration"
+
   publish:
     needs: build-and-test
     runs-on: ubuntu-latest

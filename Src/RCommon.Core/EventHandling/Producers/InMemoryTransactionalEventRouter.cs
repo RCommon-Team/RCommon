@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using RCommon.EventHandling;
 using RCommon.Models.Events;
 
 namespace RCommon.EventHandling.Producers
@@ -21,7 +23,15 @@ namespace RCommon.EventHandling.Producers
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<InMemoryTransactionalEventRouter> _logger;
         private readonly EventSubscriptionManager _subscriptionManager;
-        private ConcurrentQueue<ISerializableEvent> _storedTransactionalEvents;
+        private readonly int _maxGenerations;
+        private readonly ConcurrentQueue<(ISerializableEvent Event, int Generation)> _queue;
+        private volatile bool _draining;
+        // Single-writer invariant: only the drain loop writes _currentGeneration, and only at the top of
+        // an iteration AFTER the previous iteration's Task.WhenAll has fully completed. Handler threads in a
+        // concurrent async run only READ it (via AddTransactionalEvent), and the value is stable for the
+        // duration of that run. int reads/writes are atomic, so this is safe without volatile/locking — but
+        // preserve this invariant: do NOT write _currentGeneration from any thread other than the drain loop.
+        private int _currentGeneration;
 
         /// <summary>
         /// Initializes a new instance of <see cref="InMemoryTransactionalEventRouter"/>.
@@ -29,13 +39,16 @@ namespace RCommon.EventHandling.Producers
         /// <param name="serviceProvider">The service provider used to resolve <see cref="IEventProducer"/> instances.</param>
         /// <param name="logger">The logger for diagnostic output.</param>
         /// <param name="subscriptionManager">The manager that tracks event-to-producer subscriptions for filtering.</param>
+        /// <param name="eventHandlingOptions">Options controlling the cascade generation limit for the pre-commit drain.</param>
         public InMemoryTransactionalEventRouter(IServiceProvider serviceProvider, ILogger<InMemoryTransactionalEventRouter> logger,
-            EventSubscriptionManager subscriptionManager)
+            EventSubscriptionManager subscriptionManager, IOptions<EventHandlingOptions> eventHandlingOptions)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subscriptionManager = subscriptionManager ?? throw new ArgumentNullException(nameof(subscriptionManager));
-            _storedTransactionalEvents = new ConcurrentQueue<ISerializableEvent>();
+            if (eventHandlingOptions == null) throw new ArgumentNullException(nameof(eventHandlingOptions));
+            _maxGenerations = eventHandlingOptions.Value.MaxDispatchGenerations;
+            _queue = new ConcurrentQueue<(ISerializableEvent Event, int Generation)>();
         }
 
         /// <inheritdoc />
@@ -143,71 +156,95 @@ namespace RCommon.EventHandling.Producers
         }
 
         /// <summary>
-        /// Routes all transactional events. This will loop until we have removed all the events from the concurrent queue. 
+        /// Drains all stored transactional events through their producers using a single FIFO queue
+        /// that preserves raise order and tracks cascade "generations". Events raised by a handler while
+        /// draining are enqueued at the next generation and processed in the same pass; an unbounded
+        /// cascade trips the <see cref="EventHandlingOptions.MaxDispatchGenerations"/> cycle-breaker.
         /// </summary>
         /// <returns>Completed Task</returns>
-        /// <remarks>This should help us avoid race conditions e.g. a subscriber/event handler adds new events while we are processing the current list</remarks>
+        /// <remarks>
+        /// The drain always dequeues the head before dispatching, guaranteeing forward progress. A
+        /// contiguous run of same-generation async events is dispatched concurrently; sync (and untagged)
+        /// events are dispatched one at a time in order. This preserves the interleaved raise-order that
+        /// the batch <see cref="RouteEventsAsync(IEnumerable{ISerializableEvent}, CancellationToken)"/>
+        /// overload does not.
+        /// </remarks>
         public async Task RouteEventsAsync(CancellationToken cancellationToken = default)
         {
-
-            while (_storedTransactionalEvents.Any())
+            try
             {
-                var currentEvents = new List<ISerializableEvent>();
-                _storedTransactionalEvents.ForEach(x => currentEvents.Add(x));
-                await this.RouteEventsAsync(currentEvents, cancellationToken).ConfigureAwait(false);
-                RemoveEvents(currentEvents);
-            }
-        }
+                _draining = true;
 
-        /// <summary>
-        /// Removes a batch of events from the concurrent queue with retry logic.
-        /// Each event is attempted up to 4 times before throwing an <see cref="EventProductionException"/>.
-        /// </summary>
-        /// <param name="events">The events to remove from the queue.</param>
-        /// <exception cref="EventProductionException">Thrown if an event cannot be dequeued after 4 attempts.</exception>
-        private void RemoveEvents(IEnumerable<ISerializableEvent> events)
-        {
-            foreach (var @event in events)
-            {
-                var item = @event;
+                var eventProducers = _serviceProvider.GetServices<IEventProducer>().ToList();
 
-                // Retry dequeue up to 4 times to handle ConcurrentQueue contention
-                for (int i = 1; i <= 4; i++) // Try 4 times
+                if (!eventProducers.Any() && _queue.TryPeek(out _))
                 {
-                    if (!RemoveEvent(item))
+                    _logger.LogWarning(
+                        "{Router} has transactional event(s) to route but no IEventProducer is " +
+                        "registered -- these events will not be delivered to any subscriber.",
+                        this.GetGenericTypeName());
+                }
+
+                while (_queue.TryPeek(out var head))
+                {
+                    _currentGeneration = head.Generation;
+
+                    // Always dequeue the head first -- guarantees forward progress; the loop can never
+                    // spin on a peeked-but-not-consumed head.
+                    _queue.TryDequeue(out var headItem);
+
+                    if (headItem.Event is IAsyncEvent)
                     {
-                        i++;
+                        // Extend the run with subsequent same-generation async events, dispatched concurrently.
+                        var run = new List<ISerializableEvent> { headItem.Event };
+                        while (_queue.TryPeek(out var next)
+                               && next.Generation == headItem.Generation
+                               && next.Event is IAsyncEvent)
+                        {
+                            _queue.TryDequeue(out var runItem);
+                            run.Add(runItem.Event);
+                        }
+
+                        await this.ProduceAsyncEvents(run, eventProducers, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        break;
-                    }
-
-                    if (i == 4)
-                    {
-                        throw new EventProductionException($"Could not Dequeue event {item}");
+                        // ISyncEvent or untagged -> dispatch the single head synchronously, in order.
+                        await this.ProduceSyncEvents(new[] { headItem.Event }, eventProducers, cancellationToken).ConfigureAwait(false);
                     }
                 }
-
             }
-        }
-
-        /// <summary>
-        /// Attempts to dequeue a single event from the concurrent queue.
-        /// </summary>
-        /// <param name="event">The event to dequeue (used as output parameter for the dequeued item).</param>
-        /// <returns><c>true</c> if the dequeue was successful; otherwise <c>false</c>.</returns>
-        private bool RemoveEvent(ISerializableEvent @event)
-        {
-            bool success = _storedTransactionalEvents.TryDequeue(out ISerializableEvent? _);
-            return success;
+            catch (EventProductionException ex)
+            {
+                _logger.LogError(ex, "An error occured while producing events through the EventRouter: {0}.", this.GetGenericTypeName());
+                throw;
+            }
+            catch (Exception ex) when (ex is not DispatchGenerationLimitException)
+            {
+                var message = "An error occured while producing events through the EventRouter: {0}";
+                _logger.LogError(ex, message, this.GetGenericTypeName());
+                throw new EventProductionException(message,
+                    ex,
+                    new object[] { this.GetGenericTypeName() });
+            }
+            finally
+            {
+                _draining = false;
+            }
         }
 
         /// <inheritdoc />
         public void AddTransactionalEvent(ISerializableEvent serializableEvent)
         {
             Guard.IsNotNull(serializableEvent, nameof(serializableEvent));
-            _storedTransactionalEvents.Enqueue(serializableEvent);
+
+            var generation = _draining ? _currentGeneration + 1 : 0;
+            if (generation > _maxGenerations)
+            {
+                throw new DispatchGenerationLimitException(_maxGenerations);
+            }
+
+            _queue.Enqueue((serializableEvent, generation));
         }
 
         /// <inheritdoc />

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
+using RCommon.EventHandling.Routing;
 using Microsoft.Extensions.Options;
 
 namespace RCommon
@@ -39,12 +40,16 @@ namespace RCommon
             // Event Subscription Manager - tracks which events are routed to which producers
             Services.AddSingleton(new EventSubscriptionManager());
 
+            // Event Routing Registry - tracks durability metadata (durable vs. transient) per event type
+            Services.AddSingleton<IEventRoutingRegistry>(new EventRoutingRegistry());
+
             // Event Bus
             Services.AddSingleton<IEventBus>(sp =>
             {
                 return new InMemoryEventBus(sp);
             });
             Services.AddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
+            Services.AddOptions<EventHandlingOptions>();
         }
 
         /// <inheritdoc />

@@ -27,10 +27,11 @@ public class OutboxConcurrencyTests
             guidGenMock.Object, tenantMock.Object,
             serviceProviderMock.Object, new EventSubscriptionManager(),
             NullLogger<OutboxEventRouter>.Instance,
-            Options.Create(new OutboxOptions()));
+            Options.Create(new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
 
         await router.PersistBufferedEventsAsync();
-        storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -46,10 +47,11 @@ public class OutboxConcurrencyTests
             guidGenMock.Object, tenantMock.Object,
             serviceProviderMock.Object, new EventSubscriptionManager(),
             NullLogger<OutboxEventRouter>.Instance,
-            Options.Create(new OutboxOptions()));
+            Options.Create(new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
 
         // No events buffered or persisted, so retained list is empty
         await router.RouteEventsAsync();
-        storeMock.Verify(s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        storeMock.Verify(s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

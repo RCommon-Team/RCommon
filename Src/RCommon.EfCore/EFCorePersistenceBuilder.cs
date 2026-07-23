@@ -7,10 +7,12 @@ using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
 using RCommon.Persistence.EFCore;
 using RCommon.Persistence.EFCore.Crud;
+using RCommon.Persistence.EFCore.Outbox;
 using RCommon.Persistence.EFCore.Sagas;
 using RCommon.Persistence.Sagas;
 using RCommon.Security.Claims;
@@ -43,6 +45,11 @@ namespace RCommon
             // Default tenant accessor (no-op); overridden when multitenancy is configured
             services.TryAddTransient<ITenantIdAccessor, NullTenantIdAccessor>();
 
+            // Startup verification: fail loud if any registered outbox datastore is missing the
+            // OutboxMessage mapping. Registered unconditionally; the service is a no-op when no
+            // outbox is configured (empty registry), so registration is always safe.
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, OutboxSchemaVerificationHostedService>());
+
             // EF Core Repository
             services.AddTransient(typeof(IReadOnlyRepository<>), typeof(EFCoreRepository<>));
             services.AddTransient(typeof(IWriteOnlyRepository<>), typeof(EFCoreRepository<>));
@@ -72,7 +79,23 @@ namespace RCommon
             // Register the factory, map the concrete DbContext type to the data store name, and add the DbContext with scoped lifetime
             _services.TryAddTransient<IDataStoreFactory, DataStoreFactory>();
             _services.Configure<DataStoreFactoryOptions>(options => options.Register<RCommonDbContext, TDbContext>(dataStoreName));
-            _services.AddDbContext<TDbContext>(options, ServiceLifetime.Scoped);
+
+            // Tag the context with its datastore name + the outbox registry so the base RCommonDbContext
+            // can auto-map OutboxMessage during model building when this datastore owns an outbox. The
+            // service-provider overload lets the registry be resolved lazily at build time, so this works
+            // regardless of whether AddOutbox is configured before or after AddDbContext.
+            _services.AddDbContext<TDbContext>(
+                (serviceProvider, optionsBuilder) =>
+                {
+                    options?.Invoke(optionsBuilder);
+
+                    var registry = serviceProvider.GetService<Persistence.Outbox.IOutboxDataStoreRegistry>();
+                    if (registry is not null)
+                    {
+                        optionsBuilder.UseOutboxDataStore(dataStoreName, registry);
+                    }
+                },
+                ServiceLifetime.Scoped);
 
             return this;
         }

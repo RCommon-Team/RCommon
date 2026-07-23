@@ -36,7 +36,8 @@ public class OutboxEventRouterTests
             _serviceProviderMock.Object,
             _subscriptionManager,
             NullLogger<OutboxEventRouter>.Instance,
-            Options.Create(options ?? new OutboxOptions()));
+            Options.Create(options ?? new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
     }
 
     [Fact]
@@ -44,7 +45,33 @@ public class OutboxEventRouterTests
     {
         var router = CreateRouter();
         router.AddTransactionalEvent(new RouterTestEvent("test"));
-        _storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Constructor_Throws_ClearMessage_When_DefaultDataStoreName_Is_Unresolved(string? unresolvedName)
+    {
+        _guidGenMock.Setup(g => g.Create()).Returns(Guid.NewGuid());
+
+        Action act = () => new OutboxEventRouter(
+            _storeMock.Object,
+            _serializer,
+            _guidGenMock.Object,
+            _tenantMock.Object,
+            _serviceProviderMock.Object,
+            _subscriptionManager,
+            NullLogger<OutboxEventRouter>.Instance,
+            Options.Create(new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = unresolvedName! }));
+
+        // Actionable message must name the misconfiguration and the two fixes.
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*no default datastore*")
+            .WithMessage("*SetDefaultDataStore*")
+            .WithMessage("*AddOutbox*");
     }
 
     [Fact]
@@ -57,7 +84,7 @@ public class OutboxEventRouterTests
         await router.PersistBufferedEventsAsync();
 
         _storeMock.Verify(
-            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<CancellationToken>()),
+            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Exactly(2));
     }
 
@@ -73,7 +100,7 @@ public class OutboxEventRouterTests
         await router.PersistBufferedEventsAsync();
 
         _storeMock.Verify(
-            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<CancellationToken>()),
+            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -81,8 +108,8 @@ public class OutboxEventRouterTests
     public async Task PersistBufferedEventsAsync_SetsCorrectMessageFields()
     {
         IOutboxMessage? captured = null;
-        _storeMock.Setup(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<CancellationToken>()))
-            .Callback<IOutboxMessage, CancellationToken>((msg, _) => captured = msg);
+        _storeMock.Setup(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<IOutboxMessage, string, CancellationToken>((msg, _, _) => captured = msg);
         _tenantMock.Setup(t => t.GetTenantId()).Returns("tenant-1");
 
         var router = CreateRouter();
@@ -115,7 +142,7 @@ public class OutboxEventRouterTests
             p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()),
             Times.Once);
         _storeMock.Verify(
-            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -135,10 +162,10 @@ public class OutboxEventRouterTests
         await router.RouteEventsAsync();
 
         _storeMock.Verify(
-            s => s.MarkFailedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            s => s.MarkFailedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _storeMock.Verify(
-            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -164,7 +191,7 @@ public class OutboxEventRouterTests
             p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _storeMock.Verify(
-            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -177,10 +204,10 @@ public class OutboxEventRouterTests
         await router.RouteEventsAsync();
 
         _storeMock.Verify(
-            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _storeMock.Verify(
-            s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()),
+            s => s.ClaimAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -210,8 +237,74 @@ public class OutboxEventRouterTests
             p => p.ProduceEventAsync(It.IsAny<ISerializableEvent>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _storeMock.Verify(
-            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task PersistBufferedEventsAsync_GroupsEventsByDataStore()
+    {
+        var perStore = new List<string>();
+        _storeMock.Setup(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<IOutboxMessage, string, CancellationToken>((_, name, _) => perStore.Add(name));
+
+        var router = CreateRouter();
+        router.AddTransactionalEvent(new RouterTestEvent("a1"), "A");
+        router.AddTransactionalEvent(new RouterTestEvent("a2"), "A");
+        router.AddTransactionalEvent(new RouterTestEvent("b1"), "B");
+
+        await router.PersistBufferedEventsAsync();
+
+        _storeMock.Verify(
+            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), "A", It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+        _storeMock.Verify(
+            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), "B", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task PersistBufferedEventsAsync_NullDataStore_ResolvesToDefault()
+    {
+        var router = new OutboxEventRouter(
+            _storeMock.Object,
+            _serializer,
+            _guidGenMock.Object,
+            _tenantMock.Object,
+            _serviceProviderMock.Object,
+            _subscriptionManager,
+            NullLogger<OutboxEventRouter>.Instance,
+            Options.Create(new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "AppDb" }));
+        _guidGenMock.Setup(g => g.Create()).Returns(Guid.NewGuid());
+
+        router.AddTransactionalEvent(new RouterTestEvent("x"), null);
+
+        await router.PersistBufferedEventsAsync();
+
+        _storeMock.Verify(
+            s => s.SaveAsync(It.IsAny<IOutboxMessage>(), "AppDb", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task PersistBufferedEventsAsync_RecordsTargetProducers()
+    {
+        var producerMock = new Mock<IEventProducer>();
+        _serviceProviderMock.Setup(sp => sp.GetService(typeof(IEnumerable<IEventProducer>)))
+            .Returns(new[] { producerMock.Object });
+
+        IOutboxMessage? captured = null;
+        _storeMock.Setup(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<IOutboxMessage, string, CancellationToken>((msg, _, _) => captured = msg);
+
+        var router = CreateRouter();
+        router.AddTransactionalEvent(new RouterTestEvent("x"));
+
+        await router.PersistBufferedEventsAsync();
+
+        captured.Should().NotBeNull();
+        captured!.TargetProducers.Should().Contain(producerMock.Object.GetType().FullName);
     }
 
     [Fact]
@@ -230,7 +323,7 @@ public class OutboxEventRouterTests
         await router.RouteEventsAsync();
 
         _storeMock.Verify(
-            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            s => s.MarkProcessedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }

@@ -12,6 +12,44 @@ The authoritative release history for all RCommon packages is maintained on GitH
 
 ## Recent Changes
 
+### 3.2.0
+
+Event-handling and transactional-outbox redesign. This is a **breaking** release: durability is now opt-in per route, in-process domain handlers dispatch *before* commit, and the outbox is datastore-aware end to end. A new recipe-based conceptual guide documents the supported patterns. See the [Event Handling Recipes](../event-handling/recipes.mdx) guide and the [3.2.0 migration section](./migration-guide.mdx#upgrading-to-320-event-handling--outbox-redesign) for the full old→new mapping.
+
+**Breaking**
+
+- **Durability is opt-in per route.** `Publish<T>()`/`Send<T>()` are transient by default. To persist through the outbox, chain the per-event modifier `.UseOutbox("store")`, or set a builder-level default with `UseRCommonOutbox("store")` / `UseBrokerOutbox(...)`. Per-event wins over builder-level. Before 3.2.0 a tracked domain event was auto-routed to the outbox; that implicit behavior is gone — an event with no durability modifier fires in-process/at-commit and is never persisted.
+- **Commit pipeline reordered — in-process domain dispatch is now pre-commit.** During `CommitAsync`, in-process `ISubscriber<T>` handlers run *inside* the transaction, before it commits. `ISyncEvent` handlers run sequentially in raise-order; `IAsyncEvent` handlers are awaited concurrently. If any pre-commit handler throws, the whole transaction rolls back (no state change, no outbox rows). Durable/outbound routes are still relayed post-commit.
+- **`IOutboxStore.SaveAsync` gained a `dataStoreName` parameter.** The tracker captures a datastore name per entity, groups events by datastore, and a single `EFCoreOutboxStore` resolves the correct `DbContext` per call. An event's outbox row is always written to the same datastore/transaction as the state change that produced it — never another datastore's outbox table.
+- **New fluent verb set** on the event-handling builders: `Publish<T>()` (fan-out), `Send<T>()` (point-to-point), `Consume<T,H>()` (inbound broker consumer, broker builders only). `AddSubscriber<T,H>()` remains for in-process handlers.
+
+**Added**
+
+- **Datastore-aware transactional outbox (B4/U5).** Per-datastore `__OutboxMessages` tables; each row records its target producer(s), so one table can fan out to multiple transports. `OutboxProcessingService` claims and drains every registered outbox datastore. Registering an outbox auto-applies the `OutboxMessage` mapping to that datastore's `RCommonDbContext`, and a startup diagnostic fails loud if a registered outbox datastore's table is missing.
+- **Broker-native outbox wrapper (`UseBrokerOutbox<TDbContext>`).** Configures MassTransit's EF Core outbox (`AddEntityFrameworkOutbox` + `UseBusOutbox`) against an RCommon datastore's `DbContext`, so business state and broker-outbox rows commit atomically inside the RCommon unit-of-work transaction. Proven by a Postgres/Testcontainers coordination test. *(Wolverine does not support recipe 2b — see Known Issues / use recipe 2a.)*
+- **First-class producer/processor topology (AC-21):** `AddOutboxProducer` (store/router/tracker, no hosted poller) and `AddOutboxProcessor` (hosted poller) alongside `AddOutbox` (= both), each datastore-scoped via `OnDataStore(...)`.
+- **Opt-in outbox metrics (AC-18):** a `RCommon.Outbox` `System.Diagnostics.Metrics.Meter` instrumenting per-datastore pending depth, oldest-unprocessed age, relay success/failure, dead-letter rate, and dispatch-queue depth. Additive; the host wires it into its metrics pipeline.
+- **Payload protection hook (AC-19):** an `IOutboxPayloadProtector` seam (`Protect`/`Unprotect`) around payload serialization; default is pass-through (plaintext).
+- **Deserialization allow-list (AC-20):** the outbox serializer resolves only registered event types; an unknown/tampered `EventType` is logged loud and dead-lettered rather than deserialized to an arbitrary type.
+- **Five runnable recipe examples with end-to-end tests (AC-16):** RCommon per-datastore outbox (+ 2-datastore variant), broker-as-producer behind the RCommon outbox (MassTransit + Wolverine), broker-native outbox (MassTransit), transaction-script router-added events, no-unit-of-work direct publish, and in-process MediatR.
+- **Podman/Testcontainers integration harness** (Postgres + RabbitMQ) proving cross-datastore atomicity, `TransactionScope` enlistment, and the recipe-2b coordination gate.
+
+**Fixed**
+
+- **In-process MediatR delivery silently dropped events on the canonical DDD flow.** `MediatRAdapter.Publish` wrapped the notification by its compile-time generic argument, producing `MediatRNotification<ISerializableEvent>` (the transactional router hands events to producers statically typed as `ISerializableEvent`), which never matched the registered `INotificationHandler<MediatRNotification<TConcrete>>`. It now wraps by the notification's runtime type, so aggregate-raised domain events reach their MediatR subscriber through the commit pipeline.
+- **In-process bus swallowed the real handler exception.** `InMemoryEventBus` invoked subscribers by reflection and surfaced `TargetInvocationException` instead of the underlying error; the true exception is now rethrown with its stack trace preserved.
+- **Datastore-name comparison harmonized to Ordinal (case-sensitive) across the outbox subsystem**, matching core `DataStoreFactory`. A datastore-name case mismatch between registration and use now fails loud at startup instead of silently missing the store.
+
+**Changed**
+
+- `AddSubscriber<T,H>()` on broker builders is now an `[Obsolete]` alias forwarding to `Consume<T,H>()`.
+- `EFCoreOutboxStore<TContext>` (the per-context subclass) is `[Obsolete]`; use the non-generic `EFCoreOutboxStore` with `AddOutbox<EFCoreOutboxStore>(dataStoreName: "...")`.
+- `IEntityEventTracker.AddEntity(entity)` is preserved as a shim defaulting to the default datastore, alongside the new datastore-carrying overload.
+
+**Notes**
+
+- Wolverine's recipe 2b (broker-native outbox) is unsupported by design; the builder's `UseBrokerOutbox<T>` throws `NotSupportedException`. Wolverine users get an atomic outbox via recipe 2a (broker as a producer behind RCommon's own outbox). See [Known Issues](#known-issues).
+
 ### 3.1.3
 
 Outbox silent-failure hardening. Every change is observability-only (new warnings and a startup diagnostic); no method or interface signatures changed and no runtime behavior changed on the success path — fully backward-compatible.
@@ -125,6 +163,34 @@ Extended all persistence providers with explicit soft delete and bulk operation 
 ### Editorconfig and Code Hygiene
 
 Added `.editorconfig` to enforce consistent code style across the solution. All public methods and complex code paths now carry XML documentation comments.
+
+## Known Issues
+
+These are documented limitations in 3.2.0 with supported workarounds. Both are tracked for a future release.
+
+### Dapper outbox store is SQL Server–only
+
+`DapperOutboxStore` (`RCommon.Dapper`) generates T-SQL: it bracket-quotes identifiers (`[__OutboxMessages]`) and claims rows with `WITH (UPDLOCK, ROWLOCK, READPAST)`. On PostgreSQL (or any non–SQL Server engine) the claim query fails to execute. Portable, provider-aware SQL generation is a planned feature, not a quoting patch.
+
+**Workaround.** The outbox store is pluggable per datastore, and it does not have to match your repository provider. Use the provider-agnostic `EFCoreOutboxStore` for the outbox even in a Dapper-based application — EF Core emits the correct dialect for your database:
+
+```csharp
+.WithPersistence<EFCorePersistenceBuilder>(ef =>
+{
+    // An RCommonDbContext used only for the outbox table on this datastore.
+    ef.AddDbContext<OutboxDbContext>("AppDb", o => o.UseNpgsql(connectionString));
+    ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "AppDb");
+    ef.AddOutbox<EFCoreOutboxStore>(dataStoreName: "AppDb");
+});
+```
+
+If your application runs on SQL Server, `DapperOutboxStore` works as-is and no change is needed.
+
+### MediatR point-to-point `Send<T>()` may not resolve the handler
+
+The in-process MediatR **fan-out** path (`Publish<T>()`) is fixed in 3.2.0 and is the canonical way to deliver events in-process through MediatR. The **point-to-point** `Send<T>()` path on the MediatR event-handling builder still wraps the request by its compile-time generic argument, so a request dispatched with a statically-erased type (as the transactional router does) can fail to match its handler. No shipped recipe routes events through `Send<T>()` on the mediator, and the request/response (CQRS) pipeline is out of scope for the event-handling domain.
+
+**Workaround.** Use `Publish<T>()` (with `AddSubscriber<T,H>()`) for in-process event delivery via MediatR — this is the documented [Recipe 5](../event-handling/recipes.mdx#recipe-5--in-process-mediator-mediatr) wiring and works correctly. For request/response command handling, use the CQRS request pipeline rather than routing events through the event-handling `Send<T>()` verb.
 
 ## Versioning
 

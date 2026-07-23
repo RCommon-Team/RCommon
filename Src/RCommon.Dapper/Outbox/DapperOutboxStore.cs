@@ -15,28 +15,24 @@ namespace RCommon.Persistence.Dapper.Outbox;
 public class DapperOutboxStore : IOutboxStore
 {
     private readonly IDataStoreFactory _dataStoreFactory;
-    private readonly string _dataStoreName;
     private readonly string _tableName;
     private readonly int _maxRetries;
     private readonly ILockStatementProvider _lockProvider;
 
     public DapperOutboxStore(
         IDataStoreFactory dataStoreFactory,
-        IOptions<DefaultDataStoreOptions> defaultDataStoreOptions,
         IOptions<OutboxOptions> outboxOptions,
         ILockStatementProvider lockStatementProvider)
     {
         _dataStoreFactory = dataStoreFactory ?? throw new ArgumentNullException(nameof(dataStoreFactory));
-        _dataStoreName = defaultDataStoreOptions?.Value?.DefaultDataStoreName
-            ?? throw new ArgumentNullException(nameof(defaultDataStoreOptions));
         _tableName = outboxOptions?.Value?.TableName ?? "__OutboxMessages";
         _maxRetries = outboxOptions?.Value?.MaxRetries ?? 5;
         _lockProvider = lockStatementProvider ?? throw new ArgumentNullException(nameof(lockStatementProvider));
     }
 
-    private async Task<DbConnection> GetOpenConnectionAsync(CancellationToken cancellationToken)
+    private async Task<DbConnection> GetOpenConnectionAsync(string dataStoreName, CancellationToken cancellationToken)
     {
-        var dataStore = _dataStoreFactory.Resolve<RDbConnection>(_dataStoreName);
+        var dataStore = _dataStoreFactory.Resolve<RDbConnection>(dataStoreName);
         var connection = dataStore.GetDbConnection();
         if (connection.State == ConnectionState.Closed)
         {
@@ -45,44 +41,44 @@ public class DapperOutboxStore : IOutboxStore
         return connection;
     }
 
-    public async Task SaveAsync(IOutboxMessage message, CancellationToken cancellationToken = default)
+    public async Task SaveAsync(IOutboxMessage message, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         var sql = $@"INSERT INTO [{_tableName}] (Id, EventType, EventPayload, CreatedAtUtc, ProcessedAtUtc, DeadLetteredAtUtc, ErrorMessage, RetryCount, CorrelationId, TenantId, NextRetryAtUtc, LockedByInstanceId, LockedUntilUtc)
                      VALUES (@Id, @EventType, @EventPayload, @CreatedAtUtc, @ProcessedAtUtc, @DeadLetteredAtUtc, @ErrorMessage, @RetryCount, @CorrelationId, @TenantId, @NextRetryAtUtc, @LockedByInstanceId, @LockedUntilUtc)";
         await db.ExecuteAsync(new CommandDefinition(sql, message, cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    public async Task MarkProcessedAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task MarkProcessedAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         var sql = $"UPDATE [{_tableName}] SET ProcessedAtUtc = @Now WHERE Id = @Id";
         await db.ExecuteAsync(new CommandDefinition(sql,
             new { Id = messageId, Now = DateTimeOffset.UtcNow },
             cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    public async Task MarkFailedAsync(Guid messageId, string error, DateTimeOffset nextRetryAtUtc, CancellationToken cancellationToken = default)
+    public async Task MarkFailedAsync(Guid messageId, string error, DateTimeOffset nextRetryAtUtc, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         var sql = $"UPDATE [{_tableName}] SET ErrorMessage = @Error, RetryCount = RetryCount + 1, NextRetryAtUtc = @NextRetryAtUtc, LockedByInstanceId = NULL, LockedUntilUtc = NULL WHERE Id = @Id";
         await db.ExecuteAsync(new CommandDefinition(sql,
             new { Id = messageId, Error = error, NextRetryAtUtc = nextRetryAtUtc },
             cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    public async Task MarkDeadLetteredAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task MarkDeadLetteredAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         var sql = $"UPDATE [{_tableName}] SET DeadLetteredAtUtc = @Now WHERE Id = @Id";
         await db.ExecuteAsync(new CommandDefinition(sql,
             new { Id = messageId, Now = DateTimeOffset.UtcNow },
             cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    public async Task DeleteProcessedAsync(TimeSpan olderThan, CancellationToken cancellationToken = default)
+    public async Task DeleteProcessedAsync(TimeSpan olderThan, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         var cutoff = DateTimeOffset.UtcNow - olderThan;
         var sql = $"DELETE FROM [{_tableName}] WHERE ProcessedAtUtc IS NOT NULL AND ProcessedAtUtc < @Cutoff";
         await db.ExecuteAsync(new CommandDefinition(sql,
@@ -90,9 +86,9 @@ public class DapperOutboxStore : IOutboxStore
             cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    public async Task DeleteDeadLetteredAsync(TimeSpan olderThan, CancellationToken cancellationToken = default)
+    public async Task DeleteDeadLetteredAsync(TimeSpan olderThan, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         var cutoff = DateTimeOffset.UtcNow - olderThan;
         var sql = $"DELETE FROM [{_tableName}] WHERE DeadLetteredAtUtc IS NOT NULL AND DeadLetteredAtUtc < @Cutoff";
         await db.ExecuteAsync(new CommandDefinition(sql,
@@ -100,9 +96,9 @@ public class DapperOutboxStore : IOutboxStore
             cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<IOutboxMessage>> ClaimAsync(string instanceId, int batchSize, TimeSpan lockDuration, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<IOutboxMessage>> ClaimAsync(string instanceId, int batchSize, TimeSpan lockDuration, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow;
         var lockUntil = now + lockDuration;
 
@@ -153,9 +149,9 @@ public class DapperOutboxStore : IOutboxStore
         return result.ToList();
     }
 
-    public async Task<IReadOnlyList<IOutboxMessage>> GetDeadLettersAsync(int batchSize, int offset = 0, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<IOutboxMessage>> GetDeadLettersAsync(int batchSize, int offset, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         string sql;
         if (_lockProvider.ProviderName == "PostgreSql")
         {
@@ -171,9 +167,9 @@ public class DapperOutboxStore : IOutboxStore
         return result.ToList();
     }
 
-    public async Task ReplayDeadLetterAsync(Guid messageId, CancellationToken cancellationToken = default)
+    public async Task ReplayDeadLetterAsync(Guid messageId, string dataStoreName, CancellationToken cancellationToken = default)
     {
-        await using var db = await GetOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await GetOpenConnectionAsync(dataStoreName, cancellationToken).ConfigureAwait(false);
         var sql = $@"UPDATE [{_tableName}] SET DeadLetteredAtUtc = NULL, ProcessedAtUtc = NULL, ErrorMessage = NULL, RetryCount = 0, NextRetryAtUtc = NULL, LockedByInstanceId = NULL, LockedUntilUtc = NULL
                      WHERE Id = @Id AND DeadLetteredAtUtc IS NOT NULL";
         var rows = await db.ExecuteAsync(new CommandDefinition(sql,

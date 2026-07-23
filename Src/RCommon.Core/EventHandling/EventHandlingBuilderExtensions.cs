@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
+using RCommon.EventHandling.Routing;
 using RCommon.EventHandling.Subscribers;
 using System;
 using System.Collections.Generic;
@@ -127,6 +128,18 @@ namespace RCommon
         {
             var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(EventSubscriptionManager));
             return descriptor?.ImplementationInstance as EventSubscriptionManager;
+        }
+
+        /// <summary>
+        /// Retrieves the <see cref="IEventRoutingRegistry"/> singleton instance from the service collection
+        /// during configuration time (before the service provider is built).
+        /// </summary>
+        /// <param name="services">The service collection to search.</param>
+        /// <returns>The <see cref="IEventRoutingRegistry"/> instance, or <c>null</c> if not registered.</returns>
+        public static IEventRoutingRegistry? GetRoutingRegistry(this IServiceCollection services)
+        {
+            var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IEventRoutingRegistry));
+            return descriptor?.ImplementationInstance as IEventRoutingRegistry;
         }
     }
 }

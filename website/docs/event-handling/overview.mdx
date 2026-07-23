@@ -8,6 +8,10 @@ description: Understand RCommon's unified event handling pipeline — IEventBus,
 
 RCommon provides a unified event handling abstraction that works across multiple transport backends. The same `ISubscriber<TEvent>` interface is used whether events are dispatched in-process via the built-in event bus, fanned out through MediatR notifications, or routed over a message broker using MassTransit or Wolverine.
 
+:::tip Looking for a pattern to follow?
+The [Event Handling Recipes](./recipes.mdx) guide walks through the six supported patterns (DDD with the RCommon outbox, broker-as-producer, broker-native outbox, transaction-script, no-unit-of-work, and in-process MediatR) with wiring and diagrams. If you are upgrading from an earlier version, start with the [3.2.0 migration section](../api-reference/migration-guide.mdx#upgrading-to-320-event-handling--outbox-redesign) — durability is now opt-in.
+:::
+
 ## Core abstractions
 
 ### IEventBus

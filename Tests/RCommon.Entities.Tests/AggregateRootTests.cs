@@ -262,16 +262,15 @@ public class AggregateRootTests
         var domainEvent = new TestDomainEvent("integration test");
         aggregate.RaiseDomainEvent(domainEvent);
 
-        // Act
+        // Act — dispatch now happens pre-commit in DispatchDomainEventsAsync
         tracker.AddEntity(aggregate);
-        await tracker.EmitTransactionalEventsAsync();
+        await tracker.DispatchDomainEventsAsync();
 
         // Assert — the domain event (which IS-A ISerializableEvent) was routed
         mockEventRouter.Verify(
-            x => x.AddTransactionalEvents(It.Is<IEnumerable<ISerializableEvent>>(
-                events => events.Contains(domainEvent))),
+            x => x.AddTransactionalEvent(domainEvent),
             Times.AtLeastOnce);
-        mockEventRouter.Verify(x => x.RouteEventsAsync(), Times.Once);
+        mockEventRouter.Verify(x => x.RouteEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     #endregion
