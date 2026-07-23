@@ -147,4 +147,36 @@ public class OutboxTopologySplitTests
             .Should().Be(1);
         services.Any(d => d.ServiceType == typeof(OutboxEventRouter)).Should().BeTrue();
     }
+
+    private static IOutboxDataStoreRegistry BuildRegistry(IServiceCollection services)
+    {
+        services.AddLogging();
+        services.Configure<DefaultDataStoreOptions>(o => o.DefaultDataStoreName = "DefaultStore");
+        using var provider = services.BuildServiceProvider();
+        return provider.GetRequiredService<IOutboxDataStoreRegistry>();
+    }
+
+    [Fact]
+    public void OnDataStore_in_configure_delegate_lands_in_the_registry()
+    {
+        var builder = NewBuilder(out var services);
+
+        builder.AddOutbox<FakeOutboxStore>(configure: o => o.OnDataStore("Billing"));
+
+        BuildRegistry(services).Registrations.Should().Contain("Billing");
+    }
+
+    [Fact]
+    public void Explicit_dataStoreName_parameter_wins_over_OnDataStore()
+    {
+        var builder = NewBuilder(out var services);
+
+        builder.AddOutbox<FakeOutboxStore>(
+            configure: o => o.OnDataStore("FromConfigure"),
+            dataStoreName: "FromParameter");
+
+        var registrations = BuildRegistry(services).Registrations;
+        registrations.Should().Contain("FromParameter");
+        registrations.Should().NotContain("FromConfigure");
+    }
 }
