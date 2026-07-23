@@ -95,6 +95,27 @@ public class OutboxProcessingServiceTests
         return (service, logger);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Constructor_Throws_ClearMessage_When_DefaultDataStoreName_Is_Unresolved(string? unresolvedName)
+    {
+        var provider = new ServiceCollection().BuildServiceProvider();
+
+        Action act = () => new OutboxProcessingService(
+            provider,
+            Options.Create(new OutboxOptions()),
+            NullLogger<OutboxProcessingService>.Instance,
+            _backoffMock.Object,
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = unresolvedName! }));
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*no default datastore*")
+            .WithMessage("*SetDefaultDataStore*")
+            .WithMessage("*AddOutbox*");
+    }
+
     private static void VerifyWarning(Mock<ILogger<OutboxProcessingService>> logger, Times times)
     {
         logger.Verify(

@@ -48,6 +48,32 @@ public class OutboxEventRouterTests
         _storeMock.Verify(s => s.SaveAsync(It.IsAny<IOutboxMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Constructor_Throws_ClearMessage_When_DefaultDataStoreName_Is_Unresolved(string? unresolvedName)
+    {
+        _guidGenMock.Setup(g => g.Create()).Returns(Guid.NewGuid());
+
+        Action act = () => new OutboxEventRouter(
+            _storeMock.Object,
+            _serializer,
+            _guidGenMock.Object,
+            _tenantMock.Object,
+            _serviceProviderMock.Object,
+            _subscriptionManager,
+            NullLogger<OutboxEventRouter>.Instance,
+            Options.Create(new OutboxOptions()),
+            Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = unresolvedName! }));
+
+        // Actionable message must name the misconfiguration and the two fixes.
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*no default datastore*")
+            .WithMessage("*SetDefaultDataStore*")
+            .WithMessage("*AddOutbox*");
+    }
+
     [Fact]
     public async Task PersistBufferedEventsAsync_WritesBufferedEventsToStore()
     {

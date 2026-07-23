@@ -76,9 +76,10 @@ public class OutboxEventRouter : IEventRouter
         var defaultName = defaultDataStoreOptions?.Value?.DefaultDataStoreName;
         if (string.IsNullOrWhiteSpace(defaultName))
         {
-            throw new ArgumentException(
-                "DefaultDataStoreOptions.DefaultDataStoreName must be configured for the outbox router.",
-                nameof(defaultDataStoreOptions));
+            throw new InvalidOperationException(
+                "No datastore name was supplied for the outbox router and no default datastore is " +
+                "configured. Call SetDefaultDataStore(\"<name>\") during persistence configuration, or " +
+                "pass a dataStoreName to AddOutbox(...) so the outbox knows which datastore to write to.");
         }
         _dataStoreName = defaultName;
     }

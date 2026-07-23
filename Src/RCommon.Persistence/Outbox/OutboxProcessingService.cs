@@ -42,9 +42,10 @@ public class OutboxProcessingService : BackgroundService
         var defaultName = defaultDataStoreOptions?.Value?.DefaultDataStoreName;
         if (string.IsNullOrWhiteSpace(defaultName))
         {
-            throw new ArgumentException(
-                "DefaultDataStoreOptions.DefaultDataStoreName must be configured for the outbox processor.",
-                nameof(defaultDataStoreOptions));
+            throw new InvalidOperationException(
+                "No datastore name was supplied for the outbox processor and no default datastore is " +
+                "configured. Call SetDefaultDataStore(\"<name>\") during persistence configuration, or " +
+                "pass a dataStoreName to AddOutbox(...) so the poller knows which datastore to drain.");
         }
         _dataStoreName = defaultName;
     }
