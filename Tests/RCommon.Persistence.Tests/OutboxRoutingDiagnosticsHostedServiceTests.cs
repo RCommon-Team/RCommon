@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using RCommon.Entities;
 using RCommon.EventHandling.Producers;
 using RCommon.Persistence.Outbox;
 using Xunit;
@@ -11,11 +12,12 @@ using Xunit;
 namespace RCommon.Persistence.Tests;
 
 /// <summary>
-/// Covers the outbox-routing footgun: because DI is last-registration-wins, an event-handling
-/// registration that binds the in-memory <see cref="InMemoryTransactionalEventRouter"/> AFTER
-/// <see cref="OutboxPersistenceBuilderExtensions.AddOutbox{TOutboxStore}"/> silently overrides the
-/// outbox router. When that happens, domain events fire in-memory and are never persisted to the
-/// outbox. The diagnostic surfaces the misconfiguration at startup instead of leaving it silent.
+/// Covers the outbox-routing footgun on the LOAD-BEARING service. Durable-event persistence rides on
+/// <see cref="IEntityEventTracker"/> resolving to <see cref="OutboxEntityEventTracker"/> — NOT on the
+/// <see cref="IEventRouter"/> binding (the tracker composes the concrete <see cref="OutboxEventRouter"/>
+/// directly). If a later registration binds the in-memory tracker after the outbox producer configured
+/// its tracker, durable events fire in-process and are never persisted, silently. The diagnostic
+/// surfaces that at startup instead of leaving it silent.
 /// </summary>
 public class OutboxRoutingDiagnosticsHostedServiceTests
 {
@@ -40,13 +42,14 @@ public class OutboxRoutingDiagnosticsHostedServiceTests
     }
 
     [Fact]
-    public async Task StartAsync_Warns_When_Outbox_Router_Is_Clobbered_By_InMemory_Router()
+    public async Task StartAsync_Warns_When_Outbox_Tracker_Is_Clobbered_By_InMemory_Tracker()
     {
         var services = new ServiceCollection();
-        // Outbox registers IEventRouter via a factory forwarding to OutboxEventRouter...
-        services.AddScoped<IEventRouter>(_ => throw new InvalidOperationException("should not resolve"));
-        // ...then a later event-handling registration binds the in-memory router last (the footgun).
-        services.AddScoped<IEventRouter, InMemoryTransactionalEventRouter>();
+        // Outbox binds IEntityEventTracker -> OutboxEntityEventTracker...
+        services.AddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
+        // ...then a later registration binds the in-memory tracker last (the footgun): durable events
+        // would fire in-process and never be persisted.
+        services.AddScoped<IEntityEventTracker, InMemoryEntityEventTracker>();
 
         var (loggerFactory, logger) = CreateLogger();
         var diagnostic = new OutboxRoutingDiagnosticsHostedService(services, loggerFactory.Object);
@@ -57,11 +60,12 @@ public class OutboxRoutingDiagnosticsHostedServiceTests
     }
 
     [Fact]
-    public async Task StartAsync_Does_Not_Warn_When_Outbox_Router_Is_Intact()
+    public async Task StartAsync_Does_Not_Warn_When_Outbox_Tracker_Is_Intact()
     {
         var services = new ServiceCollection();
-        // Intact: the last IEventRouter registration is the outbox factory (not the in-memory router).
-        services.AddScoped<IEventRouter>(_ => throw new InvalidOperationException("should not resolve"));
+        // Intact: the last IEntityEventTracker registration is the outbox tracker.
+        services.AddScoped<IEntityEventTracker, InMemoryEntityEventTracker>();
+        services.AddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
 
         var (loggerFactory, logger) = CreateLogger();
         var diagnostic = new OutboxRoutingDiagnosticsHostedService(services, loggerFactory.Object);
