@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RCommon.Entities;
 using RCommon.EventHandling.Producers;
+using RCommon.EventHandling.Routing;
 
 namespace RCommon.Persistence.Outbox;
 
@@ -31,19 +32,34 @@ public class OutboxEntityEventTracker : IEntityEventTracker
 {
     private readonly InMemoryEntityEventTracker _inner;
     private readonly OutboxEventRouter _outboxRouter;
+    private readonly InMemoryTransactionalEventRouter _inProcessRouter;
+    private readonly IEventRoutingRegistry _routingRegistry;
 
     /// <summary>
     /// Initializes a new instance of <see cref="OutboxEntityEventTracker"/>.
     /// </summary>
     /// <param name="inner">The inner in-memory tracker that manages the entity collection.</param>
-    /// <param name="outboxRouter">The outbox router used to buffer and persist events.</param>
+    /// <param name="outboxRouter">The outbox router used to buffer and persist events (durable dispatch).</param>
+    /// <param name="inProcessRouter">
+    /// The in-process transactional router used to dispatch transient events through the Phase-2 FIFO
+    /// drain. Injected as the CONCRETE type (not the <see cref="IEventRouter"/> alias) so the tracker's
+    /// transient dispatcher is independent of whatever <see cref="IEventRouter"/> resolves to in the host.
+    /// </param>
+    /// <param name="routingRegistry">The registry describing which event types are durable and their target datastore.</param>
     /// <exception cref="ArgumentNullException">
-    /// Thrown when <paramref name="inner"/> or <paramref name="outboxRouter"/> is <c>null</c>.
+    /// Thrown when <paramref name="inner"/>, <paramref name="outboxRouter"/>, <paramref name="inProcessRouter"/>,
+    /// or <paramref name="routingRegistry"/> is <c>null</c>.
     /// </exception>
-    public OutboxEntityEventTracker(InMemoryEntityEventTracker inner, OutboxEventRouter outboxRouter)
+    public OutboxEntityEventTracker(
+        InMemoryEntityEventTracker inner,
+        OutboxEventRouter outboxRouter,
+        InMemoryTransactionalEventRouter inProcessRouter,
+        IEventRoutingRegistry routingRegistry)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _outboxRouter = outboxRouter ?? throw new ArgumentNullException(nameof(outboxRouter));
+        _inProcessRouter = inProcessRouter ?? throw new ArgumentNullException(nameof(inProcessRouter));
+        _routingRegistry = routingRegistry ?? throw new ArgumentNullException(nameof(routingRegistry));
     }
 
     /// <inheritdoc />

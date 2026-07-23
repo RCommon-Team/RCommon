@@ -58,6 +58,14 @@ public static class OutboxPersistenceBuilderExtensions
         builder.Services.TryAddScoped<OutboxEventRouter>();
         builder.Services.TryAddScoped<IEventRouter>(sp => sp.GetRequiredService<OutboxEventRouter>());
 
+        // In-process transactional router as its OWN concrete scoped type (distinct from the
+        // IEventRouter -> OutboxEventRouter forwarder above). The OutboxEntityEventTracker composes this
+        // concrete router directly to dispatch transient events through the Phase-2 FIFO drain, so its
+        // transient dispatcher is independent of whatever IEventRouter resolves to in the outbox host.
+        // IEventRoutingRegistry is a core singleton registered by WithEventHandling (see RCommonBuilder),
+        // so no additional registration is needed for it here.
+        builder.Services.TryAddScoped<InMemoryTransactionalEventRouter>();
+
         // Entity event tracker decorator (scoped — replaces InMemoryEntityEventTracker)
         builder.Services.TryAddScoped<InMemoryEntityEventTracker>();
         builder.Services.TryAddScoped<IEntityEventTracker, OutboxEntityEventTracker>();

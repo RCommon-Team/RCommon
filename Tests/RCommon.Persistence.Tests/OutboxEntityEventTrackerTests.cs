@@ -3,7 +3,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using RCommon.Entities;
+using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
+using RCommon.EventHandling.Routing;
 using RCommon.Models.Events;
 using RCommon.Persistence.Outbox;
 using RCommon.Security.Claims;
@@ -27,6 +29,8 @@ public class OutboxEntityEventTrackerTests
     private readonly Mock<IGuidGenerator> _guidGenMock = new();
     private readonly OutboxEventRouter _outboxRouter;
     private readonly InMemoryEntityEventTracker _innerTracker;
+    private readonly InMemoryTransactionalEventRouter _inProcessRouter;
+    private readonly IEventRoutingRegistry _routingRegistry;
 
     public OutboxEntityEventTrackerTests()
     {
@@ -46,12 +50,19 @@ public class OutboxEntityEventTrackerTests
             Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
 
         _innerTracker = new InMemoryEntityEventTracker(_outboxRouter);
+
+        _inProcessRouter = new InMemoryTransactionalEventRouter(
+            serviceProviderMock.Object,
+            NullLogger<InMemoryTransactionalEventRouter>.Instance,
+            new EventSubscriptionManager(),
+            Options.Create(new EventHandlingOptions()));
+        _routingRegistry = new EventRoutingRegistry();
     }
 
     [Fact]
     public void AddEntity_DelegatesToInnerTracker()
     {
-        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter);
+        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter, _inProcessRouter, _routingRegistry);
         var entityMock = new Mock<IBusinessEntity>();
         entityMock.Setup(e => e.AllowEventTracking).Returns(true);
 
@@ -63,7 +74,7 @@ public class OutboxEntityEventTrackerTests
     [Fact]
     public async Task PersistEventsAsync_WithNoEntities_CompletesWithoutStoreCalls()
     {
-        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter);
+        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter, _inProcessRouter, _routingRegistry);
 
         await tracker.PersistEventsAsync();
 
@@ -76,7 +87,7 @@ public class OutboxEntityEventTrackerTests
         // The router no longer reads from the store in RouteEventsAsync — it dispatches from
         // the in-memory retained list. Since no events were buffered, the retained list is empty
         // and RouteEventsAsync returns immediately without any store calls.
-        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter);
+        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter, _inProcessRouter, _routingRegistry);
 
         var result = await tracker.EmitTransactionalEventsAsync();
 
@@ -103,7 +114,7 @@ public class OutboxEntityEventTrackerTests
             Options.Create(new OutboxOptions()),
             Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
         var innerTracker = new InMemoryEntityEventTracker(strictRouter);
-        var tracker = new OutboxEntityEventTracker(innerTracker, strictRouter);
+        var tracker = new OutboxEntityEventTracker(innerTracker, strictRouter, _inProcessRouter, _routingRegistry);
         tracker.AddEntity(new TrackerTestEntity(new TrackerTestEvent("a")), "A");
 
         await tracker.DispatchDomainEventsAsync();
@@ -122,7 +133,7 @@ public class OutboxEntityEventTrackerTests
                 perStore[name] = count + 1;
             });
 
-        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter);
+        var tracker = new OutboxEntityEventTracker(_innerTracker, _outboxRouter, _inProcessRouter, _routingRegistry);
         tracker.AddEntity(new TrackerTestEntity(new TrackerTestEvent("a")), "A");
         tracker.AddEntity(new TrackerTestEntity(new TrackerTestEvent("b")), "B");
 

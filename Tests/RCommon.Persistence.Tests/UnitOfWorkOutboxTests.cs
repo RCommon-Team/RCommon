@@ -1,7 +1,9 @@
 using FluentAssertions;
 using Moq;
 using RCommon.Entities;
+using RCommon.EventHandling;
 using RCommon.EventHandling.Producers;
+using RCommon.EventHandling.Routing;
 using RCommon.Models.Events;
 using RCommon.Persistence.Outbox;
 using Xunit;
@@ -36,7 +38,13 @@ public class UnitOfWorkOutboxTests
             Microsoft.Extensions.Options.Options.Create(new DefaultDataStoreOptions { DefaultDataStoreName = "test" }));
 
         var innerTracker = new InMemoryEntityEventTracker(outboxRouter);
-        var tracker = new OutboxEntityEventTracker(innerTracker, outboxRouter);
+        var inProcessRouter = new InMemoryTransactionalEventRouter(
+            serviceProviderMock.Object,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<InMemoryTransactionalEventRouter>.Instance,
+            subscriptionManager,
+            Microsoft.Extensions.Options.Options.Create(new EventHandlingOptions()));
+        var routingRegistry = new EventRoutingRegistry();
+        var tracker = new OutboxEntityEventTracker(innerTracker, outboxRouter, inProcessRouter, routingRegistry);
 
         // Simulate: PersistEventsAsync is called (Phase 1, pre-commit)
         await tracker.PersistEventsAsync();
