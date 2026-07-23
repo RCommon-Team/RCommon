@@ -33,7 +33,7 @@ public sealed class BrokerOutboxDataStoreValidationHostedService : IHostedServic
         foreach (var reg in _brokerOutbox.Value.Registrations)
         {
             var match = stores.FirstOrDefault(v =>
-                string.Equals(v.Name, reg.DataStoreName, StringComparison.OrdinalIgnoreCase));
+                string.Equals(v.Name, reg.DataStoreName, StringComparison.Ordinal));
 
             if (match is null)
                 throw new InvalidOperationException(

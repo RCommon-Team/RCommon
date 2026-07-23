@@ -119,16 +119,20 @@ public class DurableRouteOutboxValidationTests
     }
 
     [Fact]
-    public async Task StartAsync_DoesNotThrow_When_Comparison_Is_CaseInsensitive()
+    public async Task StartAsync_Throws_When_Names_Differ_Only_By_Case()
     {
         // Arrange: durable route uses lowercase "orders"; outbox registered with "Orders".
+        // Datastore-name comparison is case-SENSITIVE (Ordinal), matching the authoritative core
+        // datastore resolver (DataStoreFactory). A case mismatch must fail LOUD at startup rather
+        // than being silently accepted here and then failing later at core datastore resolution.
         var routing = BuildRoutingRegistry("orders");
         var outbox = BuildOutboxRegistry("Orders");
         var sut = BuildService(routing, outbox);
 
-        // Act & Assert
+        // Act & Assert: "orders" has no case-exact registered outbox, so validation fails loud.
         Func<Task> act = () => sut.StartAsync(CancellationToken.None);
-        await act.Should().NotThrowAsync();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*orders*");
     }
 
     [Fact]

@@ -48,7 +48,7 @@ public sealed class OutboxDataStoreOptionsExtension : IDbContextOptionsExtension
 
         foreach (var name in Registry.Registrations)
         {
-            if (string.Equals(name, DataStoreName, System.StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(name, DataStoreName, System.StringComparison.Ordinal))
             {
                 return true;
             }

@@ -133,7 +133,7 @@ public class OutboxEntityEventTracker : IEntityEventTracker
                 // event's declared outbox store — otherwise the outbox row cannot be written in the same
                 // transaction as the aggregate. Fail loud rather than silently split the transaction.
                 if (!string.IsNullOrWhiteSpace(dataStoreName)
-                    && !string.Equals(dataStoreName, store, StringComparison.OrdinalIgnoreCase))
+                    && !string.Equals(dataStoreName, store, StringComparison.Ordinal))
                 {
                     throw new InvalidOperationException(
                         $"Event '{e.GetType().FullName}' is configured via Publish<...>().UseOutbox(\"{store}\") " +

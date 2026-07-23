@@ -25,8 +25,10 @@ namespace RCommon.Persistence.Outbox;
 /// is empty) the service is a no-op.
 /// </para>
 /// <para>
-/// Comparison between route names and registered outbox names is case-insensitive, matching
-/// the convention used throughout the outbox subsystem.
+/// Comparison between route names and registered outbox names is case-sensitive (Ordinal),
+/// matching the authoritative core datastore resolver (<c>DataStoreFactory</c>). A case mismatch
+/// (e.g. <c>AddDbContext("Orders")</c> vs <c>UseOutbox("orders")</c>) fails loud here rather than
+/// being silently accepted and then failing at core datastore resolution.
 /// </para>
 /// </remarks>
 internal sealed class DurableRouteOutboxValidationHostedService : IHostedService
@@ -56,10 +58,11 @@ internal sealed class DurableRouteOutboxValidationHostedService : IHostedService
             return Task.CompletedTask;
         }
 
-        // Build a case-insensitive set of registered outbox datastore names.
+        // Build a case-sensitive set of registered outbox datastore names, matching the
+        // authoritative core datastore resolver (DataStoreFactory) which compares names with Ordinal.
         var registeredNames = new System.Collections.Generic.HashSet<string>(
             outboxRegistry.Registrations,
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.Ordinal);
 
         foreach (var storeName in durableStoreNames)
         {

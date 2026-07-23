@@ -53,6 +53,21 @@ public class OutboxDataStoreRegistryTests
     }
 
     [Fact]
+    public void Register_NamesDifferingOnlyByCase_AreDistinct()
+    {
+        // Datastore-name comparison is case-SENSITIVE (Ordinal), matching the authoritative core
+        // datastore resolver (DataStoreFactory). "Orders" and "orders" are therefore two DISTINCT
+        // datastores and both must appear in the registrations.
+        var registry = BuildRegistry(new[] { "Orders", "orders" });
+
+        var registrations = registry.Registrations;
+
+        registrations.Should().Contain("Orders");
+        registrations.Should().Contain("orders");
+        registrations.Should().HaveCount(2);
+    }
+
+    [Fact]
     public void Register_NullName_IncludesDefaultDataStoreName_FromOptions()
     {
         // Arrange — null in the pending names list means "use default"

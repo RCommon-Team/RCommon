@@ -42,7 +42,7 @@ public sealed class OutboxDataStoreRegistry : IOutboxDataStoreRegistry
         get
         {
             var names = _registrationOptions.Value.Names;
-            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var set = new HashSet<string>(StringComparer.Ordinal);
             var includeDefault = false;
 
             foreach (var name in names)
