@@ -107,6 +107,22 @@ public class WolverineEventHandlingVerbsTests
     }
 
     [Fact]
+    public void Send_ThenUseRCommonOutbox_MarksEventDurableTargetingStore()
+    {
+        var (services, builder) = NewHost();
+        builder.WithEventHandling<WolverineEventHandlingBuilder>(e =>
+        {
+            e.Send<SendDurableEvent>();
+            e.UseRCommonOutbox("Store");
+        });
+
+        var registry = services.GetRoutingRegistry()!;
+        registry.IsDurable(typeof(SendDurableEvent)).Should().BeTrue();
+        registry.TryGetOutboxStore(typeof(SendDurableEvent), out var store).Should().BeTrue();
+        store.Should().Be("Store");
+    }
+
+    [Fact]
     public void UseRCommonOutbox_ThenPublish_MarksDurable()
     {
         var (services, builder) = NewHost();
@@ -177,6 +193,18 @@ public class WolverineEventHandlingVerbsTests
     }
 
     [Fact]
+    public void Consume_RegistersSubscriberAsScoped()
+    {
+        var (services, builder) = NewHost();
+        builder.WithEventHandling<WolverineEventHandlingBuilder>(e => e.Consume<ConsumeEvent, ConsumeHandler>());
+
+        // Wolverine's Consume registers the inbound subscriber via AddScoped<ISubscriber<TEvent>, H>().
+        var descriptor = services.Single(d => d.ServiceType == typeof(ISubscriber<ConsumeEvent>)
+            && d.ImplementationType == typeof(ConsumeHandler));
+        descriptor.Lifetime.Should().Be(ServiceLifetime.Scoped);
+    }
+
+    [Fact]
     public void AddSubscriber_Plain_ObsoleteAlias_BehavesLikeConsume()
     {
         var (services, builder) = NewHost();
@@ -212,6 +240,7 @@ public class WolverineEventHandlingVerbsTests
     public class PublishTransientEvent : ISyncEvent { }
     public class PublishDurableEvent : ISyncEvent { }
     public class SendEvent : ISyncEvent { }
+    public class SendDurableEvent : ISyncEvent { }
     public class BothEvent : ISyncEvent { }
     public class OutboxBeforeEvent : ISyncEvent { }
     public class OutboxAfterEvent : ISyncEvent { }
