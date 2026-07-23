@@ -64,8 +64,9 @@ namespace RCommon.EventHandling.Routing
 
         /// <summary>
         /// Returns (creating if necessary) the per-builder-type config-time state bag.
-        /// Internal: consumed only by <see cref="InMemoryEventBusBuilderExtensions"/> and
-        /// <see cref="EventRouteHandle"/> during the DI configuration phase.
+        /// Internal: consumed by the builder-agnostic <see cref="EventRouteRegistrationExtensions"/>
+        /// helpers (and via them by every event-handling builder's <c>Publish</c>/<c>UseRCommonOutbox</c>)
+        /// and by <see cref="EventRouteHandle"/> during the DI configuration phase.
         /// </summary>
         internal BuilderOutboxState GetOrCreateBuilderState(Type builderType)
             => _builderState.GetOrAdd(builderType, _ => new BuilderOutboxState());
