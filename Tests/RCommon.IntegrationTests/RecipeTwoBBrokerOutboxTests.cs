@@ -67,7 +67,7 @@ public class RecipeTwoBBrokerOutboxTests
         }
     }
 
-    private ServiceProvider BuildProvider()
+    private ServiceProvider BuildProvider(string connectionString)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -77,7 +77,10 @@ public class RecipeTwoBBrokerOutboxTests
             .WithUnitOfWork<DefaultUnitOfWorkBuilder>(uow => { })
             .WithPersistence<EFCorePersistenceBuilder>(ef =>
             {
-                ef.AddDbContext<RecipeDbContext>("RecipeDb", o => o.UseNpgsql(_pg.ConnectionString));
+                // Unique per-test database (see PostgreSqlFixture.CreateUniqueDatabaseAsync) so this class
+                // never targets the shared default DB and cannot collide with sibling integration classes'
+                // EnsureCreated calls when they run in the same test invocation.
+                ef.AddDbContext<RecipeDbContext>("RecipeDb", o => o.UseNpgsql(connectionString));
                 ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "RecipeDb");
             })
             // Recipe 2b through the PUBLIC wrapper: no raw AddEntityFrameworkOutbox here.
@@ -108,7 +111,7 @@ public class RecipeTwoBBrokerOutboxTests
     [Fact]
     public async Task Publish_through_UseBrokerOutbox_inside_UnitOfWork_stages_atomically()
     {
-        await using var provider = BuildProvider();
+        await using var provider = BuildProvider(await _pg.CreateUniqueDatabaseAsync("recipe2b"));
 
         // The bus is deliberately NOT started: bus-outbox STAGING happens via the scoped IPublishEndpoint
         // plus the DbContext SavingChanges interceptor during SaveChanges — it does not require the bus to
@@ -145,7 +148,7 @@ public class RecipeTwoBBrokerOutboxTests
     [Fact]
     public async Task Publish_through_UseBrokerOutbox_inside_rolled_back_UnitOfWork_persists_neither()
     {
-        await using var provider = BuildProvider();
+        await using var provider = BuildProvider(await _pg.CreateUniqueDatabaseAsync("recipe2b"));
 
         await EnsureCleanSchemaAsync(provider);
 

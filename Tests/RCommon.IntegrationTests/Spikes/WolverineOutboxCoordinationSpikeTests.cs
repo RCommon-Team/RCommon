@@ -71,6 +71,11 @@ public class WolverineOutboxCoordinationSpikeTests
     private readonly PostgreSqlFixture _pg;
     private readonly ITestOutputHelper _output;
 
+    // Per-test unique database connection string (see PostgreSqlFixture.CreateUniqueDatabaseAsync). Set at
+    // the start of each test so this class never targets the shared default DB and cannot collide with
+    // sibling integration classes' EnsureCreated/resource-setup when they run in the same test invocation.
+    private string _connectionString = string.Empty;
+
     public WolverineOutboxCoordinationSpikeTests(PostgreSqlFixture pg, RabbitMqFixture rabbit, ITestOutputHelper output)
     {
         // RabbitMqFixture is required by the collection ctor but intentionally unused: the durable
@@ -118,7 +123,7 @@ public class WolverineOutboxCoordinationSpikeTests
         builder.UseWolverine(opts =>
         {
             // Durable Postgres message store (creates wolverine_* tables via resource setup below).
-            opts.PersistMessagesWithPostgresql(_pg.ConnectionString);
+            opts.PersistMessagesWithPostgresql(_connectionString);
 
             // Serverless durability turns OFF the heavy-duty background inbox/outbox delivery agent.
             // This is the Wolverine analog of the MassTransit spike deliberately NEVER starting the
@@ -153,7 +158,7 @@ public class WolverineOutboxCoordinationSpikeTests
                 .WithUnitOfWork<DefaultUnitOfWorkBuilder>(uow => { })
                 .WithPersistence<EFCorePersistenceBuilder>(ef =>
                 {
-                    ef.AddDbContext<SpikeDbContext>("SpikeDb", o => o.UseNpgsql(_pg.ConnectionString));
+                    ef.AddDbContext<SpikeDbContext>("SpikeDb", o => o.UseNpgsql(_connectionString));
                     ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "SpikeDb");
                 });
 
@@ -171,7 +176,7 @@ public class WolverineOutboxCoordinationSpikeTests
         // created those during host.StartAsync(). EnsureCreated is all-or-nothing: seeing existing
         // tables for the model, it skips and never creates the Widgets table. So create Widgets
         // directly with idempotent DDL.
-        await using var conn = new NpgsqlConnection(_pg.ConnectionString);
+        await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
         await ExecAsync(conn,
             "CREATE TABLE IF NOT EXISTS \"Widgets\" (\"Id\" serial PRIMARY KEY, \"Name\" text NOT NULL)");
@@ -180,6 +185,7 @@ public class WolverineOutboxCoordinationSpikeTests
     [Fact]
     public async Task Publish_inside_RCommon_UnitOfWork_stages_into_Wolverine_outbox()
     {
+        _connectionString = await _pg.CreateUniqueDatabaseAsync("wolverinespike");
         using var host = BuildHost();
         await host.StartAsync(); // runs resource setup -> creates wolverine_outgoing_envelopes
         try
@@ -242,6 +248,7 @@ public class WolverineOutboxCoordinationSpikeTests
     [Fact]
     public async Task Control_publish_without_RCommon_UnitOfWork_envelope_table_is_drained_by_flush()
     {
+        _connectionString = await _pg.CreateUniqueDatabaseAsync("wolverinespike");
         // CONTROL. Identical persist path (Enroll + PublishAsync + SaveChangesAndFlushMessagesAsync)
         // but with NO RCommon UnitOfWork and therefore NO ambient TransactionScope. This exists to
         // characterize the observation point: it shows the outgoing-envelope table reads 0 EVEN with
@@ -291,6 +298,7 @@ public class WolverineOutboxCoordinationSpikeTests
     [Fact]
     public async Task Publish_inside_rolled_back_UnitOfWork_persists_neither()
     {
+        _connectionString = await _pg.CreateUniqueDatabaseAsync("wolverinespike");
         using var host = BuildHost();
         await host.StartAsync();
         try
@@ -340,7 +348,7 @@ public class WolverineOutboxCoordinationSpikeTests
 
     private async Task<(int widgets, int envelopes)> CountRowsAsync()
     {
-        await using var conn = new NpgsqlConnection(_pg.ConnectionString);
+        await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
 
         int widgets = await ScalarCountAsync(conn, "SELECT COUNT(*) FROM \"Widgets\"");
@@ -355,7 +363,7 @@ public class WolverineOutboxCoordinationSpikeTests
 
     private async Task TruncateAsync()
     {
-        await using var conn = new NpgsqlConnection(_pg.ConnectionString);
+        await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
         await ExecAsync(conn, "TRUNCATE TABLE \"Widgets\" RESTART IDENTITY");
         foreach (var name in new[] { "wolverine_outgoing_envelopes", "wolverine_incoming_envelopes" })

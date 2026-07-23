@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 using RCommon.Entities;
 using RCommon.EventHandling;
 using RCommon.IntegrationTests.Fixtures;
@@ -77,7 +76,7 @@ public class CrossDataStoreOutboxTests
         public DbSet<Invoice> Invoices => Set<Invoice>();
     }
 
-    private ServiceProvider BuildProvider(string billingConnectionString)
+    private ServiceProvider BuildProvider(string ordersConnectionString, string billingConnectionString)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -92,7 +91,10 @@ public class CrossDataStoreOutboxTests
                 events.Publish<InvoiceRaisedEvent>().UseOutbox("Billing"))
             .WithPersistence<EFCorePersistenceBuilder>(ef =>
             {
-                ef.AddDbContext<OrdersDbContext>("Orders", o => o.UseNpgsql(_pg.ConnectionString));
+                // Both datastores get their OWN unique database (see PostgreSqlFixture.CreateUniqueDatabaseAsync)
+                // so this class never touches the shared default DB and cannot collide with sibling
+                // integration classes' EnsureCreated calls when they run in the same test invocation.
+                ef.AddDbContext<OrdersDbContext>("Orders", o => o.UseNpgsql(ordersConnectionString));
                 ef.AddDbContext<BillingDbContext>("Billing", o => o.UseNpgsql(billingConnectionString));
                 ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Orders");
 
@@ -105,27 +107,6 @@ public class CrossDataStoreOutboxTests
             });
 
         return services.BuildServiceProvider(validateScopes: true);
-    }
-
-    /// <summary>
-    /// Creates the second Postgres database for the Billing datastore and returns its connection string.
-    /// The fixture's connection string targets the default database (Orders).
-    /// </summary>
-    private async Task<string> CreateBillingDatabaseAsync()
-    {
-        var billingDbName = "billing_" + Guid.NewGuid().ToString("N");
-
-        // CREATE DATABASE cannot run inside a transaction; use a plain connection on the default DB.
-        await using (var admin = new NpgsqlConnection(_pg.ConnectionString))
-        {
-            await admin.OpenAsync();
-            await using var cmd = admin.CreateCommand();
-            cmd.CommandText = $"CREATE DATABASE \"{billingDbName}\";";
-            await cmd.ExecuteNonQueryAsync();
-        }
-
-        var builder = new NpgsqlConnectionStringBuilder(_pg.ConnectionString) { Database = billingDbName };
-        return builder.ConnectionString;
     }
 
     private static async Task EnsureSchemasAsync(IServiceProvider provider)
@@ -152,8 +133,9 @@ public class CrossDataStoreOutboxTests
     [Fact]
     public async Task Event_from_non_default_datastore_aggregate_lands_in_that_datastores_outbox_only()
     {
-        var billingConnectionString = await CreateBillingDatabaseAsync();
-        await using var provider = BuildProvider(billingConnectionString);
+        var ordersConnectionString = await _pg.CreateUniqueDatabaseAsync("orders");
+        var billingConnectionString = await _pg.CreateUniqueDatabaseAsync("billing");
+        await using var provider = BuildProvider(ordersConnectionString, billingConnectionString);
         await EnsureSchemasAsync(provider);
 
         using (var scope = provider.CreateScope())
@@ -182,8 +164,9 @@ public class CrossDataStoreOutboxTests
     [Fact]
     public async Task Rolled_back_unit_of_work_persists_neither_business_state_nor_outbox_rows_in_either_datastore()
     {
-        var billingConnectionString = await CreateBillingDatabaseAsync();
-        await using var provider = BuildProvider(billingConnectionString);
+        var ordersConnectionString = await _pg.CreateUniqueDatabaseAsync("orders");
+        var billingConnectionString = await _pg.CreateUniqueDatabaseAsync("billing");
+        await using var provider = BuildProvider(ordersConnectionString, billingConnectionString);
         await EnsureSchemasAsync(provider);
 
         using (var scope = provider.CreateScope())

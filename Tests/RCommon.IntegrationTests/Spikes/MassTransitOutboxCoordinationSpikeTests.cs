@@ -76,7 +76,7 @@ public class MassTransitOutboxCoordinationSpikeTests
         }
     }
 
-    private ServiceProvider BuildProvider()
+    private ServiceProvider BuildProvider(string connectionString)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -87,7 +87,10 @@ public class MassTransitOutboxCoordinationSpikeTests
             .WithUnitOfWork<DefaultUnitOfWorkBuilder>(uow => { })
             .WithPersistence<EFCorePersistenceBuilder>(ef =>
             {
-                ef.AddDbContext<SpikeDbContext>("SpikeDb", o => o.UseNpgsql(_pg.ConnectionString));
+                // Unique per-test database (see PostgreSqlFixture.CreateUniqueDatabaseAsync) so this class
+                // never targets the shared default DB and cannot collide with sibling integration classes'
+                // EnsureCreated calls when they run in the same test invocation.
+                ef.AddDbContext<SpikeDbContext>("SpikeDb", o => o.UseNpgsql(connectionString));
                 ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "SpikeDb");
             });
 
@@ -126,7 +129,7 @@ public class MassTransitOutboxCoordinationSpikeTests
     [Fact]
     public async Task Publish_inside_RCommon_UnitOfWork_stages_atomically_into_MassTransit_outbox()
     {
-        await using var provider = BuildProvider();
+        await using var provider = BuildProvider(await _pg.CreateUniqueDatabaseAsync("mtspike"));
 
         // NOTE: the bus is deliberately NOT started here. Bus-outbox STAGING is performed by the
         // scoped IPublishEndpoint plus the DbContext SavingChanges interceptor during SaveChanges;
@@ -170,7 +173,7 @@ public class MassTransitOutboxCoordinationSpikeTests
     [Fact]
     public async Task Publish_inside_rolled_back_UnitOfWork_persists_neither()
     {
-        await using var provider = BuildProvider();
+        await using var provider = BuildProvider(await _pg.CreateUniqueDatabaseAsync("mtspike"));
 
         // Bus deliberately NOT started (see the atomic-commit test): staging goes through the
         // SaveChanges interceptor, not the bus delivery service.
