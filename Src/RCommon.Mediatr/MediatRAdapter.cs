@@ -37,7 +37,18 @@ namespace RCommon.MediatR
         /// default handler for the wrapped notification</returns>
         public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
         {
-            return _mediator.Publish(new MediatRNotification<TNotification>(notification), cancellationToken);
+            if (notification is null) throw new ArgumentNullException(nameof(notification));
+
+            // Wrap using the event's RUNTIME type, not the compile-time TNotification. The transactional
+            // event router invokes producers with events statically typed as ISerializableEvent, so relying
+            // on TNotification would build MediatRNotification<ISerializableEvent> and never match the
+            // MediatRNotification<TConcrete> notification handler registered by AddSubscriber/Publish --
+            // silently dropping the event. Constructing the wrapper from notification.GetType() mirrors how
+            // InMemoryEventBus keys on @event.GetType(). The `dynamic` dispatch then binds MediatR's generic
+            // Publish<T> to the closed wrapper type (e.g. MediatRNotification<OrderPlacedEvent>) at runtime.
+            var wrapperType = typeof(MediatRNotification<>).MakeGenericType(notification.GetType());
+            dynamic wrapped = Activator.CreateInstance(wrapperType, notification)!;
+            return _mediator.Publish(wrapped, cancellationToken);
         }
 
         /// <summary>
