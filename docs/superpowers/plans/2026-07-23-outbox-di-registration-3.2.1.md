@@ -88,6 +88,19 @@
 
 ## Task 7: green + finish
 
-- [ ] Run full solution build + the event-handling/persistence test suites (fast lane, `Category!=Integration`).
-- [ ] Squash interim commits into one meaningful 3.2.1 commit; push branch; open PR.
+- [x] Run full solution build + the event-handling/persistence test suites (fast lane, `Category!=Integration`).
+- [ ] Push branch; open PR. (Deferred — user reviewing commits first.)
 - [ ] Do **not** tag/release until the user approves the PR.
+
+## Verification (2026-07-23)
+
+**Unit (fast lane, `Category!=Integration`) — all green:**
+RCommon.Persistence 453 · RCommon.Core 575 · RCommon.EfCore 158 (+3 skipped) · RCommon.Entities 236 · RCommon.Wolverine.Outbox 9 · RCommon.Dapper 92 · RCommon.Linq2Db 73.
+
+**Examples (whole `Examples.sln`, fast lane) — all green:**
+Outbox 6 (incl. the #15 & #16 repros) · Outbox.Modular 2 · MediatR 1 · NoUnitOfWork 2 · TransactionScript 1 · DomainDrivenDesign 10 · Persistence.Sagas 3 · HR.LeaveManagement 4. Full `Examples.sln` builds. Modular example console app runs clean (1 outbox row per datastore, none leaked).
+
+**Integration (Podman → Postgres/RabbitMQ) — outbox path all green when containers start:**
+`CrossDataStoreOutboxTests` 2/2 · `RecipeTwoBBrokerOutboxTests` 2/2 · `MassTransitOutboxCoordinationSpikeTests` 2/2 · `WolverineOutboxCoordinationSpikeTests` 3/3. Running all four collections at once produced 5 `PostgreSqlFixture.InitializeAsync` container-start timeouts (named-pipe connect) — an environmental 2 GiB-Podman contention issue, not an assertion/DI failure; each class passes when run alone.
+
+**Not run (out of scope for the outbox DI change):** S3 (LocalStack) / Azure (Azurite) blob-storage integration tests — unrelated subsystem, require emulators.
