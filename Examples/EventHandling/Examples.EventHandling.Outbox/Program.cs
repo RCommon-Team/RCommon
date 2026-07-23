@@ -34,6 +34,12 @@ var host = Host.CreateDefaultBuilder(args)
             .WithEventHandling<InMemoryEventBusBuilder>(eh =>
             {
                 eh.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
+
+                // Durability is opt-in per route (Phase 3a): Publish<T>() alone is transient. Chaining
+                // .UseOutbox("AppDb") marks OrderPlacedEvent durable, which is what routes the
+                // aggregate-raised domain event through "AppDb"'s outbox. Without this route the event
+                // stays transient and no __OutboxMessages row is written.
+                eh.Publish<OrderPlacedEvent>().UseOutbox("AppDb");
             });
     })
     .Build();
