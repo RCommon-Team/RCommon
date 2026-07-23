@@ -55,18 +55,34 @@ public static class OutboxPersistenceBuilderExtensions
     {
         builder.AddOutboxCore<TOutboxStore>(configure, dataStoreName);
 
-        // Outbox event router (scoped, concrete) + IEventRouter forwarder.
+        // Concrete collaborators the OutboxEntityEventTracker composes directly. These are safe to TryAdd:
+        // they are the outbox's own types, so nothing else registers them and first-registration-wins is
+        // fine. The InMemoryTransactionalEventRouter is the transient dispatcher used for the Phase-2 FIFO
+        // drain, independent of whatever IEventRouter resolves to in the host.
         builder.Services.TryAddScoped<OutboxEventRouter>();
-        builder.Services.TryAddScoped<IEventRouter>(sp => sp.GetRequiredService<OutboxEventRouter>());
-
-        // In-process transactional router as its OWN concrete scoped type (the transient dispatcher the
-        // OutboxEntityEventTracker composes directly for the Phase-2 FIFO drain, independent of whatever
-        // IEventRouter resolves to in the outbox host).
         builder.Services.TryAddScoped<InMemoryTransactionalEventRouter>();
-
-        // Entity event tracker decorator (scoped — replaces InMemoryEntityEventTracker).
         builder.Services.TryAddScoped<InMemoryEntityEventTracker>();
-        builder.Services.TryAddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
+
+        // Authoritative outbox routing. These MUST win regardless of the order in which WithPersistence /
+        // WithEventHandling / AddRCommon ran, so they are registered with Remove-then-Add rather than TryAdd.
+        //
+        // Why TryAdd is wrong here (3.2.0 defect #15 — silent outbox data loss):
+        //   * WithEventTracking runs at the END of EVERY WithPersistence<T> call and TryAdds the in-memory
+        //     IEntityEventTracker. Under modular / multi-datastore composition a non-outbox WithPersistence
+        //     can run first, pinning the in-memory tracker; a later AddOutbox TryAdd then no-ops and every
+        //     durable event is silently dispatched in-process and never written to the outbox.
+        //   * RCommonBuilder's constructor registers IEventRouter -> InMemoryTransactionalEventRouter with an
+        //     unconditional AddScoped, so an outbox IEventRouter forwarder registered with TryAdd could never
+        //     win in ANY configuration.
+        // OutboxEntityEventTracker is a strict superset of the in-memory tracker (durable events -> outbox,
+        // transient events -> in-process), so it is always correct for it to win. Remove-then-Add is
+        // idempotent across repeated AddOutbox calls (it nets exactly one registration), and a subsequent
+        // non-outbox WithPersistence TryAdd will no-op because the outbox registration is already present.
+        builder.Services.RemoveAll<IEventRouter>();
+        builder.Services.AddScoped<IEventRouter>(sp => sp.GetRequiredService<OutboxEventRouter>());
+
+        builder.Services.RemoveAll<IEntityEventTracker>();
+        builder.Services.AddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
 
         // Startup diagnostic: warn if a later registration silently overrode the outbox IEventRouter.
         // Producer-only: it inspects the producer's IEventRouter -> OutboxEventRouter binding, which a

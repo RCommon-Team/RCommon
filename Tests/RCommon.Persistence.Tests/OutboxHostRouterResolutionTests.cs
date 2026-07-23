@@ -104,20 +104,22 @@ public class OutboxHostRouterResolutionTests
     }
 
     [Fact]
-    public void IEventRouter_IsNotTheSameInstanceAsTheConcreteInProcessRouter()
+    public void IEventRouter_ResolvesToTheOutboxForwarder_AndIsDistinctFromTheConcreteInProcessRouter()
     {
-        // Informative: the tracker's transient dispatcher (the concrete InMemoryTransactionalEventRouter it
-        // composes) must be a separate object from whatever IEventRouter resolves to in the outbox host.
-        // In this host IEventRouter actually resolves to InMemoryTransactionalEventRouter (core registers it
-        // FIRST via AddScoped, so AddOutbox's TryAddScoped<IEventRouter> -> OutboxEventRouter is a no-op).
-        // Even so, the concrete scoped InMemoryTransactionalEventRouter is a DISTINCT registration/instance
-        // from the IEventRouter binding, which is what the concrete-injection design guarantees.
+        // As of the 3.2.1 defect-#15 fix, AddOutbox registers IEventRouter authoritatively (Remove-then-Add
+        // a forwarder to OutboxEventRouter) so it WINS over the in-memory router the core ctor registers
+        // first — regardless of registration order. IEventRouter therefore resolves to the OutboxEventRouter.
+        // The tracker's OWN transient dispatcher (the concrete InMemoryTransactionalEventRouter it composes)
+        // remains a DISTINCT registration/instance from the IEventRouter binding, which is what the
+        // concrete-injection design guarantees.
         using var provider = BuildOutboxHost();
         using var scope = provider.CreateScope();
 
         var eventRouter = scope.ServiceProvider.GetRequiredService<IEventRouter>();
         var concreteInProcess = scope.ServiceProvider.GetRequiredService<InMemoryTransactionalEventRouter>();
 
+        eventRouter.Should().BeOfType<OutboxEventRouter>(
+            "AddOutbox must authoritatively bind IEventRouter to the outbox forwarder (defect #15)");
         eventRouter.Should().NotBeSameAs(concreteInProcess,
             "the tracker's composed transient dispatcher must be independent of the host's IEventRouter binding");
     }
