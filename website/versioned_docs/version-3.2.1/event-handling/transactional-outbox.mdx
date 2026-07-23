@@ -1,0 +1,120 @@
+---
+title: Transactional Outbox
+sidebar_position: 4
+description: Guarantee at-least-once event delivery using the transactional outbox pattern with MassTransit EF Core outbox or Wolverine's EF Core transaction integration.
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# Transactional Outbox
+
+The transactional outbox pattern guarantees that events are published to a message broker if and only if the database transaction that triggered them commits. RCommon provides outbox integration for both MassTransit and Wolverine.
+
+## The problem the outbox solves
+
+Without an outbox, there is a window between committing a database change and publishing an event where a crash can cause the event to be lost. Conversely, publishing an event before committing risks publishing for a transaction that is later rolled back. The outbox eliminates both failure modes by writing the event to the same database transaction as the business data, then relaying it to the broker after the transaction commits.
+
+## Two ways to get an outbox
+
+There are two supported strategies, both fully documented with diagrams in the [Event Handling Recipes](./recipes.mdx) guide:
+
+- **Recipe 2a — broker as producer behind the RCommon outbox.** RCommon's own per-datastore outbox stages the row atomically; a post-commit poller relays it to the broker. Works for **both** MassTransit and Wolverine.
+- **Recipe 2b — broker-native outbox (MassTransit only).** MassTransit's EF Core outbox stages the message; RCommon coordinates the transaction. Wolverine does **not** support this.
+
+## MassTransit — broker-native outbox (Recipe 2b)
+
+<NuGetInstall packageName="RCommon.MassTransit.Outbox" />
+
+Wire MassTransit's EF Core outbox through RCommon's datastore-aware wrapper, `UseBrokerOutbox<TDbContext>`, which binds it to a named RCommon datastore and coordinates staging inside the unit-of-work transaction:
+
+```csharp
+using RCommon;
+using RCommon.MassTransit;
+
+builder.Services.AddRCommon()
+    .WithEventHandling<MassTransitEventHandlingBuilder>(mt =>
+    {
+        mt.Publish<OrderConfirmed>();   // outbound; auto-registers the producer
+
+        // Broker-native EF Core outbox bound to the "Orders" datastore's DbContext.
+        mt.UseBrokerOutbox<AppDbContext>(o => o.OnDataStore("Orders").UsePostgres()); // or .UseSqlServer()
+
+        mt.UsingRabbitMq((ctx, cfg) => cfg.ConfigureEndpoints(ctx));
+    });
+```
+
+Because staging happens inside RCommon's unit-of-work `TransactionScope`, the business row and the outbox row commit — or roll back — atomically.
+
+### Mapping the outbox tables
+
+The `DbContext` must map MassTransit's outbox entities in `OnModelCreating`:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+    modelBuilder.AddTransactionalOutboxEntities(); // InboxState + OutboxState + OutboxMessage
+}
+```
+
+### Broker outbox options
+
+| Method | Description |
+|--------|-------------|
+| `OnDataStore(name)` | Binds the broker outbox to the RCommon datastore of that name (resolving its `DbContext`) |
+| `UsePostgres()` | Configures the outbox for the PostgreSQL dialect |
+| `UseSqlServer()` | Configures the outbox for the SQL Server dialect |
+
+### Applying outbox migrations
+
+The outbox adds its own tables to the `DbContext`. Add a migration after configuring it:
+
+```bash
+dotnet ef migrations add AddMassTransitOutbox
+dotnet ef database update
+```
+
+## Wolverine — use the RCommon outbox (Recipe 2a)
+
+<NuGetInstall packageName="RCommon.Wolverine.Outbox" />
+
+:::caution Wolverine does not support the broker-native outbox
+`UseBrokerOutbox<T>` on the Wolverine builder throws `NotSupportedException`. Wolverine's EF Core envelope transaction opens its own database transaction and does not enlist in RCommon's `TransactionScope`, so atomic staging cannot be guaranteed. Use Recipe 2a instead: RCommon's own per-datastore outbox stages the row atomically and a post-commit poller relays it via Wolverine.
+:::
+
+```csharp
+using RCommon;
+using RCommon.Wolverine;
+
+builder.Host.UseWolverine(/* transport + endpoints */);
+
+builder.Services.AddRCommon()
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>("Orders", o => o.UseNpgsql(connectionString));
+        ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "Orders");
+        ef.AddOutbox<EFCoreOutboxStore>(dataStoreName: "Orders");
+    })
+    .WithEventHandling<WolverineEventHandlingBuilder>(wlv =>
+    {
+        wlv.UseRCommonOutbox("Orders");   // builder default: durability via the RCommon outbox
+        wlv.Publish<OrderConfirmed>();    // relayed to Wolverine post-commit by the poller
+    });
+```
+
+The same Recipe 2a wiring works for MassTransit — just swap the builder — when you prefer RCommon to own the outbox rather than the broker.
+
+## How delivery works
+
+Durability is **opt-in per route** (a change from pre-3.2.0, where tracked events were persisted automatically). A `Publish<T>()`/`Send<T>()` route is transient unless you mark it durable with a per-event `.UseOutbox("store")`, a builder-level `UseRCommonOutbox("store")`, or `UseBrokerOutbox(...)`. Once a route is durable:
+
+1. During the unit of work's commit, the event is written to the outbox table **inside the same transaction** as the business data rather than sent directly to the broker.
+2. After the transaction commits, a relay — RCommon's `OutboxProcessingService` (Recipe 2a) or the broker's own delivery service (Recipe 2b) — reads pending rows and forwards them to the broker.
+3. The row is marked processed (Recipe 2a) or deleted after acknowledgement (Recipe 2b) once relayed.
+
+This gives at-least-once delivery. Consumers must be idempotent to tolerate the rare duplicate after a relay failure; RCommon's inbox deduplicates redelivery on the consuming side.
+
+## See also
+
+- [Event Handling Recipes](./recipes.mdx) — full wiring and diagrams for Recipe 2a and Recipe 2b.
+- [Outbox Producer/Processor Topology](./outbox-producer-processor-topology.mdx) — splitting producer and processor hosts.

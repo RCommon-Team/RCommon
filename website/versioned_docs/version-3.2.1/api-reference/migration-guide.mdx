@@ -1,0 +1,384 @@
+﻿---
+title: Migration Guide
+sidebar_position: 3
+description: Step-by-step guide for upgrading RCommon between major versions, covering repository interfaces, builder API changes, soft delete, multitenancy, and .NET framework upgrades.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Migration Guide
+
+This guide covers the patterns and steps required when upgrading between RCommon versions. Because RCommon follows semantic versioning, breaking changes only appear in major version increments.
+
+For the specific changes in each release, see the [Changelog](./changelog.mdx) or the [GitHub Releases page](https://github.com/RCommon-Team/RCommon/releases).
+
+## General Upgrade Steps
+
+Before upgrading to a new major version, follow these steps:
+
+1. Read the release notes for every version between your current version and the target version.
+2. Update NuGet packages one major version at a time rather than skipping multiple majors.
+3. Address compiler errors first — these represent API changes that must be resolved.
+4. Run the full test suite and address any runtime failures.
+5. Verify logging output during integration tests to catch behavioral differences.
+
+## Upgrading Package References
+
+Update all `RCommon.*` packages in your project files at once. Because all packages share the same version, mixing versions across packages in the same application is not supported and may cause type resolution failures.
+
+```xml
+<PackageReference Include="RCommon.Core" Version="3.0.0" />
+<PackageReference Include="RCommon.Entities" Version="3.0.0" />
+<PackageReference Include="RCommon.Persistence" Version="3.0.0" />
+<PackageReference Include="RCommon.EFCore" Version="3.0.0" />
+<!-- All RCommon.* packages should share the same version -->
+```
+
+## Upgrading to Modular Composition
+
+This release introduces modular composition of `AddRCommon()`. **No source changes are required.** Existing single-call apps continue to compile and behave identically.
+
+### What changed
+
+If you previously relied on `WithSequentialGuidGenerator`, `WithSimpleGuidGenerator`, or `WithDateTimeSystem` throwing `RCommonBuilderException` on a second call, that behavior is now relaxed:
+
+- **Same implementation type**, repeated → idempotent no-op.
+- **Different implementation type** → still throws `RCommonBuilderException` (with both type names in the message).
+
+Likewise, `DataStoreFactoryOptions.Register<B,C>(name)` now accepts identical re-registrations:
+
+- **Same `(name, B, C)` triple** → idempotent no-op.
+- **Same `(name, B)` with different `C`** → still throws `UnsupportedDataStoreException`.
+
+### What you can now do
+
+Modules can independently configure RCommon features:
+
+```csharp
+public sealed class OrderingModule : IServiceModule
+{
+    public void Configure(IServiceCollection services) =>
+        services.AddRCommon()
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
+                ef.AddDbContext<OrderingDbContext>("Ordering", o => o.UseInMemoryDatabase("ord")));
+}
+
+public sealed class InventoryModule : IServiceModule
+{
+    public void Configure(IServiceCollection services) =>
+        services.AddRCommon()
+            .WithPersistence<EFCorePersistenceBuilder>(ef =>
+                ef.AddDbContext<InventoryDbContext>("Inventory", o => o.UseInMemoryDatabase("inv")));
+}
+```
+
+Both modules call `AddRCommon()` and `WithPersistence<EFCorePersistenceBuilder>`. The persistence sub-builder's constructor runs exactly once; both `AddDbContext` calls accumulate registrations.
+
+See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix and new helper APIs.
+
+## Upgrading to 3.2.0 (Event Handling & Outbox Redesign)
+
+3.2.0 reworks event handling and the transactional outbox. It **is a breaking release** for event-handling code: durability became opt-in, in-process dispatch moved before commit, and the outbox is now datastore-aware. Non-event-handling code (repositories, unit of work, multi-tenancy, blob storage, etc.) is unaffected.
+
+Read the new [Event Handling Recipes](../event-handling/recipes.mdx) guide first — it documents the six supported patterns and is the fastest way to see where your existing wiring maps.
+
+### 1. Durability is now opt-in (most important change)
+
+Before 3.2.0, a domain event raised on a tracked aggregate was **automatically** written to the outbox. In 3.2.0, `Publish<T>()`/`Send<T>()` are transient by default; you must opt in to durability.
+
+```csharp
+// Before 3.2.0 — the event was implicitly persisted to the outbox.
+events.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
+
+// After 3.2.0 — declare the durable route explicitly.
+events.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();   // in-process, pre-commit (transient)
+events.Publish<OrderPlacedEvent>().UseOutbox("AppDb");               // durable: persist + relay
+```
+
+There is no compiler error for this change — code compiles but silently stops persisting events. **Audit every place that relied on outbox persistence** and add `.UseOutbox("store")` (per event) or `UseRCommonOutbox("store")` (builder default). If neither is present, the event is transient.
+
+### 2. In-process dispatch is now pre-commit
+
+In-process `ISubscriber<T>` handlers now run **inside** the unit-of-work transaction, before it commits. A handler that throws rolls the whole transaction back (no state change, no outbox rows). Previously these ran after commit.
+
+Consequence: pre-commit handlers must be **in-process and side-effect-light** — no external I/O (HTTP calls, sending email, calling another service). Move any such work to a durable outbound route (`Publish<T>().UseOutbox(...)`) that is relayed after commit.
+
+### 3. `IOutboxStore.SaveAsync` gained a `dataStoreName` parameter
+
+If you implemented a custom `IOutboxStore`, update the signature:
+
+```csharp
+// Before
+Task SaveAsync(OutboxMessage message, CancellationToken cancellationToken = default);
+
+// After
+Task SaveAsync(OutboxMessage message, string dataStoreName, CancellationToken cancellationToken = default);
+```
+
+### 4. Outbox registration: use the non-generic store
+
+`EFCoreOutboxStore<TContext>` (the per-context subclass) is now `[Obsolete]`. A single non-generic `EFCoreOutboxStore` resolves the correct `DbContext` per datastore. Register it per datastore by name:
+
+```csharp
+// Before (per-context subclass, one type per datastore)
+ef.AddOutbox<EFCoreOutboxStore<AppDbContext>>();
+
+// After (one store type, named datastore)
+ef.AddOutbox<EFCoreOutboxStore>(dataStoreName: "AppDb");
+```
+
+The store generic is required — the design sketch's `AddOutbox(o => o.OnDataStore("AppDb"))` (no type argument) is not the shipped API. Use `AddOutbox<EFCoreOutboxStore>(...)`.
+
+### 5. Broker subscribers: `AddSubscriber` → `Consume`
+
+On broker builders (MassTransit/Wolverine), inbound consumers are now registered with `Consume<T,H>()`. `AddSubscriber<T,H>()` still works as an `[Obsolete]` alias that forwards to `Consume`, so existing code compiles with a warning.
+
+```csharp
+// Before
+mt.AddSubscriber<OrderConfirmed, OrderConfirmedConsumer>();
+
+// After
+mt.Consume<OrderConfirmed, OrderConfirmedConsumer>();
+```
+
+`AddSubscriber<T,H>()` remains the correct verb for **in-process** handlers on the in-memory and MediatR builders.
+
+### 6. Broker-native outbox: `UseBrokerOutbox<TDbContext>`
+
+The broker outbox is now configured through a datastore-aware wrapper instead of raw broker APIs. Note the `TDbContext` generic argument:
+
+```csharp
+// Before (raw MassTransit outbox on a DbContext)
+mt.AddOutbox<AppDbContext>(o => { o.UsePostgres(); o.UseBusOutbox(); });
+
+// After (RCommon wrapper bound to a named datastore)
+mt.UseBrokerOutbox<AppDbContext>(o => o.OnDataStore("Orders").UsePostgres());
+```
+
+Your `DbContext` still maps MassTransit's tables with `modelBuilder.AddTransactionalOutboxEntities()`.
+
+**Wolverine `UseBrokerOutbox` is unsupported** and throws `NotSupportedException`. Wolverine's EF Core envelope transaction does not enlist in RCommon's `TransactionScope`, so atomic staging cannot be guaranteed. Migrate Wolverine outbox code to [Recipe 2a](../event-handling/recipes.mdx#recipe-2a--broker-as-producer-behind-the-rcommon-outbox) — RCommon's own outbox with Wolverine as the relay transport — which gives the same at-least-once guarantee.
+
+### 7. New delivery verbs
+
+`Publish<T>()` (fan-out), `Send<T>()` (point-to-point), and `Consume<T,H>()` (inbound broker) join `AddSubscriber<T,H>()`. See the [recipes guide](../event-handling/recipes.mdx#two-orthogonal-choices) for the full matrix of which verb is available on which builder.
+
+### Known limitations
+
+Two limitations ship with 3.2.0, each with a supported workaround — see [Known Issues](./changelog.mdx#known-issues):
+
+- **Dapper outbox store is SQL Server–only.** On PostgreSQL, use `EFCoreOutboxStore` for the outbox datastore.
+- **MediatR `Send<T>()` may not resolve handlers.** Use `Publish<T>()` for in-process MediatR event delivery.
+
+## Upgrading to 3.2.1
+
+3.2.1 is a behavior-only bug-fix release with **no public API changes** — upgrading from 3.2.0 requires no code changes. It fixes silent outbox data loss in two compositions and clarifies multi-datastore transaction semantics. See the [3.2.1 changelog](./changelog.mdx#321) for the full list.
+
+- **Remove any outbox-routing workaround.** If you worked around durable events not persisting under modular / multi-datastore composition (e.g. a `services.Replace(...)` re-asserting the outbox `IEntityEventTracker`/`IEventRouter`), you can delete it — the outbox now registers those authoritatively and wins regardless of module/datastore registration order.
+- **Processor and combined hosts now persist durable events.** If you had split producer and processor and found a host that ran the poller and also committed domain entities was losing events (or threw "unable to resolve `InMemoryEntityEventTracker`"), that is fixed; outbox routing now lives in the shared core that `AddOutboxProducer` and `AddOutboxProcessor` both call.
+- **Review multi-datastore transaction boundaries.** A single unit of work must not write to more than one datastore — that promotes to a distributed transaction and fails loud (e.g. Postgres `55000: prepared transactions are disabled`). Split a multi-datastore operation into a unit of work per datastore; each commits locally and atomically with its own outbox row, and cross-datastore delivery is eventual via the poller. See the ["One transaction per datastore" note](../event-handling/recipes.mdx#multiple-datastores).
+
+## Breaking Change Patterns
+
+The following sections describe the categories of breaking changes that appear in major RCommon releases and how to address them.
+
+### Repository Interface Changes
+
+When repository interfaces gain or lose methods, implement the new contract on any custom repository implementations you have written:
+
+```csharp
+// Before: your custom repository implementing the old interface
+public class MyCustomRepository : ILinqRepository<Product>
+{
+    // ...
+}
+
+// After: check what methods were added or removed, then add or remove them
+public class MyCustomRepository : ILinqRepository<Product>
+{
+    // Add any new required methods from the updated interface
+    public async Task<long> CountAsync(Expression<Func<Product, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        // implementation
+    }
+}
+```
+
+If you only inject the built-in repositories (such as `IGraphRepository<T>` or `ILinqRepository<T>`) you are not affected by these changes.
+
+### Builder API Changes
+
+The fluent builder methods on `IRCommonBuilder` occasionally move or are renamed. The compiler will surface these as errors on the `AddRCommon(builder => ...)` call in `Program.cs`.
+
+```csharp
+// Before (hypothetical old API)
+services.AddRCommon()
+    .WithPersistence(ef =>
+    {
+        ef.UsingEFCore<AppDbContext>("AppDb", /* ... */);
+    });
+
+// After
+services.AddRCommon()
+    .WithPersistence<EFCorePersistenceBuilder>(ef =>
+    {
+        ef.AddDbContext<AppDbContext>("AppDb", /* ... */);
+        ef.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+    });
+```
+
+### Entity Base Class Changes
+
+If your entities inherit from `BusinessEntity<TKey>` or `AuditedEntity` and those classes gain new abstract or virtual members, you may need to implement or override them.
+
+The most common change is the addition of new opt-in interfaces:
+
+```csharp
+// Adding soft delete support to an existing entity
+public class Customer : BusinessEntity<int>, ISoftDelete
+{
+    // Add the required property from the ISoftDelete interface
+    public bool IsDeleted { get; set; }
+    // ... existing properties
+}
+
+// Adding multitenancy to an existing entity
+public class Customer : BusinessEntity<int>, IMultiTenant
+{
+    // Add the required property from the IMultiTenant interface
+    public string? TenantId { get; set; }
+    // ... existing properties
+}
+```
+
+When you add `ISoftDelete` to an entity, you must also add a migration to your EF Core project to add the `IsDeleted` column.
+
+When you add `IMultiTenant`, you must add a migration to add the `TenantId` column and ensure the `ITenantIdAccessor` is configured in DI.
+
+### Event Handling Changes
+
+If `IEventBus`, `IEventRouter`, `IEventProducer`, or `ISubscriber<T>` change signatures, update your handler registrations and any custom event producer implementations.
+
+The most common pattern is subscriber registration moving from one builder method to another:
+
+```csharp
+// Register event handlers through the event handling builder
+services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(events =>
+    {
+        events.AddSubscriber<OrderCreatedEvent, OrderCreatedEventHandler>();
+        events.AddSubscriber<OrderShippedEvent, OrderShippedEventHandler>();
+    });
+```
+
+### Mediator Adapter Changes
+
+If you use `IMediatorService` through the `RCommon.Mediatr` adapter, check whether `MediatRAdapter` or the builder registration changed. The application-facing `IMediatorService` interface is stable; only the adapter registration may change:
+
+```csharp
+// Configure the mediator with the MediatR adapter
+services.AddRCommon()
+    .WithMediator<MediatRBuilder>(mediator =>
+    {
+        mediator.AddRequest<CreateOrderCommand, CreateOrderCommandHandler>();
+        mediator.AddNotification<OrderCreatedNotification, OrderCreatedHandler>();
+        mediator.AddLoggingToRequestPipeline();
+        mediator.AddUnitOfWorkToRequestPipeline();
+    });
+```
+
+### Security and Web Changes
+
+If your application uses `ICurrentUser`, `ITenantIdAccessor`, or `ICurrentPrincipalAccessor`, verify that the registration method you call still exists:
+
+```csharp
+// For ASP.NET Core web applications (reads from HttpContext.User)
+services.AddRCommon(config =>
+{
+    config.WithClaimsAndPrincipalAccessorForWeb();
+});
+
+// For non-web applications (reads from Thread.CurrentPrincipal)
+services.AddRCommon(config =>
+{
+    config.WithClaimsAndPrincipalAccessor();
+});
+```
+
+## Multi-Tenancy Migration
+
+If you are adding multi-tenancy to an existing application that previously had none, follow this sequence:
+
+1. Install `RCommon.MultiTenancy` and a provider package (e.g., `RCommon.Finbuckle`).
+2. Add `IMultiTenant` to any entities that should be tenant-scoped.
+3. Create EF Core migrations for any new `TenantId` columns.
+4. Register the tenancy provider in `Program.cs`.
+5. Populate `TenantId` on existing rows via a data migration if your application is being retrofitted.
+
+```csharp
+// 1. Set up Finbuckle tenant resolution
+builder.Services.AddMultiTenant<TenantInfo>()
+    .WithHeaderStrategy("X-Tenant")
+    .WithConfigurationStore();
+
+// 2. Register RCommon with Finbuckle
+builder.Services.AddRCommon(config =>
+{
+    config
+        .WithClaimsAndPrincipalAccessorForWeb()
+        .WithPersistence<EFCorePersistenceBuilder>(ef =>
+        {
+            ef.AddDbContext<AppDbContext>("AppDb", options =>
+                options.UseSqlServer(connectionString));
+            ef.SetDefaultDataStore(o => o.DefaultDataStoreName = "AppDb");
+        })
+        .WithMultiTenancy<FinbuckleMultiTenantBuilder<TenantInfo>>(mt => { });
+});
+```
+
+## Soft Delete Migration
+
+If you are adding soft delete to entities that previously used physical deletion, follow this sequence:
+
+1. Add `ISoftDelete` to the entity class and add the `IsDeleted` property.
+2. Create an EF Core migration to add the `IsDeleted` column with a default value of `false`.
+3. Verify that any existing raw SQL queries or stored procedures you use are updated to filter on `IsDeleted = 0`.
+
+```csharp
+// Entity before soft delete
+public class Order : BusinessEntity<int>
+{
+    public string ProductName { get; set; }
+}
+
+// Entity after adding soft delete
+public class Order : BusinessEntity<int>, ISoftDelete
+{
+    public string ProductName { get; set; }
+    public bool IsDeleted { get; set; }
+}
+```
+
+After adding the migration, soft-deleted records are excluded from all repository queries automatically. Code that previously called `DeleteAsync(order)` continues to work — it performs a physical delete. To perform a soft delete, call `DeleteAsync(order, isSoftDelete: true)`.
+
+## Target Framework Upgrades
+
+RCommon targets .NET 8, .NET 9, and .NET 10. When upgrading your application's target framework, update the `TargetFramework` in your project file and ensure all RCommon packages are updated to a version that supports the new framework:
+
+```xml
+<PropertyGroup>
+  <TargetFramework>net10.0</TargetFramework>
+</PropertyGroup>
+```
+
+Check the package listing on NuGet to confirm which frameworks each package supports. All current RCommon packages support .NET 8, .NET 9, and .NET 10.
+
+## Getting Help
+
+If you encounter an upgrade issue not covered here:
+
+- Search existing [GitHub Issues](https://github.com/RCommon-Team/RCommon/issues) — others may have hit the same problem.
+- Start a [GitHub Discussion](https://github.com/RCommon-Team/RCommon/discussions) for questions that are not bugs.
+- Open a new issue with a minimal reproduction if you believe you have found a bug in the upgrade path.

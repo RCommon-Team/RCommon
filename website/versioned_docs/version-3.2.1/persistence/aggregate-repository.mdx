@@ -1,0 +1,157 @@
+---
+title: Aggregate Repository
+sidebar_position: 2
+description: Use IAggregateRepository for DDD-constrained aggregate root persistence across EF Core, Dapper, and Linq2Db, with provider-specific capability differences documented explicitly.
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+import ProviderComparison from '@site/src/components/ProviderComparison';
+
+# Aggregate Repository
+
+## Overview
+
+`IAggregateRepository<TAggregate, TKey>` is a narrower, DDD-constrained sibling to the general [Repository Pattern](./repository-pattern) interfaces. It only exposes aggregate-appropriate operations -- load by ID, find by specification, existence check, add, update, delete, and eager loading -- and does not expose `IQueryable` or arbitrary collection queries, since those belong on a read-model or query handler, not on the aggregate boundary.
+
+```csharp
+public interface IAggregateRepository<TAggregate, TKey> : INamedDataSource
+    where TAggregate : class, IAggregateRoot<TKey>
+    where TKey : IEquatable<TKey>
+{
+    Task<TAggregate?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default);
+    Task<TAggregate?> FindAsync(ISpecification<TAggregate> specification, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(TKey id, CancellationToken cancellationToken = default);
+
+    Task AddAsync(TAggregate aggregate, CancellationToken cancellationToken = default);
+    Task UpdateAsync(TAggregate aggregate, CancellationToken cancellationToken = default);
+    Task DeleteAsync(TAggregate aggregate, CancellationToken cancellationToken = default);
+
+    IAggregateRepository<TAggregate, TKey> Include<TProperty>(Expression<Func<TAggregate, TProperty>> path);
+    IAggregateRepository<TAggregate, TKey> ThenInclude<TPreviousProperty, TProperty>(Expression<Func<TPreviousProperty, TProperty>> path);
+}
+```
+
+## Installation
+
+<NuGetInstall packageName="RCommon.Persistence" />
+
+You will also need at least one provider package (see [EF Core](./efcore), [Dapper](./dapper), or [Linq2Db](./linq2db)) -- `IAggregateRepository<,>` is registered automatically alongside the other repository interfaces when you configure a provider.
+
+## The persistence contract: root-row-only, on every provider
+
+**`AddAsync` and `UpdateAsync` guarantee persistence of the aggregate root's own row.** Whether a call also persists children reachable through a collection navigation depends on the provider and the operation:
+
+<ProviderComparison
+  title="Aggregate Repository Provider Capabilities"
+  features={[
+    "AddAsync cascades new children",
+    "UpdateAsync persists child collections",
+    "Include / ThenInclude",
+  ]}
+  providers={[
+    {
+      name: "EF Core",
+      packageName: "RCommon.EfCore",
+      features: {
+        "AddAsync cascades new children": true,
+        "UpdateAsync persists child collections": false,
+        "Include / ThenInclude": true,
+      },
+    },
+    {
+      name: "Dapper",
+      packageName: "RCommon.Dapper",
+      features: {
+        "AddAsync cascades new children": false,
+        "UpdateAsync persists child collections": false,
+        "Include / ThenInclude": false,
+      },
+    },
+    {
+      name: "Linq2Db",
+      packageName: "RCommon.Linq2Db",
+      features: {
+        "AddAsync cascades new children": false,
+        "UpdateAsync persists child collections": false,
+        "Include / ThenInclude": true,
+      },
+    },
+  ]}
+/>
+
+A few things follow directly from this table:
+
+- **`UpdateAsync` never persists child collections, on any provider.** This is deliberate, not a limitation to work around -- see "Adding or modifying children" below for the two fully-supported patterns.
+- **EF Core's `AddAsync` cascade-inserting brand-new child collections is an EF-specific convenience**, not a portable guarantee. If you need Dapper or Linq2Db portability, persist new children through their own repository even on initial aggregate creation.
+- **Dapper never supports eager loading** (`Include`/`ThenInclude` are no-ops that return `this` for fluent-chaining compatibility) -- Dommel is a micro-ORM over flat, single-table CRUD with no navigation-property concept. Load child collections via a separate query against the child's own repository.
+
+## Adding or modifying children
+
+There are two fully-supported patterns, and one documented boundary that is not silently broken -- it fails loudly.
+
+### Pattern 1: load, mutate, update -- in one DbContext scope (recommended)
+
+```csharp
+public class AddTeamMemberCommandHandler
+{
+    private readonly IAggregateRepository<Team, Guid> _teams;
+
+    public async Task HandleAsync(AddTeamMemberCommand cmd, CancellationToken ct)
+    {
+        var team = await _teams.Include(t => t.Memberships).GetByIdAsync(cmd.TeamId, ct);
+        team!.AddMember(cmd.UserId, cmd.Role); // raises a domain event internally
+
+        await _teams.UpdateAsync(team, ct);
+        // -- the new membership is inserted; any existing, already-loaded membership whose
+        // properties changed is updated; the domain event raised by AddMember is dispatched
+        // automatically, because everything happened through this one repository call.
+    }
+}
+```
+
+This is the common case: load the aggregate (optionally with `Include` for the children you need to inspect or modify), mutate it in memory, call `UpdateAsync` once. New children are correctly inserted; already-tracked existing children's property changes are correctly updated. No special handling is required.
+
+### Pattern 2: cross-scope / disconnected mutation
+
+Sometimes an aggregate is loaded in one scope (or process, or deserialized from a message) and mutated in a different one from where `UpdateAsync` will eventually be called -- for example, a background worker resuming a saga, or a message handler operating on a payload built elsewhere. In that case, `UpdateAsync` cannot distinguish "a child that's genuinely new" from "a child that already exists but was never loaded in this scope" -- both look identical (untracked) to this DbContext. Persist the new child through its own repository instead, and register the aggregate for event dispatch explicitly:
+
+```csharp
+public class AddTeamMemberCommandHandler
+{
+    private readonly ILinqRepository<TeamMembership> _memberships;
+    private readonly IEntityEventTracker _eventTracker;
+
+    public async Task HandleAsync(AddTeamMemberCommand cmd, Team team, CancellationToken ct)
+    {
+        team.AddMember(cmd.UserId, cmd.Role); // raises a domain event internally
+
+        await _memberships.AddAsync(team.Memberships.Last(), ct);
+
+        // Required: UpdateAsync was not called on `team`, so nothing else registers it for
+        // event dispatch. Without this line, AddMember's domain event is silently never
+        // dispatched -- IEntityEventTracker.AddEntity is the same mechanism UpdateAsync uses
+        // internally; calling it directly here reproduces that registration by hand.
+        _eventTracker.AddEntity(team);
+    }
+}
+```
+
+### Boundary: what happens if you skip both patterns
+
+If `UpdateAsync` is called against a fully disconnected graph -- the aggregate and an *existing* child were both constructed fresh (e.g. deserialized) rather than loaded through this DbContext, and neither pattern above was followed -- the existing child looks exactly as "new" as a genuinely new one. The result is a loud failure (a unique-constraint violation attempting to re-insert an already-existing row), not silent data loss. If you hit this, use Pattern 2 instead.
+
+## TenantId stamping and tenant-scoped bypass
+
+If your aggregate implements `IMultiTenant`, `AddAsync` stamps `TenantId` automatically. The exact guard: stamping is skipped entirely (not set to null) when the resolved tenant ID is null or empty; a non-empty resolved tenant ID unconditionally overwrites whatever the entity's `TenantId` already was. See [Multi-Tenancy](../multi-tenancy/overview) for the full semantics, including `TenantScope.Bypass()` for the tenant-bootstrap scenario (creating the very first row for a brand-new tenant, where you want the entity's explicitly-set `TenantId` left untouched).
+
+## API Summary
+
+| Member | Purpose |
+|--------|---------|
+| `GetByIdAsync(TKey)` | Loads the aggregate by primary key. Does not eager-load collections by default. |
+| `FindAsync(ISpecification<TAggregate>)` | Loads a single aggregate matching a specification. |
+| `ExistsAsync(TKey)` | Lightweight existence check without loading the full aggregate. |
+| `AddAsync(TAggregate)` | Persists a new aggregate. See the provider comparison table for cascade-insert behavior. |
+| `UpdateAsync(TAggregate)` | Persists changes to an existing aggregate's own row. Never persists child collections -- see "Adding or modifying children" above. |
+| `DeleteAsync(TAggregate)` | Soft-deletes if the aggregate implements `ISoftDelete`; otherwise a physical delete. |
+| `Include<TProperty>` / `ThenInclude<TPreviousProperty,TProperty>` | Fluent eager-loading. No-op on Dapper. |
