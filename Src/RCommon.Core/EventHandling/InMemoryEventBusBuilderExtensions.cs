@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RCommon.EventHandling.Producers;
+using RCommon.EventHandling.Routing;
 using RCommon.EventHandling.Subscribers;
 using RCommon.Models.Events;
 using System;
@@ -92,24 +93,8 @@ namespace RCommon.EventHandling
             var subscriptionManager = builder.Services.GetSubscriptionManager();
             subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
 
-            // Resolve the routing registry so the caller can optionally mark durability
-            var registry = builder.Services.GetRoutingRegistry();
-
-            // Retrieve (or create) per-builder-type config-time state for builder-default support
-            var concreteRegistry = registry as RCommon.EventHandling.Routing.EventRoutingRegistry;
-            var builderState = concreteRegistry?.GetOrCreateBuilderState(builder.GetType());
-
-            // Record this event as published on this builder; get the current default (if already set)
-            var currentDefault = builderState?.RecordPublished(typeof(TEvent));
-
-            // If a builder-level default is already set and this event has not been explicitly
-            // configured, apply it now (order-independent: UseRCommonOutbox before Publish)
-            if (currentDefault is not null)
-            {
-                registry?.MarkDurable(typeof(TEvent), currentDefault);
-            }
-
-            return new EventRouteHandle(typeof(TEvent), registry, builderState);
+            // Delegate the durability-recording logic to the shared, builder-agnostic helper
+            return builder.Services.RecordPublishRoute(builder.GetType(), typeof(TEvent));
         }
 
         /// <summary>
@@ -134,25 +119,8 @@ namespace RCommon.EventHandling
         /// </remarks>
         public static IInMemoryEventBusBuilder UseRCommonOutbox(this IInMemoryEventBusBuilder builder, string dataStoreName)
         {
-            if (dataStoreName is null)
-                throw new ArgumentNullException(nameof(dataStoreName));
-            if (string.IsNullOrWhiteSpace(dataStoreName))
-                throw new ArgumentException("Data store name must not be empty or whitespace.", nameof(dataStoreName));
-
-            var registry = builder.Services.GetRoutingRegistry();
-            var concreteRegistry = registry as RCommon.EventHandling.Routing.EventRoutingRegistry;
-            var builderState = concreteRegistry?.GetOrCreateBuilderState(builder.GetType());
-
-            if (builderState is not null)
-            {
-                // Set the default and get back the already-published events that are not explicit
-                var retroactiveTypes = builderState.SetDefault(dataStoreName);
-                foreach (var eventType in retroactiveTypes)
-                {
-                    registry!.MarkDurable(eventType, dataStoreName);
-                }
-            }
-
+            // Delegate the builder-default recording logic to the shared, builder-agnostic helper
+            builder.Services.ApplyBuilderOutboxDefault(builder.GetType(), dataStoreName);
             return builder;
         }
     }
