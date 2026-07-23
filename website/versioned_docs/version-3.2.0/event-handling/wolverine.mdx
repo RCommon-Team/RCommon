@@ -35,16 +35,16 @@ using RCommon.Wolverine.Producers;
 builder.Services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(wlv =>
     {
-        // Register the producer that publishes events via Wolverine
-        wlv.AddProducer<PublishWithWolverineEventProducer>();
+        // Inbound: register a consumer per event this service handles.
+        wlv.Consume<OrderShipped, OrderShippedHandler>();
+        wlv.Consume<PaymentProcessed, PaymentProcessedHandler>();
 
-        // Register subscribers and record routing information
-        wlv.AddSubscriber<OrderShipped, OrderShippedHandler>();
-        wlv.AddSubscriber<PaymentProcessed, PaymentProcessedHandler>();
+        // Outbound: declare each event this service emits (auto-registers the producer).
+        // wlv.Publish<OrderShipped>();
     });
 ```
 
-`AddSubscriber<TEvent, TEventHandler>` registers `ISubscriber<TEvent>` as scoped in the DI container and records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to Wolverine producers.
+`Consume<TEvent, TEventHandler>` registers `ISubscriber<TEvent>` as scoped in the DI container and records the event-to-consumer association in the `EventSubscriptionManager`. `AddSubscriber<TEvent, TEventHandler>` is retained as an `[Obsolete]` alias that forwards to `Consume` for source compatibility with pre-3.2.0 code.
 
 :::tip Modular composition
 `WithEventHandling<WolverineEventHandlingBuilder>` is a cache-aware sub-builder verb. When multiple modules call it, the cached `WolverineEventHandlingBuilder` is reused and each module's `AddSubscriber<TEvent, THandler>` and `AddProducer<T>` calls accumulate on the same instance. `AddProducer<T>` deduplicates by concrete producer type — registering `PublishWithWolverineEventProducer` from two modules yields one descriptor. The host-level `builder.Host.UseWolverine(...)` registration must remain in the application host's composition root; only the RCommon sub-builder participates in module-level composition. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
@@ -124,17 +124,17 @@ public class ShippingService
 
 ## Publish vs Send
 
-Register `SendWithWolverineEventProducer` instead of (or in addition to) `PublishWithWolverineEventProducer` when you want point-to-point delivery to a single handler endpoint:
+Use `Send<TEvent>()` instead of (or in addition to) `Publish<TEvent>()` when you want point-to-point delivery to a single handler endpoint. It auto-registers `SendWithWolverineEventProducer`:
 
 ```csharp
-wlv.AddProducer<SendWithWolverineEventProducer>();
+wlv.Send<OrderShipped>();
 ```
 
 `SendWithWolverineEventProducer` calls `IMessageBus.SendAsync` internally.
 
 ## Transactional outbox
 
-Pair Wolverine with the outbox pattern to guarantee at-least-once delivery. See [Transactional Outbox](./transactional-outbox.mdx#wolverine-outbox).
+Pair Wolverine with the outbox pattern to guarantee at-least-once delivery. See [Transactional Outbox](./transactional-outbox.mdx#wolverine--use-the-rcommon-outbox-recipe-2a).
 
 ## How the handler bridge works
 

@@ -63,14 +63,12 @@ A single application can register multiple event handling builders simultaneousl
 builder.Services.AddRCommon()
     .WithEventHandling<InMemoryEventBusBuilder>(local =>
     {
-        local.AddProducer<PublishWithEventBusEventProducer>();
-        local.AddSubscriber<AuditEvent, AuditEventHandler>();
+        local.AddSubscriber<AuditEvent, AuditEventHandler>();   // in-process; auto-registers the producer
     })
     .WithEventHandling<MassTransitEventHandlingBuilder>(mt =>
     {
-        mt.AddProducer<PublishWithMassTransitEventProducer>();
-        mt.AddSubscriber<OrderShipped, OrderShippedHandler>();
-        // ... MassTransit transport configuration ...
+        mt.Publish<OrderShipped>();                             // outbound fan-out; auto-registers the producer
+        mt.UsingInMemory((ctx, cfg) => cfg.ConfigureEndpoints(ctx));
     });
 ```
 

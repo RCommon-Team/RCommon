@@ -49,19 +49,18 @@ builder.Host.UseWolverine(opts =>
 builder.Services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(wolverine =>
     {
-        wolverine.AddProducer<PublishWithWolverineEventProducer>();
-        wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
-        wolverine.AddSubscriber<OrderShippedEvent, OrderShippedEventHandler>();
+        wolverine.Consume<OrderPlacedEvent, OrderPlacedEventHandler>();
+        wolverine.Consume<OrderShippedEvent, OrderShippedEventHandler>();
     });
 ```
 
-:::warning Unlike InMemoryEventBusBuilder, AddSubscriber here does not auto-register a producer
-`InMemoryEventBusBuilder.AddSubscriber` automatically registers its matching producer (as of this
-version), but `WolverineEventHandlingBuilder.AddSubscriber` does not -- a subscriber registered
-here with no matching `AddProducer<T>()` call is never invoked, with no error of any kind (the
-router simply has zero producers to route to). Always pair `AddSubscriber` with an `AddProducer<T>()`
-call for one of the two producers below, as shown above. RCommon's startup diagnostics will warn
-once if it detects this builder has subscriptions but no registered producer.
+:::tip Consume registers the inbound bridge in one call
+In RCommon 3.2.0, `Consume<TEvent, TEventHandler>()` is the idiomatic verb for an inbound Wolverine
+consumer: it registers the `ISubscriber<TEvent>` handler and records the event subscription so the
+router delivers the message. There is no separate `AddProducer<T>()` step to pair it with — that is
+only needed on the *outbound* side when this service emits an event, via `Publish<TEvent>()` (fan-out)
+or `Send<TEvent>()` (point-to-point). `AddSubscriber<TEvent, TEventHandler>()` remains as an
+`[Obsolete]` alias forwarding to `Consume` for pre-3.2.0 source compatibility.
 :::
 
 :::tip Modular composition
@@ -123,33 +122,30 @@ Register subscribers using the `IWolverineEventHandlingBuilder` extension method
 builder.Services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(wolverine =>
     {
-        wolverine.AddProducer<PublishWithWolverineEventProducer>();
-        wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>();
+        wolverine.Consume<OrderPlacedEvent, OrderPlacedEventHandler>();
     });
 ```
 
 If you need to construct the subscriber with a factory delegate:
 
 ```csharp
-wolverine.AddSubscriber<OrderPlacedEvent, OrderPlacedEventHandler>(
+wolverine.Consume<OrderPlacedEvent, OrderPlacedEventHandler>(
     sp => new OrderPlacedEventHandler(sp.GetRequiredService<IEmailService>()));
 ```
 
 ### Producing events
 
-Use `PublishWithWolverineEventProducer` for fan-out delivery (all subscribers receive the event) or `SendWithWolverineEventProducer` for point-to-point delivery (one handler). Register the appropriate producer with the builder's own `AddProducer<T>()` -- not a raw `services.AddScoped<IEventProducer, T>()` call -- so the registration is tracked by `EventSubscriptionManager` and correctly associated with this builder:
+Declare each event this service emits with `Publish<TEvent>()` for fan-out delivery (all subscribers receive the event) or `Send<TEvent>()` for point-to-point delivery (one handler). These verbs auto-register the matching producer (`PublishWithWolverineEventProducer` / `SendWithWolverineEventProducer`) and record the route with `EventSubscriptionManager`, so there is no need for a raw `services.AddScoped<IEventProducer, T>()` call:
 
 ```csharp
-using RCommon.Wolverine.Producers;
-
 builder.Services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(wolverine =>
     {
         // Fan-out: all subscribed handlers receive the event
-        wolverine.AddProducer<PublishWithWolverineEventProducer>();
+        wolverine.Publish<OrderPlacedEvent>();
 
         // Point-to-point: only one handler receives the event
-        // wolverine.AddProducer<SendWithWolverineEventProducer>();
+        // wolverine.Send<OrderPlacedEvent>();
     });
 ```
 

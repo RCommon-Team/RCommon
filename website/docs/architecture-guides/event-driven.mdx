@@ -131,7 +131,6 @@ The simplest provider. Events are dispatched synchronously within the same proce
 services.AddRCommon()
     .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
         eventHandling.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
     });
 ```
@@ -144,7 +143,7 @@ Uses MediatR's notification pipeline. Integrates with existing MediatR configura
 services.AddRCommon()
     .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithMediatREventProducer>();
+        eventHandling.Publish<LeaveRequestApprovedEvent>();
         eventHandling.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
     });
 ```
@@ -163,8 +162,7 @@ services.AddRCommon()
             cfg.ConfigureEndpoints(context);
         });
 
-        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
-        eventHandling.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
+        eventHandling.Consume<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
     });
 ```
 
@@ -191,8 +189,7 @@ builder.Host.UseWolverine(options =>
 services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithWolverineEventProducer>();
-        eventHandling.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
+        eventHandling.Consume<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
     });
 ```
 
@@ -205,7 +202,6 @@ services.AddRCommon()
     // Internal domain events: stay in-process
     .WithEventHandling<InMemoryEventBusBuilder>(inMemory =>
     {
-        inMemory.AddProducer<PublishWithEventBusEventProducer>();
         inMemory.AddSubscriber<LeaveRequestApprovedEvent, SendApprovalEmailHandler>();
         inMemory.AddSubscriber<LeaveRequestApprovedEvent, UpdateDashboardHandler>();
     })
@@ -217,8 +213,7 @@ services.AddRCommon()
             cfg.Host("rabbitmq://localhost");
             cfg.ConfigureEndpoints(context);
         });
-        masstransit.AddProducer<PublishWithMassTransitEventProducer>();
-        masstransit.AddSubscriber<PayrollSyncRequiredEvent, SyncPayrollHandler>();
+        masstransit.Consume<PayrollSyncRequiredEvent, SyncPayrollHandler>();
     });
 ```
 
@@ -234,7 +229,6 @@ The subscription isolation example from the RCommon Examples project demonstrate
 services.AddRCommon()
     .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
         eventHandling.AddSubscriber<InMemoryOnlyEvent, InMemoryOnlyEventHandler>();
         eventHandling.AddSubscriber<SharedEvent, SharedEventHandler>();
     })
@@ -244,9 +238,8 @@ services.AddRCommon()
         {
             cfg.ConfigureEndpoints(context);
         });
-        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
-        eventHandling.AddSubscriber<MassTransitOnlyEvent, MassTransitOnlyEventHandler>();
-        eventHandling.AddSubscriber<SharedEvent, SharedEventHandler>();
+        eventHandling.Consume<MassTransitOnlyEvent, MassTransitOnlyEventHandler>();
+        eventHandling.Consume<SharedEvent, SharedEventHandler>();
     });
 ```
 
@@ -295,7 +288,7 @@ When an event must be published only if the database transaction succeeds, use t
 })
 ```
 
-For full outbox durability (where events survive process crashes between the write and the publish), integrate the MassTransit outbox or Wolverine's outbox support at the transport layer.
+For full outbox durability (where events survive process crashes between the write and the publish), durability is **opt-in per route** in RCommon 3.2.0: a plain `Publish`/`Send` route is transient, while chaining `.UseOutbox("<datastore>")` onto a route (or setting a builder-level default with `UseRCommonOutbox("<datastore>")` / `UseBrokerOutbox(...)`) persists the event before it leaves. See the [event-handling recipes](../event-handling/recipes.mdx) for the RCommon and broker-native outbox variants.
 
 ## Testing Event Handlers
 

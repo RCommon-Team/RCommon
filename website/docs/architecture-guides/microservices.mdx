@@ -47,10 +47,10 @@ services.AddRCommon()
         });
 
         // This service produces order events
-        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+        eventHandling.Publish<OrderPlacedEvent>();
 
         // This service consumes inventory events
-        eventHandling.AddSubscriber<InventoryReservedEvent, InventoryReservedEventHandler>();
+        eventHandling.Consume<InventoryReservedEvent, InventoryReservedEventHandler>();
     });
 ```
 
@@ -67,10 +67,11 @@ services.AddRCommon()
             cfg.ConfigureEndpoints(context);
         });
 
-        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
+        // This service produces inventory events
+        eventHandling.Publish<InventoryReservedEvent>();
 
         // This service handles order placed events
-        eventHandling.AddSubscriber<OrderPlacedEvent, ReserveInventoryHandler>();
+        eventHandling.Consume<OrderPlacedEvent, ReserveInventoryHandler>();
     });
 ```
 
@@ -188,7 +189,6 @@ services.AddRCommon()
     // In-process events: only handled internally
     .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
         eventHandling.AddSubscriber<LeaveApprovedDomainEvent, NotifyEmployeeHandler>();
     })
     // Cross-service events: routed through the message broker
@@ -199,8 +199,7 @@ services.AddRCommon()
             cfg.Host("rabbitmq://localhost");
             cfg.ConfigureEndpoints(context);
         });
-        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
-        eventHandling.AddSubscriber<InventoryReservedEvent, UpdateOrderStatusHandler>();
+        eventHandling.Consume<InventoryReservedEvent, UpdateOrderStatusHandler>();
     });
 ```
 
@@ -224,8 +223,7 @@ builder.Host.UseWolverine(options =>
 services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithWolverineEventProducer>();
-        eventHandling.AddSubscriber<OrderPlacedEvent, ReserveInventoryHandler>();
+        eventHandling.Consume<OrderPlacedEvent, ReserveInventoryHandler>();
     });
 ```
 

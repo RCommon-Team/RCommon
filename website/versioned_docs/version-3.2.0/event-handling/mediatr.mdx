@@ -16,31 +16,36 @@ RCommon integrates with MediatR to route events through the MediatR notification
 
 ## Configuration
 
-Use `WithEventHandling<MediatREventHandlingBuilder>` on the RCommon builder. Register a producer and one subscriber per event type:
+Use `WithEventHandling<MediatREventHandlingBuilder>` on the RCommon builder. Declare each event with `Publish<T>()` and register its subscriber with `AddSubscriber<T,H>()`:
 
 ```csharp
 using RCommon;
 using RCommon.MediatR;
-using RCommon.MediatR.Producers;
 
 builder.Services.AddRCommon()
     .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithMediatREventProducer>();
-        eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
+        eventHandling.Publish<OrderPlaced>();                            // registers the MediatR producer + route
+        eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();  // bridges to a MediatR notification handler
+        eventHandling.Publish<OrderShipped>();
         eventHandling.AddSubscriber<OrderShipped, OrderShippedHandler>();
     });
 ```
+
+:::caution Use `Publish<T>()`, not `Send<T>()`, for MediatR events
+Deliver in-process MediatR events with `Publish<T>()` (fan-out). The point-to-point `Send<T>()` verb on the MediatR builder has a known type-resolution limitation in 3.2.0 — see [Known Issues](../api-reference/changelog.mdx#known-issues). There is no mediator-native outbox; for durable relay add `.UseOutbox("store")` / `UseRCommonOutbox("store")` and register an RCommon outbox.
+:::
 
 :::tip Modular composition
 `WithEventHandling<MediatREventHandlingBuilder>` is cache-aware. When multiple modules call it, the cached `MediatREventHandlingBuilder` is reused and each configuration delegate runs against the same instance — subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: registering `PublishWithMediatREventProducer` from both `OrderingModule` and `NotificationsModule` results in a single descriptor. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
 :::
 
-`AddSubscriber` does three things internally:
+In-process MediatR dispatch needs both verbs: `Publish<TEvent>()` registers `PublishWithMediatREventProducer` and records the route, while `AddSubscriber<TEvent, THandler>` bridges your `ISubscriber<TEvent>` to a MediatR notification handler. `AddSubscriber` does two things internally:
 
 1. Registers `ISubscriber<TEvent>` with the DI container.
 2. Registers a `MediatREventHandler<TEvent, MediatRNotification<TEvent>>` as an `INotificationHandler` so MediatR can dispatch the notification.
-3. Records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to the MediatR producer.
+
+Unlike the broker builders, `AddSubscriber` is the correct (non-obsolete) verb on the in-process MediatR builder — MediatR has no `Consume`.
 
 ### Custom MediatR service configuration
 
@@ -51,7 +56,7 @@ builder.Services.AddRCommon()
     .WithEventHandling<MediatREventHandlingBuilder>(
         eventHandling =>
         {
-            eventHandling.AddProducer<PublishWithMediatREventProducer>();
+            eventHandling.Publish<OrderPlaced>();
             eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
         },
         mediatR =>

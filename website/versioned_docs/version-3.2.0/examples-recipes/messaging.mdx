@@ -78,8 +78,7 @@ services.AddRCommon()
             cfg.ConfigureEndpoints(context);
         });
 
-        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
-        eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+        eventHandling.Consume<TestEvent, TestEventHandler>();
     });
 ```
 
@@ -133,9 +132,7 @@ using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
-using RCommon.EventHandling.Producers;
 using RCommon.MassTransit;
-using RCommon.MassTransit.Producers;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
@@ -148,8 +145,7 @@ var host = Host.CreateDefaultBuilder(args)
                     cfg.ConfigureEndpoints(context);
                 });
 
-                eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
-                eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+                eventHandling.Consume<TestEvent, TestEventHandler>();
             });
 
         services.AddHostedService<Worker>();
@@ -172,7 +168,6 @@ Wolverine requires calling `UseWolverine` on the host builder before configuring
 using Wolverine;
 using RCommon;
 using RCommon.Wolverine;
-using RCommon.Wolverine.Producers;
 
 var host = Host.CreateDefaultBuilder(args)
     .UseWolverine(options =>
@@ -185,8 +180,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddRCommon()
             .WithEventHandling<WolverineEventHandlingBuilder>(eventHandling =>
             {
-                eventHandling.AddProducer<PublishWithWolverineEventProducer>();
-                eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
+                eventHandling.Consume<TestEvent, TestEventHandler>();
             });
     }).Build();
 ```
@@ -205,7 +199,7 @@ foreach (var producer in eventProducers)
 }
 ```
 
-The pattern is identical to MassTransit. Only the builder type and the registered producer change.
+The pattern is identical to MassTransit. Only the builder type and the host setup change.
 
 ## Example 3: Subscription Isolation
 
@@ -267,7 +261,6 @@ public class SharedEvent : ISyncEvent
 services.AddRCommon()
     .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
         eventHandling.AddSubscriber<InMemoryOnlyEvent, InMemoryOnlyEventHandler>();
         eventHandling.AddSubscriber<SharedEvent, SharedEventHandler>();
     })
@@ -278,9 +271,8 @@ services.AddRCommon()
             cfg.ConfigureEndpoints(context);
         });
 
-        eventHandling.AddProducer<PublishWithMassTransitEventProducer>();
-        eventHandling.AddSubscriber<MassTransitOnlyEvent, MassTransitOnlyEventHandler>();
-        eventHandling.AddSubscriber<SharedEvent, SharedEventHandler>();
+        eventHandling.Consume<MassTransitOnlyEvent, MassTransitOnlyEventHandler>();
+        eventHandling.Consume<SharedEvent, SharedEventHandler>();
     });
 ```
 

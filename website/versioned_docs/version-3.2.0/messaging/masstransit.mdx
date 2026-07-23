@@ -26,12 +26,12 @@ using RCommon.MassTransit.Producers;
 builder.Services.AddRCommon()
     .WithEventHandling<MassTransitEventHandlingBuilder>(mt =>
     {
-        // Register the producer that publishes events to the broker
-        mt.AddProducer<PublishWithMassTransitEventProducer>();
+        // Inbound: register a consumer per event this service handles.
+        mt.Consume<OrderShipped, OrderShippedHandler>();
+        mt.Consume<OrderCancelled, OrderCancelledHandler>();
 
-        // Register subscribers; each call also adds a MassTransit consumer
-        mt.AddSubscriber<OrderShipped, OrderShippedHandler>();
-        mt.AddSubscriber<OrderCancelled, OrderCancelledHandler>();
+        // Outbound: declare each event this service emits (auto-registers the producer).
+        // mt.Publish<OrderShipped>();
 
         // Standard MassTransit transport configuration
         mt.UsingRabbitMq((ctx, cfg) =>
@@ -42,11 +42,13 @@ builder.Services.AddRCommon()
     });
 ```
 
-`AddSubscriber<TEvent, TEventHandler>` performs three registrations in one call:
+`Consume<TEvent, TEventHandler>` performs three registrations in one call:
 
 1. Registers `ISubscriber<TEvent>` in the DI container as transient.
 2. Calls `AddConsumer<MassTransitEventHandler<TEvent>>` so MassTransit creates a consumer for the endpoint.
-3. Records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to MassTransit producers.
+3. Records the event-to-consumer association in the `EventSubscriptionManager`.
+
+`AddSubscriber<TEvent, TEventHandler>` is retained as an `[Obsolete]` alias that forwards to `Consume` for source compatibility with pre-3.2.0 code.
 
 :::tip Modular composition
 `WithEventHandling<MassTransitEventHandlingBuilder>` participates in the cache-aware sub-builder contract: a second call with the same builder type reuses the cached `MassTransitEventHandlingBuilder`, and subscriber/producer registrations from each module accumulate against the one instance. `AddProducer<T>` deduplicates by concrete producer type, so the same producer registered from two modules yields exactly one descriptor.
@@ -138,10 +140,10 @@ Two producers are available. Choose based on the delivery semantics you need:
 | `PublishWithMassTransitEventProducer` | `IBus.Publish` | Fan-out: all consumers subscribed to the type receive the message |
 | `SendWithMassTransitEventProducer` | `IBus.Send` | Point-to-point: a single endpoint receives the message |
 
-Register `SendWithMassTransitEventProducer` instead of (or alongside) `PublishWithMassTransitEventProducer`:
+Use `Send<TEvent>()` instead of (or alongside) `Publish<TEvent>()`; it auto-registers `SendWithMassTransitEventProducer`:
 
 ```csharp
-mt.AddProducer<SendWithMassTransitEventProducer>();
+mt.Send<OrderShipped>();
 ```
 
 ## Transport configuration
@@ -202,4 +204,4 @@ This keeps application handler code free of any MassTransit API surface.
 | `SendWithMassTransitEventProducer` | `RCommon.MassTransit` | `IEventProducer` that calls `IBus.Send` (point-to-point) |
 | `MassTransitEventHandler<TEvent>` | `RCommon.MassTransit` | Internal `IConsumer<TEvent>` that bridges MassTransit to `ISubscriber<TEvent>` |
 | `IMassTransitEventHandler<TEvent>` | `RCommon.MassTransit` | Marker interface for MassTransit event handlers |
-| `AddSubscriber<TEvent, THandler>` | `RCommon.MassTransit` | Extension on `IMassTransitEventHandlingBuilder`; registers handler, consumer, and routing |
+| `Consume<TEvent, THandler>` | `RCommon.MassTransit` | Extension on `IMassTransitEventHandlingBuilder`; registers the inbound consumer, handler, and routing (`AddSubscriber` is the `[Obsolete]` alias) |

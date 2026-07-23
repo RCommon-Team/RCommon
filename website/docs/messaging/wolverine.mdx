@@ -35,21 +35,21 @@ using RCommon.Wolverine.Producers;
 builder.Services.AddRCommon()
     .WithEventHandling<WolverineEventHandlingBuilder>(wlv =>
     {
-        // Register the producer that publishes events via Wolverine
-        wlv.AddProducer<PublishWithWolverineEventProducer>();
+        // Inbound: register a consumer per event this service handles.
+        wlv.Consume<OrderShipped, OrderShippedHandler>();
+        wlv.Consume<PaymentProcessed, PaymentProcessedHandler>();
 
-        // Register subscribers and record routing information
-        wlv.AddSubscriber<OrderShipped, OrderShippedHandler>();
-        wlv.AddSubscriber<PaymentProcessed, PaymentProcessedHandler>();
+        // Outbound: declare each event this service emits (auto-registers the producer).
+        // wlv.Publish<OrderShipped>();
     });
 ```
 
-`AddSubscriber<TEvent, TEventHandler>` registers `ISubscriber<TEvent>` as scoped in the DI container and records the event-to-producer association in the `EventSubscriptionManager` so the router routes this event only to Wolverine producers.
+`Consume<TEvent, TEventHandler>` registers `ISubscriber<TEvent>` as scoped in the DI container and records the event-to-consumer association in the `EventSubscriptionManager`. `AddSubscriber<TEvent, TEventHandler>` is retained as an `[Obsolete]` alias that forwards to `Consume` for pre-3.2.0 source compatibility.
 
 An overload accepts a factory delegate when you need more control over how the subscriber is resolved:
 
 ```csharp
-wlv.AddSubscriber<OrderShipped, OrderShippedHandler>(
+wlv.Consume<OrderShipped, OrderShippedHandler>(
     sp => new OrderShippedHandler(sp.GetRequiredService<IOrderRepository>()));
 ```
 
@@ -135,10 +135,10 @@ Two producers are available:
 | `PublishWithWolverineEventProducer` | `IMessageBus.PublishAsync` | Fan-out: all handlers subscribed to the type receive the message |
 | `SendWithWolverineEventProducer` | `IMessageBus.SendAsync` | Point-to-point: a single endpoint receives the message |
 
-Register `SendWithWolverineEventProducer` for command-style messaging:
+Use `Send<TEvent>()` for command-style messaging; it auto-registers `SendWithWolverineEventProducer`:
 
 ```csharp
-wlv.AddProducer<SendWithWolverineEventProducer>();
+wlv.Send<OrderShipped>();
 ```
 
 ## Durable messaging
@@ -185,4 +185,4 @@ This keeps application handler code free of any Wolverine API surface.
 | `SendWithWolverineEventProducer` | `RCommon.Wolverine` | `IEventProducer` that calls `IMessageBus.SendAsync` (point-to-point) |
 | `WolverineEventHandler<TEvent>` | `RCommon.Wolverine` | Internal `IWolverineHandler` that bridges Wolverine to `ISubscriber<TEvent>` |
 | `IWolverineEventHandler<TEvent>` | `RCommon.Wolverine` | Marker interface for Wolverine event handlers |
-| `AddSubscriber<TEvent, THandler>` | `RCommon.Wolverine` | Extension on `IWolverineEventHandlingBuilder`; registers handler and routing |
+| `Consume<TEvent, THandler>` | `RCommon.Wolverine` | Extension on `IWolverineEventHandlingBuilder`; registers the inbound consumer, handler, and routing (`AddSubscriber` is the `[Obsolete]` alias) |

@@ -76,7 +76,6 @@ Subscribers are registered with a specific builder, which scopes their routing.
 services.AddRCommon()
     .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
         eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
     });
 ```
@@ -104,7 +103,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
 using RCommon.EventHandling;
-using RCommon.EventHandling.Producers;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
@@ -112,7 +110,6 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddRCommon()
             .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
             {
-                eventHandling.AddProducer<PublishWithEventBusEventProducer>();
                 eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
             });
     }).Build();
@@ -150,7 +147,7 @@ Example Complete
 services.AddRCommon()
     .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithMediatREventProducer>();
+        eventHandling.Publish<TestEvent>();
         eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
     });
 ```
@@ -163,9 +160,7 @@ services.AddRCommon()
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RCommon;
-using RCommon.EventHandling.Producers;
 using RCommon.MediatR;
-using RCommon.MediatR.Producers;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
@@ -173,7 +168,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddRCommon()
             .WithEventHandling<MediatREventHandlingBuilder>(eventHandling =>
             {
-                eventHandling.AddProducer<PublishWithMediatREventProducer>();
+                eventHandling.Publish<TestEvent>();
                 eventHandling.AddSubscriber<TestEvent, TestEventHandler>();
             });
     }).Build();
@@ -199,7 +194,6 @@ Register the same event type with multiple handlers. All handlers are invoked wh
 services.AddRCommon()
     .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
         eventHandling.AddSubscriber<OrderPlacedEvent, SendConfirmationEmailHandler>();
         eventHandling.AddSubscriber<OrderPlacedEvent, UpdateInventoryHandler>();
         eventHandling.AddSubscriber<OrderPlacedEvent, NotifyWarehouseHandler>();
@@ -221,7 +215,6 @@ builder.Services.AddRCommon()
     })
     .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
     {
-        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
         eventHandling.AddSubscriber<OrderPlacedEvent, SendConfirmationEmailHandler>();
         eventHandling.AddSubscriber<OrderPlacedEvent, UpdateDashboardHandler>();
     })
