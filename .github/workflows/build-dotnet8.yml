@@ -98,10 +98,12 @@ jobs:
 
   # Runs the container-backed integration suite. Two classes of backend are provisioned:
   #   * Postgres + RabbitMQ are started on demand by Testcontainers via a rootless Podman socket.
-  #   * S3 (LocalStack) and Azure Blob (Azurite) are hardcoded-endpoint emulators, so they are
-  #     started as GitHub service containers (Docker) and reached over published localhost ports.
-  # These are independent: service containers run on the runner's Docker daemon and publish to
-  # localhost; Testcontainers uses the separate Podman socket via DOCKER_HOST. No port overlap.
+  #   * S3 (LocalStack) and Azure Blob (Azurite) are hardcoded-endpoint emulators, started with
+  #     explicit `docker run` on the runner's Docker daemon and reached over published localhost
+  #     ports. They are started BEFORE DOCKER_HOST is pointed at Podman, so `docker` targets the
+  #     real Docker daemon here; Testcontainers then uses the separate Podman socket. No port overlap.
+  # (Explicit `docker run` — not GitHub service containers — because Azurite needs a custom command
+  #  flag, --skipApiVersionCheck, which the `services:` syntax cannot express.)
   # Kept as a separate job so a container failure never blocks the fast unit-test lane.
   # Gated to main pushes and PRs targeting main; tag pushes are excluded (those go to publish only).
   # Ryuk is disabled because rootless Podman on GitHub runners doesn't support the Ryuk reaper
@@ -111,22 +113,6 @@ jobs:
     if: >-
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'pull_request' && github.base_ref == 'main')
-    services:
-      # S3 emulator for RCommon.Amazon.S3Objects.Tests (client targets http://localhost:4566).
-      localstack:
-        image: localstack/localstack:3
-        ports:
-          - 4566:4566
-        env:
-          SERVICES: s3
-      # Azure Blob emulator for RCommon.Azure.Blobs.Tests (UseDevelopmentStorage=true -> localhost:10000-10002).
-      # The official image's default entrypoint binds all services to 0.0.0.0, so no command override is needed.
-      azurite:
-        image: mcr.microsoft.com/azure-storage/azurite:latest
-        ports:
-          - 10000:10000
-          - 10001:10001
-          - 10002:10002
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -146,6 +132,21 @@ jobs:
 
       - name: Build solution (all target frameworks)
         run: dotnet build Src/RCommon.sln --configuration Release --no-restore
+
+      # Start the fixed-endpoint storage emulators on the runner's Docker daemon BEFORE the Podman
+      # socket is provisioned (so `docker` here talks to Docker, not Podman). Ports publish to
+      # localhost, which is where the S3/Azure test clients connect.
+      - name: Start storage emulators
+        run: |
+          # LocalStack (S3) for RCommon.Amazon.S3Objects.Tests (client targets http://localhost:4566).
+          docker run -d --name localstack -p 4566:4566 -e SERVICES=s3 localstack/localstack:3
+          # Azurite (Azure Blob) for RCommon.Azure.Blobs.Tests (UseDevelopmentStorage=true -> localhost:10000-10002).
+          # --skipApiVersionCheck: the Azure SDK sends an x-ms-version newer than Azurite's supported
+          # set, which Azurite rejects with 400 InvalidHeaderValue unless the check is disabled.
+          docker run -d --name azurite \
+            -p 10000:10000 -p 10001:10001 -p 10002:10002 \
+            mcr.microsoft.com/azure-storage/azurite:latest \
+            azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
 
       # GitHub-hosted ubuntu-latest ships Docker but not a pre-configured rootless Podman socket.
       # We install Podman, start its socket service directly (systemctl --user is unreliable on
