@@ -169,5 +169,32 @@ namespace RCommon.MediatR
             // Delegate the durability-recording logic to the shared, builder-agnostic helper
             return builder.Services.RecordPublishRoute(builder.GetType(), typeof(TEvent));
         }
+
+        /// <summary>
+        /// Sets a builder-level default outbox store for all events published or sent on this mediator builder
+        /// that do not have an explicit per-event <c>.UseOutbox()</c> override.
+        /// </summary>
+        /// <param name="builder">The MediatR event handling builder.</param>
+        /// <param name="dataStoreName">
+        /// The default outbox datastore name. Must not be <c>null</c>, empty, or whitespace.
+        /// </param>
+        /// <returns>The builder, for method chaining.</returns>
+        /// <remarks>
+        /// <para>
+        /// Order-independent: events already published/sent before this call are retroactively marked
+        /// durable (unless they were given an explicit <c>.UseOutbox()</c> override). Events
+        /// published/sent after this call inherit the default automatically.
+        /// </para>
+        /// <para>
+        /// Precedence: per-event <c>.UseOutbox("x")</c> always beats the builder default, whether
+        /// the per-event call comes before or after <c>UseRCommonOutbox</c>.
+        /// </para>
+        /// </remarks>
+        public static IMediatREventHandlingBuilder UseRCommonOutbox(this IMediatREventHandlingBuilder builder, string dataStoreName)
+        {
+            // Delegate the builder-default recording logic to the shared, builder-agnostic helper
+            builder.Services.ApplyBuilderOutboxDefault(builder.GetType(), dataStoreName);
+            return builder;
+        }
     }
 }

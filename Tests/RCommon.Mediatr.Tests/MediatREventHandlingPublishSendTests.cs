@@ -389,3 +389,156 @@ public class MediatREventHandlingSendTests
 
     #endregion
 }
+
+// =============================================================================
+// Task 4: Mediator UseRCommonOutbox("store") builder-level default
+// =============================================================================
+
+/// <summary>
+/// Verifies the UseRCommonOutbox() builder-level default durable store for the mediator builder,
+/// covering all ordering scenarios.
+/// </summary>
+public class MediatREventHandlingUseRCommonOutboxTests
+{
+    #region Ordering Scenario (i): UseRCommonOutbox before Publish
+
+    [Fact]
+    public void UseRCommonOutbox_ThenPublish_MarksEventDurable()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var rcommonBuilder = new RCommonBuilder(services);
+
+        // Act -- builder default set before Publish
+        rcommonBuilder.WithEventHandling<MediatREventHandlingBuilder>(events =>
+        {
+            events.UseRCommonOutbox("Orders");
+            events.Publish<Outbox_ScenarioI_Event>();
+        });
+
+        // Assert
+        var registry = services.GetRoutingRegistry();
+        registry.Should().NotBeNull();
+        registry!.IsDurable(typeof(Outbox_ScenarioI_Event)).Should().BeTrue();
+        registry.TryGetOutboxStore(typeof(Outbox_ScenarioI_Event), out var store);
+        store.Should().Be("Orders");
+    }
+
+    #endregion
+
+    #region Ordering Scenario (ii): Publish before UseRCommonOutbox (retroactive)
+
+    [Fact]
+    public void Publish_ThenUseRCommonOutbox_MarksAlreadyPublishedEventDurable()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var rcommonBuilder = new RCommonBuilder(services);
+
+        // Act -- Publish comes first, builder default retroactively applies
+        rcommonBuilder.WithEventHandling<MediatREventHandlingBuilder>(events =>
+        {
+            events.Publish<Outbox_ScenarioII_Event>();
+            events.UseRCommonOutbox("Orders");
+        });
+
+        // Assert
+        var registry = services.GetRoutingRegistry();
+        registry.Should().NotBeNull();
+        registry!.IsDurable(typeof(Outbox_ScenarioII_Event)).Should().BeTrue();
+        registry.TryGetOutboxStore(typeof(Outbox_ScenarioII_Event), out var store);
+        store.Should().Be("Orders");
+    }
+
+    #endregion
+
+    #region Ordering Scenario (iii): UseRCommonOutbox before Publish+UseOutbox (per-event wins)
+
+    [Fact]
+    public void UseRCommonOutbox_ThenPublishWithUseOutbox_PerEventStoreTakesPrecedence()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var rcommonBuilder = new RCommonBuilder(services);
+
+        // Act -- builder default "Orders", but per-event ".UseOutbox("Billing")" should win
+        rcommonBuilder.WithEventHandling<MediatREventHandlingBuilder>(events =>
+        {
+            events.UseRCommonOutbox("Orders");
+            events.Publish<Outbox_ScenarioIII_Event>().UseOutbox("Billing");
+        });
+
+        // Assert -- "Billing" wins because it is explicit per-event
+        var registry = services.GetRoutingRegistry();
+        registry.Should().NotBeNull();
+        registry!.IsDurable(typeof(Outbox_ScenarioIII_Event)).Should().BeTrue();
+        registry.TryGetOutboxStore(typeof(Outbox_ScenarioIII_Event), out var store);
+        store.Should().Be("Billing");
+    }
+
+    #endregion
+
+    #region Ordering Scenario (iv): Publish+UseOutbox before UseRCommonOutbox (explicit not clobbered)
+
+    [Fact]
+    public void PublishWithUseOutbox_ThenUseRCommonOutbox_ExplicitNotClobberedByRetroactive()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var rcommonBuilder = new RCommonBuilder(services);
+
+        // Act -- explicit per-event ".UseOutbox("Billing")" set first; retroactive should NOT overwrite it
+        rcommonBuilder.WithEventHandling<MediatREventHandlingBuilder>(events =>
+        {
+            events.Publish<Outbox_ScenarioIV_Event>().UseOutbox("Billing");
+            events.UseRCommonOutbox("Orders");
+        });
+
+        // Assert -- "Billing" still wins; retroactive "Orders" must not clobber it
+        var registry = services.GetRoutingRegistry();
+        registry.Should().NotBeNull();
+        registry!.IsDurable(typeof(Outbox_ScenarioIV_Event)).Should().BeTrue();
+        registry.TryGetOutboxStore(typeof(Outbox_ScenarioIV_Event), out var store);
+        store.Should().Be("Billing");
+    }
+
+    #endregion
+
+    #region Ordering Scenario (v): No builder default, no UseOutbox => transient
+
+    [Fact]
+    public void Publish_WithNoBuilderDefaultAndNoUseOutbox_RemainsTransient()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var rcommonBuilder = new RCommonBuilder(services);
+
+        // Act -- no UseRCommonOutbox, no .UseOutbox
+        rcommonBuilder.WithEventHandling<MediatREventHandlingBuilder>(events =>
+        {
+            events.Publish<Outbox_ScenarioV_Event>();
+        });
+
+        // Assert
+        var registry = services.GetRoutingRegistry();
+        registry.Should().NotBeNull();
+        registry!.IsDurable(typeof(Outbox_ScenarioV_Event)).Should().BeFalse();
+    }
+
+    #endregion
+
+    #region Test Event Classes
+
+    public class Outbox_ScenarioI_Event : ISyncEvent { }
+    public class Outbox_ScenarioII_Event : ISyncEvent { }
+    public class Outbox_ScenarioIII_Event : ISyncEvent { }
+    public class Outbox_ScenarioIV_Event : ISyncEvent { }
+    public class Outbox_ScenarioV_Event : ISyncEvent { }
+
+    #endregion
+}
