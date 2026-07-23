@@ -16,8 +16,9 @@ public static class OutboxPersistenceBuilderExtensions
     /// <see cref="AddOutboxProducer{TOutboxStore}"/> then <see cref="AddOutboxProcessor{TOutboxStore}"/>.
     /// </summary>
     /// <remarks>
-    /// All registrations are idempotent (<c>Try*</c>/<c>TryAddEnumerable</c>) and datastore names
-    /// deduplicate case-insensitively, so composing producer + processor (which each register the
+    /// Every registration is idempotent — via <c>Try*</c>/<c>TryAddEnumerable</c>, or (for the
+    /// authoritative outbox routing) a Remove-then-Add that nets exactly one registration — and datastore
+    /// names deduplicate case-insensitively, so composing producer + processor (which each register the
     /// shared core) is safe and yields exactly one poller and one datastore registration.
     /// <para>
     /// The <paramref name="configure"/> delegate may be invoked more than once (once eagerly to resolve
@@ -53,24 +54,13 @@ public static class OutboxPersistenceBuilderExtensions
         string? dataStoreName = null)
         where TOutboxStore : class, IOutboxStore
     {
+        // Routing (tracker + routers) lives in AddOutboxCore so that EVERY outbox host — producer,
+        // processor, or the combined AddOutbox — persists durable events. See AddOutboxCore for why.
         builder.AddOutboxCore<TOutboxStore>(configure, dataStoreName);
 
-        // Outbox event router (scoped, concrete) + IEventRouter forwarder.
-        builder.Services.TryAddScoped<OutboxEventRouter>();
-        builder.Services.TryAddScoped<IEventRouter>(sp => sp.GetRequiredService<OutboxEventRouter>());
-
-        // In-process transactional router as its OWN concrete scoped type (the transient dispatcher the
-        // OutboxEntityEventTracker composes directly for the Phase-2 FIFO drain, independent of whatever
-        // IEventRouter resolves to in the outbox host).
-        builder.Services.TryAddScoped<InMemoryTransactionalEventRouter>();
-
-        // Entity event tracker decorator (scoped — replaces InMemoryEntityEventTracker).
-        builder.Services.TryAddScoped<InMemoryEntityEventTracker>();
-        builder.Services.TryAddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
-
-        // Startup diagnostic: warn if a later registration silently overrode the outbox IEventRouter.
-        // Producer-only: it inspects the producer's IEventRouter -> OutboxEventRouter binding, which a
-        // processor-only host never registers, so running it there would false-warn.
+        // Startup diagnostic: warn if a later registration silently overrode the outbox tracker.
+        // Producer-only: a processor-only host legitimately never commits domain entities, so warning
+        // there would be noise; the shared MN-3 durable-route validator (in the core) covers both hosts.
         builder.Services.TryAddEnumerable(
             ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, OutboxRoutingDiagnosticsHostedService>(
                 sp => new OutboxRoutingDiagnosticsHostedService(
@@ -123,6 +113,40 @@ public static class OutboxPersistenceBuilderExtensions
     {
         // Outbox store (scoped — participates in per-request transaction).
         builder.Services.TryAddScoped<IOutboxStore, TOutboxStore>();
+
+        // Outbox routing — registered in the CORE (shared by producer, processor, and the combined
+        // AddOutbox) so ANY host that both runs the outbox and commits domain entities persists durable
+        // events. A pure poller host that never commits entities simply never constructs the tracker.
+        //
+        // Concrete collaborators the OutboxEntityEventTracker composes directly. Safe to TryAdd: they are
+        // the outbox's own types, so nothing else registers them. Registering all three together (not just
+        // the interface binding) is what prevents the "unable to resolve InMemoryEntityEventTracker" DI
+        // failure when the outbox tracker is bound (report #16). The InMemoryTransactionalEventRouter is the
+        // transient dispatcher for the Phase-2 FIFO drain, independent of whatever IEventRouter resolves to.
+        builder.Services.TryAddScoped<OutboxEventRouter>();
+        builder.Services.TryAddScoped<InMemoryTransactionalEventRouter>();
+        builder.Services.TryAddScoped<InMemoryEntityEventTracker>();
+
+        // Authoritative outbox routing. These MUST win regardless of the order in which WithPersistence /
+        // WithEventHandling / AddRCommon ran, so they are registered with Remove-then-Add rather than TryAdd.
+        //
+        // Why TryAdd is wrong here (3.2.0 defect #15 — silent outbox data loss):
+        //   * WithEventTracking runs at the END of EVERY WithPersistence<T> call and TryAdds the in-memory
+        //     IEntityEventTracker. Under modular / multi-datastore composition a non-outbox WithPersistence
+        //     can run first, pinning the in-memory tracker; a later AddOutbox TryAdd then no-ops and every
+        //     durable event is silently dispatched in-process and never written to the outbox.
+        //   * RCommonBuilder's constructor registers IEventRouter -> InMemoryTransactionalEventRouter with an
+        //     unconditional AddScoped, so an outbox IEventRouter forwarder registered with TryAdd could never
+        //     win in ANY configuration.
+        // OutboxEntityEventTracker is a strict superset of the in-memory tracker (durable events -> outbox,
+        // transient events -> in-process), so it is always correct for it to win. Remove-then-Add is
+        // idempotent across repeated AddOutbox calls (it nets exactly one registration), and a subsequent
+        // non-outbox WithPersistence TryAdd will no-op because the outbox registration is already present.
+        builder.Services.RemoveAll<IEventRouter>();
+        builder.Services.AddScoped<IEventRouter>(sp => sp.GetRequiredService<OutboxEventRouter>());
+
+        builder.Services.RemoveAll<IEntityEventTracker>();
+        builder.Services.AddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
 
         // Serializer (singleton, replaceable).
         builder.Services.TryAddSingleton<IOutboxSerializer, JsonOutboxSerializer>();

@@ -28,9 +28,6 @@ Event-handling and transactional-outbox redesign. This is a **breaking** release
 - **Datastore-aware transactional outbox (B4/U5).** Per-datastore `__OutboxMessages` tables; each row records its target producer(s), so one table can fan out to multiple transports. `OutboxProcessingService` claims and drains every registered outbox datastore. Registering an outbox auto-applies the `OutboxMessage` mapping to that datastore's `RCommonDbContext`, and a startup diagnostic fails loud if a registered outbox datastore's table is missing.
 - **Broker-native outbox wrapper (`UseBrokerOutbox<TDbContext>`).** Configures MassTransit's EF Core outbox (`AddEntityFrameworkOutbox` + `UseBusOutbox`) against an RCommon datastore's `DbContext`, so business state and broker-outbox rows commit atomically inside the RCommon unit-of-work transaction. Proven by a Postgres/Testcontainers coordination test. *(Wolverine does not support recipe 2b — see Known Issues / use recipe 2a.)*
 - **First-class producer/processor topology (AC-21):** `AddOutboxProducer` (store/router/tracker, no hosted poller) and `AddOutboxProcessor` (hosted poller) alongside `AddOutbox` (= both), each datastore-scoped via `OnDataStore(...)`.
-- **Opt-in outbox metrics (AC-18):** a `RCommon.Outbox` `System.Diagnostics.Metrics.Meter` instrumenting per-datastore pending depth, oldest-unprocessed age, relay success/failure, dead-letter rate, and dispatch-queue depth. Additive; the host wires it into its metrics pipeline.
-- **Payload protection hook (AC-19):** an `IOutboxPayloadProtector` seam (`Protect`/`Unprotect`) around payload serialization; default is pass-through (plaintext).
-- **Deserialization allow-list (AC-20):** the outbox serializer resolves only registered event types; an unknown/tampered `EventType` is logged loud and dead-lettered rather than deserialized to an arbitrary type.
 - **Five runnable recipe examples with end-to-end tests (AC-16):** RCommon per-datastore outbox (+ 2-datastore variant), broker-as-producer behind the RCommon outbox (MassTransit + Wolverine), broker-native outbox (MassTransit), transaction-script router-added events, no-unit-of-work direct publish, and in-process MediatR.
 - **Podman/Testcontainers integration harness** (Postgres + RabbitMQ) proving cross-datastore atomicity, `TransactionScope` enlistment, and the recipe-2b coordination gate.
 
@@ -49,6 +46,14 @@ Event-handling and transactional-outbox redesign. This is a **breaking** release
 **Notes**
 
 - Wolverine's recipe 2b (broker-native outbox) is unsupported by design; the builder's `UseBrokerOutbox<T>` throws `NotSupportedException`. Wolverine users get an atomic outbox via recipe 2a (broker as a producer behind RCommon's own outbox). See [Known Issues](#known-issues).
+
+**Planned — designed but NOT shipped in 3.2.0**
+
+These items were specified for the redesign (AC-18/19/20) but did **not** ship in 3.2.0. An earlier draft of this changelog listed them under "Added" in error. They remain on the roadmap; do not build against them yet.
+
+- **Opt-in outbox metrics (AC-18):** a `RCommon.Outbox` `System.Diagnostics.Metrics.Meter` for per-datastore pending depth, oldest-unprocessed age, relay success/failure, dead-letter rate, and dispatch-queue depth. Not present in 3.2.0. For now, observe the outbox by querying the `__OutboxMessages` tables (unprocessed count, oldest `CreatedAtUtc`, dead-lettered rows) or by watching the poller's log output.
+- **Payload protection hook (AC-19):** an `IOutboxPayloadProtector` (`Protect`/`Unprotect`) seam around payload serialization. Not present in 3.2.0 — outbox payloads are plaintext within the application-database trust boundary. Applications needing field/payload encryption must handle it above the event model until this ships.
+- **Deserialization allow-list (AC-20):** a serializer that resolves only registered event types and dead-letters unknown/tampered `EventType`s. Not present in 3.2.0; the serializer resolves the type named in the row.
 
 ### 3.1.3
 
