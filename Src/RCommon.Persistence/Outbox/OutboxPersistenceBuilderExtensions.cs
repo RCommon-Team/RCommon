@@ -78,6 +78,13 @@ public static class OutboxPersistenceBuilderExtensions
                     builder.Services,
                     sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>())));
 
+        // Startup diagnostic: fail loud when a durable event route names a datastore that has no
+        // registered outbox. Registered via TryAddEnumerable keyed on the implementation type so
+        // multiple AddOutbox calls yield exactly ONE validator instance.
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, DurableRouteOutboxValidationHostedService>(
+                sp => new DurableRouteOutboxValidationHostedService(sp)));
+
         // Options
         if (configure != null)
         {
