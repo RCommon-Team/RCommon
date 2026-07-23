@@ -77,25 +77,13 @@ public class OutboxEntityEventTracker : IEntityEventTracker
 
     /// <inheritdoc />
     /// <remarks>
-    /// Walks the object graph of each tracked entity to collect domain events, buffers them in the
-    /// <see cref="OutboxEventRouter"/>, then flushes the buffer to the <see cref="IOutboxStore"/>
-    /// within the active transaction (Phase 1).
+    /// Persists exactly the DURABLE events that were buffered into the <see cref="OutboxEventRouter"/> during
+    /// <see cref="DispatchDomainEventsAsync"/> (including any durable events raised by a handler mid-dispatch —
+    /// AC-5) to the <see cref="IOutboxStore"/> within the active transaction (Phase 1). Entity graphs are NOT
+    /// re-harvested here — durability partitioning already happened during dispatch.
     /// </remarks>
     public async Task PersistEventsAsync(CancellationToken cancellationToken = default)
     {
-        // Walk each entity's graph and buffer its harvested events WITH that entity's datastore name, so the
-        // router persists each event to its own entity's store (AC-8). A null datastore name is the
-        // "use-default, resolve-downstream" sentinel and is resolved to the default by the router.
-        foreach (var (entity, dataStoreName) in _inner.TrackedEntitiesWithDataStore)
-        {
-            var entityGraph = entity.TraverseGraphFor<IBusinessEntity>();
-            foreach (var graphEntity in entityGraph)
-            {
-                _outboxRouter.AddTransactionalEvents(graphEntity.LocalEvents, dataStoreName);
-            }
-        }
-
-        // Flush buffer to outbox store (within the active transaction)
         await _outboxRouter.PersistBufferedEventsAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -113,9 +101,94 @@ public class OutboxEntityEventTracker : IEntityEventTracker
 
     /// <inheritdoc />
     /// <remarks>
-    /// No-op for the outbox tracker (Phase-2 mechanism-first). Pre-commit in-process domain dispatch for
-    /// outbox-owning datastores is wired by the Phase-3 route map, not here; the Phase-1 persist/relay behavior
-    /// of <see cref="PersistEventsAsync"/> and <see cref="EmitTransactionalEventsAsync"/> is preserved.
+    /// <para>
+    /// Pre-commit dispatch with per-event durability partitioning (Phase 3a). Traverses each tracked entity's
+    /// object graph. For every graph node it subscribes to <see cref="BusinessEntity.TransactionalEventAdded"/>
+    /// (so events raised by a handler DURING the drain are partitioned too) and seeds each already-present
+    /// <see cref="IBusinessEntity.LocalEvents"/> through the route-by-durability rule. It then drains the
+    /// in-process FIFO so transient events are dispatched pre-commit (ordered, cascade-limited). Handlers are
+    /// always unsubscribed afterwards.
+    /// </para>
+    /// <para>
+    /// Route-by-durability: a durable event (one with an outbox route registered in the
+    /// <see cref="IEventRoutingRegistry"/>) is buffered to the <see cref="OutboxEventRouter"/> — never enqueued
+    /// into the in-process FIFO, so it is never dispatched pre-commit (persisted here, relayed post-commit). A
+    /// transient event is enqueued into the in-process FIFO and dispatched pre-commit only.
+    /// </para>
     /// </remarks>
-    public Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public async Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default)
+    {
+        // Map every graph node (root or child) to the datastore of the aggregate it belongs to, so a
+        // handler-raised event mid-dispatch can be routed against the raising entity's datastore. Falls back
+        // to the null/default path when the raising entity is not a tracked graph node (documented choice).
+        var entityDataStore = new Dictionary<IBusinessEntity, string?>(ReferenceEqualityComparer.Instance);
+        var subscribed = new List<BusinessEntity>();
+
+        // Route a single event by durability. store non-null => durable (buffer to outbox); else transient (FIFO).
+        void Route(RCommon.Models.Events.ISerializableEvent e, string? dataStoreName)
+        {
+            if (_routingRegistry.TryGetOutboxStore(e.GetType(), out var store) && store is not null)
+            {
+                // Co-location / atomicity: if the aggregate is tracked under a datastore, it MUST match the
+                // event's declared outbox store — otherwise the outbox row cannot be written in the same
+                // transaction as the aggregate. Fail loud rather than silently split the transaction.
+                if (!string.IsNullOrWhiteSpace(dataStoreName)
+                    && !string.Equals(dataStoreName, store, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        $"Event '{e.GetType().FullName}' is configured via Publish<...>().UseOutbox(\"{store}\") " +
+                        $"but its aggregate is tracked under datastore \"{dataStoreName}\". Co-location (atomicity) " +
+                        $"requires the durable event's outbox store to match the aggregate's datastore. Change the " +
+                        $"UseOutbox store to \"{dataStoreName}\" (or move the aggregate to \"{store}\") so the outbox " +
+                        $"row is written in the same transaction as the aggregate.");
+                }
+
+                // Co-location wins: persist to the ENTITY's datastore when known; otherwise use the declared store.
+                _outboxRouter.AddTransactionalEvent(e, string.IsNullOrWhiteSpace(dataStoreName) ? store : dataStoreName);
+            }
+            else
+            {
+                _inProcessRouter.AddTransactionalEvent(e);
+            }
+        }
+
+        void Handler(object? sender, TransactionalEventsChangedEventArgs args)
+        {
+            // Resolve the raising entity's datastore; default (null) path if it is not a known tracked node.
+            entityDataStore.TryGetValue(args.Entity, out var raisingStore);
+            Route(args.EventData, raisingStore);
+        }
+
+        try
+        {
+            foreach (var (entity, dataStoreName) in _inner.TrackedEntitiesWithDataStore)
+            {
+                foreach (var graphEntity in entity.TraverseGraphFor<IBusinessEntity>())
+                {
+                    entityDataStore[graphEntity] = dataStoreName;
+
+                    if (graphEntity is BusinessEntity businessEntity)
+                    {
+                        businessEntity.TransactionalEventAdded += Handler;
+                        subscribed.Add(businessEntity);
+                    }
+
+                    foreach (var localEvent in graphEntity.LocalEvents)
+                    {
+                        Route(localEvent, dataStoreName); // seed => generation 0 (transient) or outbox buffer (durable)
+                    }
+                }
+            }
+
+            // Drain transient events pre-commit. Durable events were buffered to the outbox and are NOT in this FIFO.
+            await _inProcessRouter.RouteEventsAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            foreach (var entity in subscribed)
+            {
+                entity.TransactionalEventAdded -= Handler;
+            }
+        }
+    }
 }
