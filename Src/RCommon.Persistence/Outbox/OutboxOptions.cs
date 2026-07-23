@@ -17,6 +17,25 @@ public class OutboxOptions
     public string InboxTableName { get; set; } = "__InboxMessages";
 
     /// <summary>
+    /// The name of the datastore that owns this outbox table. <c>null</c> means "use the configured
+    /// default datastore". Set via <see cref="OnDataStore"/>.
+    /// </summary>
+    public string? DataStoreName { get; private set; }
+
+    /// <summary>
+    /// Names the datastore that owns this outbox table (AC-21). Fluent, returns this instance.
+    /// </summary>
+    /// <param name="dataStoreName">The owning datastore name. Must not be null, empty, or whitespace.</param>
+    public OutboxOptions OnDataStore(string dataStoreName)
+    {
+        if (string.IsNullOrWhiteSpace(dataStoreName))
+            throw new ArgumentException("Data store name must not be null, empty, or whitespace.", nameof(dataStoreName));
+
+        DataStoreName = dataStoreName;
+        return this;
+    }
+
+    /// <summary>
     /// Controls whether the unit of work attempts best-effort in-process dispatch of outbox events
     /// immediately after commit (Phase 3), in addition to persisting them for the background poller.
     /// </summary>
