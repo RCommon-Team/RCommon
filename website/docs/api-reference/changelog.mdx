@@ -12,6 +12,25 @@ The authoritative release history for all RCommon packages is maintained on GitH
 
 ## Recent Changes
 
+### 3.2.1
+
+Outbox DI-registration hardening and documentation accuracy. This is a behavior-only bug-fix release — no public API changes; upgrading from 3.2.0 requires no code changes.
+
+**Fixed**
+
+- **Durable events were silently dropped under modular / multi-datastore composition.** `WithEventTracking` runs at the end of every `WithPersistence` call and registered the in-memory entity-event tracker with `TryAdd`; when a non-outbox module (or a second datastore) was registered before the outbox one, the in-memory tracker was pinned and the outbox's own `TryAdd` no-opped — so every durable event dispatched in-process and was never written to the outbox, with no error. The outbox now registers the entity-event tracker and router **authoritatively** (remove-then-add) in the shared outbox core, so it wins regardless of registration order. If you added a `services.Replace(...)` workaround for this, you can remove it after upgrading.
+- **Processor and combined hosts silently dropped durable events.** Outbox routing was registered only by `AddOutboxProducer`; a host that ran the poller (`AddOutboxProcessor`) and also committed domain entities lost its durable events. Routing now lives in the shared core that both `AddOutboxProducer` and `AddOutboxProcessor` call, so producer, processor, and combined hosts all persist. This also removes the registration path that could surface as an "unable to resolve `InMemoryEntityEventTracker`" DI error.
+- **Outbox routing startup diagnostic inspected the wrong service.** It checked `IEventRouter` (which the core always binds to the in-memory router) and so false-warned on every working outbox host while missing the real failure. It now inspects the load-bearing `IEntityEventTracker`.
+
+**Added**
+
+- **Modular multi-datastore outbox example** (`Examples.EventHandling.Outbox.Modular`): three bounded-context modules, each owning its own datastore and native outbox, composed at one root — with an end-to-end test proving every datastore's durable events persist regardless of module registration order.
+- **Multi-datastore unit-of-work semantics** are now pinned by an integration test and documented in a "One transaction per datastore" note in the [Event Handling Recipes](../event-handling/recipes.mdx#multiple-datastores) guide: an outbox row is atomic with **its own** datastore's state change (local transaction); a single unit of work spanning two datastores promotes to a distributed transaction and **fails loud** (e.g. Postgres `55000: prepared transactions are disabled`); cross-datastore delivery is **eventual** (at-least-once via the poller). Split a multi-datastore operation into a unit of work per datastore.
+
+**Docs**
+
+- Corrected the 3.2.0 changelog and spec, which listed outbox metrics, `IOutboxPayloadProtector`, and the deserialization allow-list as shipped features — they are **planned, not shipped** (see the 3.2.0 "Planned" note below).
+
 ### 3.2.0
 
 Event-handling and transactional-outbox redesign. This is a **breaking** release: durability is now opt-in per route, in-process domain handlers dispatch *before* commit, and the outbox is datastore-aware end to end. A new recipe-based conceptual guide documents the supported patterns. See the [Event Handling Recipes](../event-handling/recipes.mdx) guide and the [3.2.0 migration section](./migration-guide.mdx#upgrading-to-320-event-handling--outbox-redesign) for the full old→new mapping.

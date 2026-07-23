@@ -171,6 +171,14 @@ Two limitations ship with 3.2.0, each with a supported workaround — see [Known
 - **Dapper outbox store is SQL Server–only.** On PostgreSQL, use `EFCoreOutboxStore` for the outbox datastore.
 - **MediatR `Send<T>()` may not resolve handlers.** Use `Publish<T>()` for in-process MediatR event delivery.
 
+## Upgrading to 3.2.1
+
+3.2.1 is a behavior-only bug-fix release with **no public API changes** — upgrading from 3.2.0 requires no code changes. It fixes silent outbox data loss in two compositions and clarifies multi-datastore transaction semantics. See the [3.2.1 changelog](./changelog.mdx#321) for the full list.
+
+- **Remove any outbox-routing workaround.** If you worked around durable events not persisting under modular / multi-datastore composition (e.g. a `services.Replace(...)` re-asserting the outbox `IEntityEventTracker`/`IEventRouter`), you can delete it — the outbox now registers those authoritatively and wins regardless of module/datastore registration order.
+- **Processor and combined hosts now persist durable events.** If you had split producer and processor and found a host that ran the poller and also committed domain entities was losing events (or threw "unable to resolve `InMemoryEntityEventTracker`"), that is fixed; outbox routing now lives in the shared core that `AddOutboxProducer` and `AddOutboxProcessor` both call.
+- **Review multi-datastore transaction boundaries.** A single unit of work must not write to more than one datastore — that promotes to a distributed transaction and fails loud (e.g. Postgres `55000: prepared transactions are disabled`). Split a multi-datastore operation into a unit of work per datastore; each commits locally and atomically with its own outbox row, and cross-datastore delivery is eventual via the poller. See the ["One transaction per datastore" note](../event-handling/recipes.mdx#multiple-datastores).
+
 ## Breaking Change Patterns
 
 The following sections describe the categories of breaking changes that appear in major RCommon releases and how to address them.

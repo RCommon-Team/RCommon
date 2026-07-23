@@ -119,6 +119,8 @@ Once an event type is declared durable, it is buffered into the outbox **within 
 
 Register an outbox per datastore. An event published `.UseOutbox("Billing")` lands **only** in Billing's outbox — never in Orders'.
 
+For a full worked version — several bounded-context modules, each owning its own datastore and outbox and composed at one root — see the runnable `Examples.EventHandling.Outbox.Modular` example.
+
 ```csharp
 .WithPersistence<EFCorePersistenceBuilder>(ef =>
 {
