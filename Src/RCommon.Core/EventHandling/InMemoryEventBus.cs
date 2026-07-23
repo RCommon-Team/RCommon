@@ -28,6 +28,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,11 +120,23 @@ namespace RCommon.EventHandling
                 {
                     if (handler == null) continue;
 
-                    // Invoke HandleAsync via reflection to support polymorphic dispatch
-                    object? result = handlerType
-                        .GetTypeInfo()
-                        .GetDeclaredMethod(nameof(ISubscriber<TEvent>.HandleAsync))
-                        ?.Invoke(handler, new object[] { @event, cancellationToken });
+                    // Invoke HandleAsync via reflection to support polymorphic dispatch.
+                    object? result;
+                    try
+                    {
+                        result = handlerType
+                            .GetTypeInfo()
+                            .GetDeclaredMethod(nameof(ISubscriber<TEvent>.HandleAsync))
+                            ?.Invoke(handler, new object[] { @event, cancellationToken });
+                    }
+                    catch (TargetInvocationException ex) when (ex.InnerException != null)
+                    {
+                        // Reflection wraps any exception thrown synchronously by the handler in
+                        // TargetInvocationException; unwrap it so callers see the real exception with
+                        // its original stack trace preserved.
+                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                        throw; // unreachable; keeps the compiler's definite-assignment analysis happy
+                    }
                     if (result is Task task)
                     {
                         await task.ConfigureAwait(false);
