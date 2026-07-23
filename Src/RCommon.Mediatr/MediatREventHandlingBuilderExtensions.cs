@@ -1,10 +1,13 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using RCommon.EventHandling;
+using RCommon.EventHandling.Routing;
 using RCommon.EventHandling.Subscribers;
 using RCommon.Mediator;
 using RCommon.Mediator.MediatR;
 using RCommon.Mediator.Subscribers;
+using RCommon.MediatR.Producers;
 using RCommon.MediatR.Subscribers;
 using RCommon.Models.Events;
 using System;
@@ -98,6 +101,36 @@ namespace RCommon.MediatR
             // Register event-to-producer subscription so the router only sends this event to producers on this builder
             var subscriptionManager = builder.Services.GetSubscriptionManager();
             subscriptionManager?.AddSubscription(builder.GetType(), typeof(TEvent));
+        }
+
+        /// <summary>
+        /// Declares that <typeparamref name="TEvent"/> should be published via MediatR fan-out semantics,
+        /// ensuring <see cref="PublishWithMediatREventProducer"/> is registered (idempotent) and
+        /// recording the event-to-producer subscription in the <see cref="EventSubscriptionManager"/>.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type to publish. Must implement <see cref="ISerializableEvent"/>.</typeparam>
+        /// <param name="builder">The MediatR event handling builder.</param>
+        /// <returns>
+        /// An <see cref="IEventRouteHandle"/> that allows further configuration, such as
+        /// marking the event as durable via <c>.UseOutbox("storeName")</c>.
+        /// </returns>
+        /// <remarks>
+        /// Calling <c>Publish&lt;T&gt;()</c> alone does <em>not</em> mark the event durable —
+        /// it remains transient until <see cref="IEventRouteHandle.UseOutbox"/> is chained,
+        /// or a builder-level default has been set via <see cref="UseRCommonOutbox"/>.
+        /// </remarks>
+        public static IEventRouteHandle Publish<TEvent>(this IMediatREventHandlingBuilder builder)
+            where TEvent : class, ISerializableEvent
+        {
+            // Ensure the MediatR publish producer is registered -- idempotent via AddProducer<T>'s
+            // own already-registered check.
+            builder.AddProducer<PublishWithMediatREventProducer>();
+
+            // Register event-to-producer subscription so the router sends this event to the right producers
+            builder.Services.GetSubscriptionManager()?.AddSubscription(builder.GetType(), typeof(TEvent));
+
+            // Delegate the durability-recording logic to the shared, builder-agnostic helper
+            return builder.Services.RecordPublishRoute(builder.GetType(), typeof(TEvent));
         }
     }
 }
