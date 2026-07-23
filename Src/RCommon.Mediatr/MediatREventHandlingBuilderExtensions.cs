@@ -106,7 +106,7 @@ namespace RCommon.MediatR
         /// <summary>
         /// Declares that <typeparamref name="TEvent"/> should be published via MediatR fan-out semantics,
         /// ensuring <see cref="PublishWithMediatREventProducer"/> is registered (idempotent) and
-        /// recording the event-to-producer subscription in the <see cref="EventSubscriptionManager"/>.
+        /// recording the event-to-producer subscription in the <see cref="RCommon.EventHandling.Producers.EventSubscriptionManager"/>.
         /// </summary>
         /// <typeparam name="TEvent">The event type to publish. Must implement <see cref="ISerializableEvent"/>.</typeparam>
         /// <param name="builder">The MediatR event handling builder.</param>
@@ -136,7 +136,7 @@ namespace RCommon.MediatR
         /// <summary>
         /// Declares that <typeparamref name="TEvent"/> should be sent via MediatR point-to-point semantics,
         /// ensuring <see cref="SendWithMediatREventProducer"/> is registered (idempotent) and
-        /// recording the event-to-producer subscription in the <see cref="EventSubscriptionManager"/>.
+        /// recording the event-to-producer subscription in the <see cref="RCommon.EventHandling.Producers.EventSubscriptionManager"/>.
         /// </summary>
         /// <typeparam name="TEvent">The event type to send. Must implement <see cref="ISerializableEvent"/>.</typeparam>
         /// <param name="builder">The MediatR event handling builder.</param>
