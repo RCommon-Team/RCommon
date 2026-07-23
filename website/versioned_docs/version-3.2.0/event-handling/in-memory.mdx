@@ -1,0 +1,230 @@
+---
+title: In-Memory Events
+sidebar_position: 2
+description: Configure RCommon's in-process event bus with InMemoryEventBusBuilder, implement ISubscriber handlers, and publish events via IEventRouter or IEventBus directly.
+---
+
+import NuGetInstall from '@site/src/components/NuGetInstall';
+
+# In-Memory Events
+
+The in-memory event bus provides local publish/subscribe within a single process. Events are dispatched synchronously to all registered `ISubscriber<TEvent>` handlers within the same DI scope. No external infrastructure is required.
+
+## Installation
+
+The in-memory event bus is part of `RCommon.Core`, which is included when you install the main package:
+
+<NuGetInstall packageName="RCommon.Core" />
+
+## Configuration
+
+Register the in-memory event bus using `WithEventHandling<InMemoryEventBusBuilder>` on the RCommon builder, then call `AddSubscriber` to wire each handler to its event type:
+
+```csharp
+using RCommon;
+using RCommon.EventHandling;
+using RCommon.EventHandling.Producers;
+
+builder.Services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
+        eventHandling.AddSubscriber<OrderShipped, OrderShippedHandler>();
+    });
+```
+
+`AddSubscriber` automatically ensures `PublishWithEventBusEventProducer` — the built-in producer that delegates to `IEventBus.PublishAsync` — is registered; a subscriber with no matching producer is never invoked, so there is no scenario where you'd want one wired without the other. Calling `AddProducer<PublishWithEventBusEventProducer>()` explicitly still works and is harmless (idempotent), but is no longer required for the common case:
+
+```csharp
+builder.Services.AddRCommon()
+    .WithEventHandling<InMemoryEventBusBuilder>(eventHandling =>
+    {
+        // Explicit and still supported, but redundant as of this version -- AddSubscriber
+        // below registers this automatically.
+        eventHandling.AddProducer<PublishWithEventBusEventProducer>();
+        eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
+    });
+```
+
+Additional subscribers can be registered for the same event type; all of them will be called.
+
+### Additional AddSubscriber / AddProducer overloads
+
+If your handler needs constructor arguments that DI can't resolve on its own, use the factory-delegate overload of `AddSubscriber` instead of the parameterless one:
+
+```csharp
+eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>(
+    sp => new OrderPlacedHandler(sp.GetRequiredService<ILogger<OrderPlacedHandler>>(), extraArg: 42));
+```
+
+`AddProducer<T>` has two additional overloads beyond the parameterless `AddProducer<T>()` shown above:
+
+```csharp
+// Factory delegate -- same idea as AddSubscriber's factory overload.
+eventHandling.AddProducer<MyCustomProducer>(sp => new MyCustomProducer(sp.GetRequiredService<ISomeDependency>()));
+
+// Pre-built instance.
+var producer = new MyCustomProducer(preconfiguredClient);
+eventHandling.AddProducer(producer);
+```
+
+The instance overload (`AddProducer<T>(T producer)`) has a behaviorally significant side effect: if the instance you pass also implements `IHostedService`, it is additionally registered as a hosted service, so it participates in the host's start/stop lifecycle alongside being resolvable as `IEventProducer`. The parameterless and factory-delegate overloads do not do this.
+
+If you're registering a *different* producer (not `PublishWithEventBusEventProducer`) alongside subscribers on a custom `IEventHandlingBuilder`, RCommon's startup diagnostics will warn (once) if it ever finds a builder type with recorded subscriptions but zero registered producers — since that combination means the subscribers will silently never fire.
+
+:::tip Modular composition
+`WithEventHandling<InMemoryEventBusBuilder>` is cache-aware. When multiple modules call it, the cached `InMemoryEventBusBuilder` is reused and each configuration delegate runs against the same instance — so subscriber and producer registrations from every module accumulate. `AddProducer<T>` deduplicates by concrete producer type: if `OrderingModule` and `NotificationsModule` both call `eventHandling.AddProducer<AuditProducer>()`, exactly one `AuditProducer` descriptor is registered. `AddSubscriber<TEvent, THandler>` accumulates normally, so multiple modules can register handlers for the same event. See [Modular Composition](../core-concepts/modular-composition.mdx) for the full conflict matrix.
+:::
+
+## Defining an event
+
+Events must implement `ISerializableEvent`. Use `ISyncEvent` for sequential dispatch or `IAsyncEvent` for concurrent dispatch:
+
+:::note `ISyncEvent`/`IAsyncEvent` control dispatch ordering, not transport
+Despite the "Sync" name, `ISyncEvent` does **not** mean "in-memory only" and `IAsyncEvent` does not mean "out-of-process." Both extend `ISerializableEvent` and are fully serializable — an `ISyncEvent` is persisted to and drained from the [transactional outbox](./outbox-producer-processor-topology.mdx) just like any other event. The only thing these markers select is how the router dispatches a batch: `ISyncEvent` events are dispatched **sequentially** (awaited one at a time, preserving order), `IAsyncEvent` events **concurrently**. Choose based on whether ordering between events matters, not on which transport you expect.
+:::
+
+```csharp
+using RCommon.Models.Events;
+
+public class OrderPlaced : ISyncEvent
+{
+    public OrderPlaced(Guid orderId, DateTime placedAt)
+    {
+        OrderId = orderId;
+        PlacedAt = placedAt;
+    }
+
+    public OrderPlaced() { }
+
+    public Guid OrderId { get; }
+    public DateTime PlacedAt { get; }
+}
+```
+
+## Implementing a subscriber
+
+Implement `ISubscriber<TEvent>` and register the class in the DI container via `AddSubscriber`:
+
+```csharp
+using RCommon.EventHandling.Subscribers;
+
+public class OrderPlacedHandler : ISubscriber<OrderPlaced>
+{
+    private readonly ILogger<OrderPlacedHandler> _logger;
+
+    public OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task HandleAsync(OrderPlaced @event, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Order {OrderId} placed at {PlacedAt}", @event.OrderId, @event.PlacedAt);
+        await Task.CompletedTask;
+    }
+}
+```
+
+### Two ways to register a subscriber (and why they're equivalent)
+
+A handler can be wired either through the event-handling builder or directly into DI:
+
+```csharp
+// 1. Through the builder (recommended — also records the event→producer subscription
+//    and auto-registers the in-memory producer):
+eventHandling.AddSubscriber<OrderPlaced, OrderPlacedHandler>();
+
+// 2. Directly into the container:
+services.AddScoped<ISubscriber<OrderPlaced>, OrderPlacedHandler>();
+```
+
+At dispatch time these resolve identically. The in-memory bus (`InMemoryEventBus`) resolves **all** `ISubscriber<TEvent>` registrations from the DI container for the event's runtime type, regardless of how they were registered — so a handler added with the raw `AddScoped` call is invoked just like one added via `AddSubscriber`. This holds for the [outbox poller](./outbox-producer-processor-topology.mdx) too, since it dispatches through the same in-memory producer.
+
+Prefer `AddSubscriber<TEvent, THandler>()`: besides registering the handler, it records the event→producer subscription used for routing and auto-registers `PublishWithEventBusEventProducer`. Use the raw `services.AddScoped<ISubscriber<TEvent>, THandler>()` form only when you must register a handler outside a builder context (for example, from a module that does not have the event-handling builder in scope) — in that case ensure a producer is registered so the subscriber can actually be reached.
+
+## Publishing events
+
+### Via IEventProducer (recommended with unit-of-work)
+
+Resolve `IEventProducer` or `IEnumerable<IEventProducer>` and call `ProduceEventAsync`. The router ensures the event reaches only the producers subscribed to it:
+
+```csharp
+public class OrderService
+{
+    private readonly IEventRouter _eventRouter;
+    private readonly IUnitOfWorkFactory _uowFactory;
+
+    public OrderService(IEventRouter eventRouter, IUnitOfWorkFactory uowFactory)
+    {
+        _eventRouter = eventRouter;
+        _uowFactory = uowFactory;
+    }
+
+    public async Task PlaceOrderAsync(Order order, CancellationToken cancellationToken)
+    {
+        using var uow = _uowFactory.CreateUnitOfWork();
+        // ... persist the order ...
+
+        _eventRouter.AddTransactionalEvent(new OrderPlaced(order.Id, DateTime.UtcNow));
+        await uow.SaveChangesAsync(cancellationToken);
+        await _eventRouter.RouteEventsAsync(cancellationToken);
+    }
+}
+```
+
+### Via IEventBus (direct, no routing layer)
+
+You can also publish directly through `IEventBus` without going through the router:
+
+```csharp
+public class NotificationService
+{
+    private readonly IEventBus _eventBus;
+
+    public NotificationService(IEventBus eventBus)
+    {
+        _eventBus = eventBus;
+    }
+
+    public async Task NotifyAsync(OrderPlaced @event, CancellationToken cancellationToken)
+    {
+        await _eventBus.PublishAsync(@event, cancellationToken);
+    }
+}
+```
+
+## Dynamic subscriptions
+
+`IEventBus` supports runtime subscriptions that do not require DI registration. These are resolved via `ActivatorUtilities` at publish time:
+
+```csharp
+eventBus.Subscribe<OrderPlaced, OrderPlacedHandler>();
+
+// or auto-discover all ISubscriber<T> interfaces on a handler type
+eventBus.SubscribeAllHandledEvents<OrderPlacedHandler>();
+```
+
+## API summary
+
+| Type | Description |
+|------|-------------|
+| `InMemoryEventBusBuilder` | Builder used with `WithEventHandling<T>` to configure the in-memory bus |
+| `IEventBus` | In-process event bus; `PublishAsync`, `Subscribe`, `SubscribeAllHandledEvents` |
+| `InMemoryEventBus` | Default `IEventBus` implementation; resolves handlers from a DI scope |
+| `ISubscriber<TEvent>` | Handler interface; implement `HandleAsync` |
+| `PublishWithEventBusEventProducer` | `IEventProducer` that delegates to `IEventBus.PublishAsync` |
+| `IEventRouter` | Queues transactional events and routes them to registered producers |
+| `InMemoryTransactionalEventRouter` | Default `IEventRouter`; registered automatically by `AddRCommon` |
+| `ISyncEvent` | Marker; selects **sequential** dispatch ordering (not a transport choice — still fully serializable / outbox-eligible) |
+| `IAsyncEvent` | Marker; selects **concurrent** dispatch ordering (not a transport choice) |
+
+### `AddSubscriber` / `AddProducer` overloads
+
+| Method | Description |
+|---|---|
+| `AddSubscriber<TEvent,TEventHandler>()` | Registers `TEventHandler` as a scoped `ISubscriber<TEvent>`; auto-registers `PublishWithEventBusEventProducer`. |
+| `AddSubscriber<TEvent,TEventHandler>(Func<IServiceProvider,TEventHandler>)` | Same as above, constructing the handler via a factory delegate. |
+| `AddProducer<T>()` | Registers `T` as a singleton `IEventProducer`, deduplicated by concrete type. |
+| `AddProducer<T>(Func<IServiceProvider,T>)` | Same as above, constructing the producer via a factory delegate. |
+| `AddProducer<T>(T producer)` | Registers a pre-built producer instance. Also registers it as `IHostedService` if `producer` implements that interface. |

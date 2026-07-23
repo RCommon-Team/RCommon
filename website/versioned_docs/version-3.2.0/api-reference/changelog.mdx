@@ -1,0 +1,217 @@
+---
+title: Changelog
+sidebar_position: 2
+description: RCommon release history covering blob storage abstractions, multi-tenancy support, DDD soft delete, bulk operations, and semantic versioning via MinVer git tags.
+---
+
+# Changelog
+
+The authoritative release history for all RCommon packages is maintained on GitHub Releases.
+
+**Full release notes:** [https://github.com/RCommon-Team/RCommon/releases](https://github.com/RCommon-Team/RCommon/releases)
+
+## Recent Changes
+
+### 3.2.0
+
+Event-handling and transactional-outbox redesign. This is a **breaking** release: durability is now opt-in per route, in-process domain handlers dispatch *before* commit, and the outbox is datastore-aware end to end. A new recipe-based conceptual guide documents the supported patterns. See the [Event Handling Recipes](../event-handling/recipes.mdx) guide and the [3.2.0 migration section](./migration-guide.mdx#upgrading-to-320-event-handling--outbox-redesign) for the full old→new mapping.
+
+**Breaking**
+
+- **Durability is opt-in per route.** `Publish<T>()`/`Send<T>()` are transient by default. To persist through the outbox, chain the per-event modifier `.UseOutbox("store")`, or set a builder-level default with `UseRCommonOutbox("store")` / `UseBrokerOutbox(...)`. Per-event wins over builder-level. Before 3.2.0 a tracked domain event was auto-routed to the outbox; that implicit behavior is gone — an event with no durability modifier fires in-process/at-commit and is never persisted.
+- **Commit pipeline reordered — in-process domain dispatch is now pre-commit.** During `CommitAsync`, in-process `ISubscriber<T>` handlers run *inside* the transaction, before it commits. `ISyncEvent` handlers run sequentially in raise-order; `IAsyncEvent` handlers are awaited concurrently. If any pre-commit handler throws, the whole transaction rolls back (no state change, no outbox rows). Durable/outbound routes are still relayed post-commit.
+- **`IOutboxStore.SaveAsync` gained a `dataStoreName` parameter.** The tracker captures a datastore name per entity, groups events by datastore, and a single `EFCoreOutboxStore` resolves the correct `DbContext` per call. An event's outbox row is always written to the same datastore/transaction as the state change that produced it — never another datastore's outbox table.
+- **New fluent verb set** on the event-handling builders: `Publish<T>()` (fan-out), `Send<T>()` (point-to-point), `Consume<T,H>()` (inbound broker consumer, broker builders only). `AddSubscriber<T,H>()` remains for in-process handlers.
+
+**Added**
+
+- **Datastore-aware transactional outbox (B4/U5).** Per-datastore `__OutboxMessages` tables; each row records its target producer(s), so one table can fan out to multiple transports. `OutboxProcessingService` claims and drains every registered outbox datastore. Registering an outbox auto-applies the `OutboxMessage` mapping to that datastore's `RCommonDbContext`, and a startup diagnostic fails loud if a registered outbox datastore's table is missing.
+- **Broker-native outbox wrapper (`UseBrokerOutbox<TDbContext>`).** Configures MassTransit's EF Core outbox (`AddEntityFrameworkOutbox` + `UseBusOutbox`) against an RCommon datastore's `DbContext`, so business state and broker-outbox rows commit atomically inside the RCommon unit-of-work transaction. Proven by a Postgres/Testcontainers coordination test. *(Wolverine does not support recipe 2b — see Known Issues / use recipe 2a.)*
+- **First-class producer/processor topology (AC-21):** `AddOutboxProducer` (store/router/tracker, no hosted poller) and `AddOutboxProcessor` (hosted poller) alongside `AddOutbox` (= both), each datastore-scoped via `OnDataStore(...)`.
+- **Opt-in outbox metrics (AC-18):** a `RCommon.Outbox` `System.Diagnostics.Metrics.Meter` instrumenting per-datastore pending depth, oldest-unprocessed age, relay success/failure, dead-letter rate, and dispatch-queue depth. Additive; the host wires it into its metrics pipeline.
+- **Payload protection hook (AC-19):** an `IOutboxPayloadProtector` seam (`Protect`/`Unprotect`) around payload serialization; default is pass-through (plaintext).
+- **Deserialization allow-list (AC-20):** the outbox serializer resolves only registered event types; an unknown/tampered `EventType` is logged loud and dead-lettered rather than deserialized to an arbitrary type.
+- **Five runnable recipe examples with end-to-end tests (AC-16):** RCommon per-datastore outbox (+ 2-datastore variant), broker-as-producer behind the RCommon outbox (MassTransit + Wolverine), broker-native outbox (MassTransit), transaction-script router-added events, no-unit-of-work direct publish, and in-process MediatR.
+- **Podman/Testcontainers integration harness** (Postgres + RabbitMQ) proving cross-datastore atomicity, `TransactionScope` enlistment, and the recipe-2b coordination gate.
+
+**Fixed**
+
+- **In-process MediatR delivery silently dropped events on the canonical DDD flow.** `MediatRAdapter.Publish` wrapped the notification by its compile-time generic argument, producing `MediatRNotification<ISerializableEvent>` (the transactional router hands events to producers statically typed as `ISerializableEvent`), which never matched the registered `INotificationHandler<MediatRNotification<TConcrete>>`. It now wraps by the notification's runtime type, so aggregate-raised domain events reach their MediatR subscriber through the commit pipeline.
+- **In-process bus swallowed the real handler exception.** `InMemoryEventBus` invoked subscribers by reflection and surfaced `TargetInvocationException` instead of the underlying error; the true exception is now rethrown with its stack trace preserved.
+- **Datastore-name comparison harmonized to Ordinal (case-sensitive) across the outbox subsystem**, matching core `DataStoreFactory`. A datastore-name case mismatch between registration and use now fails loud at startup instead of silently missing the store.
+
+**Changed**
+
+- `AddSubscriber<T,H>()` on broker builders is now an `[Obsolete]` alias forwarding to `Consume<T,H>()`.
+- `EFCoreOutboxStore<TContext>` (the per-context subclass) is `[Obsolete]`; use the non-generic `EFCoreOutboxStore` with `AddOutbox<EFCoreOutboxStore>(dataStoreName: "...")`.
+- `IEntityEventTracker.AddEntity(entity)` is preserved as a shim defaulting to the default datastore, alongside the new datastore-carrying overload.
+
+**Notes**
+
+- Wolverine's recipe 2b (broker-native outbox) is unsupported by design; the builder's `UseBrokerOutbox<T>` throws `NotSupportedException`. Wolverine users get an atomic outbox via recipe 2a (broker as a producer behind RCommon's own outbox). See [Known Issues](#known-issues).
+
+### 3.1.3
+
+Outbox silent-failure hardening. Every change is observability-only (new warnings and a startup diagnostic); no method or interface signatures changed and no runtime behavior changed on the success path — fully backward-compatible.
+
+**Fixed**
+
+- **Synchronous `UnitOfWork.Commit()` silently dropped pending domain events.** The obsolete `Commit()` completes the transaction but deliberately skips outbox persistence (Phase 1) and dispatch (Phase 3), so any tracked entity carrying domain events lost them with no error. `Commit()` now logs a `Warning` when the event tracker holds entities with un-dispatched local events, directing callers to `CommitAsync`. Because the `AutoComplete`-on-dispose path routes through `Commit()`, that path is now covered too.
+- **`UnitOfWork` disposed without a successful commit was a silent rollback.** With `AutoComplete` off, disposing a unit of work that never called `CommitAsync` rolls back the ambient transaction and discards any writes made in the scope with no error (e.g. a repository write invoked outside a committing `[UnitOfWork]` scope). The dispose-without-commit path now logs a `Warning` so the discarded work is visible.
+- **Outbox poller silently dropped events with no subscriber.** When the durable `OutboxProcessingService` drains a message whose event type has no matching subscriber/producer on the poller (processor) host, it marks the row processed and moves on. It now logs a `Warning` once per event type, surfacing the common producer/processor topology mistake of registering a subscriber only on the producer host.
+
+**Added**
+
+- **Outbox routing startup diagnostic.** `AddOutbox` now registers a hosted diagnostic that warns at startup when the effective `IEventRouter` is the in-memory router instead of the outbox router — i.e. a later event-handling registration silently overrode outbox routing (DI is last-registration-wins), which would cause events to fire in-memory and never persist to the outbox.
+
+### 3.1.2
+
+Modular composition, bootstrapping ergonomics, opt-in CQRS transactions, and a docs consolidation pass covering navigation, eight new runnable examples, an end-to-end DDD recipe, and a machine-readable full API reference. All changes in this release are backward-compatible.
+
+**Added**
+
+- **Modular composition support** — `services.AddRCommon()` can now be called from multiple modules in the same process. Registrations merge instead of duplicating or throwing on agreement. See [Modular Composition](../core-concepts/modular-composition.mdx).
+- New public API: `IRCommonBuilder.GetOrAddBuilder<TSubBuilder>(Func<TSubBuilder>)` — third-party `WithX<T>` extensions opt into sub-builder caching.
+- New public API: `IRCommonBuilder.GetBootstrapDiagnostics()` — retrieve the soft-duplicate report stashed at host startup.
+- New public API: `IServiceCollection.IsRCommonInitialized()` — true iff `AddRCommon()` has been called.
+- New internal `IHostedService` runs the duplicate-descriptor scanner at host startup and emits a single warning on soft duplicates.
+- **`ICqrsBuilder.AddUnitOfWorkToCommandBus()`** — opt-in unit-of-work wrapping for the native `ICommandBus`, via a new `UnitOfWorkCommandBus` decorator. Commands only, not queries; gives the native command bus parity with MediatR's `AddUnitOfWorkToRequestPipeline()`.
+- **`TenantScope.Bypass()`** (`RCommon.Security.Claims`) — an ambient, `AsyncLocal`-based, nestable scope that suspends tenant-based repository filtering and stamping for its lifetime. A new `TenantScopeAwareTenantIdAccessor` decorator wraps `ClaimsTenantIdAccessor` and Finbuckle's tenant accessor automatically.
+- When exactly one data store is registered and `SetDefaultDataStore` was never called, it is now auto-inferred (logged at `Information`); registering 2+ stores with no default now also logs informationally instead of only surfacing at first use.
+- Cross-builder startup diagnostics: a warning is logged when an in-memory event bus builder has subscriptions but no registered producer, and when the event router has events to dispatch but no producers are registered for them (both were previously silent).
+- 8 new runnable `Examples/` projects: Dapper, Linq2Db, Sagas, Blob Storage (Azure/S3), State Machines (Stateless), Multi-Tenancy (Finbuckle), and Event Handling (Outbox) — plus an end-to-end [Domain-Driven Design recipe](../examples-recipes/domain-driven-design.mdx) (`Team`/`TeamMembership` aggregate).
+- A machine-readable [full API reference](pathname:///api-reference-full.txt), generated directly from built assemblies and their XML doc-comment sidecars.
+
+**Fixed**
+
+- `EFCoreAggregateRepository`/`EFCoreRepository.UpdateAsync` misclassified newly-added child entities with non-default keys (e.g. sequential GUIDs) as `Modified` instead of `Added`, silently dropping the insert. Fixed with explicit reference-based change tracking.
+- `Include<TProperty>`/`ThenInclude` threw for collection navigations ("invalid inside an Include operation"); switched to EF Core's string-path `Include()` overload.
+- `AddSubscriber<TEvent, THandler>()` on `IInMemoryEventBusBuilder` silently did nothing (the handler was never invoked) unless a separate, undocumented producer registration call was also made. The required producer is now auto-registered.
+- The zero-argument `RCommon.FluentValidation.ValidationBuilderExtensions.WithValidation<T>()` overload — a byte-for-byte duplicate of the `ApplicationServices` overload — was deleted, resolving an unconditional `CS0121` ambiguity error when both packages were referenced together.
+- **Dapper (`RCommon.Dapper`):** `AddAsync`/`AddRangeAsync` discarded database-generated keys instead of writing them back to the entity after insert. Separately, Dommel's default key resolver treated any `Guid`/`string`-typed `Id` property as database-generated, silently writing `NULL`/default into the primary key column. A new `RCommonKeyPropertyResolver` restricts auto-generation guessing to numeric key types.
+- **Linq2Db (`RCommon.Linq2Db`):** entities deriving from `BusinessEntity`/`AggregateRoot<TKey>` failed every insert and query ("no such column") because Linq2Db does not honor `[NotMapped]`. A new `IMetadataReader` implementation excludes the framework-owned event-tracking properties from the entity's column mapping.
+- **`RCommon.Finbuckle`:** an unused `new()` generic constraint on `FinbuckleMultiTenantBuilder<TTenantInfo>`/`FinbuckleTenantIdAccessor<TTenantInfo>` broke compilation against Finbuckle's built-in `TenantInfo` type (which has `required` members) on net10.0. The constraint is now conditional per target framework, since net8.0/net9.0 reference an older Finbuckle version whose own interfaces still require it.
+
+**Changed**
+
+- `AddRCommon()` is now idempotent: subsequent calls return the cached `IRCommonBuilder`.
+- Singleton-style verbs (`WithSimpleGuidGenerator`, `WithSequentialGuidGenerator`, `WithDateTimeSystem`, `WithJsonSerialization<T>`, `WithSmtpEmailServices`, `WithSendGridEmailServices`) are now idempotent on same-type re-registration. Different-type conflicts throw `RCommonBuilderException` with diagnostic messages.
+- `DataStoreFactoryOptions.Register<,>` is now idempotent for identical `(name, base, concrete)` triples. Conflicts (same `(name, base)` with different concrete) throw `UnsupportedDataStoreException` (exception type preserved).
+- `AddProducer<T>` now deduplicates by concrete producer type via descriptor scan — distinct producer types still coexist.
+- All sub-builder `WithX<T>` extensions route through `GetOrAddBuilder<T>`; generic constraints tightened to `where T : class, ...`.
+- `DataStoreNotFoundException`'s message now lists registered stores and remediation steps (message text only; exception type unchanged).
+- `EFCorePerisistenceBuilder` (typo) renamed to `EFCorePersistenceBuilder`; the old name remains as an `[Obsolete]` forwarding subclass.
+- The `WithValidation<T>(Action<CqrsValidationOptions>)` overload is marked `[Obsolete]` in favor of calling `UseWithCqrs(...)` inside `WithValidation<T>(Action<T>)`.
+
+**Notes**
+
+- Strictly additive public API surface across this release. No method or interface signature removals, and no exception types changed on existing APIs.
+- See `Examples/Bootstrapping/Examples.Bootstrapping.MultiModule/` for a runnable demonstration of modular composition.
+
+### 3.1.1
+
+Bug-fix and security patch release.
+
+**Fixed**
+
+- **Cross-host transactional outbox delivery.** Added `OutboxOptions.ImmediateDispatch` (default `true`, fully backward-compatible). When set to `false`, a unit of work persists outbox events but skips the best-effort post-commit in-process dispatch (Phase 3), leaving the durable poller (`OutboxProcessingService`) as the sole dispatcher and marker. This fixes silent loss of cross-host delivery, where a producing host marked rows processed before a subscriber on a different host could consume them. Producer-only hosts should set `ImmediateDispatch = false`. See [Outbox Producer/Processor Topology](../event-handling/outbox-producer-processor-topology.mdx).
+- Outbox post-commit dispatch no longer marks a message processed when no in-process producer matched the event; it is left for the poller (defense-in-depth).
+- `EFCoreOutboxStore.DeleteProcessedAsync` / `DeleteDeadLetteredAsync` used a `DateTimeOffset` comparison the SQLite provider could not translate. The comparison is now evaluated client-side; SQL Server / PostgreSQL behaviour is unchanged.
+
+**Security**
+
+- Pinned patched **Microsoft.OpenApi 2.7.5** in `RCommon.Authorization.Web` (net10 target), resolving CVE-2026-49451 (GHSA-v5pm-xwqc-g5wc), which was pulled transitively via Swashbuckle 10.x.
+- Upgraded the native SQLite binary (**SQLitePCLRaw.lib.e_sqlite3 3.53.3**) in the SQLite-backed test projects, resolving CVE-2025-6965 (GHSA-2m69-gcr7-jv3q).
+
+**Notes**
+
+- Strictly additive public API surface (`OutboxOptions.ImmediateDispatch`); no signature removals, and no behavioural change at the default.
+- Website (Docusaurus) build-tooling npm advisories are tracked as a separate follow-up (Docusaurus 3.10 upgrade + theme swizzle migration).
+
+### Blob Storage Abstractions
+
+Added `RCommon.Blobs` as a provider-agnostic blob storage abstraction layer, with two concrete implementations:
+
+- `RCommon.Azure.Blobs` — Azure Blob Storage implementation
+- `RCommon.Amazon.S3Objects` — Amazon S3 implementation
+
+### Multi-Tenancy Support
+
+Added complete multi-tenancy infrastructure:
+
+- `RCommon.MultiTenancy` — builder abstraction for registering tenancy providers via `WithMultiTenancy<T>()`
+- `RCommon.Finbuckle` — Finbuckle.MultiTenant integration, providing `FinbuckleTenantIdAccessor<TTenantInfo>` that bridges Finbuckle's resolved tenant context to the `ITenantIdAccessor` consumed by all repositories
+- All persistence providers (`EFCoreRepository`, `DapperRepository`, `Linq2DbRepository`) automatically filter reads by tenant and stamp writes with the current tenant ID when entities implement `IMultiTenant`
+
+### Domain-Driven Design Support
+
+Added soft delete and multitenancy to the entity layer:
+
+- `ISoftDelete` — opt-in interface for logical deletion; repositories set `IsDeleted = true` and perform an UPDATE instead of a physical DELETE
+- `IMultiTenant` — opt-in interface for tenant-scoped entities; repositories filter reads and stamp writes automatically
+- `SoftDeleteHelper` and `MultiTenantHelper` utility classes for filter expression building and entity stamping
+- `EntityNotFoundException` for consistent "entity not found" error handling with type and ID context
+
+### Repository Soft Delete Extras
+
+Extended all persistence providers with explicit soft delete and bulk operation support:
+
+- `DeleteAsync(entity, isSoftDelete: bool)` overload on all write repositories
+- Automatic `!IsDeleted` filtering on all read operations for `ISoftDelete` entities
+- Bulk delete via `ExecuteDeleteAsync` on `EFCoreRepository`
+
+### Editorconfig and Code Hygiene
+
+Added `.editorconfig` to enforce consistent code style across the solution. All public methods and complex code paths now carry XML documentation comments.
+
+## Known Issues
+
+These are documented limitations in 3.2.0 with supported workarounds. Both are tracked for a future release.
+
+### Dapper outbox store is SQL Server–only
+
+`DapperOutboxStore` (`RCommon.Dapper`) generates T-SQL: it bracket-quotes identifiers (`[__OutboxMessages]`) and claims rows with `WITH (UPDLOCK, ROWLOCK, READPAST)`. On PostgreSQL (or any non–SQL Server engine) the claim query fails to execute. Portable, provider-aware SQL generation is a planned feature, not a quoting patch.
+
+**Workaround.** The outbox store is pluggable per datastore, and it does not have to match your repository provider. Use the provider-agnostic `EFCoreOutboxStore` for the outbox even in a Dapper-based application — EF Core emits the correct dialect for your database:
+
+```csharp
+.WithPersistence<EFCorePersistenceBuilder>(ef =>
+{
+    // An RCommonDbContext used only for the outbox table on this datastore.
+    ef.AddDbContext<OutboxDbContext>("AppDb", o => o.UseNpgsql(connectionString));
+    ef.SetDefaultDataStore(ds => ds.DefaultDataStoreName = "AppDb");
+    ef.AddOutbox<EFCoreOutboxStore>(dataStoreName: "AppDb");
+});
+```
+
+If your application runs on SQL Server, `DapperOutboxStore` works as-is and no change is needed.
+
+### MediatR point-to-point `Send<T>()` may not resolve the handler
+
+The in-process MediatR **fan-out** path (`Publish<T>()`) is fixed in 3.2.0 and is the canonical way to deliver events in-process through MediatR. The **point-to-point** `Send<T>()` path on the MediatR event-handling builder still wraps the request by its compile-time generic argument, so a request dispatched with a statically-erased type (as the transactional router does) can fail to match its handler. No shipped recipe routes events through `Send<T>()` on the mediator, and the request/response (CQRS) pipeline is out of scope for the event-handling domain.
+
+**Workaround.** Use `Publish<T>()` (with `AddSubscriber<T,H>()`) for in-process event delivery via MediatR — this is the documented [Recipe 5](../event-handling/recipes.mdx#recipe-5--in-process-mediator-mediatr) wiring and works correctly. For request/response command handling, use the CQRS request pipeline rather than routing events through the event-handling `Send<T>()` verb.
+
+## Versioning
+
+RCommon uses [MinVer](https://github.com/adamralph/minver) for automatic semantic versioning from git tags. All packages in the solution share the same version number.
+
+Version numbers follow [Semantic Versioning](https://semver.org/):
+
+- **Major** (`x.0.0`) — breaking API changes
+- **Minor** (`0.x.0`) — new features, backward-compatible additions
+- **Patch** (`0.0.x`) — bug fixes and documentation updates
+
+Pre-release versions (alpha, beta, rc) are tagged accordingly (e.g., `v3.0.0-alpha.1`).
+
+## Release Schedule
+
+RCommon does not follow a fixed release cadence. Releases are made when meaningful features, bug fixes, or breaking changes are ready. Subscribe to [GitHub Releases](https://github.com/RCommon-Team/RCommon/releases) or watch the repository to be notified of new versions.
+
+## Filing Issues
+
+Found a bug or missing a feature? Please open an issue on GitHub:
+
+- **Bug reports:** [https://github.com/RCommon-Team/RCommon/issues/new?template=bug_report.md](https://github.com/RCommon-Team/RCommon/issues/new)
+- **Feature requests:** [https://github.com/RCommon-Team/RCommon/issues/new?template=feature_request.md](https://github.com/RCommon-Team/RCommon/issues/new)
+- **Discussions:** [https://github.com/RCommon-Team/RCommon/discussions](https://github.com/RCommon-Team/RCommon/discussions)
