@@ -11,29 +11,14 @@ namespace RCommon;
 public static class OutboxPersistenceBuilderExtensions
 {
     /// <summary>
-    /// Registers the transactional outbox pattern services into the DI container.
+    /// Registers BOTH the outbox producer (store, routers, tracker) and the processor (hosted poller)
+    /// for a datastore — the single-host topology. Equivalent to calling
+    /// <see cref="AddOutboxProducer{TOutboxStore}"/> then <see cref="AddOutboxProcessor{TOutboxStore}"/>.
     /// </summary>
-    /// <typeparam name="TOutboxStore">The <see cref="IOutboxStore"/> implementation to register (scoped).</typeparam>
-    /// <param name="builder">The persistence builder to extend.</param>
-    /// <param name="configure">Optional action to configure <see cref="OutboxOptions"/>.</param>
-    /// <param name="dataStoreName">
-    /// The name of the datastore that owns the outbox table. When omitted (or null), the default
-    /// datastore name (configured via <c>SetDefaultDataStore</c>) is used and resolved lazily at
-    /// runtime — so this can be called before <c>SetDefaultDataStore</c> without issue.
-    /// </param>
-    /// <returns>The <see cref="IPersistenceBuilder"/> for fluent chaining.</returns>
     /// <remarks>
-    /// Registration details:
-    /// <list type="bullet">
-    ///   <item><description><see cref="IOutboxStore"/> — scoped (<typeparamref name="TOutboxStore"/>)</description></item>
-    ///   <item><description><see cref="IOutboxSerializer"/> — singleton (<see cref="JsonOutboxSerializer"/>, replaceable via TryAddSingleton)</description></item>
-    ///   <item><description><see cref="OutboxEventRouter"/> — scoped (concrete registration)</description></item>
-    ///   <item><description><see cref="IEventRouter"/> — scoped (forwards to <see cref="OutboxEventRouter"/>)</description></item>
-    ///   <item><description><see cref="InMemoryEntityEventTracker"/> — scoped (required by <see cref="OutboxEntityEventTracker"/>)</description></item>
-    ///   <item><description><see cref="IEntityEventTracker"/> — scoped (<see cref="OutboxEntityEventTracker"/>)</description></item>
-    ///   <item><description><see cref="OutboxProcessingService"/> — hosted service (singleton)</description></item>
-    ///   <item><description><see cref="IOutboxDataStoreRegistry"/> — singleton (<see cref="OutboxDataStoreRegistry"/>)</description></item>
-    /// </list>
+    /// All registrations are idempotent (<c>Try*</c>/<c>TryAddEnumerable</c>) and datastore names
+    /// deduplicate case-insensitively, so composing producer + processor (which each register the
+    /// shared core) is safe and yields exactly one poller and one datastore registration.
     /// </remarks>
     public static IPersistenceBuilder AddOutbox<TOutboxStore>(
         this IPersistenceBuilder builder,
@@ -41,82 +26,139 @@ public static class OutboxPersistenceBuilderExtensions
         string? dataStoreName = null)
         where TOutboxStore : class, IOutboxStore
     {
-        // AddOutbox may legitimately be called once per outbox-owning datastore so that several
-        // datastores share a SINGLE poller/diagnostics pair while each contributes its name to the
-        // registry (AC-9). To make that safe, every registration below is idempotent: the shared
-        // singletons (store binding, router, tracker, hosted services) are registered with Try* so a
-        // second call does not create duplicate pollers or diagnostics, while the datastore name is
-        // always appended (the one thing that must accumulate).
+        builder.AddOutboxProducer<TOutboxStore>(configure, dataStoreName);
+        builder.AddOutboxProcessor<TOutboxStore>(configure, dataStoreName);
+        return builder;
+    }
 
-        // Outbox store (scoped — participates in per-request transaction)
-        builder.Services.TryAddScoped<IOutboxStore, TOutboxStore>();
+    /// <summary>
+    /// Registers the outbox PRODUCER for a datastore: the store, serializer, event routers, entity-event
+    /// tracker, backoff strategy, datastore registry, and startup diagnostics — but NOT the hosted poller
+    /// (<see cref="OutboxProcessingService"/>). Use on a producer-only host in a producer/processor
+    /// topology (AC-21).
+    /// </summary>
+    /// <remarks>
+    /// A producer-only host (one that writes outbox rows but does not run the poller) should set
+    /// <see cref="OutboxOptions.ImmediateDispatch"/> to <c>false</c> — otherwise an immediate producer-side
+    /// dispatch marks the row processed before a remote subscriber (on the processor host) ever sees it.
+    /// </remarks>
+    public static IPersistenceBuilder AddOutboxProducer<TOutboxStore>(
+        this IPersistenceBuilder builder,
+        Action<OutboxOptions>? configure = null,
+        string? dataStoreName = null)
+        where TOutboxStore : class, IOutboxStore
+    {
+        builder.AddOutboxCore<TOutboxStore>(configure, dataStoreName);
 
-        // Serializer (singleton, replaceable)
-        builder.Services.TryAddSingleton<IOutboxSerializer, JsonOutboxSerializer>();
-
-        // Outbox event router (scoped — replaces InMemoryTransactionalEventRouter)
+        // Outbox event router (scoped, concrete) + IEventRouter forwarder.
         builder.Services.TryAddScoped<OutboxEventRouter>();
         builder.Services.TryAddScoped<IEventRouter>(sp => sp.GetRequiredService<OutboxEventRouter>());
 
-        // In-process transactional router as its OWN concrete scoped type (distinct from the
-        // IEventRouter -> OutboxEventRouter forwarder above). The OutboxEntityEventTracker composes this
-        // concrete router directly to dispatch transient events through the Phase-2 FIFO drain, so its
-        // transient dispatcher is independent of whatever IEventRouter resolves to in the outbox host.
-        // IEventRoutingRegistry is a core singleton registered by WithEventHandling (see RCommonBuilder),
-        // so no additional registration is needed for it here.
+        // In-process transactional router as its OWN concrete scoped type (the transient dispatcher the
+        // OutboxEntityEventTracker composes directly for the Phase-2 FIFO drain, independent of whatever
+        // IEventRouter resolves to in the outbox host).
         builder.Services.TryAddScoped<InMemoryTransactionalEventRouter>();
 
-        // Entity event tracker decorator (scoped — replaces InMemoryEntityEventTracker)
+        // Entity event tracker decorator (scoped — replaces InMemoryEntityEventTracker).
         builder.Services.TryAddScoped<InMemoryEntityEventTracker>();
         builder.Services.TryAddScoped<IEntityEventTracker, OutboxEntityEventTracker>();
 
-        // Background processing service (singleton). AddHostedService uses TryAddEnumerable keyed on the
-        // implementation type, so calling AddOutbox twice still yields exactly ONE OutboxProcessingService
-        // (which drains every registered datastore).
-        builder.Services.AddHostedService<OutboxProcessingService>();
-
         // Startup diagnostic: warn if a later registration silently overrode the outbox IEventRouter.
-        // Registered via TryAddEnumerable with the typed factory overload so the descriptor's
-        // implementation type is OutboxRoutingDiagnosticsHostedService (not the IHostedService service
-        // type); TryAddEnumerable dedups on that implementation type, so a second AddOutbox call does not
-        // register a duplicate diagnostic.
+        // Producer-only: it inspects the producer's IEventRouter -> OutboxEventRouter binding, which a
+        // processor-only host never registers, so running it there would false-warn.
         builder.Services.TryAddEnumerable(
             ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, OutboxRoutingDiagnosticsHostedService>(
                 sp => new OutboxRoutingDiagnosticsHostedService(
                     builder.Services,
                     sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>())));
 
-        // Startup diagnostic: fail loud when a durable event route names a datastore that has no
-        // registered outbox. Registered via TryAddEnumerable keyed on the implementation type so
-        // multiple AddOutbox calls yield exactly ONE validator instance.
-        builder.Services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, DurableRouteOutboxValidationHostedService>(
-                sp => new DurableRouteOutboxValidationHostedService(sp)));
+        return builder;
+    }
 
-        // Options
+    /// <summary>
+    /// Registers the outbox PROCESSOR for a datastore: the shared core plus the hosted poller
+    /// (<see cref="OutboxProcessingService"/>) that claims, dispatches, and marks outbox rows. Use on a
+    /// processor host in a producer/processor topology (AC-21).
+    /// </summary>
+    public static IPersistenceBuilder AddOutboxProcessor<TOutboxStore>(
+        this IPersistenceBuilder builder,
+        Action<OutboxOptions>? configure = null,
+        string? dataStoreName = null)
+        where TOutboxStore : class, IOutboxStore
+    {
+        builder.AddOutboxCore<TOutboxStore>(configure, dataStoreName);
+
+        // Background processing service (singleton). AddHostedService uses TryAddEnumerable keyed on the
+        // implementation type, so calling this (or AddOutbox) more than once still yields exactly ONE
+        // OutboxProcessingService, which drains every registered datastore.
+        builder.Services.AddHostedService<OutboxProcessingService>();
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers the shared, idempotent outbox core used by both the producer and the processor:
+    /// store, serializer, options, backoff strategy, datastore registry, and datastore-name enqueue.
+    /// </summary>
+    private static IPersistenceBuilder AddOutboxCore<TOutboxStore>(
+        this IPersistenceBuilder builder,
+        Action<OutboxOptions>? configure,
+        string? dataStoreName)
+        where TOutboxStore : class, IOutboxStore
+    {
+        // Outbox store (scoped — participates in per-request transaction).
+        builder.Services.TryAddScoped<IOutboxStore, TOutboxStore>();
+
+        // Serializer (singleton, replaceable).
+        builder.Services.TryAddSingleton<IOutboxSerializer, JsonOutboxSerializer>();
+
+        // Options.
         if (configure != null)
-        {
             builder.Services.Configure(configure);
-        }
         else
-        {
             builder.Services.Configure<OutboxOptions>(_ => { });
-        }
 
-        // Backoff strategy (singleton, replaceable)
+        // Backoff strategy (singleton, replaceable).
         builder.Services.TryAddSingleton<IBackoffStrategy>(sp =>
         {
             var opts = sp.GetRequiredService<IOptions<OutboxOptions>>().Value;
             return new ExponentialBackoffStrategy(opts.BackoffBaseDelay, opts.BackoffMaxDelay, opts.BackoffMultiplier);
         });
 
-        // Datastore registry — singleton, ordering-safe.
-        // The name (or null for "use the default") is enqueued into OutboxDataStoreRegistrationOptions
-        // now (registration time) and resolved lazily when Registrations is first read (runtime).
-        // This means AddOutbox can be called before SetDefaultDataStore without issue.
+        // Datastore registry — singleton, ordering-safe. Resolve the effective name: an explicit positional
+        // dataStoreName wins; otherwise a name set via OnDataStore(...) inside the configure delegate; else
+        // null (= "use the configured default datastore", resolved lazily by the registry at read time).
         builder.Services.TryAddSingleton<IOutboxDataStoreRegistry, OutboxDataStoreRegistry>();
-        builder.Services.Configure<OutboxDataStoreRegistrationOptions>(o => o.Names.Add(dataStoreName));
+        var effectiveName = ResolveDataStoreName(configure, dataStoreName);
+        builder.Services.Configure<OutboxDataStoreRegistrationOptions>(o => o.Names.Add(effectiveName));
+
+        // Startup diagnostic (MN-3 fail-loud): throw when a durable event route names a datastore that has
+        // no registered outbox. In the CORE so producer-only, processor-only, and composed AddOutbox hosts
+        // all keep the guard. TryAddEnumerable keyed on impl type => exactly one instance even when the core
+        // runs twice (composed AddOutbox) or across multiple datastore registrations.
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, DurableRouteOutboxValidationHostedService>(
+                sp => new DurableRouteOutboxValidationHostedService(sp)));
 
         return builder;
+    }
+
+    /// <summary>
+    /// Resolves the owning datastore name. An explicit positional <paramref name="dataStoreName"/> takes
+    /// precedence; otherwise the <c>configure</c> delegate is probed against a throwaway
+    /// <see cref="OutboxOptions"/> to read any <see cref="OutboxOptions.DataStoreName"/> set via
+    /// <see cref="OutboxOptions.OnDataStore"/>. Returns <c>null</c> when neither is supplied.
+    /// </summary>
+    private static string? ResolveDataStoreName(Action<OutboxOptions>? configure, string? dataStoreName)
+    {
+        if (!string.IsNullOrWhiteSpace(dataStoreName))
+            return dataStoreName;
+
+        if (configure == null)
+            return null;
+
+        var probe = new OutboxOptions();
+        configure(probe);
+        return probe.DataStoreName;
     }
 }
