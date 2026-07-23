@@ -34,9 +34,9 @@ This domain spec formalizes the 3.2.0 redesign. Full design rationale, diagrams,
 - **AC-15 (broker coordination proven):** An integration test on the Podman/Testcontainers harness asserts that, under recipe 2b, business state + broker-outbox rows commit atomically and a rollback leaves neither. Recipe 2b is "done" only when green.
 - **AC-16 (recipes proven):** Each of the five recipes ships as a runnable example with an end-to-end test asserting the documented wiring composes and produces the recipe's observable outcome.
 - **AC-17 (back-compat shims):** `IEntityEventTracker.AddEntity(entity)` overload preserved (defaults to default datastore); `AddSubscriber` retained as `[Obsolete]` alias forwarding to `Consume` on broker builders; `EFCoreOutboxStore<TContext>`/subclass marked `[Obsolete]`.
-- **AC-18 (opt-in metrics):** RCommon exposes a `RCommon.Outbox` `System.Diagnostics.Metrics.Meter` instrumenting per-datastore pending depth, oldest-unprocessed age, relay success/failure counts, dead-letter rate, and dispatch-queue depth. Opt-in (host registers the meter with its metrics pipeline); additive/non-breaking.
-- **AC-19 (payload protection hook):** An `IOutboxPayloadProtector` seam wraps payload serialization with `Protect`/`Unprotect`; the default implementation is pass-through (plaintext). Applications may supply an encrypting implementation. Non-breaking.
-- **AC-20 (deserialization allow-list):** The outbox serializer resolves only event types present in the registration set (types with a route/subscriber/producer). An unknown/unresolvable `EventType` on relay/consume is logged loud and dead-lettered — never deserialized to an arbitrary type.
+- **AC-18 (opt-in metrics) — DEFERRED, not shipped in 3.2.0.** Planned: RCommon exposes a `RCommon.Outbox` `System.Diagnostics.Metrics.Meter` instrumenting per-datastore pending depth, oldest-unprocessed age, relay success/failure counts, dead-letter rate, and dispatch-queue depth. Opt-in (host registers the meter with its metrics pipeline); additive/non-breaking. **Current state:** not implemented; observe via the `__OutboxMessages` tables or poller logs.
+- **AC-19 (payload protection hook) — DEFERRED, not shipped in 3.2.0.** Planned: an `IOutboxPayloadProtector` seam wrapping payload serialization with `Protect`/`Unprotect`; default pass-through (plaintext), applications may supply an encrypting implementation. Non-breaking. **Current state:** not implemented; payloads are plaintext within the application-database trust boundary.
+- **AC-20 (deserialization allow-list) — DEFERRED, not shipped in 3.2.0.** Planned: the outbox serializer resolves only event types present in the registration set (types with a route/subscriber/producer); an unknown/unresolvable `EventType` on relay/consume is logged loud and dead-lettered — never deserialized to an arbitrary type. **Current state:** not implemented; the serializer resolves the type named in the row.
 - **AC-21 (producer/processor topology):** First-class `AddOutboxProducer` (store/router/tracker, no hosted poller) and `AddOutboxProcessor` (hosted poller) registration methods exist alongside `AddOutbox` (= producer + processor). Each is datastore-scoped (`OnDataStore(...)`), consolidating the multi-host topology into this release's registration rework.
 
 ### Must Not Do
@@ -50,7 +50,7 @@ This domain spec formalizes the 3.2.0 redesign. Full design rationale, diagrams,
 
 ### Nice to Have
 
-- None outstanding. Items previously parked here — the producer/processor topology split, payload protection, and first-class metrics — were pulled into scope during spec review (AC-18, AC-19, AC-21).
+- The producer/processor topology split (AC-21) was pulled into scope during spec review and **shipped** in 3.2.0. Payload protection (AC-19) and first-class metrics (AC-18) were also accepted into scope but were **deferred and did not ship in 3.2.0** — they remain roadmap items (see Open Questions).
 
 ## Technical Constraints
 
@@ -76,14 +76,14 @@ External dependencies: one relational database per registered datastore; optiona
 
 - **Warnings (fail-loud):** poller draining an event type with zero matching subscribers (once per type); outbox routing overridden by a later registration (startup diagnostic); missing outbox schema on a registered datastore (startup diagnostic); cycle-breaker generation limit exceeded; best-effort relay/dispatch failure (before retry); dead-lettering.
 - **Debug/Info:** dispatch counts per commit, poller poll cycles and claim counts, `ImmediateDispatch` skip on producer-only hosts.
-- **Metrics (first-class, opt-in):** a `RCommon.Outbox` `Meter` (System.Diagnostics.Metrics) exposes per-datastore outbox pending depth and oldest-unprocessed age; relay success/failure counts; dead-letter rate; dispatch-queue depth and max cascade generation reached (AC-18). Host-agnostic — the application wires the meter into OpenTelemetry/Prometheus/etc.
+- **Metrics (first-class, opt-in) — DEFERRED, not shipped in 3.2.0 (AC-18).** Planned: a `RCommon.Outbox` `Meter` (System.Diagnostics.Metrics) exposing per-datastore outbox pending depth and oldest-unprocessed age; relay success/failure counts; dead-letter rate; dispatch-queue depth and max cascade generation reached. Host-agnostic — the application wires the meter into OpenTelemetry/Prometheus/etc. Until it ships, observe via the `__OutboxMessages` tables or the poller's warnings/logs.
 - **Alerting:** outbox backlog age exceeding a threshold and dead-letter rate are the primary signals; thresholds are host-owned.
 
 ## Security
 
 - **Attack surface:** event payloads are serialized into the outbox (JSON) and to brokers, then deserialized on relay/consume. Type resolution goes through `IOutboxSerializer`; only known/registered event types should be deserialized.
-- **Data protection:** outbox rows live in the application database, inside the same trust boundary and at-rest protection as business data. `TenantId` is recorded per row for multi-tenant isolation. Payloads are plaintext by default; applications needing field/payload protection supply an `IOutboxPayloadProtector` (AC-19, default pass-through).
-- **Deserialization safety:** the serializer enforces an allow-list of registered event types; a tampered/unknown `EventType` is logged and dead-lettered rather than deserialized (AC-20).
+- **Data protection:** outbox rows live in the application database, inside the same trust boundary and at-rest protection as business data. `TenantId` is recorded per row for multi-tenant isolation. Payloads are plaintext. The `IOutboxPayloadProtector` field/payload-protection seam (AC-19) is **DEFERRED — not shipped in 3.2.0**; applications needing payload protection must handle it above the event model until it ships.
+- **Deserialization safety — DEFERRED, not shipped in 3.2.0 (AC-20).** Planned: the serializer enforces an allow-list of registered event types and a tampered/unknown `EventType` is logged and dead-lettered rather than deserialized. **Current state:** the serializer resolves the type named in the outbox row; deploy the outbox only within a trusted boundary until the allow-list ships.
 - **Auth/authz:** not applicable at the library level; consumers execute in their own DI scope. Inbox idempotency prevents duplicate side effects from replays.
 - **Compliance:** none imposed by the library; applications remain responsible for any PII/regulatory handling of event payloads.
 
@@ -110,13 +110,13 @@ Breaking changes are softened with shims (AC-17). Deliverables: a migration guid
 
 ## Open Questions
 
-None outstanding. All were resolved during spec review (2026-07-22):
+Scope was resolved during spec review (2026-07-22), but three accepted items (AC-18/19/20) were **deferred and did not ship in 3.2.0** — reopened below as roadmap items:
 
-- **OQ-1 (metrics) → resolved:** first-class, opt-in `RCommon.Outbox` `Meter` (AC-18).
-- **OQ-2 (payload protection) → resolved:** optional `IOutboxPayloadProtector`, default pass-through (AC-19).
+- **OQ-1 (metrics) → DEFERRED:** first-class, opt-in `RCommon.Outbox` `Meter` (AC-18) is designed but not implemented in 3.2.0.
+- **OQ-2 (payload protection) → DEFERRED:** optional `IOutboxPayloadProtector` (AC-19) is designed but not implemented in 3.2.0.
 - **OQ-3 (perf) → resolved:** correctness-focused + sanity throughput assertions; no formal benchmark suite in 3.2.0.
 - **OQ-4 (cycle-breaker default) → resolved:** 16 generations, configurable (AC-4).
-- **OQ-5 (deserialization allow-list) → resolved:** enforce allow-list of registered types; unknown ⇒ fail-loud/dead-letter (AC-20).
+- **OQ-5 (deserialization allow-list) → DEFERRED:** the registered-type allow-list (AC-20) is designed but not implemented in 3.2.0.
 - **OQ-6 (topology API) → resolved:** fold `AddOutboxProducer`/`AddOutboxProcessor` into 3.2.0 (AC-21).
 - **OQ-7 (example names) → resolved:** accept the proposed names, including `Examples.EventHandling.Outbox.MultiDataStore`, `Examples.Messaging.MassTransit.NativeOutbox`, `Examples.Messaging.Wolverine.NativeOutbox`, `Examples.EventHandling.TransactionScript`, `Examples.EventHandling.NoUnitOfWork`.
 
