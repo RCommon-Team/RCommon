@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using RCommon.Entities;
+using RCommon.EventHandling;
 using RCommon.IntegrationTests.Fixtures;
 using RCommon.Persistence;
 using RCommon.Persistence.Crud;
@@ -84,6 +85,11 @@ public class CrossDataStoreOutboxTests
         services.AddRCommon()
             .WithSimpleGuidGenerator() // OutboxEventRouter needs IGuidGenerator to stamp each outbox row's Id.
             .WithUnitOfWork<DefaultUnitOfWorkBuilder>(uow => { })
+            // As of Phase 3a, outbox durability is route-driven and opt-in: an entity event is only
+            // persisted to the outbox if it is marked durable. Publish the Billing aggregate's event
+            // to the co-located "Billing" outbox so it lands in Billing's __OutboxMessages (B4/AC-7).
+            .WithEventHandling<InMemoryEventBusBuilder>(events =>
+                events.Publish<InvoiceRaisedEvent>().UseOutbox("Billing"))
             .WithPersistence<EFCorePersistenceBuilder>(ef =>
             {
                 ef.AddDbContext<OrdersDbContext>("Orders", o => o.UseNpgsql(_pg.ConnectionString));
