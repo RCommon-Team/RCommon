@@ -16,8 +16,9 @@ public static class OutboxPersistenceBuilderExtensions
     /// <see cref="AddOutboxProducer{TOutboxStore}"/> then <see cref="AddOutboxProcessor{TOutboxStore}"/>.
     /// </summary>
     /// <remarks>
-    /// All registrations are idempotent (<c>Try*</c>/<c>TryAddEnumerable</c>) and datastore names
-    /// deduplicate case-insensitively, so composing producer + processor (which each register the
+    /// Every registration is idempotent — via <c>Try*</c>/<c>TryAddEnumerable</c>, or (for the
+    /// authoritative outbox routing) a Remove-then-Add that nets exactly one registration — and datastore
+    /// names deduplicate case-insensitively, so composing producer + processor (which each register the
     /// shared core) is safe and yields exactly one poller and one datastore registration.
     /// <para>
     /// The <paramref name="configure"/> delegate may be invoked more than once (once eagerly to resolve
