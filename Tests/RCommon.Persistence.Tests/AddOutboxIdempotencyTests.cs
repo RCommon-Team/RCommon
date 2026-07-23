@@ -93,18 +93,20 @@ public class AddOutboxIdempotencyTests
         builder.AddOutbox<FakeOutboxStore>(dataStoreName: "Billing");
 
         // Diagnostics are registered via TryAddEnumerable with the typed factory overload so each
-        // is a shared singleton. Currently there are two diagnostics:
+        // is a shared singleton. Currently there are three diagnostics:
         //   1. OutboxRoutingDiagnosticsHostedService  — warns when IEventRouter is clobbered
-        //   2. DurableRouteOutboxValidationHostedService — throws when a durable route names an
+        //   2. ProducerImmediateDispatchDiagnosticsHostedService — warns when a producer-only host
+        //      leaves ImmediateDispatch = true (no-op here since AddOutbox also registers the poller)
+        //   3. DurableRouteOutboxValidationHostedService — throws when a durable route names an
         //      unregistered outbox datastore
-        // Total IHostedService count == 3 (one poller + two diagnostics) proves idempotency.
+        // Total IHostedService count == 4 (one poller + three diagnostics) proves idempotency.
         var hostedServices = services.Count(d => d.ServiceType == typeof(IHostedService));
         var diagnostics = services.Count(d =>
             d.ServiceType == typeof(IHostedService)
             && d.ImplementationType != typeof(OutboxProcessingService));
 
-        hostedServices.Should().Be(3, "exactly one poller and two routing diagnostics should be registered");
-        diagnostics.Should().Be(2, "each diagnostic is a shared singleton, not one-per-datastore");
+        hostedServices.Should().Be(4, "exactly one poller and three routing diagnostics should be registered");
+        diagnostics.Should().Be(3, "each diagnostic is a shared singleton, not one-per-datastore");
     }
 
     [Fact]

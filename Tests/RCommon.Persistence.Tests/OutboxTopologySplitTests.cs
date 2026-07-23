@@ -148,14 +148,14 @@ public class OutboxTopologySplitTests
         services.Any(d => d.ServiceType == typeof(OutboxEventRouter)).Should().BeTrue();
 
         // Separate producer+processor calls run the shared core twice (once each), yet must yield exactly
-        // the same hosted-service shape as a single AddOutbox: one poller + two diagnostics (the MN-3
+        // the same hosted-service shape as a single AddOutbox: one poller + three diagnostics (the MN-3
         // durable-route validator from the core lands exactly once despite the double core invocation).
         // This mirrors the load-bearing invariant in AddOutboxIdempotencyTests for the new split surface.
         var hostedServices = services.Count(d => d.ServiceType == typeof(IHostedService));
         var diagnostics = services.Count(d => d.ServiceType == typeof(IHostedService)
             && d.ImplementationType != typeof(OutboxProcessingService));
-        hostedServices.Should().Be(3, "one poller + two diagnostics, even across separate producer/processor calls");
-        diagnostics.Should().Be(2, "the MN-3 validator (core) and the routing-clobber diagnostic (producer), each once");
+        hostedServices.Should().Be(4, "one poller + three diagnostics, even across separate producer/processor calls");
+        diagnostics.Should().Be(3, "the MN-3 validator (core), the routing-clobber diagnostic (producer), and the producer-only ImmediateDispatch diagnostic (producer), each once");
     }
 
     private static IOutboxDataStoreRegistry BuildRegistry(IServiceCollection services)

@@ -77,6 +77,16 @@ public static class OutboxPersistenceBuilderExtensions
                     builder.Services,
                     sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>())));
 
+        // Startup diagnostic (AC-21 footgun): warn if this is a producer-only host (no poller registered)
+        // that leaves ImmediateDispatch = true. Registered on the producer path only; a composed AddOutbox
+        // also registers the poller, so ShouldWarn short-circuits to false there.
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, ProducerImmediateDispatchDiagnosticsHostedService>(
+                sp => new ProducerImmediateDispatchDiagnosticsHostedService(
+                    builder.Services,
+                    sp.GetRequiredService<IOptions<OutboxOptions>>(),
+                    sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>())));
+
         return builder;
     }
 
