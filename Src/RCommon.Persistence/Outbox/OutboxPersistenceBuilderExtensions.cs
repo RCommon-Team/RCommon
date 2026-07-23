@@ -19,6 +19,11 @@ public static class OutboxPersistenceBuilderExtensions
     /// All registrations are idempotent (<c>Try*</c>/<c>TryAddEnumerable</c>) and datastore names
     /// deduplicate case-insensitively, so composing producer + processor (which each register the
     /// shared core) is safe and yields exactly one poller and one datastore registration.
+    /// <para>
+    /// The <paramref name="configure"/> delegate may be invoked more than once (once eagerly to resolve
+    /// the owning datastore name via <see cref="OutboxOptions.OnDataStore"/>, and again by the options
+    /// system), so it must be side-effect-free.
+    /// </para>
     /// </remarks>
     public static IPersistenceBuilder AddOutbox<TOutboxStore>(
         this IPersistenceBuilder builder,
